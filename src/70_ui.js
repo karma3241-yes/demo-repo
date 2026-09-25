@@ -216,13 +216,13 @@ function renderLB(){
   sheetBody.appendChild(el('table',{class:'lb'},tb));
 }
 // ---- multiplayer (room codes on the public site, automatic on claude.ai) ----
-const SITE_URL='';
+const SITE_URL='https://demo-repo-dusky.vercel.app';
 function renderMP(){
   const B=sheetBody,st=MP.status();
   if(window.claude){
     B.append(el('p',{class:'muted',text:'Everyone in your organization who has this page open plays in the same city automatically. People invited from outside your organization can\'t join here.'}),
       st?el('p',{class:'pts',text:st}):null);
-    if(SITE_URL)B.append(el('p',{class:'muted',text:'To play with anyone, open the public site and use a room code: '+SITE_URL}));
+    if(SITE_URL)B.append(el('p',{class:'muted',text:'To play with friends outside your organization, open the public site and use a room code: '}),el('p',{},el('a',{href:SITE_URL,target:'_blank',rel:'noopener',class:'sitelink',text:SITE_URL.replace('https://','')})));
     return;}
   if(!P2P.available()){B.append(el('p',{class:'muted',text:'This browser can\'t do peer-to-peer connections, so multiplayer is off.'}));return;}
   B.append(el('p',{class:'muted',text:'Play with friends in the same city. One of you creates a room and shares the code or invite link; everyone else joins with it. The room stays open while its host is playing. Each player\'s crimes and traffic are their own; players and their attacks are shared.'}));

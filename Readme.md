@@ -4,7 +4,7 @@ An open-world superhero sandbox that runs in the browser. You create a hero, pic
 
 ## Play
 
-Open `index.html` in a recent browser (Chrome, Edge, Firefox or Safari). You don't need a server or an install. The game ships as one file with no dependencies, written in raw WebGL 2.
+Play it online at **https://demo-repo-dusky.vercel.app**, or open `index.html` in a recent browser (Chrome, Edge, Firefox or Safari). You don't need a server or an install. The game ships as one file with no dependencies, written in raw WebGL 2.
 
 It works on laptops and phones. The game detects your device and switches between keyboard-and-mouse and touch controls automatically. You can override this in Settings.
 
