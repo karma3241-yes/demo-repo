@@ -344,7 +344,7 @@ function buildDrawList(){
       queue(MESH.glowBox,M4.beam(tmpM(),ex,P.eye.y,ez,beam.x,beam.y,beam.z,0.07),[1,.55,.35,1],F_ADD);
       queue(MESH.glowBox,M4.beam(tmpM(),ex,P.eye.y,ez,beam.x,beam.y,beam.z,0.3),[.9,.08,.03,0.5],F_BL);}
       const g=1.2+Math.random()*0.4;queue(MESH.glowSphere,at(beam.x,beam.y,beam.z,0,0,0,g,g,g),[1,.5,.2,0.8],F_ADD);}
-    if(P.web&&P.hand){const h=P.hand;queue(MESH.box,M4.beam(tmpM(),h[12],h[13],h[14],P.web.x,P.web.y,P.web.z,0.06),[.95,.95,1,1],0);}
+    const wp=P.web||P.zip;if(wp&&P.hand){const h=P.hand;queue(MESH.box,M4.beam(tmpM(),h[12],h[13],h[14],wp.x,wp.y,wp.z,0.06),[.95,.95,1,1],0);}
     if(P.tk){const a=P.tk.a,c=center(a),s=(a.radius||1)*1.6;queue(MESH.glowSphere,at(c.x,c.y,c.z,0,0,0,s,s,s),[.6,.35,1,0.22],F_ADD);}
   }
   for(const r of MP.peers.values())drawRemote(r);
@@ -386,7 +386,8 @@ function buildDrawList(){
   for(const t of tracers){const k=t.life/t.max;queue(MESH.glowBox,M4.beam(tmpM(),t.ax,t.ay,t.az,t.bx,t.by,t.bz,t.w),[t.col[0],t.col[1],t.col[2],k],F_ADD);}
   for(const r of rings){const k=r.t/r.dur,e=1-Math.pow(1-k,3),rad=lerp(r.r0,r.r1,e);
     const M=r.dir?M4.alignY(tmpM(),r.x,r.y,r.z,r.dir[0],r.dir[1],r.dir[2],rad):at(r.x,r.y,r.z,0,0,0,rad,1,rad);queue(MESH.ring,M,[r.col[0],r.col[1],r.col[2],1-k],F_ADD);}
-  for(const s of scorches){const f=Math.min(1,s.life/10);queue(MESH.disc,M4.alignY(tmpM(),s.x,s.y,s.z,s.nx,s.ny,s.nz,s.r),[.015,.013,.012,0.8*f],F_BL);}
+  for(const s of scorches){const f=Math.min(1,s.life/10);queue(MESH.disc,M4.alignY(tmpM(),s.x,s.y,s.z,s.nx,s.ny,s.nz,s.r),[.015,.013,.012,0.8*f],F_BL);
+    if(s.cr){queue(MESH.ring,M4.alignY(tmpM(),s.x+s.nx*0.03,s.y+s.ny*0.03,s.z+s.nz*0.03,s.nx,s.ny,s.nz,s.r*1.25),[.33,.31,.29,0.9*f],F_BL);queue(MESH.disc,M4.alignY(tmpM(),s.x+s.nx*0.02,s.y+s.ny*0.02,s.z+s.nz*0.02,s.nx,s.ny,s.nz,s.r*0.55),[0,0,0,0.9*f],F_BL);}}
   for(const d of debris){const q=inView(d.x,d.z,260);if(q<0)continue;queue(d.mesh||MESH.box,at(d.x,d.y,d.z,d.rx,d.ry,d.rz,d.dx||d.s,d.dy||d.s*0.7,d.dz||d.s*1.1),d.tint,q<60*60?F_SH:0);}
 }
 

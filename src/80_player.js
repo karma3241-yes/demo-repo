@@ -22,9 +22,11 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyH'){hud.keys.classList.toggle('fade');return;}
   if(paused||P.dead)return;
   if(e.code==='KeyG'){interact();return;}
+  if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyV'){bandPress();return;}
   if(P.car)return;
   if(e.code in SLOT_CODES){abilityDown(SLOT_CODES[e.code]);guideDone('ability');return;}
+  if(e.code==='KeyX'){dashPress();return;}
   if(e.code==='KeyF')toggleFlight();else if(e.code==='Space')pressJump();
 });
 addEventListener('keyup',e=>{keys[e.code]=false;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();});
@@ -53,11 +55,12 @@ function setPaused(v){
 }
 function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
-function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.web){webRelease();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();}
+function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else webZip();}
 function releaseJump(){if(P.charging&&canAct())doJump();P.charging=false;}
 function doJump(){
   const k=clamp(P.chargeT/1.0,0,1),jm=P.alien?alienDef().jump:1;P.charging=false;if(!P.grounded||P.flying)return;
   P.vel.y=(CONFIG.move.jump+k*k*(CONFIG.move.superJump-CONFIG.move.jump))*jm;P.grounded=false;
+  if(k<0.35&&(keys.ShiftLeft||keys.ShiftRight||P.speeding)){P.vel.x*=1.35;P.vel.z*=1.35;P.vel.y*=1.1;} // parkour leap
   if(k>0.35){SFX.boom(0.5*k,0.7);ringFx(P.pos.x,P.pos.y+0.4,P.pos.z,1,14*k,0.5,[1,.9,.6]);burst(P.pos.x,P.pos.y+0.4,P.pos.z,40,26*k,0.8,DUST,2.2,-3,2.5);addShake(0.3*k);hitProps(P.pos.x,P.pos.y,P.pos.z,3*k,P,8);}
 }
 function wallJump(){const w=P.wall;P.wall=null;P.wallCd=0.5;P.vel.set(w.nx*16,24,w.nz*16);P.grounded=false;SFX.whoosh();}
@@ -79,6 +82,7 @@ function interact(){
     burst(h.pos.x,h.pos.y+1,h.pos.z,30,6,1,[[.5,1,.7],[1,1,1]],1.2,-3,1.5);SFX.chime();addXP(15);addRep(5);feed('+15 XP · +5 rep','You helped someone back up');}
 }
 function enterCar(v){
+  if(v.net)WS.take(v);
   if(P.alien&&alienDef().flies)return;
   if(v.state==='road'||v.state==='chase'){const h=spawnHuman(v.vtype==='police'?'police':'civilian',v.pos.x+Math.cos(v.yaw)*2,v.pos.z-Math.sin(v.yaw)*2);
     if(h.role==='police')h.target=P;else npcFlee(h,P.pos.x,P.pos.z);
@@ -119,7 +123,7 @@ function buildTouchButtons(){
   else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
     for(const id of save.character.movement){if(id==='flight')B('FLY','fly');else if(id==='superSpeed')B('SPEED','speed');else if(id==='webSwing')B('WEB','web');}}
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
-  B('USE','use','use');B('JUMP','jump','wide');
+  B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
 }
 function touchAct(a,down){
   if(a==='pause'){if(down&&state==='play')setPaused(true);return;}
@@ -134,6 +138,8 @@ function touchAct(a,down){
   else if(a==='web'){if(down)webPress();else webRelease();}
   else if(a==='use'){if(down)interact();}
   else if(a==='band'){if(down)bandPress();}
+  else if(a==='lock'){if(down)lockToggle();}
+  else if(a==='dash'){if(down)dashPress();}
 }
 function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch',t);$('touch').hidden=!(t&&state==='play');$('menu-controls').hidden=t;$('menu-touch').hidden=!t;}
 
@@ -162,7 +168,7 @@ function driveCar(dt,inF,inR){
   // buildings: push out and bounce
   const R=v.hl*0.75;const before=v.spd;const col=collideBody(v.pos,v.vel,prevY+0.7,R,1.6);v.pos.y=Math.max(v.pos.y,groundY(v.pos.x,v.pos.z,prevY+0.7));
   if(col.wall){const imp=Math.abs(before);if(imp>7){Damage.apply(null,v,imp*1.1,'crash');SFX.crash(clamp(imp/30,0.3,1));burst(v.pos.x+fx*2,1,v.pos.z+fz*2,20,imp*0.5,0.5,SPARK,0.9,15,1);addShake(clamp(imp/40,0.1,0.6));
-      if(imp>18)breakWindowAt(col.wall.b,v.pos.x+fx*2.5,1.5+Math.random()*3,v.pos.z+fz*2.5);}v.spd*=-0.25;}
+      if(imp>24)crater(v.pos.x+fx*2.2,1.2,v.pos.z+fz*2.2,col.wall.nx||0,0,col.wall.nz||0,2,col.wall.b.col);if(imp>18)breakWindowAt(col.wall.b,v.pos.x+fx*2.5,1.5+Math.random()*3,v.pos.z+fz*2.5);}v.spd*=-0.25;}
   // other cars
   for(const o of vehicles){if(o===v||o.state==='held'||o.state==='thrown'||o.state==='wreckAir')continue;const dx=o.pos.x-v.pos.x,dz=o.pos.z-v.pos.z,d=Math.hypot(dx,dz),min=v.hl*0.75+o.hl*0.75;
     if(d<min&&d>0.01){const push=min-d;o.pos.x+=dx/d*push*0.6;o.pos.z+=dz/d*push*0.6;v.pos.x-=dx/d*push*0.4;v.pos.z-=dz/d*push*0.4;
@@ -210,6 +216,7 @@ let moved=0;
 function updatePlayer(dt){
   const a=P.anim;
   if(P.dead){P.deadT-=dt;if(P.deadT<=0)respawn();return;}
+  updateCombat(dt);if(P.floatT>0)P.floatT-=dt;
   if(P.wallCd>0)P.wallCd-=dt;
   const fwdX=-Math.sin(P.yaw),fwdZ=-Math.cos(P.yaw),rX=Math.cos(P.yaw),rZ=-Math.sin(P.yaw);
   const inF=clamp((keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)+touchIn.y,-1,1);
@@ -219,7 +226,8 @@ function updatePlayer(dt){
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
   const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=P.alien&&P.alien.phase>0;
   P.speeding=false;
-  if(P.wall){
+  if(P.wallRun)wallRunStep(dt,inF,inR);
+  else if(P.wall){
     const w=P.wall,cs=(AL&&AL.climb?18:pstat('wallClimb','speed'))*slowMul;let tx=-w.nz,tz=w.nx;if(tx*camR.x+tz*camR.z<0){tx=-tx;tz=-tz;}
     P.vel.set(tx*inR*cs*0.8,inF*cs,tz*inR*cs*0.8);P.pos.addS(P.vel,dt);
     if(w.nx!==0)P.pos.x=w.nx>0?w.b.x1+P.radius:w.b.x0-P.radius;else P.pos.z=w.nz>0?w.b.z1+P.radius:w.b.z0-P.radius;
@@ -232,11 +240,9 @@ function updatePlayer(dt){
   }else{
     if(P.dashT>0){P.dashT-=dt;const m=alienMul();for(const q of actors){if(!q.alive||q.kind==='prop'||time-(q.dashHit||-9)<0.5)continue;const c=center(q);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1,c.z-P.pos.z)<3.5){q.dashHit=time;Damage.apply(P,q,25*m,'wind',{knock:20});}}
       if(Math.random()<0.8)emit(P.pos.x,P.pos.y+1.3,P.pos.z,0,0,0,0.4,[.8,1,1],1.4,0,0);}
-    else if(P.web){
-      P.vel.y-=CONFIG.move.gravity*0.85*dt;const f=pstat('webSwing','force');
-      P.vel.x+=(fwdX*inF+rX*inR)*24*f*dt;P.vel.z+=(fwdZ*inF+rZ*inR)*24*f*dt;
-      if(keys.Space)P.web.L=Math.max(4,P.web.L-18*dt);P.vel.mul(1-0.05*dt);
-    }else if(P.flying){
+    else if(P.burstT>0){P.burstT-=dt;if(!P.flying&&!P.grounded)P.vel.y-=CONFIG.move.gravity*0.35*dt;}
+    else if(P.zip)zipStep(dt);
+    else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
       let tx=fwdX*cp*inF+rX*inR,ty=sp*inF+((keys.Space?1:0)-(keys.KeyC?1:0)),tz=fwdZ*cp*inF+rZ*inR;const l=Math.hypot(tx,ty,tz);if(l>1){tx/=l;ty/=l;tz/=l;}
       const base=(AL&&AL.flies?AL.flySpeed:pstat('flight','speed'))*slowMul,spd=shift?base*POWERS.flight.boost:base,k=damp(shift?1.8:3,dt);
@@ -246,8 +252,11 @@ function updatePlayer(dt){
       const am=AL?AL.speed:1;
       const canSpeed=hasPower('superSpeed')&&shift&&P.grounded&&l>0.1&&P.en>1;P.speeding=canSpeed;
       let spd=P.charging?6:canSpeed?CONFIG.move.run*pstat('superSpeed','mult'):shift?CONFIG.move.sprint*am:CONFIG.move.run*am;spd*=slowMul;
-      const k=P.grounded?damp(12,dt):damp(1.6,dt);
-      P.vel.x+=(tx*spd-P.vel.x)*k;P.vel.z+=(tz*spd-P.vel.z)*k;P.vel.y-=(P.slam?30:CONFIG.move.gravity)*dt;
+      const hsp=Math.hypot(P.vel.x,P.vel.z);
+      if(!P.grounded&&hsp>spd+2){ // keep swing / leap momentum: steer it instead of braking
+        if(l>0.1){const turn=damp(1.8,dt),nx=P.vel.x+(tx*hsp-P.vel.x)*turn,nz=P.vel.z+(tz*hsp-P.vel.z)*turn,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hsp;P.vel.z=nz/nl*hsp;}
+        const drag=1-0.22*dt;P.vel.x*=drag;P.vel.z*=drag;}
+      else{const k=P.grounded?damp(12,dt):damp(1.6,dt);P.vel.x+=(tx*spd-P.vel.x)*k;P.vel.z+=(tz*spd-P.vel.z)*k;}P.vel.y-=(P.slam?30:CONFIG.move.gravity)*(P.floatT>0&&P.vel.y<3?0.12:1)*dt;
       if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
     }
     const prevY=P.pos.y;P.pos.addS(P.vel,dt);
@@ -255,18 +264,21 @@ function updatePlayer(dt){
       if(d>W.L){dx/=d;dy/=d;dz/=d;P.pos.x-=dx*(d-W.L);P.pos.y-=dy*(d-W.L);P.pos.z-=dz*(d-W.L);const vr=P.vel.x*dx+P.vel.y*dy+P.vel.z*dz;if(vr>0){P.vel.x-=dx*vr;P.vel.y-=dy*vr;P.vel.z-=dz*vr;}}}
     if(phasing){const gb=baseY(P.pos.x,P.pos.z);P.grounded=false;if(P.pos.y<=gb){P.pos.y=gb;if(P.vel.y<0)P.vel.y=0;P.grounded=true;}}
     else{const col=collideBody(P.pos,P.vel,prevY,P.radius,P.height);P.grounded=col.grounded;
+      if(P.flungT&&time-P.flungT<2&&col.wall&&Math.hypot(P.vel.x,P.vel.z)+15>COMBAT.slamMin*2){crater(P.pos.x,P.pos.y+1.2,P.pos.z,col.wall.nx||0,0,col.wall.nz||0,2.2,col.wall.b.col);P.flungT=-9;P.vel.set(0,-4,0);P.stun=Math.max(P.stun,0.6);}
       const canClimb=(hasPower('wallClimb')&&!P.alien)||(AL&&AL.climb);
-      if(col.wall&&canClimb&&!P.flying&&!P.web&&P.wallCd<=0&&col.wall.b.y1>P.pos.y+2.5){
+      if(col.wall&&canClimb&&!shift&&!P.flying&&!P.web&&!P.zip&&P.wallCd<=0&&col.wall.b.y1>P.pos.y+2.5){
         const ix=fwdX*inF+rX*inR,iz=fwdZ*inF+rZ*inR;if(-(ix*col.wall.nx+iz*col.wall.nz)>0.5){P.wall=col.wall;P.vel.set(0,0,0);P.charging=false;P.grounded=false;}}
+      if(!P.wall&&col.wall&&!(P.flungT&&time-P.flungT<2)&&!phasing)tryWallRun(col,inF,inR,fwdX,fwdZ,rX,rZ,shift);
+      if(P.zip&&col.wall&&P.zip.t>0.15){P.zip=null;P.vel.set(col.wall.nx*4,14,col.wall.nz*4);}
       playerBodies(prevY);}
   }
   P.pos.x=clamp(P.pos.x,-LIMIT,LIMIT);P.pos.z=clamp(P.pos.z,-LIMIT,LIMIT);if(P.pos.y>CEIL){P.pos.y=CEIL;P.vel.y=Math.min(P.vel.y,0);}
   if(!onIsland(P.pos.x,P.pos.z)&&P.grounded&&P.pos.y<-0.5&&Math.random()<0.3)emit(P.pos.x,-0.8,P.pos.z,rr(-2,2),rr(2,4),rr(-2,2),0.6,WATER[0],1,15,1);
   if(!wasGrounded&&P.grounded&&!P.flying){
     const impact=-vyBefore;
-    if(P.slam){P.slam=false;shockAt(P.pos.x,P.pos.y+0.6,P.pos.z,1.3);burst(P.pos.x,P.pos.y+0.3,P.pos.z,80,40,1.1,DUST,3,-2,2);addScorch(P.pos.x,P.pos.y,P.pos.z,6);}
+    if(P.slam){P.slam=false;shockAt(P.pos.x,P.pos.y+0.6,P.pos.z,1.3);burst(P.pos.x,P.pos.y+0.3,P.pos.z,80,40,1.1,DUST,3,-2,2);crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,5,[.42,.41,.4]);}
     else if(impact>58||(AL&&AL.scale>2&&impact>25)){ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,16,0.45,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,50,26,0.9,DUST,2.6,-3,2.4);SFX.boom(0.55,0.7);addShake(0.45);
-      areaDamage(P.pos.x,P.pos.y+0.5,P.pos.z,10,25*strengthMul(),P,{knock:14});addScorch(P.pos.x,P.pos.y,P.pos.z,3.5);}
+      areaDamage(P.pos.x,P.pos.y+0.5,P.pos.z,10,25*strengthMul(),P,{knock:14});crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,3.5,[.42,.41,.4]);}
   }
   if(P.flying&&P.grounded&&keys.KeyC&&!(AL&&AL.flies))P.flying=false;
   if(P.speeding){for(const h of humans){if(!h.alive||h.air||time-(h.bumpT||-9)<0.6)continue;if(Math.abs(h.pos.x-P.pos.x)<1.8&&Math.abs(h.pos.z-P.pos.z)<1.8&&Math.abs(h.pos.y-P.pos.y)<2){h.bumpT=time;Damage.apply(P,h,pstat('superSpeed','hitDmg'),'bump',{knock:20});}}
@@ -274,15 +286,18 @@ function updatePlayer(dt){
   moved+=Math.hypot(P.vel.x,P.vel.z)*dt;if(moved>25)guideDone('move');
   // facing, tilt, limbs
   const hs=Math.hypot(P.vel.x,P.vel.z),sp3=P.vel.len();
-  const aiming=time-castT<0.6||beam||PS.iceCloud.holding||P.tk||(P.alien&&P.alien.channel);let yawRate=0;
-  if(!P.wall){let ty=P.heroYaw;if(aiming)ty=Math.atan2(camF.x,camF.z);else if(hs>1.5)ty=Math.atan2(P.vel.x,P.vel.z);
+  const aiming=time-castT<0.6||beam||PS.iceCloud.holding||P.tk||(P.alien&&P.alien.channel)||(lockT&&!P.web&&!P.flying);let yawRate=0;
+  if(!P.wall&&time-P.punchT>0.3){let ty=P.heroYaw;if(lockT&&!P.web&&!P.flying){const c=center(lockT);ty=Math.atan2(c.x-P.pos.x,c.z-P.pos.z);}else if(aiming)ty=Math.atan2(camF.x,camF.z);else if(hs>1.5)ty=Math.atan2(P.vel.x,P.vel.z);
     const prev=P.heroYaw;P.heroYaw=angLerp(P.heroYaw,ty,damp(P.flying?5:12,dt));yawRate=angLerp(0,P.heroYaw-prev,1)/Math.max(dt,1e-3);}
   let tilt=0,bank=0;
   if((P.flying||P.web)&&sp3>8){tilt=clamp(Math.atan2(hs,P.vel.y),0,1.5)*clamp(sp3/40,0,1);bank=clamp(-yawRate*0.25,-0.7,0.7);}
   if(P.speeding)tilt=0.35;if(aiming)tilt=Math.min(tilt,0.5);if(P.web)tilt*=0.5;
   P.tilt=lerp(P.tilt,tilt,damp(6,dt));P.bank=lerp(P.bank,bank,damp(4,dt));
   let tl=0,tr=0,kl=0,kr=0,al=0,ar=0,el=-0.25,er=-0.25,alz=-0.12,arz=0.12,cape=0.15;
-  if(P.wall){const c=Math.sin(time*8)*(Math.abs(inF)+Math.abs(inR)>0.1?1:0);al=-2.6+c*0.4;ar=-2.6-c*0.4;tl=0.4+c*0.3;tr=0.4-c*0.3;kl=0.9-c*0.4;kr=0.9+c*0.4;el=er=-0.6;cape=0.1;}
+  if(P.wallRun){const c=Math.sin(time*16);tl=c*0.9;tr=-c*0.9;kl=Math.max(0,-c)*1.3+0.2;kr=Math.max(0,c)*1.3+0.2;al=-c*0.9-0.3;ar=c*0.9-0.3;el=er=-1.2;cape=0.9;
+    if(P.wallRun.mode==='side'){bank=0;}}
+  else if(P.zip){ar=-3.0;er=0;al=-3.0;el=0;tl=0.2;tr=-0.1;kl=0.4;kr=0.2;cape=1.2;}
+  else if(P.wall){const c=Math.sin(time*8)*(Math.abs(inF)+Math.abs(inR)>0.1?1:0);al=-2.6+c*0.4;ar=-2.6-c*0.4;tl=0.4+c*0.3;tr=0.4-c*0.3;kl=0.9-c*0.4;kr=0.9+c*0.4;el=er=-0.6;cape=0.1;}
   else if(P.web){ar=-3.0;er=0;al=-0.6;el=-0.9;tl=0.3;tr=-0.2;kl=0.6;kr=0.3;cape=clamp(sp3/30,0.3,1.4);}
   else if(P.flying){if(sp3>20){ar=-2.95;er=0;al=-0.15;el=-0.2;tl=0.05;tr=0.22;kl=0.1;kr=0.5;cape=0.12+Math.sin(time*18)*0.06;}
     else{al=-0.3+Math.sin(time*2)*0.1;ar=-0.3-Math.sin(time*2)*0.1;alz=-0.35;arz=0.35;el=er=-0.5;tl=0.15+Math.sin(time*1.7)*0.1;tr=-0.05+Math.sin(time*1.7+1)*0.1;kl=0.3;kr=0.5;cape=0.35+Math.sin(time*3)*0.12;}}
@@ -296,7 +311,13 @@ function updatePlayer(dt){
   if(time-castT<0.25&&!beam){ar=-1.6;er=0;}
   const k=damp(14,dt);a.legL=lerp(a.legL,tl,k);a.legR=lerp(a.legR,tr,k);a.kneeL=lerp(a.kneeL||0,kl,k);a.kneeR=lerp(a.kneeR||0,kr,k);a.armL=lerp(a.armL,al,k);a.armR=lerp(a.armR,ar,k);
   a.elbL=lerp(a.elbL||0,el,k);a.elbR=lerp(a.elbR||0,er,k);a.armLz=lerp(a.armLz,alz,k);a.armRz=lerp(a.armRz,arz,k);a.cape=lerp(a.cape,cape,damp(8,dt));
-  if(time-P.punchT<0.16){if(P.punchArm>0){a.armR=-1.65;a.elbR=0;}else{a.armL=-1.65;a.elbL=0;}}
+  const pt=time-P.punchT;
+  if(pt<0.22){const kd=P.punchKind||'jab';
+    if(kd==='kick'){a.legR=-1.5;a.kneeR=0.1;a.legL=0.3;a.armL=-0.6;a.armR=0.4;}
+    else if(kd==='up'){a.armR=-3.0;a.elbR=-0.2;a.legL=-0.4;a.kneeL=0.9;}
+    else if(kd==='down'){const q=pt/0.22;a.armR=a.armL=lerp(-3.0,-0.8,q);a.elbR=a.elbL=-0.1;a.kneeL=a.kneeR=1.2;}
+    else if(kd==='fin'){a.armR=-1.7;a.elbR=0;a.armL=0.5;a.legL=-0.5;a.kneeL=0.6;}
+    else if(P.punchArm>0){a.armR=-1.65;a.elbR=0;}else{a.armL=-1.65;a.elbL=0;}}
   if(P.flying&&sp3>150){if(!P.boomed){P.boomed=true;SFX.boom(0.8,1.4);addShake(0.5);ringFx(P.pos.x+P.vel.x*0.05,P.pos.y+1.2+P.vel.y*0.05,P.pos.z+P.vel.z*0.05,1,16,0.5,[.8,.95,1],[P.vel.x,P.vel.y,P.vel.z]);}}
   else if(sp3<110)P.boomed=false;
   if(sp3>70&&P.flying){const n=Math.floor(sp3/35);for(let i=0;i<n;i++)emit(P.pos.x+P.vel.x*0.35+rr(-14,14),P.pos.y+1+P.vel.y*0.35+rr(-9,9),P.pos.z+P.vel.z*0.35+rr(-14,14),0,0,0,0.45,[.75,.85,1],0.35,0,0);}

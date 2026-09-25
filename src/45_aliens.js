@@ -98,14 +98,14 @@ const ALIEN_FN={
     if(inBuilding(tx,ty+1,tz,0.8))return;zig(ox,oy,oz,tx,ty+1.3,tz,[1,.95,.4]);P.pos.set(tx,ty,tz);P.vel.set(0,0,0);
     areaDamage(tx,ty+1,tz,4,20*m,P,{stun:0.6,type:'shock'});SFX.tone('square',2000,400,0.15,0.1);},
   stomp(){const m=alienMul(),x=P.pos.x,z=P.pos.z,y=P.pos.y+0.5;ringFx(x,y,z,2,30,0.6,[1,.85,.6]);burst(x,y,z,100,34,1.2,DUST,3.4,-3,2);
-    areaDamage(x,y,z,24,80*m,P,{knock:30});hitProps(x,y,z,14,P,28);addShake(1.2);SFX.boom(1,1.4);
+    areaDamage(x,y,z,24,80*m,P,{knock:30});hitProps(x,y,z,14,P,28);addShake(1.2);SFX.boom(1,1.4);crater(x,P.pos.y+0.02,z,0,1,0,8,[.42,.41,.4]);
     for(const a of actors)if(a.kind==='vehicle'&&a.alive&&a.state!=='wreck'&&Math.hypot(a.pos.x-x,a.pos.z-z)<18){a.state='thrown';a.vel.set(rr(-4,4),rr(8,14),rr(-4,4));a.sx=rr(-3,3);a.sy=rr(-2,2);a.sz=rr(-3,3);a.life=4;a.thrower=P;a.throwDmg=30*m;if(a.driver)ejectDriver(a);}},
   carToss(){const m=alienMul();let best=null,bd=16;for(const v of vehicles){if(!v.alive||v.state==='wreck'||v===P.car)continue;const d=Math.hypot(v.pos.x-P.pos.x,v.pos.z-P.pos.z);if(d<bd){bd=d;best=v;}}
     if(!best){feed('Car Toss','No car within reach');P.alien.cds[1]=0;return;}if(best.driver)ejectDriver(best);
     best.state='thrown';best.pos.set(P.pos.x,P.pos.y+P.height+1,P.pos.z);best.vel.set(camF.x*65,camF.y*65+10,camF.z*65);best.sx=rr(-2,2);best.sy=rr(-2,2);best.sz=rr(-2,2);best.life=6;best.thrower=P;best.throwDmg=90*m;SFX.whoosh();addShake(0.3);},
   megaPunch(){const m=alienMul();P.punchT=time;P.punchArm=1;const n=coneHit(8,0.3,90*m,{knock:40,stun:0.5},'punch');const h=handPoint();
     hitProps(P.pos.x+camF.x*5,P.pos.y+2,P.pos.z+camF.z*5,4,P,30);ringFx(h.x,h.y,h.z,1,6,0.3,[1,.95,.8]);SFX.punch(1.2);if(n)addShake(0.5);
-    const b=inBuilding(P.pos.x+camF.x*5,P.pos.y+4,P.pos.z+camF.z*5,1.5);if(b)breakWindowAt(b,P.pos.x+camF.x*5,P.pos.y+4,P.pos.z+camF.z*5);},
+    const b=inBuilding(P.pos.x+camF.x*5,P.pos.y+4,P.pos.z+camF.z*5,1.5);if(b){breakWindowAt(b,P.pos.x+camF.x*5,P.pos.y+4,P.pos.z+camF.z*5);const n=faceNormal(b,P.pos.x+camF.x*5,P.pos.y+4,P.pos.z+camF.z*5);crater(P.pos.x+camF.x*5,P.pos.y+4,P.pos.z+camF.z*5,n[0],n[1],n[2],4,b.col);}},
   veil(){P.invisible=7;for(const a of actors)if(a.target===P)a.target=null;burst(P.pos.x,P.pos.y+1.5,P.pos.z,40,6,1,[[.5,.2,.8],[.2,.1,.3]],2,0,1);SFX.tone('sine',600,150,0.6,0.1);},
   phase(){if(P.alien.phase>0){unphase();return;}P.alien.phase=6;SFX.tone('sine',300,900,0.4,0.08);},
   shadowStrike(){const m=alienMul();let t=aim.actor&&aim.actor.kind!=='prop'&&aim.actor.kind!=='vehicle'?aim.actor:null;

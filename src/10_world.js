@@ -282,7 +282,7 @@ for(const list of blockProps)for(const p of list)if(p.type==='tlight')tlights.pu
 const SPAWNS=[[hospital.x,hospital.z]];
 // traffic light phase for an intersection: returns 'g', 'y' or 'r' for traffic travelling along `axis`
 function lightFor(ix,iz,axis){
-  const T=16,off=((ix*7+iz*13)%16),t=((time+off)%T+T)%T;
+  const T=16,off=((ix*7+iz*13)%16),t=((time+WS.toff+off)%T+T)%T;
   const g0=t<7?'g':t<8.5?'y':'r',g1=t>=8.5&&t<15?'g':t>=15?'y':'r';
   return axis===0?g0:g1;
 }
