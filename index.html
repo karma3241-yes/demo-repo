@@ -191,7 +191,7 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
 #dmgs{position:absolute;inset:0;overflow:hidden}
 .dmg{position:absolute;left:0;top:0;font:700 16px var(--display);color:#ffe27a;text-shadow:0 2px 0 #3a1a00,0 0 6px rgba(0,0,0,.7);will-change:transform,opacity;white-space:nowrap}
 .toast.purple b{color:#c89bff}
-#online{font-size:11px;letter-spacing:.12em;color:#7dffb0;text-transform:uppercase}#online:empty{display:none}
+#online{font-size:11px;letter-spacing:.12em;color:#7dffb0;text-transform:uppercase;max-width:220px}#online:empty,#menu-online:empty{display:none}#menu-online{color:#7dffb0;margin:0}
 .slot.alien{border-color:rgba(176,108,255,.55)}.slot.alien small{color:#c89bff}
 .slot.band{border-color:rgba(176,108,255,.55)}.slot.band .tbar{width:74px;height:4px;margin-top:3px}.bar.tbar i{background:linear-gradient(90deg,#6a2cc4,#c89bff)}
 .slot.band.bad{border-color:var(--health)}
@@ -282,6 +282,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
     </div>
     <p class="muted" id="menu-touch" hidden>Touch controls: drag on the left side to move, drag on the right side to look, and use the buttons for punches, abilities and movement.</p>
     <div class="cta"><button class="go" id="start" type="button">Create your hero</button><span id="menu-sub"></span></div>
+    <p class="note" id="menu-online"></p>
     <div class="menu-btns"><button class="ghost" id="m-lb" type="button">Leaderboard</button><button class="ghost" id="m-set" type="button">Settings</button></div>
   </div>
 </div>
@@ -2570,10 +2571,20 @@ for(const sp of curbSpots.filter((_,i)=>i%5===0)){const v=makeVehicle('car');v.s
 // their attacks and PvP damage are shared. The shooter decides hits, the victim applies them.
 const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',dirty:true,hitT:0,
   bump(){this.dirty=true;},
+  tried:false,
+  // one-line room status for the HUD and menu ('' outside claude.ai)
+  status(){
+    if(!window.claude)return '';if(!this.room)return this.tried?'Multiplayer unavailable for this view':'Connecting to other players…';
+    if(!this.connected)return 'Connecting to other players…';
+    let others=0;try{for(const p of this.room.peers())if(!p.isMe&&p.kind==='viewer')others++;}catch(e){}
+    const playing=this.peers.size;
+    if(!others)return 'Online · no one else here yet';
+    const menu=others-playing;return 'Online · '+(playing?playing+' playing':'')+(playing&&menu>0?', ':'')+(menu>0?menu+' in the menu':'');
+  },
   async init(){
     try{
       if(!window.claude||typeof window.claude.use!=='function')return;
-      const room=await window.claude.use('room');if(!room)return;this.room=room;
+      const room=await window.claude.use('room');this.tried=true;if(!room)return;this.room=room;
       room.onPeers(ch=>{
         for(const p of ch.peers)if(p.isMe&&p.sameTab)this.myPeer=p.peer;
         for(const p of ch.joined)if(!p.isMe)this.upsert(p,true);
@@ -2582,7 +2593,7 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
       },()=>{});
       room.on('hit',m=>this.onHit(m),()=>{});room.on('down',m=>this.onDown(m),()=>{});room.on('fx',m=>this.onFx(m),()=>{});
       room.onConnection(c=>{this.connected=c;if(c)this.dirty=true;},()=>{});
-    }catch(e){this.room=null;}
+    }catch(e){this.room=null;this.tried=true;}
   },
   upsert(peer,joined){
     const pr=peer.presence||{};if(pr.v!==1)return;
@@ -3764,7 +3775,7 @@ function updateHud(dt){
   if(helpTimer>0){helpTimer-=dt;if(helpTimer<=0)hud.keys.classList.add('fade');}
   const tb=$('touch');if(!tb.hidden){const dn=tbtns.querySelector('.dn');if(dn)dn.hidden=!P.flying;const u=tbtns.querySelector('.use');if(u){u.classList.toggle('dim',!it);const t=it?it.kind==='exit'?'EXIT':it.kind==='car'?'CAR':'HELP':'USE';if(u.textContent!==t)u.textContent=t;}}
   if(lastHud.alien!==(P.alien?P.alien.id:'')){lastHud.alien=P.alien?P.alien.id:'';buildHotbar();buildTouchButtons();}
-  const on=MP.peers.size;setText($('online'),'online',on?on+' other hero'+(on>1?'es':'')+' online':'');
+  setText($('online'),'online',MP.status());
   drawMinimap(P.yaw);
 }
 
@@ -3806,6 +3817,7 @@ function frame(now){
   if(!paused)updateHud(dt);
   if(state==='play')MP.flush(real);
   updateTags();
+  if(state!=='play')setText($('menu-online'),'monline',MP.status());
 }
 applyTouchUI();refreshMenu();updateEnv(0);applyLook();MP.init();
 requestAnimationFrame(frame);

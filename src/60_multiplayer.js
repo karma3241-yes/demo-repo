@@ -6,10 +6,20 @@
 // their attacks and PvP damage are shared. The shooter decides hits, the victim applies them.
 const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',dirty:true,hitT:0,
   bump(){this.dirty=true;},
+  tried:false,
+  // one-line room status for the HUD and menu ('' outside claude.ai)
+  status(){
+    if(!window.claude)return '';if(!this.room)return this.tried?'Multiplayer unavailable for this view':'Connecting to other players…';
+    if(!this.connected)return 'Connecting to other players…';
+    let others=0;try{for(const p of this.room.peers())if(!p.isMe&&p.kind==='viewer')others++;}catch(e){}
+    const playing=this.peers.size;
+    if(!others)return 'Online · no one else here yet';
+    const menu=others-playing;return 'Online · '+(playing?playing+' playing':'')+(playing&&menu>0?', ':'')+(menu>0?menu+' in the menu':'');
+  },
   async init(){
     try{
       if(!window.claude||typeof window.claude.use!=='function')return;
-      const room=await window.claude.use('room');if(!room)return;this.room=room;
+      const room=await window.claude.use('room');this.tried=true;if(!room)return;this.room=room;
       room.onPeers(ch=>{
         for(const p of ch.peers)if(p.isMe&&p.sameTab)this.myPeer=p.peer;
         for(const p of ch.joined)if(!p.isMe)this.upsert(p,true);
@@ -18,7 +28,7 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
       },()=>{});
       room.on('hit',m=>this.onHit(m),()=>{});room.on('down',m=>this.onDown(m),()=>{});room.on('fx',m=>this.onFx(m),()=>{});
       room.onConnection(c=>{this.connected=c;if(c)this.dirty=true;},()=>{});
-    }catch(e){this.room=null;}
+    }catch(e){this.room=null;this.tried=true;}
   },
   upsert(peer,joined){
     const pr=peer.presence||{};if(pr.v!==1)return;

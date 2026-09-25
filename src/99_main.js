@@ -41,7 +41,7 @@ function updateHud(dt){
   if(helpTimer>0){helpTimer-=dt;if(helpTimer<=0)hud.keys.classList.add('fade');}
   const tb=$('touch');if(!tb.hidden){const dn=tbtns.querySelector('.dn');if(dn)dn.hidden=!P.flying;const u=tbtns.querySelector('.use');if(u){u.classList.toggle('dim',!it);const t=it?it.kind==='exit'?'EXIT':it.kind==='car'?'CAR':'HELP':'USE';if(u.textContent!==t)u.textContent=t;}}
   if(lastHud.alien!==(P.alien?P.alien.id:'')){lastHud.alien=P.alien?P.alien.id:'';buildHotbar();buildTouchButtons();}
-  const on=MP.peers.size;setText($('online'),'online',on?on+' other hero'+(on>1?'es':'')+' online':'');
+  setText($('online'),'online',MP.status());
   drawMinimap(P.yaw);
 }
 
@@ -83,6 +83,7 @@ function frame(now){
   if(!paused)updateHud(dt);
   if(state==='play')MP.flush(real);
   updateTags();
+  if(state!=='play')setText($('menu-online'),'monline',MP.status());
 }
 applyTouchUI();refreshMenu();updateEnv(0);applyLook();MP.init();
 requestAnimationFrame(frame);
