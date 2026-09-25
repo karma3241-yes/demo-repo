@@ -8,7 +8,10 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
   bump(){this.dirty=true;},
   tried:false,err:'',access:null,since:0,
   // one-line room status for the HUD and menu ('' outside claude.ai)
+  // the active transport: a room-code session (public site) or the claude.ai room
+  net(){return P2P.open?P2P:(this.room&&!this.err?this.room:null);},
   status(){
+    if(P2P.state!=='off')return P2P.statusText();
     if(!window.claude)return '';
     const a=this.access,why=a&&!a.edit?' · you have view-only access, ask the owner to make you an Editor':'';
     if(!this.room||this.err)return this.tried||this.err?'Multiplayer unavailable'+(this.err?' ('+this.err+')':'')+(why||' for this view'):'Connecting to other players…';
@@ -37,25 +40,26 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
   upsert(peer,joined){
     const pr=peer.presence||{};if(pr.v!==1)return;
     let r=this.peers.get(peer.peer);
-    if(!r){r=makeRemote(peer.peer);this.peers.set(peer.peer,r);actors.push(r);if(state==='play')feed((cleanName(pr.n||'')||'A hero')+' is here',repTier(+pr.rep||0).name);}
+    if(!r){r=makeRemote(peer.peer);this.peers.set(peer.peer,r);actors.push(r);if(state==='play')feed((cleanName(pr.n||'')||'A hero')+' is here',repTier(+pr.rep||0).name);if(sheetOpen==='mp')renderSheet();}
     applyPresence(r,pr);
   },
-  remove(id){const r=this.peers.get(id);if(!r)return;this.peers.delete(id);removeFrom(actors,r);if(state==='play')feed(r.name+' left','');},
+  remove(id){const r=this.peers.get(id);if(!r)return;this.peers.delete(id);removeFrom(actors,r);if(state==='play')feed(r.name+' left','');if(sheetOpen==='mp')renderSheet();},
   canFight(t){const a=playerFaction(),b=t.faction;return !(a!=='neutral'&&a===b);},
   hit(t,amount,type,opt){
-    if(!this.room||P.dead||state!=='play')return 0;
+    if(!this.net()||P.dead||state!=='play')return 0;
     if(!this.canFight(t)){if(time-(t.ffT||-9)>2){t.ffT=time;feed('Same side','You and '+t.name+' are both '+(t.faction==='hero'?'heroes':'villains'));}return 0;}
     dmgNum(t,amount);hitMarkT=time;t.flash=1;t.pend=(t.pend||0)+amount;t.pendType=type;t.pendK=Math.max(t.pendK||0,(opt&&opt.knock)||0);
     return amount;
   },
   flush(dt){
-    if(!this.room)return;
+    const net=this.net();if(!net)return;
     this.hitT-=dt;if(this.hitT<=0){this.hitT=0.12;
       for(const r of this.peers.values())if(r.pend>0){const d={to:r.peer,a:Math.round(r.pend*10)/10,t:String(r.pendType||'hit').slice(0,12),k:Math.round(r.pendK||0),x:Math.round(P.pos.x),z:Math.round(P.pos.z)};
-        r.pend=0;r.pendK=0;this.room.emit('hit',d).catch(()=>{});}}
+        r.pend=0;r.pendK=0;net.emit('hit',d).catch(()=>{});}}
     this.sendT-=dt;if(this.sendT>0)return;this.sendT=0.08;
+    this.keepT=(this.keepT||0)-0.08;if(net===P2P&&this.keepT<=0){this.keepT=2;this.dirty=true;} // room codes: resend so late joiners see idle players
     const pr=myPresence(),key=JSON.stringify(pr);if(key===this.last&&!this.dirty)return;this.last=key;this.dirty=false;
-    this.room.presence(pr).catch(e=>{if(e&&e.code==='not_granted')this.err='not_granted';});
+    net.presence(pr).catch(e=>{if(e&&e.code==='not_granted')this.err='not_granted';});
   },
   onHit(m){
     if(!m||m.isMe||!m.data||m.data.to!==this.myPeer||P.dead||state!=='play')return;
@@ -63,15 +67,15 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
     if(src&&!this.canFight(src))return;
     Damage.apply(src,P,amt,'pvp',{knock:clamp(+m.data.k||0,0,40)});
   },
-  sendDown(killer){if(!this.room||!killer||killer.kind!=='remote')return;
-    this.room.emit('down',{to:killer.peer,lv:save.level,fac:playerFaction(),b:hasBounty()?1:0}).catch(()=>{});},
+  sendDown(killer){const net=this.net();if(!net||!killer||killer.kind!=='remote')return;
+    net.emit('down',{to:killer.peer,lv:save.level,fac:playerFaction(),b:hasBounty()?1:0}).catch(()=>{});},
   onDown(m){
     if(!m||m.isMe||!m.data||m.data.to!==this.myPeer)return;
     const r=this.peers.get(m.peer),lv=clamp(Math.floor(+m.data.lv||1),1,100),fac=m.data.fac;
     let xp=NPCS.rival.xp+NPCS.rival.xpPerLvl*lv,rep=fac==='villain'?25:fac==='hero'?-25:0;if(m.data.b){xp*=2;rep*=2;}
     addXP(xp);addRep(rep);save.stats.defeated++;toast('You defeated '+(r?r.name:'a player'),'+'+xp+' XP'+(rep?' · '+(rep>0?'+':'')+rep+' rep':''),'gold');
   },
-  fx(k,d){if(this.room&&this.connected)this.room.emit('fx',Object.assign({k},d)).catch(()=>{});},
+  fx(k,d){const net=this.net();if(net&&(net===P2P||this.connected))net.emit('fx',Object.assign({k},d)).catch(()=>{});},
   onFx(m){
     if(!m||m.isMe||!m.data)return;const d=m.data,r=this.peers.get(m.peer);if(!r)return;
     const n=v=>{v=+v;return isFinite(v)?v:0;};
@@ -122,3 +126,97 @@ function updateRemotes(dt){
     a.elbL=a.elbR=-0.4;a.cape=0.2+clamp(hs/40,0,1);
   }
 }
+
+// ================================================================
+// Room codes: peer-to-peer multiplayer for the public site
+// ================================================================
+// One player hosts a room and shares a short code; friends join with it. Players connect
+// over WebRTC (PeerJS, loaded on demand; its free public server only introduces the players).
+// The host relays presence and attacks between everyone, so the room lasts while the host plays.
+const P2P_LIB=['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'];
+const P2P_PREFIX='skyline-guardian-v1-',P2P_MAX=8,P2P_TOPICS=['hit','down','fx'];
+const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off',err:'',open:false,myLast:null,timer:0,
+  available:()=>!window.claude&&'RTCPeerConnection' in window,
+  loadLib(){
+    if(window.Peer)return Promise.resolve();
+    return new Promise((res,rej)=>{let i=0;const next=()=>{if(i>=P2P_LIB.length){rej(new Error('lib'));return;}
+      const sc=document.createElement('script');sc.src=P2P_LIB[i++];sc.async=true;sc.onload=()=>window.Peer?res():next();sc.onerror=next;document.head.appendChild(sc);};next();});
+  },
+  newCode(){const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<5;i++)c+=A[(Math.random()*A.length)|0];return c;},
+  cleanCode:c=>String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8),
+  statusText(){
+    if(this.state==='starting')return 'Connecting to room '+this.code+'…';
+    if(this.state==='error')return 'Room: '+this.err;
+    const n=MP.peers.size;return 'Room '+this.code+' · '+(n?n+' other'+(n>1?'s':'')+' playing':'waiting for friends');
+  },
+  changed(){MP.dirty=true;if(sheetOpen==='mp')renderSheet();},
+  fail(msg){this.shutdown();this.state='error';this.err=msg;this.changed();if(state==='play')feed('Multiplayer',msg);},
+  shutdown(){
+    clearTimeout(this.timer);this.open=false;
+    for(const c of this.conns.values())try{c.close();}catch(e){}this.conns.clear();
+    if(this.hostConn)try{this.hostConn.close();}catch(e){}this.hostConn=null;
+    if(this.peer)try{this.peer.destroy();}catch(e){}this.peer=null;
+    for(const id of [...MP.peers.keys()])MP.remove(id);
+  },
+  leave(){this.shutdown();this.state='off';this.err='';this.code='';try{if(location.hash.startsWith('#room='))history.replaceState(null,'',location.pathname+location.search);}catch(e){}this.changed();},
+  startPeer(id){
+    const peer=new window.Peer(id,{debug:0});this.peer=peer;
+    peer.on('disconnected',()=>{if(this.peer===peer&&this.state!=='off')try{peer.reconnect();}catch(e){}});
+    return peer;
+  },
+  setHash(){try{history.replaceState(null,'','#room='+this.code);}catch(e){}},
+  async create(){
+    this.shutdown();this.state='starting';this.err='';this.host=true;this.code=this.newCode();this.changed();
+    try{await this.loadLib();}catch(e){this.fail('Could not load the multiplayer library. Check your connection.');return;}
+    const peer=this.startPeer(P2P_PREFIX+this.code);
+    peer.on('open',id=>{MP.myPeer=id;this.state='open';this.open=true;this.setHash();this.changed();});
+    peer.on('connection',conn=>this.accept(conn));
+    peer.on('error',e=>{if(this.peer!==peer)return;if(e&&e.type==='unavailable-id'){this.create();return;}
+      if(!this.open)this.fail('Could not start a room ('+((e&&e.type)||'error')+')');});
+    this.timer=setTimeout(()=>{if(this.state==='starting'&&this.peer===peer)this.fail('Could not reach the matchmaking server');},15000);
+  },
+  async join(code){
+    code=this.cleanCode(code);if(code.length<4){this.fail('That room code looks wrong');return;}
+    this.shutdown();this.state='starting';this.err='';this.host=false;this.code=code;this.changed();
+    try{await this.loadLib();}catch(e){this.fail('Could not load the multiplayer library. Check your connection.');return;}
+    const peer=this.startPeer(undefined);
+    peer.on('open',id=>{MP.myPeer=id;const c=peer.connect(P2P_PREFIX+code,{reliable:true,serialization:'json'});this.hostConn=c;
+      c.on('open',()=>{if(this.hostConn!==c)return;this.state='open';this.open=true;this.setHash();this.changed();if(state==='play')feed('Joined room '+code,'');});
+      c.on('data',m=>this.fromHost(m));
+      c.on('close',()=>{if(this.hostConn===c&&this.state!=='off')this.fail(this.open?'The host left, so the room closed':'Could not connect to that room');});
+      c.on('error',()=>{});});
+    peer.on('error',e=>{if(this.peer!==peer)return;const t=e&&e.type;
+      this.fail(t==='peer-unavailable'?'No room with code '+code+'. Check the code, and make sure the host is still playing.':this.open?'Connection lost ('+(t||'error')+')':'Could not join ('+(t||'error')+')');});
+    this.timer=setTimeout(()=>{if(this.state==='starting'&&this.peer===peer)this.fail('Could not connect to room '+code+'. A strict network may be blocking it.');},20000);
+  },
+  // host side
+  accept(conn){
+    conn.on('open',()=>{
+      if(this.conns.size>=P2P_MAX-1){try{conn.send({t:'full'});}catch(e){}setTimeout(()=>conn.close(),300);return;}
+      this.conns.set(conn.peer,conn);
+      if(this.myLast)conn.send({t:'pr',from:MP.myPeer,p:this.myLast});
+      for(const [id,o] of this.conns)if(id!==conn.peer&&o.lastPr)conn.send({t:'pr',from:id,p:o.lastPr});
+      this.changed();});
+    conn.on('data',m=>this.fromClient(conn,m));
+    conn.on('close',()=>{if(!this.conns.has(conn.peer))return;this.conns.delete(conn.peer);MP.remove(conn.peer);this.broadcast({t:'left',from:conn.peer},null);this.changed();});
+    conn.on('error',()=>{});
+  },
+  broadcast(m,except){for(const [id,c] of this.conns)if(id!==except&&c.open)try{c.send(m);}catch(e){}},
+  fromClient(conn,m){
+    if(!m||typeof m!=='object')return;
+    if(m.t==='pr'&&m.p&&typeof m.p==='object'){conn.lastPr=m.p;MP.upsert({peer:conn.peer,presence:m.p});this.broadcast({t:'pr',from:conn.peer,p:m.p},conn.peer);}
+    else if(m.t==='ev'&&P2P_TOPICS.includes(m.topic)){this.deliver(conn.peer,m.topic,m.d);this.broadcast({t:'ev',from:conn.peer,topic:m.topic,d:m.d},conn.peer);}
+  },
+  // client side
+  fromHost(m){
+    if(!m||typeof m!=='object')return;const from=typeof m.from==='string'?m.from:'';
+    if(m.t==='pr'&&from&&m.p&&typeof m.p==='object')MP.upsert({peer:from,presence:m.p});
+    else if(m.t==='left'&&from)MP.remove(from);
+    else if(m.t==='ev'&&from&&P2P_TOPICS.includes(m.topic))this.deliver(from,m.topic,m.d);
+    else if(m.t==='full')this.fail('That room is full ('+P2P_MAX+' players)');
+  },
+  deliver(from,topic,d){const msg={peer:from,isMe:false,data:d};if(topic==='hit')MP.onHit(msg);else if(topic==='down')MP.onDown(msg);else if(topic==='fx')MP.onFx(msg);},
+  // transport interface used by MP (same shape as the claude.ai room)
+  presence(pr){if(this.host){this.myLast=pr;this.broadcast({t:'pr',from:MP.myPeer,p:pr},null);}else if(this.hostConn&&this.hostConn.open)this.hostConn.send({t:'pr',p:pr});return Promise.resolve();},
+  emit(topic,d){if(this.host)this.broadcast({t:'ev',from:MP.myPeer,topic,d},null);else if(this.hostConn&&this.hostConn.open)this.hostConn.send({t:'ev',topic,d});return Promise.resolve();},
+};

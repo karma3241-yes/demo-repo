@@ -75,7 +75,11 @@ Nova Bay is a 16 × 16 block island with a downtown of glass towers, a brick old
 
 ## Multiplayer
 
-In the claude.ai version, everyone playing at the same time shares the city: you can see other players, their powers and cars, and fight them. Heroes can't hurt other heroes and villains can't hurt other villains; neutral players can fight anyone. Knocking out another player gives you XP and moves your reputation (towards Hero if you beat a villain, towards Villain if you beat a hero). Each player's crimes, traffic and pedestrians run on their own device, so only players and their attacks are shared. Opened anywhere else, the game is single-player.
+**Room codes (public site).** Open **Multiplayer** from the main menu or the pause menu. One player clicks **Create a room** and shares the 5-letter code or the invite link; friends join with the code (or just open the link). Up to 8 players share the city. No accounts are needed. Players connect directly to each other over WebRTC; the free PeerJS server only introduces them, and the host's game relays positions and attacks, so the room stays open while the host is playing. Most home networks work; some strict school or office networks block these connections.
+
+**claude.ai version.** Everyone in the page owner's organization who has it open plays together automatically, with no code. claude.ai doesn't let people invited from outside the organization into the live room, so play with them on the public site instead. The status line in the top-right corner (top of the screen on phones) shows whether you're connected.
+
+In both, heroes can't hurt other heroes and villains can't hurt other villains; neutral players can fight anyone. Knocking out another player gives you XP and moves your reputation (towards Hero if you beat a villain, towards Villain if you beat a hero). Each player's crimes, traffic and pedestrians run on their own device, so only players and their attacks are shared.
 
 ## Saving and the leaderboard
 

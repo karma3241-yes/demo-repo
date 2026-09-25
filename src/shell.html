@@ -223,6 +223,9 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   #create,#sheet.side{align-items:end;justify-items:stretch;padding:0;background:linear-gradient(0deg,rgba(3,5,12,.92) 45%,rgba(3,5,12,.2) 70%,transparent)}
   #create .sheet-card,#sheet.side .sheet-card{width:100%;max-height:58vh;border-radius:14px 14px 0 0;padding:14px 16px}
 }
+.roomcode{margin:0;font-family:var(--display);font-size:40px;letter-spacing:.18em;color:var(--gold)}
+.joinrow{display:flex;gap:8px}.joinrow input{text-transform:uppercase;letter-spacing:.12em}
+.plist{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
 @media (prefers-reduced-motion: reduce){.toast,.fline{animation:none}}
 </style>
 </head>
@@ -284,7 +287,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
     <p class="muted" id="menu-touch" hidden>Touch controls: drag on the left side to move, drag on the right side to look, and use the buttons for punches, abilities and movement.</p>
     <div class="cta"><button class="go" id="start" type="button">Create your hero</button><span id="menu-sub"></span></div>
     <p class="note" id="menu-online"></p>
-    <div class="menu-btns"><button class="ghost" id="m-lb" type="button">Leaderboard</button><button class="ghost" id="m-set" type="button">Settings</button></div>
+    <div class="menu-btns"><button class="ghost" id="m-mp" type="button">Multiplayer</button><button class="ghost" id="m-lb" type="button">Leaderboard</button><button class="ghost" id="m-set" type="button">Settings</button></div>
   </div>
 </div>
 <div id="create" hidden>
@@ -292,7 +295,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 </div>
 <div id="pause" class="overlay" hidden><div class="box"><p class="big">Paused</p>
   <div class="pause-btns"><button class="go" id="resume" type="button">Resume</button></div>
-  <div class="pause-btns"><button class="ghost" id="p-skills" type="button">Skills</button><button class="ghost" id="p-look" type="button">Appearance</button><button class="ghost" id="p-powers" type="button">Change powers</button><button class="ghost" id="p-lb" type="button">Leaderboard</button><button class="ghost" id="p-set" type="button">Settings</button></div>
+  <div class="pause-btns"><button class="ghost" id="p-skills" type="button">Skills</button><button class="ghost" id="p-look" type="button">Appearance</button><button class="ghost" id="p-powers" type="button">Change powers</button><button class="ghost" id="p-mp" type="button">Multiplayer</button><button class="ghost" id="p-lb" type="button">Leaderboard</button><button class="ghost" id="p-set" type="button">Settings</button></div>
 </div></div>
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
 <div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div></div>

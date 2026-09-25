@@ -59,7 +59,7 @@ function startPlay(first){
   syncPlayerDoc(true);renderGuide();
 }
 $('start').addEventListener('click',()=>{SFX.init();if(!save.character)openCreator();else startPlay(false);});
-$('m-lb').addEventListener('click',()=>openSheet('lb'));$('m-set').addEventListener('click',()=>openSheet('set'));
+$('m-lb').addEventListener('click',()=>openSheet('lb'));$('m-mp').addEventListener('click',()=>openSheet('mp'));$('p-mp').addEventListener('click',()=>openSheet('mp'));$('m-set').addEventListener('click',()=>openSheet('set'));
 $('resume').addEventListener('click',resume);
 $('p-skills').addEventListener('click',()=>openSheet('skills'));$('p-look').addEventListener('click',()=>openSheet('look'));
 $('p-lb').addEventListener('click',()=>openSheet('lb'));$('p-set').addEventListener('click',()=>openSheet('set'));
@@ -86,11 +86,12 @@ function frame(now){
   if(state!=='play')setText($('menu-online'),'monline',MP.status());
 }
 applyTouchUI();refreshMenu();updateEnv(0);applyLook();MP.init();
+{const m=/^#room=([A-Za-z0-9]{4,8})$/.exec(location.hash);if(m&&P2P.available())P2P.join(m[1]);}
 requestAnimationFrame(frame);
 if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},actors,humans,drones,vehicles,rivals,crimes,orbs,keys,
   start:()=>$('start').click(),look:(y,p)=>{P.yaw=y;P.pitch=p;},setTod:v=>{tod=v;},abilityDown,abilityUp,punch,toggleFlight,webPress,webRelease,
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
-  tlights,lightFor,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,
+  tlights,lightFor,P2P,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateWorld(dt);separateHumans();updateRemotes(dt);updateProjs(dt);updateOrbs(dt);updateFx(dt);FX.update(dt);SMOKE.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};

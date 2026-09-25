@@ -119,8 +119,8 @@ $('sheet-x').addEventListener('click',closeSheet);
 sheet.addEventListener('mousedown',e=>{if(e.target===sheet)closeSheet();});
 function renderSheet(){
   if(!sheetOpen)return;const y=sheetBody.scrollTop;sheetBody.textContent='';
-  sheetTitle.textContent={skills:'Skills',look:'Appearance',lb:'Leaderboard',set:'Settings'}[sheetOpen];
-  ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings})[sheetOpen]();
+  sheetTitle.textContent={skills:'Skills',look:'Appearance',lb:'Leaderboard',set:'Settings',mp:'Multiplayer'}[sheetOpen];
+  ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings,mp:renderMP})[sheetOpen]();
   sheetBody.scrollTop=y;
 }
 const STAT_LABELS={damage:'Damage',dps:'Damage per second',radius:'Radius',speed:'Speed',drain:'Energy per second',mult:'Speed multiplier',range:'Range',force:'Swing force',
@@ -214,6 +214,32 @@ function renderLB(){
   const tb=el('tbody');rows.forEach((r,i)=>{const t=repTier(r.rep);tb.appendChild(el('tr',{class:(r.id===LB.uid||r.id==='me')?'me':''},el('td',{text:String(i+1)}),
     el('td',{},el('span',{text:r.name}),el('small',{text:t.name+' · LV '+r.level})),el('td',{text:lbTab==='level'?'LV '+r.level:(r.rep>0?'+':'')+r.rep.toLocaleString('en-US')})));});
   sheetBody.appendChild(el('table',{class:'lb'},tb));
+}
+// ---- multiplayer (room codes on the public site, automatic on claude.ai) ----
+const SITE_URL='';
+function renderMP(){
+  const B=sheetBody,st=MP.status();
+  if(window.claude){
+    B.append(el('p',{class:'muted',text:'Everyone in your organization who has this page open plays in the same city automatically. People invited from outside your organization can\'t join here.'}),
+      st?el('p',{class:'pts',text:st}):null);
+    if(SITE_URL)B.append(el('p',{class:'muted',text:'To play with anyone, open the public site and use a room code: '+SITE_URL}));
+    return;}
+  if(!P2P.available()){B.append(el('p',{class:'muted',text:'This browser can\'t do peer-to-peer connections, so multiplayer is off.'}));return;}
+  B.append(el('p',{class:'muted',text:'Play with friends in the same city. One of you creates a room and shares the code or invite link; everyone else joins with it. The room stays open while its host is playing. Each player\'s crimes and traffic are their own; players and their attacks are shared.'}));
+  if(P2P.state==='open'){
+    const link=location.origin+location.pathname+'#room='+P2P.code;
+    const names=[(save.character?save.character.name:'You')+' (you)'+(P2P.host?' · host':'')];for(const r of MP.peers.values())names.push(r.name+' · LV '+r.level);
+    const copy=el('button',{class:'go',type:'button',text:'Copy invite link',onclick:async()=>{try{await navigator.clipboard.writeText(link);copy.textContent='Copied';}catch(e){inp.select();copy.textContent='Press Ctrl+C to copy';}}});
+    const inp=el('input',{type:'text',value:link,readonly:'readonly','aria-label':'Invite link'});
+    B.append(el('h3',{text:'Room code'}),el('p',{class:'roomcode',text:P2P.code}),inp,el('div',{class:'cta'},copy,el('button',{class:'ghost',type:'button',text:'Leave room',onclick:()=>P2P.leave()})),
+      el('h3',{text:'Players · '+names.length+'/'+P2P_MAX}),el('ul',{class:'plist'},...names.map(n=>el('li',{text:n}))));
+    return;}
+  if(P2P.state==='starting'){B.append(el('p',{class:'pts',text:P2P.statusText()}),el('button',{class:'ghost',type:'button',text:'Cancel',onclick:()=>P2P.leave()}));return;}
+  if(P2P.state==='error')B.append(el('p',{class:'note warn',text:P2P.err}));
+  const code=el('input',{type:'text',placeholder:'Room code','aria-label':'Room code',maxlength:'8',autocapitalize:'characters',autocomplete:'off'});
+  const join=()=>{if(code.value.trim())P2P.join(code.value);};code.addEventListener('keydown',e=>{if(e.key==='Enter')join();});
+  B.append(el('div',{class:'cta'},el('button',{class:'go',type:'button',text:'Create a room',onclick:()=>P2P.create()})),
+    el('h3',{text:'Join a friend'}),el('div',{class:'joinrow'},code,el('button',{class:'ghost',type:'button',text:'Join',onclick:join})));
 }
 function renderSettings(){
   const s=save.settings,row=(label,input)=>el('label',{class:'row'},el('span',{text:label}),input);
