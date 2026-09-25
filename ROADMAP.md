@@ -2,13 +2,19 @@
 
 Planned work that isn't in the game yet.
 
+## Done
+
+- **Multiplayer (PvP)**: players in the claude.ai version share the city and can fight each other.
+- **Re-choosing powers**: **Change powers** in the pause menu, once every 10 minutes, with skill points refunded for dropped powers.
+- **Skill point reset (respec)**: **Reset skill points** on the Skills screen.
+
 ## Next up
 
-- **Multiplayer (PvP).** Real heroes and villains fighting each other. The game is single-player for now. Rival supers controlled by the game stand in for other players, and progression, reputation and damage already run through separate systems that could move to a server later.
-- **Re-choosing powers.** Heroes currently lock in 2 movement powers and 3 abilities when they're created. Add a way to swap powers later, with a cost or cooldown so the choice still matters.
-- **Skill point reset (respec).** Refund all spent skill points so a player can rebuild their upgrades.
+- **Shared world state in multiplayer.** Crimes, traffic and pedestrians run separately on each player's device. Sharing them would let players team up on the same heist.
+- **Multiplayer outside claude.ai.** The public site is single-player because it has no server. A small realtime server would let everyone play together.
 
 ## Ideas
 
 - Proper ragdoll physics for defeated characters.
 - More heist types and crime-boss storylines.
+- More Morph Band aliens.
