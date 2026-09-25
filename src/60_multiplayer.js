@@ -6,11 +6,13 @@
 // their attacks and PvP damage are shared. The shooter decides hits, the victim applies them.
 const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',dirty:true,hitT:0,
   bump(){this.dirty=true;},
-  tried:false,
+  tried:false,err:'',access:null,since:0,
   // one-line room status for the HUD and menu ('' outside claude.ai)
   status(){
-    if(!window.claude)return '';if(!this.room)return this.tried?'Multiplayer unavailable for this view':'Connecting to other players…';
-    if(!this.connected)return 'Connecting to other players…';
+    if(!window.claude)return '';
+    const a=this.access,why=a&&!a.edit?' · you have view-only access, ask the owner to make you an Editor':'';
+    if(!this.room||this.err)return this.tried||this.err?'Multiplayer unavailable'+(this.err?' ('+this.err+')':'')+(why||' for this view'):'Connecting to other players…';
+    if(!this.connected)return performance.now()-this.since>8000?'Can\'t reach other players'+why:'Connecting to other players…';
     let others=0;try{for(const p of this.room.peers())if(!p.isMe&&p.kind==='viewer')others++;}catch(e){}
     const playing=this.peers.size;
     if(!others)return 'Online · no one else here yet';
@@ -18,16 +20,18 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
   },
   async init(){
     try{
-      if(!window.claude||typeof window.claude.use!=='function')return;
+      if(!window.claude||typeof window.claude.use!=='function')return;this.since=performance.now();
+      window.claude.use('user').then(async u=>{if(!u)return;try{this.access={edit:await u.canEdit(),write:await u.can('data.write')};}catch(e){}}).catch(()=>{});
       const room=await window.claude.use('room');this.tried=true;if(!room)return;this.room=room;
+      const onErr=e=>{this.err=(e&&e.code)||'error';};
       room.onPeers(ch=>{
         for(const p of ch.peers)if(p.isMe&&p.sameTab)this.myPeer=p.peer;
         for(const p of ch.joined)if(!p.isMe)this.upsert(p,true);
         for(const p of ch.updated)if(!p.isMe)this.upsert(p,false);
         for(const p of ch.left)this.remove(p.peer);
-      },()=>{});
-      room.on('hit',m=>this.onHit(m),()=>{});room.on('down',m=>this.onDown(m),()=>{});room.on('fx',m=>this.onFx(m),()=>{});
-      room.onConnection(c=>{this.connected=c;if(c)this.dirty=true;},()=>{});
+      },onErr);
+      room.on('hit',m=>this.onHit(m),onErr);room.on('down',m=>this.onDown(m),onErr);room.on('fx',m=>this.onFx(m),onErr);
+      room.onConnection(c=>{this.connected=c;if(c)this.dirty=true;},onErr);
     }catch(e){this.room=null;this.tried=true;}
   },
   upsert(peer,joined){
@@ -51,7 +55,7 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
         r.pend=0;r.pendK=0;this.room.emit('hit',d).catch(()=>{});}}
     this.sendT-=dt;if(this.sendT>0)return;this.sendT=0.08;
     const pr=myPresence(),key=JSON.stringify(pr);if(key===this.last&&!this.dirty)return;this.last=key;this.dirty=false;
-    this.room.presence(pr).catch(()=>{});
+    this.room.presence(pr).catch(e=>{if(e&&e.code==='not_granted')this.err='not_granted';});
   },
   onHit(m){
     if(!m||m.isMe||!m.data||m.data.to!==this.myPeer||P.dead||state!=='play')return;

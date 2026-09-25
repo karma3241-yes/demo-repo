@@ -170,7 +170,8 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--energy);flex:none
 .tb.big{background:rgba(255,61,94,.35)}
 .tb.wide{grid-column:span 3;width:auto;height:48px;border-radius:24px}
 #tpause{position:absolute;right:14px;top:14px;width:44px;height:44px;border-radius:8px}
-body.touch #keys,body.touch .hud-tr,body.touch #prompt{display:none}
+body.touch #keys,body.touch #prompt,body.touch #clock,body.touch #mode{display:none}
+body.touch .hud-tr{top:8px;right:auto;left:50%;transform:translateX(-50%);background:rgba(4,8,18,.55);padding:3px 8px;text-align:center}body.touch .hud-tr:has(#online:empty){display:none}
 body.touch .hud-tl{top:10px;left:10px;padding:7px 9px;min-width:0;width:176px;box-sizing:border-box;gap:5px}
 body.touch .stats{gap:2px 8px;font-size:10px;letter-spacing:.05em}
 body.touch .hud-bc{top:108px;bottom:auto;left:10px;transform:none;width:176px;justify-items:stretch}
