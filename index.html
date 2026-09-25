@@ -2639,7 +2639,8 @@ function myPresence(){
   const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
   const o={v:1,n:ch.name||'Hero',l:[ch.suit|0,ch.cape|0,ch.accent|0,ch.capeOn===false?0:1],lv:save.level,rep:save.reputation,fac:playerFaction(),al:P.alien?P.alien.id:'',
     x:r1(P.pos.x),y:r1(P.pos.y),z:r1(P.pos.z),vx:r1(P.vel.x),vy:r1(P.vel.y),vz:r1(P.vel.z),yw:r2(P.heroYaw),tl:r2(P.tilt),bk:r2(P.bank),f,hp:Math.round(P.hp/maxHp()*100)};
-  if(beam)o.b=[r1(beam.x),r1(beam.y),r1(beam.z)];if(P.web)o.w=[r1(P.web.x),r1(P.web.y),r1(P.web.z)];
+  // presence patches merge on the server, so optional fields are always sent (null clears them)
+  o.b=beam?[r1(beam.x),r1(beam.y),r1(beam.z)]:null;o.w=P.web?[r1(P.web.x),r1(P.web.y),r1(P.web.z)]:null;o.c=null;
   if(P.car){o.c=[P.car.model,r2(P.car.yaw),P.car.tint.slice(0,3).map(r2)];o.x=r1(P.car.pos.x);o.y=r1(P.car.pos.y);o.z=r1(P.car.pos.z);}
   return o;
 }
