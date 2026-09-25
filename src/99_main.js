@@ -26,7 +26,7 @@ function updateHud(dt){
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}continue;}
     const active=st.holding||(s.id==='metalSkin'&&P.metal)||(s.id==='energyShield'&&P.shieldOn)||(s.id==='telekinesis'&&!!P.tk)||(s.id==='flight'&&P.flying)||(s.id==='superSpeed'&&P.speeding)||(s.id==='webSwing'&&!!P.web)||(s.id==='wallClimb'&&!!P.wall);
     s.s.classList.toggle('on',active);s.s.classList.toggle('bad',st.flash>0);
-    if(s.cd){const f=c.cooldown?st.cd/c.cooldown:0;const v=Math.round(f*100);if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}}
+    if(s.cd){const f=c.cooldown?st.cd/pstat(s.id,'cooldown'):0;const v=Math.round(f*100);if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}}
     const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}}
   hud.cross.classList.toggle('hot',!!(aim.actor&&aim.actor.kind!=='prop'&&aim.actor.kind!=='vehicle'));
   let prompt='';
@@ -34,7 +34,7 @@ function updateHud(dt){
   if(!P.dead){if(it)prompt=it.kind==='exit'?'G · Get out':it.kind==='car'?'G · '+(it.v.driver?'Take this car':'Get in'):'G · Help them up';
     else if(P.wall)prompt='W/S climb · Space to leap off';else if(aim.actor&&aim.actor.kind==='prop'&&aim.t<30)prompt=aim.actor.alive?(aim.actor.role==='shop'?'Shop':'ATM')+' · hitting it is a crime':'Closed';}
   setText(hud.prompt,'prompt',touchOn()?'':prompt);
-  hud.charge.hidden=!P.charging;if(P.charging)setW(hud.chargeb,'charge',P.chargeT/1.0);
+  hud.charge.hidden=!P.charging&&!P.cp;if(P.charging||P.cp){setText(hud.charge.firstChild,'chl',P.cp?'CHARGED PUNCH':'SUPER JUMP');setW(hud.chargeb,'charge',P.cp?P.cp.t/1.2:P.chargeT/1.0);}
   hud.vig.style.opacity=(hurtFlash*0.9+(P.hp/maxHp()<0.3?0.35+Math.sin(time*6)*0.1:0)).toFixed(3);
   hud.flash.style.opacity=flashWhite.toFixed(3);
   if(boss&&!boss.leave){hud.bossbar.hidden=false;setText(hud.bossname,'bn',boss.name);setW(hud.bossb,'boss',boss.hp/boss.maxHp);}else hud.bossbar.hidden=true;
@@ -71,16 +71,18 @@ function frame(now){
   requestAnimationFrame(frame);
   const real=clamp((now-last)/1000,0,0.05);last=Math.max(last,now);const dt=real*(slowT>0?0.35:1)*(dialOpen?0.25:1);if(slowT>0)slowT-=real;
   mpi=0;
-  if(!paused){
+  const live=!paused||(state==='play'&&MP.online()); // in a room the world never stops
+  if(live){
     time+=dt;timeFast=!!keys.KeyT&&state==='play';updateEnv(dt);
     if(state==='play'){if(mouseL)punch();updatePlayer(dt);}
-    updateWorld(dt);separateHumans();updateRemotes(dt);updateProjs(dt);updateOrbs(dt);updateFx(dt);FX.update(dt);SMOKE.update(dt);
+    const wdt=dt*(timeDil>0&&!MP.online()?0.25:1);canvas.classList.toggle('slowmo',timeDil>0);
+    updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);
     if(state==='play'){saveT+=dt;if(saveT>CONFIG.autosave){saveT=0;persist();syncPlayerDoc();}}
   }
-  updateCamera(paused?0:dt);
-  if(state==='play'&&!paused){computeAim(150);updatePowers(dt);}
+  updateCamera(live?dt:0);
+  if(state==='play'&&live){computeAim(150);updatePowers(dt);}
   buildDrawList();render();
-  if(!paused)updateHud(dt);
+  if(live)updateHud(dt);
   if(state==='play')MP.flush(real);
   WS.update(real);
   updateTags();
@@ -94,5 +96,5 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
-  tlights,lightFor,P2P,WS,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,
-  sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateWorld(dt);separateHumans();updateRemotes(dt);updateProjs(dt);updateOrbs(dt);updateFx(dt);FX.update(dt);SMOKE.update(dt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
+  tlights,lightFor,P2P,WS,PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,
+  sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateWorld(dt);separateHumans();updateRemotes(dt);updateProjs(dt);updateOrbs(dt);updateFx(dt);updateRagdolls(dt);updateBuildings(dt);FX.update(dt);SMOKE.update(dt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};

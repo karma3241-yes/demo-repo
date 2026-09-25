@@ -25,6 +25,12 @@ const TREES=['#2f6b2c','#3d7f35','#2a5c33','#4c8a3a'].map(C);
 const CONT=['#b7412e','#2e6fb7','#d1a62c','#3f8f4f','#7c4bb0','#c7c7c7','#1f7d86'].map(C);
 
 function addCollider(b,list){colliders.push(b);list.push(b);return b;}
+// destructible buildings: each records its vertex range in the city mesh and its colliders
+const bldgs=[];let _bs=null;
+function bStart(){_bs={v0:city.pos.length/3,c0:colliders.length};}
+function bEnd(x0,z0,x1,z1,kind){if(!_bs)return;const cols=colliders.slice(_bs.c0),h=Math.max(...cols.map(c=>c.y1),4),vol=(x1-x0)*(z1-z0)*h;
+  const b={id:bldgs.length,v0:_bs.v0,v1:city.pos.length/3,cols,x0,z0,x1,z1,h,kind,col:cols[0]?cols[0].col:[.5,.5,.5],maxHp:Math.round(150+vol*0.025),hp:0,state:'up',t:0,off:0,tilt:0,tx:0,tz:0};
+  b.hp=b.maxHp;for(const c of cols)c.bld=b;bldgs.push(b);_bs=null;}
 function rect(x0,z0,x1,z1,col){mapRects.push({x0,z0,x1,z1,col});}
 function districtOf(i,j){
   const cx=-HALF+(i+.5)*CELL,cz=-HALF+(j+.5)*CELL,d=Math.hypot(cx,cz)/HALF;
@@ -95,6 +101,7 @@ function tower(x0,z0,x1,z1,h,style,list,opt={}){
   return {col,top};
 }
 function house(x0,z0,x1,z1,face,list){
+  bStart();
   const pal=FAC.house,col=pal[Math.floor(srand()*pal.length)],h=Math.round(sr(7,11));
   city.box(x0,0.25,z0,x1,h,z1,col,1,STYLE.house*1000+Math.floor(srand()*900));
   const rc=ROOFTILE[Math.floor(srand()*ROOFTILE.length)],alongX=face>=2,rh=sr(2.6,3.6);
@@ -104,8 +111,10 @@ function house(x0,z0,x1,z1,face,list){
   const F=faceInfo(face,x0,x1,z0,z1);slabOn(F,0,0.15,F.mid-0.7,F.mid+0.7,0.25,2.5,DOOR,0);slabOn(F,0,0.9,F.mid-1.1,F.mid+1.1,2.6,2.8,TRIM,0);
   if(srand()<0.6){const cx=sr(x0+1.5,x1-1.5),cz=sr(z0+1.5,z1-1.5);city.box(cx-.5,h,cz-.5,cx+.5,h+rh+1.2,cz+.5,C('#6b4a3e'),0);}
   roofTops.push({x:(x0+x1)/2,y:h+rh*0.6,z:(z0+z1)/2,x0,x1,z0,z1});
+  bEnd(x0,z0,x1,z1,'house');
 }
 function warehouse(x0,z0,x1,z1,list){
+  bStart();
   const pal=FAC.warehouse,col=pal[Math.floor(srand()*pal.length)],h=Math.round(sr(11,16));
   city.box(x0,0.25,z0,x1,h,z1,col,1,STYLE.warehouse*1000+Math.floor(srand()*900));
   const n=Math.max(2,Math.round((x1-x0)/9)),w=(x1-x0)/n;
@@ -115,6 +124,7 @@ function warehouse(x0,z0,x1,z1,list){
   if(srand()<0.5){const sx=x1-4,sz=z1-4;city.prim(PRIM.cyl,sx,h+14,sz,0,0,0,1.6,28,1.6,C('#7a4a3a'),0);city.box(sx-1.7,h+26,sz-1.7,sx+1.7,h+27,sz+1.7,C('#d9d9d9'),0);
     addCollider({x0:sx-1.6,x1:sx+1.6,z0:sz-1.6,z1:sz+1.6,y0:h,y1:h+28,col},list);}
   roofTops.push({x:(x0+x1)/2,y:h+1.6,z:(z0+z1)/2,x0,x1,z0,z1});
+  bEnd(x0,z0,x1,z1,'warehouse');
 }
 function containers(x0,z0,x1,z1,list,rows){
   for(let r=0;r<rows;r++){const z=z0+r*3.2;if(z+2.6>z1)break;let x=x0;
@@ -245,11 +255,12 @@ for(let i=0;i<GRID;i++)for(let j=0;j<GRID;j++){
     const style=styles[Math.floor(srand()*styles.length)];
     const w=sw*sr(0.78,1),dp=sd*sr(0.78,1),x0=lx-w/2,x1=lx+w/2,z0=lz-dp/2,z1=lz+dp/2;
     const hk=lots.length===1?1:0.85,h=Math.max(12,Math.round(lerp(hRange[0],hRange[1],Math.pow(srand(),1.6))*hk*(dist==='downtown'?1:lerp(1,0.6,dd))/4)*4);
-    tower(x0,z0,x1,z1,h,style,list,{tiers:h>80&&srand()<0.7?1+(h>180?1:0):0,spire:srand()<0.5});
+    bStart();tower(x0,z0,x1,z1,h,style,list,{tiers:h>80&&srand()<0.7?1+(h>180?1:0):0,spire:srand()<0.5});
     const faces=[];if(lx>cx||lots.length===1)faces.push(0);if(lx<cx||lots.length===1)faces.push(1);if(lz>cz||lots.length===1)faces.push(2);if(lz<cz||lots.length===1)faces.push(3);
     const fShop=faces[Math.floor(srand()*faces.length)];
     if(srand()<(dist==='oldtown'?0.65:0.45))storefront(fShop,x0,x1,z0,z1);else if(srand()<0.3)atmOn(fShop,x0,x1,z0,z1);
     if(style==='brick'&&h>16&&srand()<0.6){const other=faces.find(f=>f!==fShop);if(other!==undefined)fireEscape(other,x0,x1,z0,z1,h);}
+    bEnd(x0,z0,x1,z1,style);
   }
 }
 // docks on the east shore
@@ -316,7 +327,7 @@ function sidewalkPointNear(x,z,minD,maxD){
 const NEAR=[];
 function nearCols(x,z){
   const i=Math.floor((x+HALF)/CELL),j=Math.floor((z+HALF)/CELL);NEAR.length=0;
-  for(let a=i-1;a<=i+1;a++)for(let b=j-1;b<=j+1;b++){if(a<0||b<0||a>=GRID||b>=GRID)continue;const l=blockCols[a*GRID+b];for(let k=0;k<l.length;k++)NEAR.push(l[k]);}
+  for(let a=i-1;a<=i+1;a++)for(let b=j-1;b<=j+1;b++){if(a<0||b<0||a>=GRID||b>=GRID)continue;const l=blockCols[a*GRID+b];for(let k=0;k<l.length;k++)if(!l[k].dead)NEAR.push(l[k]);}
   if(x>HALF-60)for(const b of extraCols)NEAR.push(b);
   return NEAR;
 }
@@ -331,6 +342,7 @@ function groundY(x,z,y=1e9){let g=baseY(x,z);for(const b of nearCols(x,z)){if(x>
 const RAYHIT={t:0,nx:0,ny:1,nz:0,b:null};
 let _best=0;
 function rayBox(b,ox,oy,oz,dx,dy,dz){
+  if(b.dead)return;
   let t0=0,t1=_best,ax=-1,sg=0;
   for(let a=0;a<3;a++){
     const o=a===0?ox:a===1?oy:oz,d=a===0?dx:a===1?dy:dz,mn=a===0?b.x0:a===1?b.y0:b.z0,mx=a===0?b.x1:a===1?b.y1:b.z1;

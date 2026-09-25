@@ -17,6 +17,7 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
     if(this.host){this.sendT-=dt;if(this.sendT<=0){this.sendT=0.12;this.slowT-=0.12;const slow=this.slowT<=0;if(slow)this.slowT=1;
       for(const [id,conn] of P2P.conns)if(conn.open)this.snapshotFor(id,conn,slow);}}
     this.hitT-=dt;if(this.hitT<=0){this.hitT=0.1;this.flushHits();}
+    if(this.host)this.holdTick(dt);
   },
   // ---------------- host side ----------------
   snapshotFor(id,conn,slow){
@@ -24,9 +25,10 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
     const cx=r.pos.x,cz=r.pos.z,near=(a,R)=>Math.abs(a.pos.x-cx)<R&&Math.abs(a.pos.z-cz)<R;
     const known=conn.known||(conn.known=new Set()),seen=new Set(),r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
     const tgt=t=>!t?0:t===r?-1:t===P?-2:t.kind==='remote'?0:this.nid(t);
-    const H=[],V=[],D=[],RV=[];
+    const H=[],V=[],D=[],RV=[],HC=[];
+    for(const h of helis){if(!near(h,700))continue;const n=this.nid(h);seen.add(n);HC.push([n,r1(h.pos.x),r1(h.pos.y),r1(h.pos.z),r2(h.yaw),r2(h.rx),r2(h.rz),(h.alive?1:0)|(h.crash?2:0)|(h.leave?4:0),Math.round(h.hp/h.maxHp*100),h.shotN,tgt(h.target)]);}
     for(const h of humans){if(h.hidden||!near(h,230))continue;const n=this.nid(h);seen.add(n);
-      const f=(h.air?1:0)|(h.alive?2:0)|(h.downed>0?4:0)|(h.armsUp>0.3?8:0)|(h.gun?16:0)|(time-h.punchT<0.25?32:0)|(h.gun&&h.target?64:0);
+      const f=(h.air?1:0)|(h.alive?2:0)|(h.downed>0?4:0)|(h.armsUp>0.3?8:0)|(h.gun?16:0)|(time-h.punchT<0.25?32:0)|(h.gun&&h.target?64:0)|(h.rag?128:0);
       const rec=[n,r1(h.pos.x),r1(h.pos.y),r1(h.pos.z),r2(h.yaw),r2(h.rx),r1(h.moving),f,Math.round(h.hp/h.maxHp*100),h.shotN||0,tgt(h.target)];
       if(!known.has(n))rec.push({ro:h.role,lk:lookOut(h.look),nm:h.name||''});H.push(rec);}
     for(const v of vehicles){if(v===P.car||!near(v,280))continue;const n=this.nid(v);seen.add(n);
@@ -38,7 +40,7 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
     for(const q of rivals){if(!near(q,600))continue;const n=this.nid(q);seen.add(n);
       const rec=[n,r1(q.pos.x),r1(q.pos.y),r1(q.pos.z),r2(q.heroYaw),r2(q.tilt),r2(q.bank),(q.alive?1:0)|(time-(q.castT||-9)<0.3?2:0),Math.round(q.hp/q.maxHp*100),r1(q.vel.x),r1(q.vel.y),r1(q.vel.z)];
       if(!known.has(n))rec.push({nm:q.name,fa:q.faction,lv:q.level,lk:[q.look.suit,q.look.cape,q.look.acc].map(c=>c.slice(0,3).map(r2)).concat([q.look.capeOn?1:0])});RV.push(rec);}
-    const msg={h:H,v:V,d:D,r:RV},rm=[];for(const n of known)if(!seen.has(n))rm.push(n);if(rm.length)msg.rm=rm;conn.known=seen;
+    const msg={h:H,v:V,d:D,r:RV,hc:HC},rm=[];for(const n of known)if(!seen.has(n))rm.push(n);if(rm.length)msg.rm=rm;conn.known=seen;
     if(boss){const b=boss;msg.b=[this.nid(b),b.type,r1(b.pos.x),r1(b.pos.y),r1(b.pos.z),r2(b.yaw||0),r2(b.spin||0),Math.round(b.hp),Math.round(b.maxHp),r2(b.phase||0),r2(b.punchAnim||0),b.name||'',b.leave?1:0];}
     if(slow){msg.c=crimes.map(c=>[c.type,Math.round(c.x),Math.round(c.z),c.label,c.icon||'',c.heist?1:0]);msg.tod=Math.round(tod*1e4)/1e4;msg.tm=r1(time);msg.vy=r1(vaultY);
       msg.pp=props.map(p=>p.alive?1:0).join('');}
@@ -47,7 +49,7 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
   onClientHit(peer,d){
     if(!this.host||!d)return;const src=MP.peers.get(peer);if(!src)return;
     const t=this.find(+d.id);if(!t||!t.alive)return;const n=v=>{v=+v;return isFinite(v)?v:0;};
-    const v3=a=>Array.isArray(a)&&a.length===3?a.map(x=>clamp(n(x),-60,60)):null;
+    const v3=a=>Array.isArray(a)&&a.length===3?a.map(x=>clamp(n(x),-240,240)):null;
     const opt={knock:clamp(n(d.k),0,40),stun:clamp(n(d.s),0,2)};const kv=v3(d.v);if(kv)opt.kv=kv;
     if(Array.isArray(d.n)&&d.n.length===2)opt.nudge=d.n.map(x=>clamp(n(x),-1,1));if(d.f)opt.flung=true;if(d.ap)opt.apex=true;if(d.fl)opt.float=clamp(n(d.fl),0,1);
     if(d.b)opt.burn={dps:clamp(n(d.b[0]),0,40),time:clamp(n(d.b[1]),0,6)};
@@ -66,7 +68,7 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
   // ---------------- client side ----------------
   enterMirror(){
     this.mirror=true;lockT=null;if(P.tk)tkDrop();
-    for(const a of [...humans,...drones,...rivals])removeActor(a);for(const v of vehicles.slice())if(v!==P.car)removeActor(v);
+    for(const a of [...humans,...drones,...rivals,...helis])removeActor(a);for(const v of vehicles.slice())if(v!==P.car)removeActor(v);
     crimes.length=0;boss=null;this.byId.clear();
     if(state==='play')feed('Shared city','You are in the host’s city now');
   },
@@ -78,11 +80,11 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
   onSnapshot(d){
     if(!this.mirror||!d||typeof d!=='object')return;
     const n=v=>{v=+v;return isFinite(v)?v:0;},L=LIMIT+50,px=v=>clamp(n(v),-L,L);
-    if(Array.isArray(d.rm))for(const id of d.rm){const m=this.byId.get(id);if(m){this.byId.delete(id);if(m===boss)boss=null;else removeActor(m);}}
+    if(Array.isArray(d.rm))for(const id of d.rm){const m=this.byId.get(id);if(m){this.byId.delete(id);if(m.kind==='heli'&&m.crash)explode(m.pos.x,m.pos.y+1,m.pos.z,1.6);if(m===boss)boss=null;else removeActor(m);}}
     for(const r of Array.isArray(d.h)?d.h:[]){if(!Array.isArray(r))continue;let m=this.byId.get(r[0]);
       if(!m){const full=r[11];if(!full||!NPCS[full.ro])continue;m=mirrorHuman(r[0],full);}
       this.place(m,px(r[1]),n(r[2]),px(r[3]));m.yaw=n(r[4]);m.trx=n(r[5]);m.moving=n(r[6]);const f=r[7]|0;
-      m.air=!!(f&1);m.alive=!!(f&2);m.downed=f&4?1:0;m.armsUp=f&8?1:0;m.gun=!!(f&16);if(f&32)m.punchT=time;m.aiming=!!(f&64);m.hp=m.maxHp*clamp(n(r[8]),0,100)/100;
+      m.air=!!(f&1);m.alive=!!(f&2);m.downed=f&4?1:0;m.armsUp=f&8?1:0;m.gun=!!(f&16);if(f&32)m.punchT=time;m.aiming=!!(f&64);if(f&128){if(!m.rag)startRagdoll(m,m.nv.x,m.nv.y,m.nv.z);}m.hp=m.maxHp*clamp(n(r[8]),0,100)/100;
       if(r[9]!==m.shotN){if(m.shotN!==undefined)mirrorShot(m,r[10],false);m.shotN=r[9];}}
     for(const r of Array.isArray(d.v)?d.v:[]){if(!Array.isArray(r))continue;let m=this.byId.get(r[0]);
       if(!m){const full=r[9];if(!full)continue;m=mirrorVehicle(r[0],full);if(!m)continue;}
@@ -94,6 +96,10 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
     for(const r of Array.isArray(d.r)?d.r:[]){if(!Array.isArray(r))continue;let m=this.byId.get(r[0]);
       if(!m){const full=r[12];if(!full)continue;m=mirrorRival(r[0],full);}
       this.place(m,px(r[1]),n(r[2]),px(r[3]));m.tyaw=n(r[4]);m.tilt=n(r[5]);m.bank=n(r[6]);const f=r[7]|0;m.alive=!!(f&1);if(f&2)m.castT=time;m.hp=m.maxHp*clamp(n(r[8]),0,100)/100;m.vel.set(n(r[9]),n(r[10]),n(r[11]));}
+    for(const r of Array.isArray(d.hc)?d.hc:[]){if(!Array.isArray(r))continue;let m=this.byId.get(r[0]);if(!m)m=mirrorHeli(r[0]);
+      this.place(m,px(r[1]),n(r[2]),px(r[3]));m.tyaw=n(r[4]);m.rx=n(r[5]);m.rz=n(r[6]);const f=r[7]|0;const was=m.crash;m.alive=!!(f&1);m.crash=!!(f&2);m.leave=!!(f&4);m.hp=m.maxHp*clamp(n(r[8]),0,100)/100;
+      m.target=r[10]===-1?P:null;if(m.crash&&!was)burst(m.pos.x,m.pos.y+1.5,m.pos.z,50,16,0.8,FIRE,2.4,-3,1.5);
+      if(r[9]!==m.shotN){if(m.shotN!==undefined)mirrorShot(m,r[10],false);m.shotN=r[9];}}
     if(Array.isArray(d.b)){const b=d.b;let m=this.byId.get(b[0]);if(!m){m=mirrorBoss(b[0],b[1]==='ship'?'ship':'mech',String(b[11]||'').slice(0,30));}
       boss=m;this.place(m,px(b[2]),n(b[3]),px(b[4]));m.tyaw=n(b[5]);m.spin=n(b[6]);m.hp=n(b[7]);m.maxHp=Math.max(1,n(b[8]));m.phase=n(b[9]);m.punchAnim=n(b[10]);m.leave=!!b[12];}
     else if(boss&&boss.net){this.byId.delete(boss.nid);boss=null;}
@@ -108,10 +114,12 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
     const k=damp(12,dt);
     for(const m of this.byId.values()){
       const age=Math.min(time-m.stamp,0.3),tx=m.tp.x+m.nv.x*age,ty=m.tp.y+m.nv.y*age,tz=m.tp.z+m.nv.z*age;
+      if(P.tk&&P.tk.a===m)continue; // I'm holding it: my telekinesis moves it here
       if(Math.hypot(tx-m.pos.x,tz-m.pos.z)>40)m.pos.set(tx,ty,tz);else{m.pos.x+=(tx-m.pos.x)*k;m.pos.y+=(ty-m.pos.y)*k;m.pos.z+=(tz-m.pos.z)*k;}
       if(m.flash>0)m.flash=Math.max(0,m.flash-dt*5);
       if(m.kind==='human'){m.rx=lerp(m.rx,m.trx||0,damp(10,dt));m.phase+=m.moving*dt*2.2;m.target=m.aiming?P:null;}
       else if(m.kind==='vehicle'||m.kind==='drone'||m.kind==='boss')m.yaw=angLerp(m.yaw,m.tyaw||0,k);
+      else if(m.kind==='heli'){m.yaw=angLerp(m.yaw,m.tyaw||0,k);m.rotor+=dt*(m.crash?20:38);if(m.crash&&Math.random()<0.8)smoke(m.pos.x,m.pos.y+2,m.pos.z,1,0.6,3,2,0.12);}
       else if(m.kind==='rival'){m.heroYaw=angLerp(m.heroYaw,m.tyaw||0,k);mirrorRivalAnim(m,dt);}
     }
   },
@@ -137,6 +145,16 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
     else if(d.k==='crime'){const xp=clamp(+d.xp||0,0,1000),rep=clamp(+d.rep||0,0,500);addXP(xp);addRep(rep);save.stats.crimesStopped++;guideDone('crime');
       if(d.heist)toast('Heist stopped','+'+xp+' XP · '+String(d.label||'').slice(0,40),'gold');else feed('+'+xp+' XP','Crime stopped: '+String(d.label||'').slice(0,40));persist();}
   },
+  onTkGrab(peer,d){if(!this.host||!d)return;const a=this.find(+d.id),r=MP.peers.get(peer);if(!a||!r||a.held||a.kind==='boss'||a.kind==='heli')return;
+    a.held=true;a.heldBy=r;a.heldT=time;if(a.kind==='vehicle'){a.state='held';if(a.driver)ejectDriver(a);}if(a.kind==='human')a.air=false;},
+  onTkThrow(peer,d){if(!this.host||!d)return;const a=this.find(+d.id);if(!a||!a.heldBy||a.heldBy.peer!==peer)return;const src=a.heldBy;a.heldBy=null;a.held=false;
+    const v=Array.isArray(d.v)?d.v.map(x=>clamp(+x||0,-120,120)):[0,0,0],dmg=clamp(+d.d||0,0,400),sp=Math.hypot(...v);
+    if(a.kind==='vehicle'){a.state='thrown';a.vel.set(...v);a.sx=sp?rr(-3,3):0;a.sy=sp?rr(-2,2):0;a.sz=sp?rr(-3,3):0;a.life=6;a.thrower=src;a.throwDmg=dmg||10;}
+    else if(a.kind==='human'){a.air=true;a.vel.set(...v);a.tumble=sp?rr(6,10):0;if(dmg)a.thrown={by:src,dmg};}else{a.vel.set(...v);if(dmg)a.thrown={by:src,dmg};a.stun=1;}},
+  holdTick(dt){for(const a of actors){const r=a.heldBy;if(!r)continue;
+    if(!r.tk&&time-(a.heldT||0)<1.2)continue; // the holder's first hold point is still on its way
+    if(!MP.peers.has(r.peer)||!r.tk){a.heldBy=null;a.held=false;if(a.kind==='human')a.air=true;else if(a.kind==='vehicle'){a.state='thrown';a.vel.set(0,0,0);a.life=6;}continue;}
+    const k=damp(9,dt);a.pos.x+=(r.tk.x-a.pos.x)*k;a.pos.y+=(r.tk.y-a.pos.y)*k;a.pos.z+=(r.tk.z-a.pos.z)*k;if(a.vel)a.vel.set(0,0,0);a.stun=Math.max(a.stun||0,0.3);}},
   take(v){if(!v.net)return;this.byId.delete(v.nid);P2P.emit('tk',{id:v.nid});v.net=false;v.nid=null;v.state='parked';},
   // ---------------- shared destruction ----------------
   destroyed(k,d){if(this.applying||!P2P.open)return;const o={k};for(const key in d)o[key]=typeof d[key]==='number'?Math.round(d[key]*100)/100:d[key];P2P.emit('dx',o);},
@@ -145,6 +163,7 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
     try{
       if(d.k==='pb'){const l=blockProps[d.bi|0];const p=l&&l[d.i|0];if(p&&p.alive)breakProp(p,null);}
       else if(d.k==='wb'){const b=colliders[d.ci|0];if(b)breakWindowAt(b,n(d.x),n(d.y),n(d.z));}
+      else if(d.k==='bc'){const b=bldgs[d.id|0];if(b)collapseBuilding(b,clamp(n(d.dx),-1,1),clamp(n(d.dz),-1,1),false);}
       else if(d.k==='cr'){const x=n(d.x),z=n(d.z);if(Math.hypot(x-P.pos.x,z-P.pos.z)<600)crater(x,n(d.y),z,clamp(n(d.nx),-1,1),clamp(n(d.ny),-1,1),clamp(n(d.nz),-1,1),clamp(n(d.r),0.5,8));}
     }finally{this.applying=false;}
   },
@@ -177,6 +196,8 @@ function mirrorRival(nid,full){
     eye:new V3(),radius:0.9,cy:1.3,ys:0.55,castT:-9,phase:0,firing:false});
   WS.byId.set(nid,r);rivals.push(r);actors.push(r);return r;
 }
+function mirrorHeli(nid){const h=Object.assign(mirrorBase(nid),{kind:'heli',faction:'police',hp:450,maxHp:450,yaw:0,tyaw:0,rx:0,rz:0,rotor:0,crash:false,leave:false,target:null,cy:1.6,radius:3.6,ys:0.5});
+  WS.byId.set(nid,h);helis.push(h);actors.push(h);return h;}
 function mirrorBoss(nid,type,name){const b=Object.assign(mirrorBase(nid),{kind:'boss',type,name:name||(type==='ship'?'Mothership':'Titan mech'),hp:1,maxHp:1,yaw:0,tyaw:0,spin:0,phase:0,punchAnim:0,
   cy:type==='ship'?0:22,radius:type==='ship'?16:11,ys:type==='ship'?0.3:0.55,leave:false});WS.byId.set(nid,b);return b;}
 function mirrorRivalAnim(r,dt){

@@ -12,7 +12,7 @@ const comboEl=(()=>{const e=document.createElement('div');e.id='combo';e.hidden=
 function lockable(a){
   if(!a||!a.alive||a.held||a===P)return false;
   if(a.kind==='remote')return !(a.flags&FLAG.invis)&&!(a.flags&FLAG.dead);
-  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss';
+  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli';
 }
 function lockValid(a){if(!lockable(a))return false;const c=center(a);return Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z)<COMBAT.lockRange*1.3;}
 function pickLock(){
@@ -20,7 +20,7 @@ function pickLock(){
   for(const a of actors){if(!lockable(a)||a.hidden)continue;const c=center(a);const dx=c.x-ox,dy=c.y-oy,dz=c.z-oz,d=Math.hypot(dx,dy,dz)||1;
     const dot=(dx*camF.x+dy*camF.y+dz*camF.z)/d;if(dot<0.55)continue;const dp=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);if(dp>COMBAT.lockRange)continue;
     // favour whoever is closest to the crosshair, then distance; hostile targets first
-    const hostile=a.kind==='remote'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='human'&&(a.role!=='civilian'||a.target===P));
+    const hostile=a.kind==='heli'||a.kind==='remote'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='human'&&(a.role!=='civilian'||a.target===P));
     const s=(1-dot)*400+dp*0.6+(hostile?0:60);if(s<bs){bs=s;best=a;}}
   return best;
 }
@@ -110,6 +110,7 @@ function dashPress(){
   SFX.whoosh();for(let i=0;i<14;i++)emit(P.pos.x,P.pos.y+rr(0.3,2.2),P.pos.z,-dx*rr(4,10),rr(0,2),-dz*rr(4,10),0.35,[.85,.9,1],1.2,0,2);
 }
 function updateCombat(dt){
+  updateCharge(dt);
   if(dashCd>0)dashCd-=dt;if(P.iframeT>0)P.iframeT-=dt;if(P.grounded||P.wall||P.web||P.flying)airDash=true;
   updateLock(dt);
 }
@@ -119,12 +120,14 @@ function crater(x,y,z,nx,ny,nz,r,col){
   for(let i=0;i<Math.round(4+r*3);i++){const s=rr(0.25,0.7)*Math.min(2,r*0.5);spawnPiece(x+nx*0.3+rr(-r,r)*0.4,y+ny*0.3+rr(-r,r)*0.4,z+nz*0.3+rr(-r,r)*0.4,MESH.box,s,s*rr(0.5,1),s,col,nx*rr(4,12)+rr(-5,5),ny*rr(4,10)+rr(2,8),nz*rr(4,12)+rr(-5,5),10);}
   burst(x,y,z,Math.round(20+r*10),10+r*4,0.9,DUST,2.4,-2,2);ringFx(x,y,z,0.5,r*3,0.35,[1,.95,.85],[nx,ny,nz]);
   const v=SFX.vol(x,y,z);SFX.boom(v*Math.min(1,0.3+r*0.15),1.2);addShake(Math.min(0.6,r*0.12)*v);scare(x,z,25);
-  const b=inBuilding(x-nx*0.6,y,z-nz*0.6,0.8);if(b&&b.y1>3){breakWindowAt(b,x-nx*0.3,y,z-nz*0.3);if(r>2)breakWindowAt(b,x-nx*0.3,y+4,z-nz*0.3);}
+  const b=inBuilding(x-nx*0.6,y,z-nz*0.6,0.8);if(b&&b.bld)damageBuilding(b.bld,r*r*30,x,y,z,-nx,-nz);if(b&&b.y1>3){breakWindowAt(b,x-nx*0.3,y,z-nz*0.3);if(r>2)breakWindowAt(b,x-nx*0.3,y+4,z-nz*0.3);}
   hitProps(x,y,z,r,null,12);MP.world&&MP.world.destroyed('cr',{x,y,z,nx,ny,nz,r});
 }
-function slamWall(a,w,spd){
+function slamWall(a,w,spd,pv){
   if(!w||!w.b)return;const src=a.flungBy||null;
   const x=a.pos.x+(w.nx||0)*0.1,z=a.pos.z+(w.nz||0)*0.1,y=a.pos.y+1.1;
+  // hard enough and the whole building gives way; the body keeps flying through it
+  if(damageBuilding(w.b.bld,spd*spd*0.05*(1+(a.heavy||0)*3),x,y,z,-(w.nx||0),-(w.nz||0))){if(pv)a.vel.set(pv[0]*0.8,pv[1],pv[2]*0.8);if(a.alive)Damage.apply(src,a,spd*0.5,'slam');return;}
   crater(x,y,z,w.nx||0,0,w.nz||0,clamp(spd*0.07,1.2,4),w.b.col||[.5,.5,.52]);
   if(a.alive)Damage.apply(src,a,spd*0.9,'slam',{stun:1.2});
   a.vel.set((w.nx||0)*3,-3,(w.nz||0)*3);a.flungT=-9;
@@ -142,4 +145,28 @@ function flungSweep(a,spd){
       burst(a.pos.x,a.pos.y+1,a.pos.z,24,12,0.5,SPARK,1,15,1);SFX.crash(SFX.vol(v.pos.x,1,v.pos.z));addShake(0.25);
       if(v.state==='road'||v.state==='chase'){v.state='parked';v.spd=0;v.parkT=8;}
       a.vel.mul(0.25);a.flungT=-9;return;}}
+}
+// ---- charged punch: hold click while flying at a locked target ----
+// Charge up, rocket into them and send them flying hundreds of meters (Invincible-style).
+const canChargePunch=()=>!!(lockT&&lockT.alive&&!P.car&&(P.flying||(P.alien&&ALIENS[P.alien.id].flies)));
+function chargeStart(){if(!canAct()||!canChargePunch()||P.cp||P.rush)return false;P.cp={t:0};SFX.tone('sawtooth',110,520,1.2,0.05);return true;}
+function chargeRelease(){const c=P.cp;if(!c)return;P.cp=null;if(!canAct()||!lockT||!lockT.alive)return;P.rush={t:0,k:clamp(c.t/1.2,0.2,1),tg:lockT};SFX.whoosh();addShake(0.15);}
+function updateCharge(dt){
+  if(P.cp){P.cp.t+=dt;if(!canChargePunch()||!canAct()){P.cp=null;}else{const h=handPoint(),k=Math.min(1,P.cp.t/1.2);P.vel.mul(1-2.5*dt);
+    if(Math.random()<0.4+k*0.6){const a=rr(0,TAU),r=rr(1.5,3);emit(h.x+Math.cos(a)*r,h.y+rr(-1,1),h.z+Math.sin(a)*r,-Math.cos(a)*r*3,0,-Math.sin(a)*r*3,0.3,[1,.9,.6],0.8+k,0,0);}}}
+  const R=P.rush;if(!R)return;R.t+=dt;const t=R.tg;
+  if(!t||!t.alive||R.t>1.3||!canAct()){P.rush=null;return;}
+  const c=center(t),dx=c.x-P.pos.x,dy=c.y-(P.pos.y+1.3),dz=c.z-P.pos.z,d=Math.hypot(dx,dy,dz)||1;let ux=dx/d,uy=dy/d,uz=dz/d,ux0,uy0,uz0;
+  const s=110+80*R.k;P.vel.set(ux*s,uy*s,uz*s);P.burstT=0.05;P.heroYaw=Math.atan2(ux,uz);
+  if(d>2)R.dir=[ux,uy,uz]; // launch along the approach, not whatever angle you overshoot at
+  if(Math.random()<0.9)emit(P.pos.x,P.pos.y+1.3,P.pos.z,0,0,0,0.4,[.9,.95,1],1.6,0,0);
+  if(d>3.4)return;
+  // impact
+  P.rush=null;if(R.dir){[ux0,uy0,uz0]=R.dir;const hl=Math.hypot(ux0,uz0)||1;ux=ux0/hl*Math.cos(Math.asin(clamp(uy0,-0.7,0.7)));uz=uz0/hl*Math.cos(Math.asin(clamp(uy0,-0.7,0.7)));uy=clamp(uy0,-0.7,0.7);}const k=R.k,AL=P.alien?ALIENS[P.alien.id]:null,am=AL?(AL.scale>2?3:1.5):1;
+  const dmg=CONFIG.punch.damage*strengthMul()*(3+9*k)*am,sp=(70+130*k)*Math.min(1.5,Math.sqrt(strengthMul()));
+  Damage.apply(P,t,dmg,'punch',{kv:[ux*sp,uy*sp*0.6+8+14*k,uz*sp],stun:2.5,flung:true,heavy:k});
+  P.vel.set(-ux*6,2,-uz*6);P.burstT=0.15;P.punchT=time;P.punchKind='fin';P.punchArm=1;comboN=0;
+  flashWhite=Math.max(flashWhite,0.2*k);slowT=Math.max(slowT,0.12+0.2*k);addShake(0.5+0.7*k);SFX.boom(1,0.8+k*0.6);SFX.punch(1.4);
+  ringFx(c.x,c.y,c.z,0.5,12+18*k,0.35,[1,1,1],[ux,uy,uz]);ringFx(c.x,c.y,c.z,0.5,6+8*k,0.25,[1,.8,.4],[ux,uy,uz]);
+  burst(c.x,c.y,c.z,40+60*k,20+20*k,0.5,SPARK,1.6,0,2);hitProps(c.x,c.y,c.z,3,P,40);
 }

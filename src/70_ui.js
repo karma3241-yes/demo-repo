@@ -123,13 +123,13 @@ function renderSheet(){
   ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings,mp:renderMP})[sheetOpen]();
   sheetBody.scrollTop=y;
 }
-const STAT_LABELS={damage:'Damage',dps:'Damage per second',radius:'Radius',speed:'Speed',drain:'Energy per second',mult:'Speed multiplier',range:'Range',force:'Swing force',
+const STAT_LABELS={bounces:'Bounces',duration:'Duration',damage:'Damage',dps:'Damage per second',radius:'Radius',speed:'Speed',drain:'Energy per second',mult:'Speed multiplier',range:'Range',force:'Swing force',
   stun:'Stun',slow:'Slow',absorb:'Absorbs',dr:'Damage reduction',throwDmg:'Throw damage',knock:'Knockback',burnDps:'Burn per second',hitDmg:'Bump damage'};
-function fmtStat(k,v){if(k==='slow'||k==='dr')return Math.round(v*100)+'%';if(k==='stun')return v.toFixed(1)+' s';if(k==='mult'||k==='force')return '×'+v.toFixed(1);return String(Math.round(v));}
+function fmtStat(k,v){if(k==='duration')return v.toFixed(1)+' s';if(k==='slow'||k==='dr')return Math.round(v*100)+'%';if(k==='stun')return v.toFixed(1)+' s';if(k==='mult'||k==='force')return '×'+v.toFixed(1);return String(Math.round(v));}
 function statLines(id,lvl,next){
   const c=POWERS[id],out=[];
   for(const k in c)if(Array.isArray(c[k])&&STAT_LABELS[k]){const a=pstat(id,k,lvl);out.push(STAT_LABELS[k]+' '+fmtStat(k,a)+(next?' → '+fmtStat(k,pstat(id,k,next)):''));}
-  if(c.cooldown)out.push('Cooldown '+c.cooldown+' s');if(c.energy)out.push('Energy '+c.energy);if(c.energyPerSec)out.push(c.energyPerSec+' energy per second');
+  if(c.cooldown)out.push('Cooldown '+(Array.isArray(c.cooldown)?pstat(id,'cooldown',lvl).toFixed(1):c.cooldown)+' s');if(c.energy)out.push('Energy '+c.energy);if(c.energyPerSec)out.push(c.energyPerSec+' energy per second');
   return out.join(' · ');
 }
 function renderSkills(){
@@ -272,7 +272,7 @@ function renderCreator(){
     const chosen=draft[key];const wrap=el('div',{class:'picks'});
     for(const id of ids){const on=chosen.includes(id),c=POWERS[id];
       wrap.appendChild(el('button',{type:'button',class:'pick'+(on?' on':'')+(id==='morphBand'?' special':''),'aria-pressed':String(on),onclick:()=>{if(on)chosen.splice(chosen.indexOf(id),1);else if(chosen.length<max)chosen.push(id);else{chosen.shift();chosen.push(id);}draft.confirm=false;renderCreator();}},
-        el('b',{text:c.name}),el('span',{class:'cat',text:c.cat==='movement'?'Movement · '+c.key:c.cat==='defence'?'Defence':c.cat==='special'?'Transformation':'Attack'}),el('span',{text:c.desc})));}
+        el('b',{text:c.name}),el('span',{class:'cat',text:c.cat==='movement'?'Movement · '+c.key:c.cat==='defence'?'Defence':c.cat==='special'?'Transformation':c.cat==='utility'?'Utility':c.type==='charge'?'Attack · hold':'Attack'}),el('span',{text:c.desc})));}
     creatorBody.append(el('h3',{text:title+' · '+chosen.length+'/'+max}),wrap);
   };
   group('Movement powers',MOVEMENT_POWERS,'movement',CONFIG.picks.movement);

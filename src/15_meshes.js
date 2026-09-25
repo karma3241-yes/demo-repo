@@ -62,3 +62,14 @@ const bossMesh=(()=>{const g=new Geo();
   for(let i=0;i<4;i++){const a=i/4*TAU+0.4;g.box(Math.cos(a)*10-1,-4.5,Math.sin(a)*10-1,Math.cos(a)*10+1,-2,Math.sin(a)*10+1,C('#22262e'),0);
     g.prim(PRIM.cyl,Math.cos(a)*10,-5,Math.sin(a)*10,Math.PI/2,a,0,0.5,3,0.5,C('#15171c'),0);}
   return g.mesh();})();
+// police helicopter (rotors are drawn separately so they can spin)
+const heliMesh=(()=>{const g=new Geo();const W=C('#e9ecef'),K=C('#15171c'),B=C('#1f4fd1'),M=C('#3a3f48');
+  g.prim(PRIM.sphere,0,1.6,0.6,0,0,0,1.5,1.35,2.4,K,0);g.prim(PRIM.sphere,0,1.35,-0.3,0,0,0,1.45,1.15,2.1,W,0);
+  g.prim(PRIM.sphere,0,1.9,1.9,0.25,0,0,1.15,0.9,1.1,GLASS_C,0);
+  g.box(-1.46,1.1,-1.6,1.46,1.35,1.2,B,0);
+  g.prim(PRIM.cyl,0,1.9,-4.2,Math.PI/2,0,0,0.32,5.2,0.42,W,0);g.prim(PRIM.cyl,0,1.9,-4.2,Math.PI/2,0,0,0.34,1.2,0.44,B,0);
+  g.box(-0.08,1.8,-7.2,0.08,3.3,-6.3,K,0);g.box(-1.1,1.85,-6.9,1.1,1.95,-6.4,K,0);
+  g.prim(PRIM.cyl,0,3.05,0,0,0,0,0.35,0.6,0.35,M,0);g.box(-0.5,2.7,-0.9,0.5,3.0,0.7,M,0);
+  for(const x of [-1,1]){g.box(x*1.25-0.08,0,-1.6,x*1.25+0.08,0.12,1.7,M,0);g.box(x*1.0-0.05,0.1,-0.9,x*1.0+0.05,0.9,-0.8,M,0);g.box(x*1.0-0.05,0.1,0.8,x*1.0+0.05,0.9,0.9,M,0);}
+  g.box(-0.5,0.55,2.4,0.5,0.85,2.9,C('#fff4d6'),2);
+  return g.mesh();})();
