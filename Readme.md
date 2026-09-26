@@ -156,7 +156,7 @@ On touch screens: drag on the left side to move (or drive), drag on the right si
 
 ## The city
 
-Nova Bay is a 16 × 16 block island with a downtown of glass towers, a brick old town, a residential district with houses, an industrial zone with warehouses and a container port, docks with cranes, and a central park with a lake. The bank, hospital (where you wake up after being knocked out) and police headquarters are landmarks on the minimap.
+Nova Bay is laid out like Manhattan and Queens, about one and a half times the size of the old city. **Manhattan** is a long, narrow island running north to south: a dense financial district of glass towers at its southern tip (with the bank and police headquarters), a midtown skyscraper cluster (with Inventor Tower), a huge **Central Park** rectangle in the middle with a lake, the reservoir and no roads through it, brick uptown neighborhoods, and piers with cranes along the west shore. Across the **East River**, **Queens** is lower and mostly houses, with a few towers near the water, a main shopping street, and industrial yards and containers along the waterfront. Three suspension **bridges** cross the river, and a road runs along every shoreline. The hospital (where you wake up after being knocked out) is on the east side of the park. The bank, hospital, police headquarters and Inventor Tower are marked on the minimap.
 
 - **Traffic** follows lanes and traffic lights, and cars honk and brake for people in the road. You can take any car with `G`. Taking a car that someone is driving is a crime.
 - **Almost everything breaks.** Street lamps, traffic lights, benches, trees, bus stops, mailboxes and hydrants shatter into pieces (and hydrants spray water). Windows break from explosions, lasers and crashes. Cars can be wrecked, and debris bounces off buildings. Broken street furniture comes back after a couple of minutes.
@@ -200,7 +200,7 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 | Module | Contents |
 | --- | --- |
 | `00_engine.js` | Math, WebGL 2 renderer, geometry, particles, audio |
-| `10_world.js` | City generation, street props, collisions, ray casts |
+| `10_world.js` | City generation (the Manhattan and Queens land mask, districts, bridges, road graph), street props, collisions, ray casts |
 | `15_meshes.js` | Cars, drones, bosses |
 | `20_core.js` | Config, powers, saving |
 | `30_systems.js` | Damage, XP, reputation, effects, destruction, projectiles |

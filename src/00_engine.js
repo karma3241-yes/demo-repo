@@ -148,7 +148,6 @@ void main(){
     float cz=step(d.x,9.0)*step(11.0,d.y)*step(d.y,14.0)*step(fract(p.x/1.6),0.5);
     float cx=step(d.y,9.0)*step(11.0,d.x)*step(d.x,14.0)*step(fract(p.y/1.6),0.5);
     base=mix(base,vec3(0.5),max(cz,cx));
-    if(max(abs(p.x),abs(p.y))>652.0)base=vec3(0.36,0.31,0.22)*(0.8+0.3*vnoise(p*0.2));
     spec=0.08;
   }else if(mat>3.5&&mat<4.5){
     vec2 p=vW.xz;float t=uTime;

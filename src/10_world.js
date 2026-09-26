@@ -1,10 +1,32 @@
 // ================================================================
 // City generation
 // ================================================================
-// A 16x16 grid of 80 m cells: 60 m blocks with 20 m roads between them.
-// Districts: downtown glass towers, midtown, brick Old Town (NW), row houses (SW),
-// industrial yards (SE) with docks on the east shore, and a central park with a lake.
-const GRID=16,CELL=80,HALF=GRID*CELL/2,EDGE=HALF+80,LIMIT=EDGE+170,CEIL=520;
+// A grid of 80 m cells (60 m blocks with 20 m roads between them) shaped like Manhattan and Queens:
+// a long island running north-south with Central Park in the middle, a midtown skyscraper cluster and a
+// dense financial district at the southern tip; the East River; and Queens across it, lower and mostly
+// residential, with waterfront industry. Three bridges cross the river and piers line Manhattan's west shore.
+// North is -z. i runs west to east (x), j north to south (z).
+const CELL=80,GX=20,GZ=28,X0=-GX*CELL/2,Z0=-GZ*CELL/2,X1=-X0,Z1=-Z0;
+const HALF=Math.max(X1,Z1),EDGE=HALF+80,LIMIT=EDGE+170,CEIL=520; // HALF/EDGE/LIMIT: the bounding square around everything
+// the land mask: 0 water, 1 city block, 2 park
+const LAND=new Uint8Array(GX*GZ);
+(function shapeLand(){
+  const set=(i0,i1,j0,j1,v)=>{for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++)LAND[i*GZ+j]=v;};
+  // Manhattan: long and narrow, tapering at both tips
+  set(2,6,0,1,1);set(0,7,2,25,1);set(1,6,26,26,1);set(2,5,27,27,1);set(0,0,2,3,0);set(7,7,2,4,0);
+  set(2,5,7,13,2); // Central Park
+  // Queens, across the East River (i 8-9 stay water)
+  set(11,17,4,4,1);set(10,18,5,21,1);set(11,16,22,22,1);set(18,18,5,7,0);
+})();
+const BRIDGES=[7,14,20];                              // z grid lines where a bridge crosses the river
+const RIVER=[8,9];                                    // the river's cell columns
+const cellAt=(i,j)=>i<0||j<0||i>=GX||j>=GZ?0:LAND[i*GZ+j];
+const isBlock=(i,j)=>cellAt(i,j)===1;
+const cellX=i=>X0+(i+.5)*CELL,cellZ=j=>Z0+(j+.5)*CELL;
+const cellI=x=>Math.floor((x-X0)/CELL),cellJ=z=>Math.floor((z-Z0)/CELL);
+// road edges on the grid lines: along z (axis 0) at x line k between z nodes m and m+1; along x (axis 1) at z line m between x nodes k and k+1
+function zEdge(k,m){if(m<0||m>=GZ)return false;const a=cellAt(k-1,m),b=cellAt(k,m);return !!(a||b)&&!(a===2&&b===2);}
+function xEdge(m,k){if(k<0||k>=GX)return false;const a=cellAt(k,m-1),b=cellAt(k,m);if(BRIDGES.includes(m)&&RIVER.includes(k))return true;return !!(a||b)&&!(a===2&&b===2);}
 const colliders=[],blockCols=[],extraCols=[],roofTops=[],mapRects=[],parks=[],shops=[],atms=[],alleys=[],curbSpots=[],orbSpots=[],lakes=[];
 const blockProps=[],tlights=[];
 let bank=null,hospital=null,policeHQ=null,invTower=null;
@@ -33,13 +55,18 @@ function bEnd(x0,z0,x1,z1,kind){if(!_bs)return;const cols=colliders.slice(_bs.c0
   b.hp=b.maxHp;for(const c of cols)c.bld=b;bldgs.push(b);_bs=null;}
 function rect(x0,z0,x1,z1,col){mapRects.push({x0,z0,x1,z1,col});}
 function districtOf(i,j){
-  const cx=-HALF+(i+.5)*CELL,cz=-HALF+(j+.5)*CELL,d=Math.hypot(cx,cz)/HALF;
-  if(i>=7&&i<=8&&j>=3&&j<=4)return 'park';
-  if(i>=11&&j>=10)return 'industrial';
-  if(i<=4&&j<=5)return 'oldtown';
-  if(i<=4&&j>=10)return 'residential';
-  if(d<0.34)return 'downtown';
-  return 'midtown';
+  if(cellAt(i,j)===2)return 'park';
+  if(i<=7){ // Manhattan
+    if(j>=22)return 'downtown';          // the financial district
+    if(j>=15)return 'midtown';           // the skyscraper cluster
+    if(j>=7)return 'uptown';             // either side of the park
+    return 'oldtown';                    // brick uptown blocks
+  }
+  // Queens
+  if(i<=11&&j>=8&&j<=17)return 'lic';    // a few towers by the bridges
+  if(i<=11||j>=20)return 'industrial';   // the waterfront
+  if(i===14)return 'oldtown';            // the main shopping street
+  return 'residential';
 }
 // ---- storefronts and ATMs on a street-facing face (0:+x 1:-x 2:+z 3:-z) ----
 function faceInfo(face,x0,x1,z0,z1){const alongX=face>=2;return {alongX,nx:face===0?1:face===1?-1:0,nz:face===2?1:face===3?-1:0,fx:face===0?x1:face===1?x0:0,fz:face===2?z1:face===3?z0:0,len:alongX?x1-x0:z1-z0,mid:alongX?(x0+x1)/2:(z0+z1)/2};}
@@ -166,8 +193,8 @@ function curbProps(bi,cx,cz,dist){
     addProp(bi,'lamp',cx+sx*28.6,cz+sz*28.6,Math.atan2(sx,sz));
     // traffic light facing the road that runs along x (axis 1) or z (axis 0)
     const ax=srand()<0.5?0:1;
-    if(ax===0)addProp(bi,'tlight',cx+sx*29.2,cz+sz*25.5,sx>0?Math.PI/2:-Math.PI/2,{axis:0,ix:Math.round((cx+sx*40+HALF)/CELL),iz:Math.round((cz+sz*40+HALF)/CELL)});
-    else addProp(bi,'tlight',cx+sx*25.5,cz+sz*29.2,sz>0?0:Math.PI,{axis:1,ix:Math.round((cx+sx*40+HALF)/CELL),iz:Math.round((cz+sz*40+HALF)/CELL)});
+    if(ax===0)addProp(bi,'tlight',cx+sx*29.2,cz+sz*25.5,sx>0?Math.PI/2:-Math.PI/2,{axis:0,ix:Math.round((cx+sx*40-X0)/CELL),iz:Math.round((cz+sz*40-Z0)/CELL)});
+    else addProp(bi,'tlight',cx+sx*25.5,cz+sz*29.2,sz>0?0:Math.PI,{axis:1,ix:Math.round((cx+sx*40-X0)/CELL),iz:Math.round((cz+sz*40-Z0)/CELL)});
   }
   const items=dist==='downtown'?['bin','planter','newsbox','hydrant','bench']:dist==='industrial'?['bin','hydrant']:['bench','bin','hydrant','mailbox','newsbox','tree','tree'];
   for(let side=0;side<4;side++){const n=1+Math.floor(srand()*3);
@@ -179,7 +206,7 @@ function curbProps(bi,cx,cz,dist){
   }
 }
 function special(i,j,cx,cz,list,bi){
-  if(i===8&&j===8){ // bank
+  if(i===3&&j===25){ // bank (the financial district)
     const x0=cx-22,x1=cx+22,z0=cz-16,z1=cz+22,h=44;
     city.box(x0,0.25,z0,x1,h,z1,STONE,1,777.3);addCollider({x0,x1,z0,z1,y0:0,y1:h+0.6,col:STONE},list);rect(x0,z0,x1,z1,h);
     city.box(x0-.3,h,z0-.3,x1+.3,h+.6,z1+.3,ROOF,0);city.box(x0+2,0.25,z0-6,x1-2,1.2,z0,STONE,0);
@@ -190,14 +217,14 @@ function special(i,j,cx,cz,list,bi){
     const vy=h+0.6;bank={x:cx,z:z0-8,cx,cz:cz+3,roof:vy,vault:{x:cx,y:vy+3.5,z:cz+3},x0,x1,z0,z1};
     roofTops.push({x:cx+14,y:vy,z:cz+12,x0,x1,z0,z1});return true;
   }
-  if(i===9&&j===6){ // hospital (where you get back on your feet)
+  if(i===6&&j===11){ // hospital (where you get back on your feet), east of the park
     const x0=cx-24,x1=cx+24,z0=cz-14,z1=cz+20,h=36;tower(x0,z0,x1,z1,h,'office',list);
     for(const zf of [z0-0.3]){city.box(cx-3,20,zf,cx+3,22,zf+0.2,C('#ff2a2a'),2);city.box(cx-1,18,zf,cx+1,24,zf+0.2,C('#ff2a2a'),2);}
     city.box(cx-6,0.25,z0-6,cx+6,4,z0-5,C('#e8e8e8'),0);city.box(cx-6,4,z0-6,cx+6,4.4,z0,C('#e8e8e8'),0);
     city.box(cx-1.5,h+0.35,cz-1.5+3,cx+1.5,h+0.45,cz+1.5+3,C('#ffc93c'),0);
     hospital={x:cx,z:z0-10};return true;
   }
-  if(i===9&&j===9){ // Inventor Tower: the Armored Inventor's home base, where the suit recharges. It can't be knocked down.
+  if(i===4&&j===17){ // Inventor Tower (midtown): the Armored Inventor's home base, where the suit recharges. It can't be knocked down.
     const RED=C('#b3122f'),GOLD=C('#ffc93c'),GLASS=C('#2a3440'),h=290,x0=cx-15,x1=cx+15,z0=cz-15,z1=cz+15;
     city.box(cx-24,0.25,cz-24,cx+24,12,cz+24,C('#30343c'),1,STYLE.glass*1000+411.5);addCollider({x0:cx-24,x1:cx+24,z0:cz-24,z1:cz+24,y0:0,y1:12.3,col:GLASS},list);
     city.box(cx-24.3,12,cz-24.3,cx+24.3,12.6,cz+24.3,RED,0);city.box(cx-6,0.25,cz-24.4,cx+6,8,cz-24.2,C('#9fe8ff'),6);
@@ -217,7 +244,7 @@ function special(i,j,cx,cz,list,bi){
     roofTops.push({x:cx,y:top+0.3,z:cz,x0:c0,x1:c1,z0:d0,z1:d1});
     invTower={x:cx,z:cz,x0:c0,x1:c1,z0:d0,z1:d1,top:top+0.3,pad:{x:x1+9,y:py,z:cz},door:{x:cx,z:cz-27}};return true;
   }
-  if(i===6&&j===8){ // police headquarters
+  if(i===5&&j===23){ // police headquarters (downtown)
     const x0=cx-22,x1=cx+22,z0=cz-18,z1=cz+14,h=28;tower(x0,z0,x1,z1,h,'office',list);
     city.box(cx-10,10,z1+0.05,cx+10,12.5,z1+0.35,C('#2a6fff'),2);city.box(cx-4,0.25,z1,cx+4,4,z1+0.2,DOOR,0);
     policeHQ={x:cx,z:z1+8};return true;
@@ -239,8 +266,30 @@ function parkBlock(i,j,cx,cz,list,bi,big){
   for(let k=0;k<4;k++)addProp(bi,'bench',cx+(k%2?4:-4),cz+(k<2?3:-3),k<2?0:Math.PI,{y:0.4});
   orbSpots.push({x:cx+14,y:1.6,z:cz,roof:false});
 }
-for(let i=0;i<GRID;i++)for(let j=0;j<GRID;j++){
-  const bi=i*GRID+j,cx=-HALF+(i+.5)*CELL,cz=-HALF+(j+.5)*CELL,list=[],dist=districtOf(i,j);blockCols[bi]=list;blockProps[bi]=[];
+// Central Park: grass right across the cells (no roads inside), paths, trees, a lake and the reservoir
+lakes.push({x:X0+4*CELL,z:cellZ(9),r:26},{x:X0+4*CELL,z:cellZ(11)+40,r:34});
+function centralPark(i,j,cx,cz,list,bi){
+  const pw=cellAt(i-1,j)===2,pe=cellAt(i+1,j)===2,pn=cellAt(i,j-1)===2,ps=cellAt(i,j+1)===2;
+  const x0=cx-(pw?40:30),x1=cx+(pe?40:30),z0=cz-(pn?40:30),z1=cz+(ps?40:30);
+  if(!pw)city.box(cx-30.2,0,z0,cx-28.5,0.25,z1,WALK,0);if(!pe)city.box(cx+28.5,0,z0,cx+30.2,0.25,z1,WALK,0);
+  if(!pn)city.box(x0,0,cz-30.2,x1,0.25,cz-28.5,WALK,0);if(!ps)city.box(x0,0,cz+28.5,x1,0.25,cz+30.2,WALK,0);
+  city.box(x0,0.02,z0,x1,0.4,z1,GRASS,5);addCollider({x0,x1,z0,z1,y0:-1,y1:0.4,col:GRASS},list);parks.push({cx,cz});rect(x0,z0,x1,z1,-1);
+  // paths: the long mall down the middle, two cross-park paths and a loop drive just inside the edge
+  const inLake=(x,z)=>lakes.some(l=>Math.hypot(x-l.x,z-l.z)<l.r+2);
+  if(i===3&&!inLake(x1-1,cz))city.box(x1-1.5,0.4,z0,x1+(pe?1.5:0),0.45,z1,PATHC,0);
+  if(j===8||j===12)city.box(x0,0.4,cz-1.5,x1,0.45,cz+1.5,PATHC,0);
+  if(!pw)city.box(x0+6,0.4,z0+(pn?0:6),x0+9,0.45,z1-(ps?0:6),PATHC,0);if(!pe)city.box(x1-9,0.4,z0+(pn?0:6),x1-6,0.45,z1-(ps?0:6),PATHC,0);
+  if(!pn)city.box(x0+(pw?0:6),0.4,z0+6,x1-(pe?0:6),0.45,z0+9,PATHC,0);if(!ps)city.box(x0+(pw?0:6),0.4,z1-9,x1-(pe?0:6),0.45,z1-6,PATHC,0);
+  for(let t=0;t<16;t++){const tx=cx+sr(-36,36),tz=cz+sr(-36,36);if(Math.abs(tx-cx)<3||Math.abs(tz-cz)<3)continue;if(tx<x0+2||tx>x1-2||tz<z0+2||tz>z1-2)continue;
+    if(lakes.some(l=>Math.hypot(tx-l.x,tz-l.z)<l.r+3))continue;addProp(bi,'tree',tx,tz,sr(0,TAU),{y:0.4});}
+  addProp(bi,'lamp',cx+3,cz+3,0,{y:0.4});addProp(bi,'bench',cx+4,cz-3,Math.PI,{y:0.4});addProp(bi,'bench',cx-4,cz+3,0,{y:0.4});
+  orbSpots.push({x:cx+14,y:1.6,z:cz,roof:false});
+}
+for(const l of lakes){city.prim(PRIM.cyl,l.x,0.3,l.z,0,0,0,l.r+1,0.3,l.r+1,C('#6b6456'),0);for(let k=0;k<12;k++){const a=k/12*TAU;city.prim(PRIM.sphere,l.x+Math.cos(a)*(l.r+1),0.6,l.z+Math.sin(a)*(l.r+1),0,a,0,sr(0.8,1.4),sr(0.5,0.9),sr(0.8,1.4),C('#7a7a74'),0);}}
+for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++){
+  const bi=i*GZ+j,cx=cellX(i),cz=cellZ(j),list=[],dist=districtOf(i,j);blockCols[bi]=list;blockProps[bi]=[];
+  const lv=cellAt(i,j);if(!lv)continue;
+  if(lv===2){centralPark(i,j,cx,cz,list,bi);continue;}
   city.box(cx-30,0,cz-30,cx+30,0.25,cz+30,WALK,0);
   city.box(cx-30.2,0,cz-30.2,cx+30.2,0.22,cz-29.8,C('#9a9ca1'),0);city.box(cx-30.2,0,cz+29.8,cx+30.2,0.22,cz+30.2,C('#9a9ca1'),0);
   addCollider({x0:cx-30,x1:cx+30,z0:cz-30,z1:cz+30,y0:-1,y1:0.25,col:WALK},list);
@@ -249,9 +298,7 @@ for(let i=0;i<GRID;i++)for(let j=0;j<GRID;j++){
     if(side===0)curbSpots.push({x:cx+t,z:cz-32.2,axis:1});else if(side===1)curbSpots.push({x:cx+t,z:cz+32.2,axis:1});
     else if(side===2)curbSpots.push({x:cx-32.2,z:cz+t,axis:0});else curbSpots.push({x:cx+32.2,z:cz+t,axis:0});}
   if(special(i,j,cx,cz,list,bi))continue;
-  if(dist==='park'){parkBlock(i,j,cx,cz,list,bi,true);continue;}
-  const dd=Math.hypot(cx,cz)/HALF;
-  if(dist!=='downtown'&&dist!=='industrial'&&dd>0.25&&srand()<0.06){parkBlock(i,j,cx,cz,list,bi,false);continue;}
+  if((dist==='uptown'||dist==='residential'||dist==='oldtown')&&srand()<0.06){parkBlock(i,j,cx,cz,list,bi,false);continue;}
   if(dist==='residential'){
     for(const [side,face] of [[0,3],[1,0],[2,2],[3,1]]){
       for(let k=0;k<4;k++){const a=-24+k*12.4+sr(-0.5,0.5),w=sr(8.5,10.5),dp=sr(10,13);
@@ -267,14 +314,17 @@ for(let i=0;i<GRID;i++)for(let j=0;j<GRID;j++){
     continue;
   }
   let lots,hRange,styles;
-  if(dist==='downtown'){lots=srand()<0.45?[[cx,cz,54,54]]:[[cx-14.5,cz-14.5,25,25],[cx+14.5,cz-14.5,25,25],[cx-14.5,cz+14.5,25,25],[cx+14.5,cz+14.5,25,25]];hRange=[100,300];styles=['glass','glass','glass','office'];}
+  const quad=[[cx-14.5,cz-14.5,25,25],[cx+14.5,cz-14.5,25,25],[cx-14.5,cz+14.5,25,25],[cx+14.5,cz+14.5,25,25]];
+  if(dist==='downtown'){lots=srand()<0.45?[[cx,cz,54,54]]:quad;hRange=[120,320];styles=['glass','glass','glass','office'];}
+  else if(dist==='midtown'){lots=srand()<0.4?[[cx,cz,54,54]]:quad;hRange=[90,270];styles=['glass','office','glass','office'];}
+  else if(dist==='lic'){lots=srand()<0.3?[[cx,cz,54,54]]:quad;hRange=[40,150];styles=['glass','office','office'];}
   else if(dist==='oldtown'){lots=[];for(let a=0;a<3;a++)for(let b=0;b<2;b++)lots.push([cx-19+a*19,cz-14.5+b*29,17,25]);hRange=[12,40];styles=['brick','brick','office'];}
-  else{lots=srand()<0.22?[[cx,cz,54,54]]:[[cx-14.5,cz-14.5,25,25],[cx+14.5,cz-14.5,25,25],[cx-14.5,cz+14.5,25,25],[cx+14.5,cz+14.5,25,25]];hRange=[24,150];styles=['office','office','brick','glass'];}
+  else{lots=srand()<0.22?[[cx,cz,54,54]]:quad;hRange=[30,95];styles=['office','office','brick','brick'];} // uptown, either side of the park
   if(lots.length===4)alleys.push({x:cx,z:cz-26.5,nx:0,nz:-1},{x:cx,z:cz+26.5,nx:0,nz:1},{x:cx-26.5,z:cz,nx:-1,nz:0},{x:cx+26.5,z:cz,nx:1,nz:0});
   for(const [lx,lz,sw,sd] of lots){
     const style=styles[Math.floor(srand()*styles.length)];
     const w=sw*sr(0.78,1),dp=sd*sr(0.78,1),x0=lx-w/2,x1=lx+w/2,z0=lz-dp/2,z1=lz+dp/2;
-    const hk=lots.length===1?1:0.85,h=Math.max(12,Math.round(lerp(hRange[0],hRange[1],Math.pow(srand(),1.6))*hk*(dist==='downtown'?1:lerp(1,0.6,dd))/4)*4);
+    const hk=lots.length===1?1:0.85,h=Math.max(12,Math.round(lerp(hRange[0],hRange[1],Math.pow(srand(),1.6))*hk/4)*4);
     bStart();tower(x0,z0,x1,z1,h,style,list,{tiers:h>80&&srand()<0.7?1+(h>180?1:0):0,spire:srand()<0.5});
     const faces=[];if(lx>cx||lots.length===1)faces.push(0);if(lx<cx||lots.length===1)faces.push(1);if(lz>cz||lots.length===1)faces.push(2);if(lz<cz||lots.length===1)faces.push(3);
     const fShop=faces[Math.floor(srand()*faces.length)];
@@ -283,32 +333,49 @@ for(let i=0;i<GRID;i++)for(let j=0;j<GRID;j++){
     bEnd(x0,z0,x1,z1,style);
   }
 }
-// docks on the east shore
+// piers along Manhattan's west shore (the Hudson)
+const PIER_X1=X0-12,PIER_X0=PIER_X1-110;
 (function docks(){
-  for(const pz of [-420,-120,200,480]){
-    const x0=EDGE,x1=EDGE+110,z0=pz-22,z1=pz+22;
+  for(const pz of [cellZ(5),cellZ(12)+40,cellZ(19)]){
+    const x0=PIER_X0,x1=PIER_X1,z0=pz-22,z1=pz+22;
     city.box(x0,-3,z0,x1,0.25,z1,C('#6b5a48'),0);extraCols.push({x0,x1,z0,z1,y0:-3,y1:0.25,col:C('#6b5a48')});colliders.push(extraCols[extraCols.length-1]);rect(x0,z0,x1,z1,-2);
     for(let k=0;k<6;k++)city.prim(PRIM.cyl,x0+8+k*18,-2,z0-0.6,0,0,0,0.5,4,0.5,C('#4a3c30'),0);
     const list=extraCols;const before=list.length;containers(x0+6,z0+4,x1-20,z0+20,list,5);
     for(let i=before;i<list.length;i++)colliders.push(list[i]);
-    const gx=x1-12;for(const dz of [z0+6,z1-6]){city.box(gx-1,0.25,dz-1,gx+1,34,dz+1,C('#d18a1f'),0);}
-    city.box(gx-1.5,32,z0+4,gx+1.5,35,z1-4,C('#d18a1f'),0);city.box(gx-26,33,pz-1.2,gx+8,34.5,pz+1.2,C('#d18a1f'),0);
+    const gx=x0+12;for(const dz of [z0+6,z1-6]){city.box(gx-1,0.25,dz-1,gx+1,34,dz+1,C('#d18a1f'),0);}
+    city.box(gx-1.5,32,z0+4,gx+1.5,35,z1-4,C('#d18a1f'),0);city.box(gx-8,33,pz-1.2,gx+26,34.5,pz+1.2,C('#d18a1f'),0);
     extraCols.push({x0:gx-1,x1:gx+1,z0:z0+5,z1:z0+7,y0:0,y1:35,col:C('#d18a1f')},{x0:gx-1,x1:gx+1,z0:z1-7,z1:z1-5,y0:0,y1:35,col:C('#d18a1f')});
     colliders.push(extraCols[extraCols.length-2],extraCols[extraCols.length-1]);
   }
 })();
-city.box(-EDGE,-4,-EDGE-2,EDGE,0,-EDGE,C('#8d8a82'),0);city.box(-EDGE,-4,EDGE,EDGE,0,EDGE+2,C('#8d8a82'),0);
-city.box(-EDGE-2,-4,-EDGE-2,-EDGE,0,EDGE+2,C('#8d8a82'),0);city.box(EDGE,-4,-EDGE-2,EDGE+2,0,EDGE+2,C('#8d8a82'),0);
+// the street surface: each land cell plus a 12 m waterfront road where it meets the water; sea walls along the shore
+const SHORE=12,SEAWALL=C('#8d8a82'),groundGeo=new Geo();
+for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++){if(!cellAt(i,j))continue;const cx=cellX(i),cz=cellZ(j),h=CELL/2+SHORE;
+  groundGeo.prim(PRIM.quad,cx,0,cz,0,0,0,h*2,1,h*2,[1,1,1],3);
+  if(!cellAt(i-1,j))city.box(cx-h-1.2,-4,cz-h,cx-h,0,cz+h,SEAWALL,0);if(!cellAt(i+1,j))city.box(cx+h,-4,cz-h,cx+h+1.2,0,cz+h,SEAWALL,0);
+  if(!cellAt(i,j-1))city.box(cx-h,-4,cz-h-1.2,cx+h,0,cz-h,SEAWALL,0);if(!cellAt(i,j+1))city.box(cx-h,-4,cz+h,cx+h,0,cz+h+1.2,SEAWALL,0);}
+// the bridges across the East River: a deck with railings, and two towers with cables
+const BRIDGE_RECTS=[];
+for(const m of BRIDGES){const z=Z0+m*CELL,xa=X0+RIVER[0]*CELL-SHORE,xb=X0+(RIVER[RIVER.length-1]+1)*CELL+SHORE,len=xb-xa,mid=(xa+xb)/2;
+  BRIDGE_RECTS.push({x0:xa,x1:xb,z0:z-12,z1:z+12});groundGeo.prim(PRIM.quad,mid,0,z,0,0,0,len,1,24,[1,1,1],3);
+  const STEEL=C('#5d6570'),STONEB=C('#9a8f7c');
+  city.box(xa,-1.6,z-12.5,xb,0,z+12.5,STEEL,0);for(const sd of [-1,1])city.box(xa,0,z+sd*12-0.3,xb,1.2,z+sd*12+0.3,STEEL,0);
+  for(const tx of [xa+len*0.28,xa+len*0.72]){for(const sd of [-1,1])city.box(tx-2.5,-6,z+sd*12-2.5,tx+2.5,58,z+sd*12+2.5,STONEB,0);city.box(tx-3,48,z-14,tx+3,54,z+14,STONEB,0);
+    for(const sd of [-1,1])addCollider({x0:tx-2.5,x1:tx+2.5,z0:z+sd*12-2.5,z1:z+sd*12+2.5,y0:-6,y1:58,col:STONEB},extraCols);}
+  for(const sd of [-1,1])for(let q=0;q<3;q++){const ta=xa+len*0.28,tb=xa+len*0.72,pts=[[xa,1.2],[ta,56],[mid,6+q*4],[tb,56],[xb,1.2]];
+    for(let s=0;s<pts.length-1;s++){const [ax,ay]=pts[s],[bx,by]=pts[s+1];city.prim(PRIM.cyl,(ax+bx)/2,(ay+by)/2,z+sd*12,0,0,-Math.atan2(bx-ax,by-ay),0.25,Math.hypot(bx-ax,by-ay),0.25,STEEL,0);}}
+  rect(xa,z-12,xb,z+12,0);}
+for(const b of extraCols)if(!colliders.includes(b))colliders.push(b);
 const cityMesh=city.mesh();
-const groundMesh=new Geo().prim(PRIM.quad,0,0,0,0,0,0,EDGE*2,1,EDGE*2,[1,1,1],3).mesh();
+const groundMesh=groundGeo.mesh();
 const waterMesh=new Geo().prim(PRIM.quad,0,-1.2,0,0,0,0,9000,1,9000,[1,1,1],4).mesh();
 const lakeMesh=(()=>{const g=new Geo();for(const l of lakes)g.prim(PRIM.cyl,l.x,0.46,l.z,0,0,0,l.r,0.02,l.r,[1,1,1],4);return g.mesh();})();
-for(let bi=0;bi<GRID*GRID;bi++)buildBlockProps(bi);
+for(let bi=0;bi<GX*GZ;bi++)if(blockProps[bi])buildBlockProps(bi);
 for(const list of blockProps)for(const p of list)if(p.type==='tlight')tlights.push(p);
 (function(){
   const roofs=roofTops.slice().sort(()=>srand()-0.5).slice(0,34);
   for(const r of roofs)orbSpots.push({x:r.x+sr(-2,2),y:r.y+1.4,z:r.z+sr(-2,2),roof:true});
-  for(let k=0;k<60;k++){const i=Math.floor(srand()*GRID),j=Math.floor(srand()*GRID);const p=pathPos({cx:-HALF+(i+.5)*CELL,cz:-HALF+(j+.5)*CELL,u:sr(0,216),dir:1});orbSpots.push({x:p.x,y:1.5,z:p.z,roof:false});}
+  for(let k=0;k<90;k++){const i=Math.floor(srand()*GX),j=Math.floor(srand()*GZ);if(!isBlock(i,j))continue;const p=pathPos({cx:cellX(i),cz:cellZ(j),u:sr(0,216),dir:1});orbSpots.push({x:p.x,y:1.5,z:p.z,roof:false});}
 })();
 const SPAWNS=[[hospital.x,hospital.z]];
 // traffic light phase for an intersection: returns 'g', 'y' or 'r' for traffic travelling along `axis`
@@ -328,7 +395,10 @@ function pathPos(p){
   if(p.dir<0)yaw+=Math.PI;
   return {x,z,yaw};
 }
-function blockCenter(x,z){const i=clamp(Math.floor((x+HALF)/CELL),0,GRID-1),j=clamp(Math.floor((z+HALF)/CELL),0,GRID-1);return [-HALF+(i+.5)*CELL,-HALF+(j+.5)*CELL];}
+// the nearest city block (with sidewalks) to a point
+function blockCenter(x,z){const i0=clamp(cellI(x),0,GX-1),j0=clamp(cellJ(z),0,GZ-1);
+  for(let r=0;r<GX+GZ;r++)for(let a=-r;a<=r;a++)for(let b=-r;b<=r;b++){if(Math.max(Math.abs(a),Math.abs(b))!==r)continue;if(isBlock(i0+a,j0+b))return [cellX(i0+a),cellZ(j0+b)];}
+  return [cellX(i0),cellZ(j0)];}
 function pathFor(x,z,dir){
   const [cx,cz]=blockCenter(x,z);const lx=x-cx,lz=z-cz,hh=27;let u;
   if(Math.abs(lx)>Math.abs(lz)){u=lx>0?54+clamp(lz,-hh,hh)+hh:162+clamp(-lz,-hh,hh)+hh;}
@@ -336,9 +406,9 @@ function pathFor(x,z,dir){
   return {cx,cz,u,dir:dir||(Math.random()<0.5?1:-1)};
 }
 function sidewalkPointNear(x,z,minD,maxD){
-  for(let t=0;t<30;t++){const a=rr(0,TAU),d=rr(minD,maxD);const px=clamp(x+Math.cos(a)*d,-HALF+10,HALF-10),pz=clamp(z+Math.sin(a)*d,-HALF+10,HALF-10);
-    const p=pathFor(px,pz);const q=pathPos(p);const dd=Math.hypot(q.x-x,q.z-z);if(dd>=minD*0.8&&dd<=maxD*1.2)return {x:q.x,z:q.z,path:p};}
-  const p=pathFor(clamp(x+minD,-HALF+10,HALF-10),clamp(z,-HALF+10,HALF-10));const q=pathPos(p);return {x:q.x,z:q.z,path:p};
+  for(let t=0;t<30;t++){const a=rr(0,TAU),d=rr(minD,maxD);const px=clamp(x+Math.cos(a)*d,X0+10,X1-10),pz=clamp(z+Math.sin(a)*d,Z0+10,Z1-10);
+    if(!isBlock(cellI(px),cellJ(pz)))continue;const p=pathFor(px,pz);const q=pathPos(p);const dd=Math.hypot(q.x-x,q.z-z);if(dd>=minD*0.8&&dd<=maxD*1.2)return {x:q.x,z:q.z,path:p};}
+  const p=pathFor(clamp(x+minD,X0+10,X1-10),clamp(z,Z0+10,Z1-10));const q=pathPos(p);return {x:q.x,z:q.z,path:p};
 }
 
 // ================================================================
@@ -346,12 +416,19 @@ function sidewalkPointNear(x,z,minD,maxD){
 // ================================================================
 const NEAR=[];
 function nearCols(x,z){
-  const i=Math.floor((x+HALF)/CELL),j=Math.floor((z+HALF)/CELL);NEAR.length=0;
-  for(let a=i-1;a<=i+1;a++)for(let b=j-1;b<=j+1;b++){if(a<0||b<0||a>=GRID||b>=GRID)continue;const l=blockCols[a*GRID+b];for(let k=0;k<l.length;k++)if(!l[k].dead)NEAR.push(l[k]);}
-  if(x>HALF-60)for(const b of extraCols)NEAR.push(b);
+  const i=cellI(x),j=cellJ(z);NEAR.length=0;
+  for(let a=i-1;a<=i+1;a++)for(let b=j-1;b<=j+1;b++){if(a<0||b<0||a>=GX||b>=GZ)continue;const l=blockCols[a*GZ+b];for(let k=0;k<l.length;k++)if(!l[k].dead)NEAR.push(l[k]);}
+  if(x<X0+40||(i>=RIVER[0]-1&&i<=RIVER[RIVER.length-1]+1))for(const b of extraCols)NEAR.push(b); // piers and bridge towers
   return NEAR;
 }
-const onIsland=(x,z)=>Math.abs(x)<=EDGE&&Math.abs(z)<=EDGE;
+// solid ground (land, waterfront roads, piers and bridges) on a 2 m raster; everywhere else is water
+const GR=2,GRX0=X0-160,GRZ0=Z0-80,GRW=Math.ceil((X1-GRX0+80)/GR),GRH=Math.ceil((Z1-GRZ0+80)/GR),GROUND=new Uint8Array(GRW*GRH);
+(function rasterGround(){const fill=(x0,z0,x1,z1)=>{const a0=Math.max(0,Math.floor((x0-GRX0)/GR)),a1=Math.min(GRW-1,Math.floor((x1-GRX0)/GR)),b0=Math.max(0,Math.floor((z0-GRZ0)/GR)),b1=Math.min(GRH-1,Math.floor((z1-GRZ0)/GR));
+    for(let a=a0;a<=a1;a++)for(let b=b0;b<=b1;b++)GROUND[a*GRH+b]=1;};
+  for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++)if(cellAt(i,j)){const cx=cellX(i),cz=cellZ(j),h=CELL/2+SHORE;fill(cx-h,cz-h,cx+h,cz+h);}
+  for(const r of BRIDGE_RECTS)fill(r.x0,r.z0,r.x1,r.z1);
+})();
+const onIsland=(x,z)=>{const a=Math.floor((x-GRX0)/GR),b=Math.floor((z-GRZ0)/GR);return a>=0&&b>=0&&a<GRW&&b<GRH&&GROUND[a*GRH+b]===1;};
 const baseY=(x,z)=>onIsland(x,z)?0:-0.9;
 function inBuilding(x,y,z,pad=0){
   for(const b of nearCols(x,z)){if(x>b.x0-pad&&x<b.x1+pad&&z>b.z0-pad&&z<b.z1+pad&&y<b.y1+pad&&y>b.y0-pad)return b;}
@@ -375,15 +452,15 @@ function rayBox(b,ox,oy,oz,dx,dy,dz){
 function rayCity(ox,oy,oz,dx,dy,dz,tmax){
   _best=tmax;RAYHIT.b=null;
   for(const b of extraCols)rayBox(b,ox,oy,oz,dx,dy,dz);
-  let cx=Math.floor((ox+HALF)/CELL),cz=Math.floor((oz+HALF)/CELL);
+  let cx=cellI(ox),cz=cellJ(oz);
   const sx=dx>0?1:-1,sz=dz>0?1:-1;
   const tdx=Math.abs(dx)<1e-9?Infinity:CELL/Math.abs(dx),tdz=Math.abs(dz)<1e-9?Infinity:CELL/Math.abs(dz);
-  let tmx=Math.abs(dx)<1e-9?Infinity:((cx+(dx>0?1:0))*CELL-HALF-ox)/dx,tmz=Math.abs(dz)<1e-9?Infinity:((cz+(dz>0?1:0))*CELL-HALF-oz)/dz;
-  for(let n=0;n<70;n++){
-    if(cx>=0&&cz>=0&&cx<GRID&&cz<GRID){const l=blockCols[cx*GRID+cz];for(let k=0;k<l.length;k++)rayBox(l[k],ox,oy,oz,dx,dy,dz);}
+  let tmx=Math.abs(dx)<1e-9?Infinity:((cx+(dx>0?1:0))*CELL+X0-ox)/dx,tmz=Math.abs(dz)<1e-9?Infinity:((cz+(dz>0?1:0))*CELL+Z0-oz)/dz;
+  for(let n=0;n<90;n++){
+    if(cx>=0&&cz>=0&&cx<GX&&cz<GZ){const l=blockCols[cx*GZ+cz];for(let k=0;k<l.length;k++)rayBox(l[k],ox,oy,oz,dx,dy,dz);}
     const tn=Math.min(tmx,tmz);if(_best<=tn||tn>tmax)break;
     if(tmx<tmz){tmx+=tdx;cx+=sx;}else{tmz+=tdz;cz+=sz;}
-    if((cx<0&&sx<0)||(cx>=GRID&&sx>0)||(cz<0&&sz<0)||(cz>=GRID&&sz>0))break;
+    if((cx<0&&sx<0)||(cx>=GX&&sx>0)||(cz<0&&sz<0)||(cz>=GZ&&sz>0))break;
   }
   RAYHIT.t=_best;return _best;
 }
@@ -416,8 +493,8 @@ function collideBody(pos,vel,prevY,R,HT){
 // street furniture near a point
 const PNEAR=[];
 function propsNear(x,z,r){
-  PNEAR.length=0;const i=Math.floor((x+HALF)/CELL),j=Math.floor((z+HALF)/CELL);
-  for(let a=i-1;a<=i+1;a++)for(let b=j-1;b<=j+1;b++){if(a<0||b<0||a>=GRID||b>=GRID)continue;
-    for(const p of blockProps[a*GRID+b])if(p.alive&&Math.abs(p.x-x)<r+p.r&&Math.abs(p.z-z)<r+p.r)PNEAR.push(p);}
+  PNEAR.length=0;const i=cellI(x),j=cellJ(z);
+  for(let a=i-1;a<=i+1;a++)for(let b=j-1;b<=j+1;b++){if(a<0||b<0||a>=GX||b>=GZ)continue;
+    for(const p of blockProps[a*GZ+b])if(p.alive&&Math.abs(p.x-x)<r+p.r&&Math.abs(p.z-z)<r+p.r)PNEAR.push(p);}
   return PNEAR;
 }

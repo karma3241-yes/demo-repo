@@ -47,7 +47,7 @@ function updateSpace(dt){
     if(nb.d>nb.b.r*3)lastBody=null;
   }
   // coming back down: re-enter over the city
-  if(P.pos.y<CEIL&&(Math.abs(P.pos.x)>LIMIT||Math.abs(P.pos.z)>LIMIT)){const k=LIMIT*0.85;P.pos.x=clamp(P.pos.x,-k,k);P.pos.z=clamp(P.pos.z,-k,k);
+  if(P.pos.y<CEIL&&P.flying&&(P.pos.x<X0-200||P.pos.x>X1+200||P.pos.z<Z0-200||P.pos.z>Z1+200)){P.pos.x=clamp(P.pos.x,X0+40,X1-40);P.pos.z=clamp(P.pos.z,Z0+40,Z1-40);
     flashWhite=Math.max(flashWhite,0.5);feed('Re-entry','Back over the city');for(let i=0;i<30;i++)emit(P.pos.x,P.pos.y+1,P.pos.z,rr(-8,8),rr(4,14),rr(-8,8),0.6,FIRE[1],2,0,1);}
 }
 function spaceMode(){const nb=nearestBody();return 'Space · '+nb.b.name+' '+(nb.d>1000?Math.round(nb.d/1000)+' km':Math.round(Math.max(0,nb.d))+' m');}
