@@ -407,6 +407,24 @@ function setMainFrameUniforms(){
   gl.uniform3fv(u.uFogC,env.hor);gl.uniform2f(u.uFog,state==='play'?160:300,state==='play'?1150:1500);
   gl.uniform3f(u.uCam,camPos.x,camPos.y,camPos.z);gl.uniform1f(u.uNight,env.night);gl.uniform1f(u.uTime,time);gl.uniform1f(u.uExpo,1.0);
   gl.uniform1f(u.uShTexel,1/SHADOW);gl.uniform1i(u.uShadow,0);gl.uniform1f(u.uShOn,save.settings.shadows?1:0);
+  const n=gatherLights();gl.uniform1f(u.uPLn,n);if(n){gl.uniform4fv(u.uPL,PL_POS);gl.uniform3fv(u.uPLC,PL_COL);}
+}
+// the nearest lit street lamps (and car headlights) light the street around them at night
+const PL_MAX=20,PL_POS=new Float32Array(PL_MAX*4),PL_COL=new Float32Array(PL_MAX*3),plCand=[];
+function gatherLights(){
+  const night=env.night;if(night<0.08)return 0;
+  const fx=state==='play'?P.pos.x:camPos.x,fz=state==='play'?P.pos.z:camPos.z;plCand.length=0;
+  const bi0=Math.floor((fx+HALF)/CELL),bj0=Math.floor((fz+HALF)/CELL);
+  for(let i=bi0-2;i<=bi0+2;i++)for(let j=bj0-2;j<=bj0+2;j++){if(i<0||j<0||i>=GRID||j>=GRID)continue;
+    for(const p of blockProps[i*GRID+j]){if(p.type!=='lamp'||!p.alive)continue;const x=p.x+Math.sin(p.yaw)*1.7,z=p.z+Math.cos(p.yaw)*1.7,d=(x-fx)**2+(z-fz)**2;
+      if(d<200*200)plCand.push({x,y:p.y+6.2,z,d,r:28,c:0});}}
+  for(const v of vehicles){if(!v.alive||v.state==='wreck'||v.state==='parked'||v.state==='thrown')continue;const d=(v.pos.x-fx)**2+(v.pos.z-fz)**2;if(d>120*120)continue;
+    const s=Math.sin(v.yaw),c=Math.cos(v.yaw),hl=v.hl||2;plCand.push({x:v.pos.x+s*(hl+5),y:v.pos.y+1.2,z:v.pos.z+c*(hl+5),d:d+900,r:13,c:1});}
+  plCand.sort((a,b)=>a.d-b.d);const n=Math.min(PL_MAX,plCand.length);
+  for(let k=0;k<n;k++){const L=plCand[k],fade=clamp(1.4-Math.sqrt(L.d)/170,0,1)*night;
+    PL_POS[k*4]=L.x;PL_POS[k*4+1]=L.y;PL_POS[k*4+2]=L.z;PL_POS[k*4+3]=L.r;
+    const col=L.c?[0.9,0.9,0.8]:[1,0.72,0.42];PL_COL[k*3]=col[0]*fade;PL_COL[k*3+1]=col[1]*fade;PL_COL[k*3+2]=col[2]*fade;}
+  return n;
 }
 const ID=M4.create(),WHITE=[1,1,1,1];
 function drawItem(mesh,M,tint,unlit,emis){
