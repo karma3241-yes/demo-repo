@@ -12,7 +12,7 @@ const CONFIG={
   punch:{damage:16,range:3.4,cooldown:0.3,knock:11,comboMul:1.6},
   autosave:30,
   drive:{maxSpeed:42,accel:16,brake:34,reverse:12,steer:1.7,grip:6},
-  traffic:{cars:95,police:4,follow:9,stopLine:13},
+  traffic:{cars:95,police:4,follow:11,stopLine:14},
   rechoiceCooldown:600,
   destruction:{propRespawn:120,windowLife:150},
 };

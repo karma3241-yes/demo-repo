@@ -1197,6 +1197,7 @@ function carGeo(o){
   if(o.extra)o.extra(g);
   return g.mesh();
 }
+const VEH_S=1.35; // vehicles are modelled at real size; heroes are bigger than life, so cars scale up to match
 const CARS={
   sedan:carGeo({L:4.6,W:1.9,bt:1.05,cf:0.75,cb:-1.05,ry:1.65,wr:0.38}),
   compact:carGeo({L:3.9,W:1.8,bt:1.05,cf:0.7,cb:-1.3,ry:1.75,wr:0.36,wind:0.7}),
@@ -1259,7 +1260,7 @@ const CONFIG={
   punch:{damage:16,range:3.4,cooldown:0.3,knock:11,comboMul:1.6},
   autosave:30,
   drive:{maxSpeed:42,accel:16,brake:34,reverse:12,steer:1.7,grip:6},
-  traffic:{cars:95,police:4,follow:9,stopLine:13},
+  traffic:{cars:95,police:4,follow:11,stopLine:14},
   rechoiceCooldown:600,
   destruction:{propRespawn:120,windowLife:150},
 };
@@ -2958,10 +2959,11 @@ function updateDrone(d,dt){
 // ---- vehicles ----
 const CAR_COLS=['#f2c230','#e8e8ea','#9aa3ad','#c0262d','#1f5fbf','#15171c','#1f9e8e','#e86a1a','#5a6b7c','#7a1f2b'].map(c4);
 const VDIM={sedan:[0.95,2.35],compact:[0.9,1.95],suv:[1.03,2.45],taxi:[0.95,2.35],police:[0.98,2.4],van:[1.15,2.95],truck:[1.5,3.6]};
+for(const k in VDIM)VDIM[k]=VDIM[k].map(v=>v*VEH_S);
 function makeVehicle(vtype,model){
   model=model||(vtype==='car'?pick(CAR_KINDS):vtype);const hp=vtype==='police'?90:NPCS[vtype==='car'?'car':vtype].hp;
   const v={kind:'vehicle',vtype,model,faction:'object',alive:true,hp,maxHp:hp,pos:new V3(),vel:new V3(),yaw:0,ty:0,rx:0,rz:0,state:'road',axis:0,dir:1,lane:0,s:0,spd:0,maxSpd:rr(13,22),
-    flash:0,held:false,cy:1.1,radius:vtype==='truck'?3:vtype==='van'?2.8:2.3,ys:1.4,tint:[1,1,1,1],burn:0,stun:0,slow:0,slowT:0,crime:null,temp:false,driver:null,
+    flash:0,held:false,cy:1.1*VEH_S,radius:(vtype==='truck'?3:vtype==='van'?2.8:2.3)*VEH_S,ys:1.4,tint:[1,1,1,1],burn:0,stun:0,slow:0,slowT:0,crime:null,temp:false,driver:null,
     mesh:vtype==='van'?vanMesh:vtype==='truck'?truckMesh:CARS[model],hw:VDIM[model][0],hl:VDIM[model][1],burnT:0,escaped:false,sx:0,sy:0,sz:0,life:0,stalled:0,siren:false,chaseT:0,honkT:0};
   if(model==='taxi'||model==='police')v.tint=[1,1,1,1];
   v.onDefeat=src=>vehicleDestroyed(v,src);
@@ -2991,8 +2993,8 @@ function nodeAhead(v){const f=(v.s+HALF)/CELL;const k=v.dir>0?Math.floor(f+1e-4)
 function roadIndexOf(v){return Math.round((v.lane-laneOff(v.dir)+HALF)/CELL);}
 function obstacleAhead(v){
   const fx=v.axis===0?0:v.dir,fz=v.axis===0?v.dir:0;let best=99;
-  const test=(x,z,w)=>{const dx=x-v.pos.x,dz=z-v.pos.z,f=dx*fx+dz*fz,l=Math.abs(dx*fz-dz*fx);if(f>0.5&&f<16&&l<1.4+w&&f<best)best=f;};
-  for(const o of vehicles)if(o!==v&&o.state!=='held'&&o.state!=='thrown'&&o.state!=='wreckAir'&&Math.abs(o.pos.x-v.pos.x)<18&&Math.abs(o.pos.z-v.pos.z)<18)test(o.pos.x,o.pos.z,o.hw);
+  const test=(x,z,w)=>{const dx=x-v.pos.x,dz=z-v.pos.z,f=dx*fx+dz*fz,l=Math.abs(dx*fz-dz*fx);if(f>0.5&&f<20&&l<1.4+w&&f<best)best=f;};
+  for(const o of vehicles)if(o!==v&&o.state!=='held'&&o.state!=='thrown'&&o.state!=='wreckAir'&&Math.abs(o.pos.x-v.pos.x)<22&&Math.abs(o.pos.z-v.pos.z)<22)test(o.pos.x,o.pos.z,o.hw);
   for(const h of humans)if(h.alive&&!h.hidden&&Math.abs(h.pos.x-v.pos.x)<16&&Math.abs(h.pos.z-v.pos.z)<16&&h.pos.y<1)test(h.pos.x,h.pos.z,0.4);
   if(!P.car&&P.pos.y<3&&!P.dead){const d0=best;test(P.pos.x,P.pos.z,0.8);if(best<d0&&best<10&&time>v.honkT){v.honkT=time+rr(2,4);SFX.honk(SFX.vol(v.pos.x,1,v.pos.z));}}
   return best;
@@ -3008,7 +3010,7 @@ function driveTraffic(v,dt){
   const {k,ns}=nodeAhead(v),dn=(ns-v.s)*v.dir;
   if(!chasing&&k>=0&&k<=GRID){const ri=roadIndexOf(v);const L=v.axis===0?lightFor(ri,k,0):lightFor(k,ri,1);
     if(L!=='g'&&dn>CONFIG.traffic.stopLine-2)want=Math.min(want,Math.max(0,(dn-CONFIG.traffic.stopLine)*1.3));}
-  const ob=obstacleAhead(v);if(ob<16)want=Math.min(want,Math.max(0,(ob-6)*1.6));
+  const ob=obstacleAhead(v);if(ob<19)want=Math.min(want,Math.max(0,(ob-8.5)*1.6));
   v.spd+=clamp(want-v.spd,-28*dt,9*dt);
   const prev=v.s;v.s+=v.dir*v.spd*dt;
   if((ns-prev)*v.dir>0&&(ns-v.s)*v.dir<=0&&k>0&&k<GRID){
@@ -3858,7 +3860,7 @@ function mirrorVehicle(nid,full){
   const vt=['car','police','van','truck'].includes(full.vt)?full.vt:'car',model=vt==='van'||vt==='truck'?vt:CARS[full.md]?full.md:'sedan';if(!VDIM[model])return null;
   const hp=vt==='police'?90:NPCS[vt].hp,ti=Array.isArray(full.ti)?[...full.ti.slice(0,3).map(v=>clamp(+v||0,0,1)),1]:[1,1,1,1];
   const v=Object.assign(mirrorBase(nid),{kind:'vehicle',vtype:vt,model,faction:'object',hp,maxHp:hp,mesh:vt==='van'?vanMesh:vt==='truck'?truckMesh:CARS[model],hw:VDIM[model][0],hl:VDIM[model][1],
-    tint:ti,yaw:0,tyaw:0,rx:0,rz:0,state:'road',siren:false,spd:0,cy:1.1,radius:vt==='truck'?3:vt==='van'?2.8:2.3,ys:1.4,driver:null,temp:false});
+    tint:ti,yaw:0,tyaw:0,rx:0,rz:0,state:'road',siren:false,spd:0,cy:1.1*VEH_S,radius:(vt==='truck'?3:vt==='van'?2.8:2.3)*VEH_S,ys:1.4,driver:null,temp:false});
   WS.byId.set(nid,v);vehicles.push(v);actors.push(v);return v;
 }
 function mirrorDrone(nid){const d=Object.assign(mirrorBase(nid),{kind:'drone',role:'thief',faction:'criminal',hp:NPCS.drone.hp,maxHp:NPCS.drone.hp,yaw:0,tyaw:0,cy:0,radius:1.7,bag:false,seed:rr(0,100)});
@@ -4436,7 +4438,7 @@ function playerBodies(prevY){
     else{const push=min-d;h.pos.x+=dx/d*push*0.8;h.pos.z+=dz/d*push*0.8;P.pos.x-=dx/d*push*0.2;P.pos.z-=dz/d*push*0.2;}}
   for(const v of vehicles){if(v===P.car||v.state==='thrown'||v.state==='held'||v.state==='wreckAir')continue;if(Math.abs(v.pos.x-P.pos.x)>6||Math.abs(v.pos.z-P.pos.z)>6)continue;
     const c=Math.cos(v.yaw),s=Math.sin(v.yaw),dx=P.pos.x-v.pos.x,dz=P.pos.z-v.pos.z;const lx=dx*c-dz*s,lz=dx*s+dz*c;
-    const hw=v.hw+P.radius*0.6,hl=v.hl+P.radius*0.6,top=v.vtype==='truck'?3.4:v.vtype==='van'?3:(v.state==='wreck'&&Math.abs(v.rz)>1?1.4:1.75);
+    const hw=v.hw+P.radius*0.6,hl=v.hl+P.radius*0.6,top=VEH_S*(v.vtype==='truck'?3.4:v.vtype==='van'?3:(v.state==='wreck'&&Math.abs(v.rz)>1?1.4:1.75));
     if(Math.abs(lx)<hw&&Math.abs(lz)<hl&&P.pos.y<v.pos.y+top&&P.pos.y+P.height>v.pos.y){
       if(prevY>=v.pos.y+top-0.7){P.pos.y=v.pos.y+top;if(P.vel.y<0)P.vel.y=0;P.grounded=true;
         if(v.state==='road'||v.state==='chase'){P.pos.x+=Math.sin(v.yaw)*v.spd*(1/60);P.pos.z+=Math.cos(v.yaw)*v.spd*(1/60);}}
@@ -4632,7 +4634,7 @@ function updateCamera(dt){
     const cp=Math.cos(P.pitch);camF.set(-Math.sin(P.yaw)*cp,Math.sin(P.pitch),-Math.cos(P.yaw)*cp);
     const rX=Math.cos(P.yaw),rZ=-Math.sin(P.yaw),sp=P.vel.len(),spN=clamp(sp/190,0,1),hs=P.height/2.7;
     let want,ty,side;
-    if(P.car){const cs=clamp(Math.abs(P.car.spd||0)/CONFIG.drive.maxSpeed,0,1);want=10.5+cs*4;ty=P.car.pos.y+2.6;side=0;}
+    if(P.car){const cs=clamp(Math.abs(P.car.spd||0)/CONFIG.drive.maxSpeed,0,1);want=12.5+cs*4;ty=P.car.pos.y+3.1;side=0;}
     else{want=(P.flying?9+spN*9:P.web?10:7.5)*Math.max(1,hs*0.8);ty=P.pos.y+2.1*hs;side=1.2*Math.min(hs,1.6);}
     const tx=P.car?P.car.pos.x:P.pos.x,tz=P.car?P.car.pos.z:P.pos.z;
     const cx=tx-camF.x*want+rX*side,cy=ty-camF.y*want+0.4,cz=tz-camF.z*want+rZ*side;
@@ -4887,7 +4889,7 @@ function drawMech(b){
 const HEADL=[1,.93,.75,1],SIR_R=[1,.12,.1,1],SIR_B=[.15,.35,1,1],SIR_OFF=[.25,.25,.28,1],ROTOR_C=[.1,.11,.13,1];
 function drawVehicle(v,mesh,x,y,z,rx,yaw,rz,tint,flash,siren,hw,hl,wreck){
   const q=inView(x,z,600,30);if(q<0)return;
-  const root=at(x,y,z,rx,yaw,rz);queue(mesh,root,wreck?[.07,.065,.06,1]:tint,q<160*160?F_SH:0,flash*0.5);
+  const root=at(x,y,z,rx,yaw,rz,VEH_S,VEH_S,VEH_S);queue(mesh,root,wreck?[.07,.065,.06,1]:tint,q<160*160?F_SH:0,flash*0.5);hw/=VEH_S;hl/=VEH_S;
   if(wreck||q>220*220)return;
   if(env.night>0.35&&q<180*180)for(const sx of [-1,1]){queue(MESH.glowSphere,child(root,sx*(hw-0.35),0.84,hl+0.2,0,0,0,0.45,0.35,0.3),[HEADL[0],HEADL[1],HEADL[2],0.55*env.night],F_ADD);
     queue(MESH.glowSphere,child(root,sx*(hw-0.3),0.86,-hl-0.15,0,0,0,0.3,0.25,0.2),[1,.1,.08,0.45*env.night],F_ADD);}

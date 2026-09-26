@@ -183,7 +183,7 @@ function mirrorVehicle(nid,full){
   const vt=['car','police','van','truck'].includes(full.vt)?full.vt:'car',model=vt==='van'||vt==='truck'?vt:CARS[full.md]?full.md:'sedan';if(!VDIM[model])return null;
   const hp=vt==='police'?90:NPCS[vt].hp,ti=Array.isArray(full.ti)?[...full.ti.slice(0,3).map(v=>clamp(+v||0,0,1)),1]:[1,1,1,1];
   const v=Object.assign(mirrorBase(nid),{kind:'vehicle',vtype:vt,model,faction:'object',hp,maxHp:hp,mesh:vt==='van'?vanMesh:vt==='truck'?truckMesh:CARS[model],hw:VDIM[model][0],hl:VDIM[model][1],
-    tint:ti,yaw:0,tyaw:0,rx:0,rz:0,state:'road',siren:false,spd:0,cy:1.1,radius:vt==='truck'?3:vt==='van'?2.8:2.3,ys:1.4,driver:null,temp:false});
+    tint:ti,yaw:0,tyaw:0,rx:0,rz:0,state:'road',siren:false,spd:0,cy:1.1*VEH_S,radius:(vt==='truck'?3:vt==='van'?2.8:2.3)*VEH_S,ys:1.4,driver:null,temp:false});
   WS.byId.set(nid,v);vehicles.push(v);actors.push(v);return v;
 }
 function mirrorDrone(nid){const d=Object.assign(mirrorBase(nid),{kind:'drone',role:'thief',faction:'criminal',hp:NPCS.drone.hp,maxHp:NPCS.drone.hp,yaw:0,tyaw:0,cy:0,radius:1.7,bag:false,seed:rr(0,100)});

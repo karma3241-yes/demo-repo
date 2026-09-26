@@ -52,7 +52,7 @@ function updateCamera(dt){
     const cp=Math.cos(P.pitch);camF.set(-Math.sin(P.yaw)*cp,Math.sin(P.pitch),-Math.cos(P.yaw)*cp);
     const rX=Math.cos(P.yaw),rZ=-Math.sin(P.yaw),sp=P.vel.len(),spN=clamp(sp/190,0,1),hs=P.height/2.7;
     let want,ty,side;
-    if(P.car){const cs=clamp(Math.abs(P.car.spd||0)/CONFIG.drive.maxSpeed,0,1);want=10.5+cs*4;ty=P.car.pos.y+2.6;side=0;}
+    if(P.car){const cs=clamp(Math.abs(P.car.spd||0)/CONFIG.drive.maxSpeed,0,1);want=12.5+cs*4;ty=P.car.pos.y+3.1;side=0;}
     else{want=(P.flying?9+spN*9:P.web?10:7.5)*Math.max(1,hs*0.8);ty=P.pos.y+2.1*hs;side=1.2*Math.min(hs,1.6);}
     const tx=P.car?P.car.pos.x:P.pos.x,tz=P.car?P.car.pos.z:P.pos.z;
     const cx=tx-camF.x*want+rX*side,cy=ty-camF.y*want+0.4,cz=tz-camF.z*want+rZ*side;
@@ -307,7 +307,7 @@ function drawMech(b){
 const HEADL=[1,.93,.75,1],SIR_R=[1,.12,.1,1],SIR_B=[.15,.35,1,1],SIR_OFF=[.25,.25,.28,1],ROTOR_C=[.1,.11,.13,1];
 function drawVehicle(v,mesh,x,y,z,rx,yaw,rz,tint,flash,siren,hw,hl,wreck){
   const q=inView(x,z,600,30);if(q<0)return;
-  const root=at(x,y,z,rx,yaw,rz);queue(mesh,root,wreck?[.07,.065,.06,1]:tint,q<160*160?F_SH:0,flash*0.5);
+  const root=at(x,y,z,rx,yaw,rz,VEH_S,VEH_S,VEH_S);queue(mesh,root,wreck?[.07,.065,.06,1]:tint,q<160*160?F_SH:0,flash*0.5);hw/=VEH_S;hl/=VEH_S;
   if(wreck||q>220*220)return;
   if(env.night>0.35&&q<180*180)for(const sx of [-1,1]){queue(MESH.glowSphere,child(root,sx*(hw-0.35),0.84,hl+0.2,0,0,0,0.45,0.35,0.3),[HEADL[0],HEADL[1],HEADL[2],0.55*env.night],F_ADD);
     queue(MESH.glowSphere,child(root,sx*(hw-0.3),0.86,-hl-0.15,0,0,0,0.3,0.25,0.2),[1,.1,.08,0.45*env.night],F_ADD);}
