@@ -32,14 +32,14 @@ addEventListener('keydown',e=>{
   if(P.car)return;
   if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&P.web){swingBoost();return;}
   if(e.code==='KeyC'&&hasWeb()&&!P.grounded&&!P.flying&&spiderAirTrick())return;
-  if(e.code in SLOT_CODES){abilityDown(SLOT_CODES[e.code]);guideDone('ability');return;}
+  if(e.code in SLOT_CODES){heldSlot=SLOT_CODES[e.code];abilityDown(heldSlot);guideDone('ability');return;}
   if(e.code==='KeyX'){if(P.construct&&constructX())return;dashPress();return;}
-  if(P.construct&&P.construct.id==='titan'&&!e.repeat&&(e.code==='BracketRight'||e.code==='Equal'||e.code==='BracketLeft'||e.code==='Minus')){titanGrow(e.code==='BracketRight'||e.code==='Equal'?1:-1);return;}
+  if((e.code==='BracketRight'||e.code==='Equal'||e.code==='BracketLeft'||e.code==='Minus')&&growStep(e.code==='BracketRight'||e.code==='Equal'?1:-1))return;
   if(isSpeed()){if(e.code==='KeyF'){toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
   if(e.code==='KeyF'){if(!flyChargeStart())toggleFlight();}else if(e.code==='Space')pressJump();
 });
-addEventListener('keyup',e=>{keys[e.code]=false;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
-addEventListener('blur',()=>{for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<3;i++)abilityUp(i);webRelease();P.charging=false;});
+addEventListener('keyup',e=>{keys[e.code]=false;if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
+addEventListener('blur',()=>{heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<3;i++)abilityUp(i);webRelease();P.charging=false;});
 canvas.addEventListener('mousedown',e=>{
   if(state!=='play'||touchOn())return;
   if(paused){if(!sheetOpen&&!creating)resume();return;}
@@ -50,7 +50,9 @@ canvas.addEventListener('mousedown',e=>{
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
-addEventListener('wheel',e=>{if(state!=='play'||paused||Math.abs(e.deltaY)<=1)return;if(dialOpen){dialPageTurn(e.deltaY<0?-1:1);return;}if(P.construct&&P.construct.id==='titan'){titanGrow(e.deltaY<0?1:-1);return;}if(isSpeed())turnDial(e.deltaY<0?1:-1);},{passive:true});
+addEventListener('wheel',e=>{if(state!=='play'||paused||Math.abs(e.deltaY)<=1)return;if(dialOpen){dialPageTurn(e.deltaY<0?-1:1);return;}if(growStep(e.deltaY<0?1:-1))return;if(isSpeed())turnDial(e.deltaY<0?1:-1);},{passive:true});
+// the wheel (or [ ]) grows whatever you are holding: the power whose key is held down, else the construct you are in
+function growStep(dir){if(heldSlot>=0&&save.character&&!P.alien&&save.character.abilities[heldSlot])return skillGrowStep(heldSlot,dir);if(P.construct)return conGrowStep(dir);return false;}
 addEventListener('mousemove',e=>{if(state!=='play'||paused||touchOn())return;if(dialOpen){if(locked)dialMove(e.movementX,e.movementY);return;}if(locked||mmbLook||rmbLook)look(e.movementX,e.movementY);});
 function requestLock(){if(touchOn())return;try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
 function lockFail(){lockFailed=true;if(!lockHint){lockHint=true;toast('Mouse lock not available here','Hold the middle mouse button and drag to look','cyan');}}
@@ -139,7 +141,8 @@ function buildTouchButtons(){
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
-    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');if(P.construct&&P.construct.id==='titan'){B('GROW','grow');B('SHRINK','shrink');}}}}
+    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
+  if(!P.alien){B('GROW','grow');B('SHRINK','shrink');} // hold a power button (or sit in a construct) and tap these to change its size
   if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
   if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
@@ -150,13 +153,13 @@ function touchAct(a,down){
   if(down&&!canAct())return;
   if(dialOpen)return;
   if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
-  else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){abilityDown(+a[1]);guideDone('ability');}else abilityUp(+a[1]);}
+  else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){heldSlot=+a[1];abilityDown(+a[1]);guideDone('ability');}else{if(heldSlot===+a[1])heldSlot=-1;abilityUp(+a[1]);}}
   else if(a==='con'){if(down)summonConstruct();}
   else if(a==='conpick'){if(down)openDial(isRing()?'construct':'armor');}
   else if(a==='oath'){if(down)openOath();}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
-  else if(a==='grow'||a==='shrink'){if(down)titanGrow(a==='grow'?1:-1);}
+  else if(a==='grow'||a==='shrink'){if(down)growStep(a==='grow'?1:-1);}
   else if(a==='jump'){keys.Space=down;if(down)pressJump();else releaseJump();}
   else if(a==='speed')keys.ShiftLeft=down;
   else if(a==='down')keys.KeyC=down;
@@ -294,7 +297,7 @@ function updatePlayer(dt){
       if(!P.grounded&&hsp>spd+2){ // keep swing / leap momentum: steer it instead of braking
         if(l>0.1){const turn=damp(1.8,dt),nx=P.vel.x+(tx*hsp-P.vel.x)*turn,nz=P.vel.z+(tz*hsp-P.vel.z)*turn,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hsp;P.vel.z=nz/nl*hsp;}
         const drag=1-0.22*dt;P.vel.x*=drag;P.vel.z*=drag;}
-      else{const k=P.grounded?damp(12,dt):damp(1.6,dt);P.vel.x+=(tx*spd-P.vel.x)*k;P.vel.z+=(tz*spd-P.vel.z)*k;}P.vel.y-=(P.slam?30:CONFIG.move.gravity)*(P.floatT>0&&P.vel.y<3?0.12:1)*dt;
+      else{const k=P.grounded?damp(12,dt):damp(1.6,dt);P.vel.x+=(tx*spd-P.vel.x)*k;P.vel.z+=(tz*spd-P.vel.z)*k;}P.vel.y-=(P.slam?30:CONFIG.move.gravity)*(P.floatT>0&&P.vel.y<3?0.12:1)*(1-0.85*spaceK(P.pos.y))*dt; // out in space you only drift slowly back down
       if(hasWeb()&&!P.grounded&&P.pitch<-0.5&&inF>0){P.vel.y-=30*dt;P.vel.x+=fwdX*12*dt;P.vel.z+=fwdZ*12*dt;} // dive
       if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
     }
@@ -315,9 +318,11 @@ function updatePlayer(dt){
       if(P.zip&&col.wall&&P.zip.t>0.15){P.zip=null;P.vel.set(col.wall.nx*4,14,col.wall.nz*4);}
       playerBodies(prevY);}
   }
-  if(P.pos.y<CEIL&&P.flying&&(P.pos.x<X0-200||P.pos.x>X1+200||P.pos.z<Z0-200||P.pos.z>Z1+200))updateSpace(0); // coming down from space far out: re-enter over the city
-  if(P.pos.y<CEIL||!P.flying){P.pos.x=clamp(P.pos.x,-LIMIT,LIMIT);P.pos.z=clamp(P.pos.z,-LIMIT,LIMIT);}else{P.pos.x=clamp(P.pos.x,-SPACE.lim,SPACE.lim);P.pos.z=clamp(P.pos.z,-SPACE.lim,SPACE.lim);}
-  if(P.pos.y>CEIL&&!P.flying){P.pos.y=CEIL;P.vel.y=Math.min(P.vel.y,0);}else if(P.pos.y>SPACE.lim){P.pos.y=SPACE.lim;P.vel.y=Math.min(P.vel.y,0);} // fliers can climb into space
+  if(P.pos.y<CEIL&&(P.pos.x<X0-200||P.pos.x>X1+200||P.pos.z<Z0-200||P.pos.z>Z1+200))updateSpace(0); // coming down from space far out (flying or falling): re-enter over the city
+  // stopping flight high up or far out never snaps you back: out there you drift, and you only get pulled back to the city on the way down
+  if(P.pos.y<CEIL){P.pos.x=clamp(P.pos.x,-LIMIT,LIMIT);P.pos.z=clamp(P.pos.z,-LIMIT,LIMIT);}else{P.pos.x=clamp(P.pos.x,-SPACE.lim,SPACE.lim);P.pos.z=clamp(P.pos.z,-SPACE.lim,SPACE.lim);}
+  if(!P.flying&&P.vel.y>0&&P.pos.y>CEIL&&P.pos.y-P.vel.y*dt<=CEIL){P.pos.y=CEIL;P.vel.y=0;} // without flight you can't jump or get thrown out of the sky
+  else if(P.pos.y>SPACE.lim){P.pos.y=SPACE.lim;P.vel.y=Math.min(P.vel.y,0);} // fliers can climb into space; letting go up there just drifts you back down
   if(!onIsland(P.pos.x,P.pos.z)&&P.grounded&&P.pos.y<-0.5&&Math.random()<0.3)emit(P.pos.x,-0.8,P.pos.z,rr(-2,2),rr(2,4),rr(-2,2),0.6,WATER[0],1,15,1);
   if(!wasGrounded&&P.grounded&&!P.flying){
     const impact=-vyBefore;

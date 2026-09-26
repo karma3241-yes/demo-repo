@@ -53,7 +53,12 @@ All of these are original characters inspired by famous hero styles.
   - a **Bike** (ring mastery 2) and a **Race Car** (4) that you drive with `WASD`, `Shift` to boost and `Space` to hop, with guns on left click (and a ram or missiles on right click);
   - a hard-light **Rifle** (1: rapid fire, a heavy burst and a grenade on `X`), a **Bazooka** (3: rockets and a homing salvo) and the **Shoulder Cannon** (8): hold left click to charge it and let go to fire a beam that cuts through buildings.
   The weapons work on foot or in the air.
-- **The Huge Mech keeps growing:** scroll up (or `]`) to make it bigger, up to 8 times its size (well over 100 m tall), and scroll down (or `[`) to shrink it back. Growing costs ring charge: going all the way costs half a full ring. The bigger it is, the harder it hits, and buildings under its feet get crushed as it walks. On touch screens use GROW and SHRINK.
+- **Even more constructs** on pages 3–5 of the wheel:
+  - **Bikes & boards:** a **Bicycle** (costs half a point of charge once, then nothing at all, even on an empty ring; left click rings the bell), a **Chopper** (guns, wheelie ram), **Rocket Skates** (spin kick), a **Hoverboard** (big air, tricks in the air on left click) and a **Monster Truck** that drives over cars and slam-jumps on right click;
+  - **Heavy & sky:** a **Light Tank** (cannon, machine gun), a **Helicopter** (guns, missiles), a **Hang Glider** that barely uses any charge, a **Flying Saucer** whose tractor beam throws whatever is below it, and a **Starship** made for space (lasers, torpedoes, `X` to warp);
+  - **Blades & guns:** a **Giant Sword** (slash, spin), a **War Hammer** (smash, ground quake), a **Longbow** (hold to draw), a **Minigun** and a **Tower Shield** that blocks 80% of every hit.
+- **Grow anything:** in any construct, scroll up (or `]`) to grow it a fifth bigger per step, and scroll down (or `[`) to shrink it back, all the way up to the size of the Earth. Each step up costs 0.9 ring charge; each step down gives back a quarter of that. Bigger constructs hit harder, flatten the buildings they touch, and the camera pulls back to fit. On touch screens use GROW and SHRINK.
+- **Grow your powers:** hold a power's key (`1`–`5`) and scroll to change its size the same way (on touch, hold its button and tap GROW or SHRINK). A bigger power reaches further and hits harder: a bigger Hammer Smash, Black Hole, fireball, blast and so on. The size shows on the power's slot. Growing costs energy (ring charge for the Ring Bearer), shrinking gives a quarter back.
 - **Abilities:** Ring Blast, Hammer Smash, Chain Lasso and Ring Shield.
 - **Ring Shield** has its own health (shown on the HUD shield bar) that grows as you upgrade it. Holding it up barely costs charge, and each hit it takes costs a little more. If it breaks, it takes 4 seconds to rebuild.
 - **Black Hole** costs 95% of your charge. It drags in people, cars, rubble and whole buildings; only the strong or the very fast get away.
@@ -108,7 +113,7 @@ You start tough: 220 health, and ordinary people and police do half damage to yo
 
 ### Getting around
 
-- **Space:** anything that flies can keep climbing. Past the clouds the sky turns black, Earth curves away below, and you stay in zero-g flight. The higher you are, the faster you fly (it slows down again near any surface), so the Moon, Mercury, Venus, Mars, Jupiter, Saturn (with its rings), Uranus, Neptune and a few of their moons are all a short trip away. The planets are solid, so you can land on them. The Sun burns. Fly back down and you re-enter over the city.
+- **Space:** anything that flies can keep climbing. Past the clouds the sky turns black, Earth curves away below, and you can keep flying or press `F` to let go and drift slowly back down; nothing snaps you back. The higher you are, the faster you fly (it slows down again near any surface), so the Moon, Mercury, Venus, Mars, Jupiter, Saturn (with its rings), Uranus, Neptune and a few of their moons are all a short trip away. The planets are solid, so you can land on them. The Sun burns. Fly or fall back down anywhere and you re-enter over the city. Flying constructs like the Dragon can land too: press `F`.
 - **Wall running** is for everyone: sprint (hold `Shift`) into a wall to run up it, or hit it at an angle to run along it. `Space` leaps off. The Speedster's wall running gets faster with the speed dial.
 - **Parkour leap:** a quick jump while sprinting carries you much further.
 - **At night** the street lamps and car headlights light up the streets around you.

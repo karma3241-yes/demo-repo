@@ -4,6 +4,23 @@
 const PS={};for(const k in POWERS)PS[k]={cd:0,holding:false,flash:0};
 const aim={x:0,y:0,z:0,t:0,actor:null,surface:false,hitAny:false,nx:0,ny:1,nz:0};
 let beam=null,ice=null,lastScorch=0,castT=-9;
+// ---- skill size: hold a power key and scroll to grow or shrink what it makes, up to the size of the Earth ----
+// Growing a step costs a little energy (ring charge for the Ring Bearer); shrinking gives back a quarter of it.
+// castK is the size of the power being cast right now: radius and range scale with it, damage with its square root.
+const SKILL_GROW={mul:1.2,max:12000,ring:0.9,energy:3,refund:0.25};
+let castK=1,heldSlot=-1;
+const skillSize=id=>(PS[id]&&PS[id].grow)||1;
+function withCast(id,fn){const was=castK;castK=skillSize(id);try{return fn();}finally{castK=was;}}
+function skillGrowStep(slot,dir){
+  const id=save.character&&!P.alien&&save.character.abilities[slot];if(!id||!PS[id]||!canAct())return false;
+  const s=PS[id],g=s.grow||1,ng=dir>0?Math.min(SKILL_GROW.max,g*SKILL_GROW.mul):Math.max(1,g/SKILL_GROW.mul);
+  if(Math.abs(ng-g)<1e-6){if(time-(s.maxMsg||-9)>3){s.maxMsg=time;feed(POWERS[id].name+(dir>0?' is as big as the Earth':' is back to normal size'),'');}return true;}
+  const ring=hasTrav('powerRing'),cost=ring?SKILL_GROW.ring:SKILL_GROW.energy;
+  if(ng>g){if(ring?save.ring<cost:!spend(cost,id)){noEnergy(id);return true;}if(ring)save.ring-=cost;}
+  else{const back=cost*SKILL_GROW.refund,m=heroMeter();if(ring)save.ring=Math.min(100,save.ring+back);else if(m)save[m.key]=Math.min(meterCap(m),save[m.key]+back*(m.rate||1));else P.en=Math.min(maxEn(),P.en+back);}
+  s.grow=ng;if(time-(s.sizeMsg||-9)>0.35){s.sizeMsg=time;feed(POWERS[id].name+' · size ×'+(ng<10?ng.toFixed(1):Math.round(ng)),dir>0?'Keep scrolling to grow it':'Shrinking gives back a quarter of the cost');}
+  SFX.tone('sine',ng>g?300:600,ng>g?160:1000,0.15,0.06);return true;
+}
 const camPos=new V3(),camF=new V3(0,0,-1),camR=new V3(1,0,0),camU=new V3(0,1,0);
 function computeAim(range){
   if(lockT&&lockT.alive){const c=center(lockT),d=Math.hypot(c.x-camPos.x,c.y-camPos.y,c.z-camPos.z);{
@@ -40,13 +57,13 @@ function abilityDown(slot){
   if(s.cd>0){s.flash=0.3;return;}
   if(c.ring!=null){if(!ringSpend(c.ring*(id==='blackHole'?1:1))){noEnergy(id);return;}}else if(!spend(c.energy||0,id)){noEnergy(id);return;}
   if(!POWER_FN[id])return;
-  s.cd=(pstat(id,'cooldown')||0)*cdMul();POWER_FN[id]();
+  s.cd=(pstat(id,'cooldown')||0)*cdMul();withCast(id,POWER_FN[id]);
 }
 function abilityUp(slot){
   if(P.alien){alienAbilityUp(slot);return;}
   const id=save.character&&save.character.abilities[slot];if(!id)return;
   if(POWERS[id].type==='channel')PS[id].holding=false;
-  if(POWERS[id].type==='charge'&&PS[id].holding){PS[id].holding=false;chargeFire(id);}
+  if(POWERS[id].type==='charge'&&PS[id].holding){PS[id].holding=false;withCast(id,()=>chargeFire(id));}
   if(id==='telekinesis')tkThrow();
   if(id==='metalForms')metalUp();
 }
@@ -86,7 +103,7 @@ function flyChargeTick(){
 function toggleFlight(){
   if(!hasPower('flight')||!canAct()||P.car)return;
   if(P.alien)return; // alien forms fly (or not) on their own
-  if(isRing()){if(!P.flying&&save.ring<=0){ringOut();return;}if(P.construct&&(CONSTRUCTS[P.construct.id].fly||CONSTRUCTS[P.construct.id].drive))return;}
+  if(isRing()){if(!P.flying&&save.ring<=0){ringOut();return;}if(P.construct&&CONSTRUCTS[P.construct.id].drive)return;}
   else if(!P.flying&&P.en<5){noEnergy();return;}
   P.flying=!P.flying;P.charging=false;P.web=null;P.wall=null;
   if(P.flying){if(P.grounded)P.vel.y=22;P.grounded=false;SFX.whoosh();burst(P.pos.x,P.pos.y+0.3,P.pos.z,24,14,0.7,DUST,1.6,-2,2);}
@@ -267,7 +284,7 @@ function updatePowers(dt){
     const cost=c.energyPerSec*dt;
     if(heroMeter()){if(!payEn(cost,id,true)){s.holding=false;noEnergy(id);continue;}}
     else{if(P.en<cost){s.holding=false;noEnergy(id);continue;}P.en-=cost;P.lastSpend=time;}
-    if(id==='laserVision'){laserTick(dt);lasering=true;}else if(id==='repulsors')repulsorTick(dt);else if(CHANNEL_FN[id])CHANNEL_FN[id](dt);else iceTick(dt);
+    withCast(id,()=>{if(id==='laserVision'){laserTick(dt);lasering=true;}else if(id==='repulsors')repulsorTick(dt);else if(CHANNEL_FN[id])CHANNEL_FN[id](dt);else iceTick(dt);});
   }
   if(ice){iceVisuals();if(!PS.iceCloud.holding){ice.t-=dt;if(ice.t<=0)ice=null;}}
   SFX.setLaser(lasering);

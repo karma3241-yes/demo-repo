@@ -34,7 +34,7 @@ function armorMuzzle(id,side,s,c){
   const ty=Math.atan2(camF.x,camF.z),ts=Math.sin(ty),tc=Math.cos(ty);
   return side?{x:P.pos.x+ts*2.2+tc*side*0.9,y:P.pos.y+2.6,z:P.pos.z+tc*2.2-ts*side*0.9}:{x:P.pos.x+ts*5.2,y:P.pos.y+2.4+camF.y*3,z:P.pos.z+tc*5.2};
 }
-const conHidesRider=id=>id==='racer'||!!(CONSTRUCTS[id]&&CONSTRUCTS[id].armor);
+const conHidesRider=id=>id==='racer'||!!(CONSTRUCTS[id]&&(CONSTRUCTS[id].armor||CONSTRUCTS[id].hide));
 function drawArmorForm(s,id,isPlayer){
   const K=isPlayer?P.construct:null,x=s.pos.x,y=s.pos.y,z=s.pos.z,yaw=s.heroYaw||0,R0=ARMOR_RED,G0=ARMOR_GOLD,D0=ARMOR_DARK;
   const M=(m,c)=>queue(c===R0?MESH.box:MESH.mbox,m,c,F_SH),glow=(m,a)=>queue(MESH.glowSphere,m,[1,.85,.5,a],F_ADD);

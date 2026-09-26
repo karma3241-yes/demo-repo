@@ -53,11 +53,11 @@ function updateCamera(dt){
     const rX=Math.cos(P.yaw),rZ=-Math.sin(P.yaw),sp=P.vel.len(),spN=clamp(sp/190,0,1),hs=P.height/2.7;
     let want,ty,side;
     if(P.car){const cs=clamp(Math.abs(P.car.spd||0)/CONFIG.drive.maxSpeed,0,1);want=12.5+cs*4;ty=P.car.pos.y+3.1;side=0;}
-    else{const hk=hs<=6?Math.max(1,hs*0.8):4.8+(hs-6)*0.4;want=(P.flying?9+spN*9:P.web?10:7.5)*hk*conCam();ty=P.pos.y+2.1*hs;side=1.2*Math.min(hs,1.6);}
+    else{const hk=hs<=6?Math.max(1,hs*0.8):4.8+(hs-6)*0.4;const gk=P.construct&&!CONSTRUCTS[P.construct.id].scale?conGrow(P.construct.id):1;want=(P.flying?9+spN*9:P.web?10:7.5)*hk*conCam();ty=P.pos.y+2.1*hs*gk;side=1.2*Math.min(hs,1.6)*gk;}
     const tx=P.car?P.car.pos.x:P.pos.x,tz=P.car?P.car.pos.z:P.pos.z;
     const cx=tx-camF.x*want+rX*side,cy=ty-camF.y*want+0.4,cz=tz-camF.z*want+rZ*side;
     let dx=cx-tx,dy=cy-ty,dz=cz-tz;const L=Math.hypot(dx,dy,dz)||1;dx/=L;dy/=L;dz/=L;
-    const t=rayCity(tx,ty,tz,dx,dy,dz,L+0.5),dist=Math.max(1.2,Math.min(L,t-0.6));
+    const t=L>250?L+1:rayCity(tx,ty,tz,dx,dy,dz,L+0.5),dist=Math.max(1.2,Math.min(L,t-0.6));
     camDist=dist<camDist?dist:lerp(camDist,dist,damp(5,dt));
     camPos.set(tx+dx*camDist,Math.max(ty+dy*camDist,baseY(tx,tz)+0.6),tz+dz*camDist);
     if(shake>0){const s=shake*shake*0.8;camPos.x+=rr(-s,s);camPos.y+=rr(-s,s);camPos.z+=rr(-s,s);}
@@ -65,7 +65,7 @@ function updateCamera(dt){
   }
   const fx=camF.x,fy=camF.y,fz=camF.z;let rx=-fz,rz=fx;const rl=Math.hypot(rx,rz)||1;rx/=rl;rz/=rl;camR.set(rx,0,rz);camU.set(-rz*fy,rz*fx-rx*fz,rx*fy);
   M4.lookAt(VIEW,camPos.x,camPos.y,camPos.z,camPos.x+fx,camPos.y+fy,camPos.z+fz,0,1,0);
-  {const hi=camPos.y>CEIL;M4.perspective(PROJ,fov*Math.PI/180,W/H,hi?clamp(camPos.y*0.002,0.3,4):0.3,hi?700000:4000);}M4.mul(VP,PROJ,VIEW);
+  {const hi=camPos.y>CEIL,cb=camBig();M4.perspective(PROJ,fov*Math.PI/180,W/H,Math.max(hi?clamp(camPos.y*0.002,0.3,4):0.3,Math.min(cb*0.02,400)),Math.max(hi?700000:4000,cb*400));}M4.mul(VP,PROJ,VIEW);
   const menu=state!=='play'&&!preview;
   const fxp=menu?0:P.pos.x,fzp=menu?0:P.pos.z,fyp=menu?0:Math.min(P.pos.y,120),ext=menu?520:170,tex=ext*2/SHADOW;
   const ld=env.ldir,cxs=Math.round(fxp/tex)*tex,czs=Math.round(fzp/tex)*tex;
@@ -331,7 +331,7 @@ function drawRemote(r){
   if(!r.look||r.pos.y<-40||(r.flags&FLAG.invis))return;const q=inView(r.pos.x,r.pos.z,700,30);if(q<0)return;
   if(r.car){const mesh=CARS[r.car.model];drawVehicle(r,mesh,r.pos.x,r.pos.y,r.pos.z,0,r.car.yaw,0,r.car.tint,r.flash,r.car.model==='police',VDIM[r.car.model][0],VDIM[r.car.model][1],false);return;}
   if(r.flags&FLAG.dead){const root=at(r.pos.x,r.pos.y,r.pos.z,0,r.heroYaw,0);queue(MESH.box,child(root,0,0.25,0,0,0,0,0.8,0.4,2.2),r.look.suit,F_SH);return;}
-  if(r.rag)drawRagdoll(r,ragColorsSuper(r.look));else if(r.alien)drawAlien(r,r.alien,false);else if(r.cn&&conHidesRider(r.cn)){}else{const ro=r.cn?riderOffset(r.cn,r.cz):0;r.pos.y+=ro;drawSuper(r,r.look,false);r.pos.y-=ro;}
+  if(r.rag)drawRagdoll(r,ragColorsSuper(r.look));else if(r.alien)drawAlien(r,r.alien,false);else if(r.cn&&conHidesRider(r.cn)){}else{const ro=r.cn?riderOffset(r.cn,r.cz):0,n0=dlN;r.pos.y+=ro;drawSuper(r,r.look,false);r.pos.y-=ro;const g=r.cn?conDrawGrow(r,r.cn,false):1;if(g>1.001)scaleQueued(n0,r.pos.x,r.pos.y,r.pos.z,g);}
   if(r.cn&&!r.rag)drawConstruct(r,r.cn,false);if(r.ex&&r.ex[0])queue(MESH.glowSphere,at(r.pos.x,r.pos.y+1.3,r.pos.z,0,0,0,3.2,3.2,3.2),[RING_C[0],RING_C[1],RING_C[2],0.14],F_ADD);
   if(r.beam){const w=r.beam.w||0;if(w>0.5){queue(MESH.glowBox,M4.beam(tmpM(),r.pos.x,r.pos.y+1.8,r.pos.z,r.beam.x,r.beam.y,r.beam.z,w*0.5),[1,1,1,1],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),r.pos.x,r.pos.y+1.8,r.pos.z,r.beam.x,r.beam.y,r.beam.z,w*1.4),[.6,.85,1,0.45],F_ADD);}
     else{queue(MESH.glowBox,M4.beam(tmpM(),r.eye.x,r.eye.y,r.eye.z,r.beam.x,r.beam.y,r.beam.z,0.1),[1,.55,.35,1],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),r.eye.x,r.eye.y,r.eye.z,r.beam.x,r.beam.y,r.beam.z,0.35),[.9,.08,.03,0.45],F_BL);}}
@@ -343,7 +343,7 @@ function buildDrawList(){
   dlN=0;drawSpace();
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
     const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.cloak?0.18:P.phasing?0.45:0;
-    if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else if(P.construct&&conHidesRider(P.construct.id)){/* inside the race car, or the suit has become the vehicle */}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;}
+    if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else if(P.construct&&conHidesRider(P.construct.id)){/* inside the race car, or the suit has become the vehicle */}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);const n0=dlN;P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;const g=P.construct?conDrawGrow(P,P.construct.id,true):1;if(g>1.001)scaleQueued(n0,P.pos.x,P.pos.y,P.pos.z,g);}
     if(P.cp&&P.hand){const h=P.hand,k=Math.min(1,P.cp.t/1.2),s=0.3+k*0.6+Math.sin(time*30)*0.05;queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s,s,s),[1,.85,.5,0.9],F_ADD);queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s*2.5,s*2.5,s*2.5),[1,.6,.3,0.25*k],F_ADD);}
     GHOST=0;
     if(P.shieldOn){const s=1.9+Math.sin(time*6)*0.05;queue(MESH.glowSphere,at(P.pos.x,P.pos.y+1.35,P.pos.z,0,time,0,s,s*1.1,s),[.3,.75,1,0.16+0.2*clamp(P.shield/pstat('energyShield','absorb'),0,1)],F_ADD);}
@@ -407,6 +407,8 @@ function buildDrawList(){
 // ================================================================
 // Render
 // ================================================================
+// how far the camera sits from you, in units of a normal third-person camera (grows with giant constructs)
+const camBig=()=>state==='play'?Math.max(1,camDist/12):1;
 function setMainFrameUniforms(){
   const u=MAIN.u;
   gl.uniformMatrix4fv(u.uVP,false,VP);gl.uniformMatrix4fv(u.uLVP,false,LVP);
@@ -414,7 +416,7 @@ function setMainFrameUniforms(){
   if(sk>0){const sl=spaceLight(),d=mix3(env.ldir,sl,sk),l=Math.hypot(...d)||1;gl.uniform3f(u.uLDir,d[0]/l,d[1]/l,d[2]/l);gl.uniform3fv(u.uLCol,mix3(env.lcol,[2.6,2.5,2.3],sk));}
   else{gl.uniform3fv(u.uLDir,env.ldir);gl.uniform3fv(u.uLCol,env.lcol);}
   gl.uniform3fv(u.uSky,mix3(env.sky,[.01,.01,.02],sk));gl.uniform3fv(u.uGnd,mix3(env.gnd,[0,0,0],sk));
-  gl.uniform3fv(u.uFogC,mix3(env.hor,[0,0,0],sk));gl.uniform2f(u.uFog,lerp(state==='play'?160:300,4e5,sk),lerp(state==='play'?1150:1500,9e5,sk));
+  gl.uniform3fv(u.uFogC,mix3(env.hor,[0,0,0],sk));{const cb=state==='play'?camBig():1;gl.uniform2f(u.uFog,Math.max(lerp(state==='play'?160:300,4e5,sk),cb*12),Math.max(lerp(state==='play'?1150:1500,9e5,sk),cb*80));}
   gl.uniform3f(u.uCam,camPos.x,camPos.y,camPos.z);gl.uniform1f(u.uNight,env.night);gl.uniform1f(u.uTime,time);gl.uniform1f(u.uExpo,1.0);
   gl.uniform1f(u.uShTexel,1/SHADOW);gl.uniform1i(u.uShadow,0);gl.uniform1f(u.uShOn,save.settings.shadows?1:0);
   const n=gatherLights();gl.uniform1f(u.uPLn,n);if(n){gl.uniform4fv(u.uPL,PL_POS);gl.uniform3fv(u.uPLC,PL_COL);}
