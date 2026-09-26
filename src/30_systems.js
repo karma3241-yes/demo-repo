@@ -40,6 +40,7 @@ const Damage={
       if(P.iframeT>0){if(time-(P.dodgeT||-9)>0.4){P.dodgeT=time;feed('Dodged','');}return 0;}
       if(spiderSense(src,type))return 0;
       if(src&&src.kind!=='remote'&&type!=='pvp')amount*=CONFIG.health.npcTaken;
+      amount=ringAbsorb(amount);if(amount<=0)return 0;
       if(P.shield>0){const a=Math.min(P.shield,amount);P.shield-=a;amount-=a;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1.5,2.6,0.25,[.4,.85,1]);if(P.shield<=0)breakShield();}
       if(P.metal)amount*=1-pstat('metalSkin','dr');
       if(P.alien&&P.alien.armor>0)amount*=0.4;if(P.car)amount*=0.5;
@@ -264,9 +265,11 @@ function updateProjs(dt){
     const p=projs[i];p.age+=dt;p.life-=dt;
     if(p.homing&&p.age>0.6&&!P.dead){const tx=P.pos.x-p.x,ty=P.pos.y+1.3-p.y,tz=P.pos.z-p.z,l=Math.hypot(tx,ty,tz)||1;const k=damp(1.8,dt),sp=46;
       p.vx+=(tx/l*sp-p.vx)*k;p.vy+=(ty/l*sp-p.vy)*k;p.vz+=(tz/l*sp-p.vz)*k;}
+    if(p.seek&&p.age>0.25){if(!p.seek.alive)p.seek=null;else{const c=center(p.seek),tx=c.x-p.x,ty=c.y-p.y,tz=c.z-p.z,l=Math.hypot(tx,ty,tz)||1,k=damp(4,dt),sp=Math.max(60,Math.hypot(p.vx,p.vy,p.vz));p.vx+=(tx/l*sp-p.vx)*k;p.vy+=(ty/l*sp-p.vy)*k;p.vz+=(tz/l*sp-p.vz)*k;}}
     p.vy-=p.grav*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
     if(p.kind==='fire'){emit(p.x,p.y,p.z,rr(-2,2),rr(-2,2),rr(-2,2),0.35,FIRE[(Math.random()*4)|0],1.6,-3,1);if(Math.random()<0.3)smoke(p.x,p.y,p.z,1,0.2,1.5,0.8,0.2);}
     else if(p.kind==='blast'&&Math.random()<0.7)emit(p.x,p.y,p.z,0,0,0,0.25,CYAN[(Math.random()*3)|0],1.2,0,0);
+    else if(p.kind==='ring'&&!p.small&&Math.random()<0.7)emit(p.x,p.y,p.z,0,0,0,0.25,RING_C,1.2*(p.big||1),0,0);
     else if(p.kind==='web'&&Math.random()<0.6)emit(p.x,p.y,p.z,0,0,0,0.3,[.95,.95,1],0.8,0,0);
     else if(p.kind==='rocket'){emit(p.x,p.y,p.z,rr(-1,1),rr(-1,1),rr(-1,1),0.3,FIRE[1],1.2,0,1);if(Math.random()<0.5)smoke(p.x,p.y,p.z,1,0.2,1.6,1.0,0.35);}
     let hit=null,done=p.life<=0;
@@ -299,6 +302,9 @@ function projImpact(p,hit){
   }else if(p.kind==='blast'){
     if(hit)Damage.apply(p.owner,hit,p.dmg,'blast',{knock:p.knock});
     burst(p.x,p.y,p.z,20,14,0.4,CYAN,1.2,0,2);ringFx(p.x,p.y,p.z,0.5,4,0.25,[.4,.85,1]);
+  }else if(p.kind==='ring'){
+    if(hit)Damage.apply(p.owner,hit,p.dmg,'ring',{knock:p.knock});
+    burst(p.x,p.y,p.z,p.small?6:18,p.small?6:14,0.35,[RING_C,[.8,1,.85]],1.1,0,2);if(!p.small)ringFx(p.x,p.y,p.z,0.5,3*(p.big||1),0.25,RING_C);
   }else if(p.kind==='web'){
     if(p.webBomb&&p.owner===P)webBurst(p.x,p.y,p.z);else burst(p.x,p.y,p.z,20,8,0.5,[[.95,.95,1]],1,4,2);
   }else if(p.kind==='rocket'){
