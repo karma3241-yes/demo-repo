@@ -36,7 +36,6 @@ function updateSpace(dt){
   const sp=inSpace();
   if(sp&&!wasSpace&&time-spaceMsgT>20){spaceMsgT=time;toast('You made it to space','The Moon and the planets are out there · fly to one and land','cyan');}
   wasSpace=sp;
-  if(sp&&!P.flying&&!P.car)P.flying=true; // zero-g: you keep flying up here
   if(P.pos.y>CEIL){
     // the planets are solid: land on them (the Sun burns)
     for(const b of PLANETS){const dx=P.pos.x-b.x,dy=P.pos.y+1-b.y,dz=P.pos.z-b.z,d=Math.hypot(dx,dy,dz)||1,min=b.r+(b.sun?800:1.4);
@@ -47,7 +46,7 @@ function updateSpace(dt){
     if(nb.d>nb.b.r*3)lastBody=null;
   }
   // coming back down: re-enter over the city
-  if(P.pos.y<CEIL&&P.flying&&(P.pos.x<X0-200||P.pos.x>X1+200||P.pos.z<Z0-200||P.pos.z>Z1+200)){P.pos.x=clamp(P.pos.x,X0+40,X1-40);P.pos.z=clamp(P.pos.z,Z0+40,Z1-40);
+  if(P.pos.y<CEIL&&(P.pos.x<X0-200||P.pos.x>X1+200||P.pos.z<Z0-200||P.pos.z>Z1+200)){P.pos.x=clamp(P.pos.x,X0+40,X1-40);P.pos.z=clamp(P.pos.z,Z0+40,Z1-40);
     flashWhite=Math.max(flashWhite,0.5);feed('Re-entry','Back over the city');for(let i=0;i<30;i++)emit(P.pos.x,P.pos.y+1,P.pos.z,rr(-8,8),rr(4,14),rr(-8,8),0.6,FIRE[1],2,0,1);}
 }
 function spaceMode(){const nb=nearestBody();return 'Space · '+nb.b.name+' '+(nb.d>1000?Math.round(nb.d/1000)+' km':Math.round(Math.max(0,nb.d))+' m');}

@@ -26,7 +26,7 @@ const heroKnockMul=()=>P.alien?1:hasPower('armorSuit')?0.45:hasPower('stormBody'
 const bodyPunchMul=()=>{const W=metalWeapon();return (W?W.dmg:1)*(P.giantS>1.05?1+P.giantS:1)*(hasPower('solarBody')&&!P.alien?1.5:1);};
 const bodyReach=()=>{const W=metalWeapon();return (W?W.reach:0)+(hasPower('elasticBody')&&!P.alien?pstat('elasticBody','reach')*0.45:0)+(P.giantS>1.05?(P.giantS-1)*1.6:0);};
 // shield arm: most damage bounces off while you are not swinging
-function bodyDamageMul(type){const W=metalWeapon();let m=W&&W.block&&time-P.punchT>0.3?1-W.block:1;if(P.alien)return m;
+function bodyDamageMul(type){const W=metalWeapon();let m=W&&W.block&&time-P.punchT>0.3?1-W.block:1;if(P.construct&&CONSTRUCTS[P.construct.id].block)m*=1-CONSTRUCTS[P.construct.id].block;if(P.alien)return m;
   if(hasPower('armorSuit'))m*=0.65;if(hasPower('solarBody'))m*=0.6;if(hasPower('stormBody')&&type==='shock')m*=0.2;return m;}
 // after a punch lands: the flail catches everyone around the target
 function bodyAfterHit(x,y,z,dmg){const W=metalWeapon();if(W&&W.area){areaDamage(x,y,z,W.area,dmg*0.5,P,{knock:12,type:'punch'});burst(x,y,z,14,8,0.3,[[.85,.88,.92]],0.8,0,2);}}

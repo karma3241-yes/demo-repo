@@ -260,7 +260,7 @@ function updateFx(dt){
 // Projectiles
 // ================================================================
 const projs=[];
-function fireProj(p){projs.push(Object.assign({life:4,grav:0,r:0.6,age:0,homing:false},p));if(p.owner===P&&!p.visual)MP.fx('p',{pk:p.kind,x:Math.round(p.x*10)/10,y:Math.round(p.y*10)/10,z:Math.round(p.z*10)/10,vx:Math.round(p.vx),vy:Math.round(p.vy),vz:Math.round(p.vz)});}
+function fireProj(p){if(castK>1&&p.owner===P&&!p.visual){p.r=(p.r||0.6)*castK;p.big=(p.big||1)*castK;if(p.radius&&p.kind!=='fire')p.radius*=castK;}projs.push(Object.assign({life:4,grav:0,r:0.6,age:0,homing:false},p));if(p.owner===P&&!p.visual)MP.fx('p',{pk:p.kind,x:Math.round(p.x*10)/10,y:Math.round(p.y*10)/10,z:Math.round(p.z*10)/10,vx:Math.round(p.vx),vy:Math.round(p.vy),vz:Math.round(p.vz)});}
 function updateProjs(dt){
   for(let i=projs.length-1;i>=0;i--){
     const p=projs[i];p.age+=dt;p.life-=dt;

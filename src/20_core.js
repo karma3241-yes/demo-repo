@@ -212,7 +212,10 @@ const MASTERY_NOTES={webSwing:{3:'Backflips and twists unlocked',5:'Web wings gl
 // traversal stats grow with mastery (use), never below the level they were upgraded to before
 const statLevel=id=>POWERS[id].cat==='movement'?Math.max(powerLevel(id),masteryLevel(id)):powerLevel(id);
 const lvlK=id=>(powerLevel(id)-1)/(CONFIG.powerMax-1); // 0 at level 1, 1 at max: drives how strong a power looks
-function pstat(id,name,lvl){const v=POWERS[id][name];if(Array.isArray(v))return lerp(v[0],v[1],((lvl||statLevel(id))-1)/(CONFIG.powerMax-1));return v;}
+function pstat(id,name,lvl){const v=POWERS[id][name];const r=Array.isArray(v)?lerp(v[0],v[1],((lvl||statLevel(id))-1)/(CONFIG.powerMax-1)):v;
+  // a grown power (hold its key and scroll) reaches further and hits harder while it is being cast
+  if(typeof castK!=='undefined'&&castK>1&&typeof r==='number'&&!lvl){if(name==='radius'||name==='range'||name==='reach')return r*castK;if(name==='damage'||name==='dps'||name==='throwDmg')return r*Math.sqrt(castK);}
+  return r;}
 function faction(rep){return rep>=REP.heroAt?'hero':rep<=REP.villainAt?'villain':'neutral';}
 const playerFaction=()=>faction(save.reputation);
 function repTier(r){
