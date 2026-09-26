@@ -65,7 +65,7 @@ function updateCamera(dt){
   }
   const fx=camF.x,fy=camF.y,fz=camF.z;let rx=-fz,rz=fx;const rl=Math.hypot(rx,rz)||1;rx/=rl;rz/=rl;camR.set(rx,0,rz);camU.set(-rz*fy,rz*fx-rx*fz,rx*fy);
   M4.lookAt(VIEW,camPos.x,camPos.y,camPos.z,camPos.x+fx,camPos.y+fy,camPos.z+fz,0,1,0);
-  M4.perspective(PROJ,fov*Math.PI/180,W/H,0.3,4000);M4.mul(VP,PROJ,VIEW);
+  {const hi=camPos.y>CEIL;M4.perspective(PROJ,fov*Math.PI/180,W/H,hi?clamp(camPos.y*0.002,0.3,4):0.3,hi?700000:4000);}M4.mul(VP,PROJ,VIEW);
   const menu=state!=='play'&&!preview;
   const fxp=menu?0:P.pos.x,fzp=menu?0:P.pos.z,fyp=menu?0:Math.min(P.pos.y,120),ext=menu?520:170,tex=ext*2/SHADOW;
   const ld=env.ldir,cxs=Math.round(fxp/tex)*tex,czs=Math.round(fzp/tex)*tex;
@@ -340,7 +340,7 @@ function drawRemote(r){
   if(r.flags&FLAG.shield)queue(MESH.glowSphere,at(r.pos.x,r.pos.y+1.35,r.pos.z,0,time,0,1.9,2.1,1.9),[.3,.75,1,0.25],F_ADD);
 }
 function buildDrawList(){
-  dlN=0;
+  dlN=0;drawSpace();
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
     const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.phasing?0.45:0;
     if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else if(P.construct&&conHidesRider(P.construct.id)){/* inside the race car, or the suit has become the vehicle */}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;}
@@ -409,8 +409,11 @@ function buildDrawList(){
 function setMainFrameUniforms(){
   const u=MAIN.u;
   gl.uniformMatrix4fv(u.uVP,false,VP);gl.uniformMatrix4fv(u.uLVP,false,LVP);
-  gl.uniform3fv(u.uLDir,env.ldir);gl.uniform3fv(u.uLCol,env.lcol);gl.uniform3fv(u.uSky,env.sky);gl.uniform3fv(u.uGnd,env.gnd);
-  gl.uniform3fv(u.uFogC,env.hor);gl.uniform2f(u.uFog,state==='play'?160:300,state==='play'?1150:1500);
+  const sk=spaceK(camPos.y);
+  if(sk>0){const sl=spaceLight(),d=mix3(env.ldir,sl,sk),l=Math.hypot(...d)||1;gl.uniform3f(u.uLDir,d[0]/l,d[1]/l,d[2]/l);gl.uniform3fv(u.uLCol,mix3(env.lcol,[2.6,2.5,2.3],sk));}
+  else{gl.uniform3fv(u.uLDir,env.ldir);gl.uniform3fv(u.uLCol,env.lcol);}
+  gl.uniform3fv(u.uSky,mix3(env.sky,[.01,.01,.02],sk));gl.uniform3fv(u.uGnd,mix3(env.gnd,[0,0,0],sk));
+  gl.uniform3fv(u.uFogC,mix3(env.hor,[0,0,0],sk));gl.uniform2f(u.uFog,lerp(state==='play'?160:300,4e5,sk),lerp(state==='play'?1150:1500,9e5,sk));
   gl.uniform3f(u.uCam,camPos.x,camPos.y,camPos.z);gl.uniform1f(u.uNight,env.night);gl.uniform1f(u.uTime,time);gl.uniform1f(u.uExpo,1.0);
   gl.uniform1f(u.uShTexel,1/SHADOW);gl.uniform1i(u.uShadow,0);gl.uniform1f(u.uShOn,save.settings.shadows?1:0);
   const n=gatherLights();gl.uniform1f(u.uPLn,n);if(n){gl.uniform4fv(u.uPL,PL_POS);gl.uniform3fv(u.uPLC,PL_COL);}
@@ -452,7 +455,7 @@ function render(){
   gl.disable(gl.DEPTH_TEST);gl.depthMask(false);gl.disable(gl.BLEND);gl.useProgram(SKY.p);const s=SKY.u,th=Math.tan(fov*Math.PI/360);
   gl.uniform3f(s.uFwd,camF.x,camF.y,camF.z);gl.uniform3f(s.uRight,camR.x,camR.y,camR.z);gl.uniform3f(s.uUp,camU.x,camU.y,camU.z);
   gl.uniform2f(s.uTan,th*W/H,th);gl.uniform3fv(s.uSunDir,env.sun);gl.uniform3fv(s.uZen,env.zen);gl.uniform3fv(s.uHor,env.hor);gl.uniform3fv(s.uSunCol,env.suncol);
-  gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uTime,time);gl.uniform1f(s.uExpo,1.0);
+  gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uTime,time);gl.uniform1f(s.uExpo,1.0);gl.uniform1f(s.uSpace,spaceK(camPos.y));
   gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);

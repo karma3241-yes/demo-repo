@@ -516,7 +516,7 @@ out vec2 vP;void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&
 const SKY_FS=`#version 300 es
 precision highp float;in vec2 vP;out vec4 o;
 uniform vec3 uFwd;uniform vec3 uRight;uniform vec3 uUp;uniform vec2 uTan;uniform vec3 uSunDir;uniform vec3 uZen;uniform vec3 uHor;uniform vec3 uSunCol;
-uniform float uNight;uniform float uTime;uniform float uExpo;
+uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uSpace;
 ${GLSL_COMMON}
 float fbm(vec2 p){float s=0.0,a=0.5;for(int i=0;i<5;i++){s+=a*vnoise(p);p=p*2.03+vec2(1.7,9.2);a*=0.5;}return s;}
 void main(){
@@ -537,6 +537,10 @@ void main(){
     vec3 cc=uHor*0.85+uSunCol*0.05+vec3(0.5)*(1.0-uNight);
     col=mix(col,cc*(1.0-0.25*cl),cl*0.8);
   }
+  if(uSpace>0.0){ // above the atmosphere: black sky, lots of stars, a bright sun
+    vec3 q2=d*300.0;vec3 ip2=floor(q2);float s2=h31(ip2);float st2=step(0.9955,s2)*smoothstep(0.45,0.0,length(fract(q2)-0.5));
+    vec3 spc=vec3(st2)*(0.4+1.2*fract(s2*97.0)); // the Sun itself is drawn as a body out there
+    col=mix(col,spc,uSpace);}
   o=vec4(pow(aces(col*uExpo),vec3(1.0/2.2)),1.0);
 }`;
 
@@ -2091,7 +2095,7 @@ function updatePowers(dt){
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   updateWanted(dt);
   if(P.stun>0)P.stun-=dt;
-  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateMeters(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
+  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateMeters(dt);updateSpace(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
 }
 // ================================================================
 // Melee combat: lock-on, 4-hit chains, finishers, dash, wall slams
@@ -3842,6 +3846,71 @@ function drawArmorForm(s,id,isPlayer){
       M(child(T,0.9,0.6,0.9,0,0,0,0.2,0.2,1.2),D0);glow(child(T,0,0.35,-1.0,0,0,0,0.3,0.3,0.1),0.7);}
     return;}
 }
+// ================================================================
+// Space: fly high enough and you leave the atmosphere; the Moon, the planets and the Sun are out there
+// ================================================================
+// Anything that flies can keep climbing past the clouds. Above SPACE.y the sky turns black and starry, you stay in
+// zero-g flight, and your speed grows with altitude (slowing down again near any surface so you can land).
+// Distances are shrunk so a trip to Neptune takes about half a minute at full boost. Planets are solid: land on them.
+// Fly back down and you drop through re-entry over the city.
+const SPACE={y:900,lim:600000};
+const EARTH={name:'Earth',x:0,y:-60003,z:0,r:60000,col:[.07,.2,.42,1]};
+const PLANETS=[
+  {name:'The Moon',x:18000,y:12000,z:-9000,r:1700,col:[.55,.55,.56,1]},
+  {name:'Mercury',x:95000,y:16000,z:85000,r:2400,col:[.5,.46,.42,1]},
+  {name:'Venus',x:48000,y:14000,z:52000,r:6000,col:[.85,.72,.45,1]},
+  {name:'Mars',x:-62000,y:22000,z:30000,r:3400,col:[.72,.28,.14,1]},
+  {name:'Phobos',x:-62000+5200,y:23500,z:30000,r:220,col:[.4,.36,.33,1]},
+  {name:'Jupiter',x:-150000,y:30000,z:-60000,r:14000,col:[.78,.62,.45,1],bands:[.62,.42,.3,1]},
+  {name:'Europa',x:-150000+24000,y:32000,z:-60000,r:900,col:[.8,.76,.7,1]},
+  {name:'Saturn',x:-100000,y:45000,z:170000,r:12000,col:[.86,.76,.52,1],ring:[.8,.72,.55,0.75]},
+  {name:'Titan',x:-100000,y:47000,z:170000+30000,r:1100,col:[.8,.6,.3,1]},
+  {name:'Uranus',x:60000,y:60000,z:-200000,r:7000,col:[.55,.82,.86,1]},
+  {name:'Neptune',x:-220000,y:50000,z:-200000,r:7000,col:[.22,.36,.85,1]},
+  {name:'The Sun',x:170000,y:40000,z:170000,r:30000,col:[1,.85,.45,1],sun:true},
+];
+const PLANET_MESH=primMesh(primSphere(64,40));
+const spaceK=y=>smooth(CEIL,SPACE.y,y);   // 0 in the city sky, 1 in space
+const inSpace=()=>P.pos.y>SPACE.y;
+function nearestBody(){let best=null,bd=1e12;for(const b of PLANETS){const d=Math.hypot(P.pos.x-b.x,P.pos.y-b.y,P.pos.z-b.z)-b.r;if(d<bd){bd=d;best=b;}}return {b:best,d:bd};}
+// flight speed multiplier: much faster the higher you are, slower again close to any surface
+function spaceSpeedMul(){
+  if(P.pos.y<=CEIL)return 1;const nb=nearestBody();
+  return Math.max(1,Math.min(1+(P.pos.y-CEIL)/40,90,1+Math.max(0,nb.d)/60,1+(P.pos.y)/60));
+}
+let spaceMsgT=-99,lastBody=null,wasSpace=false;
+function updateSpace(dt){
+  if(state!=='play'||P.dead)return;
+  const sp=inSpace();
+  if(sp&&!wasSpace&&time-spaceMsgT>20){spaceMsgT=time;toast('You made it to space','The Moon and the planets are out there · fly to one and land','cyan');}
+  wasSpace=sp;
+  if(sp&&!P.flying&&!P.car)P.flying=true; // zero-g: you keep flying up here
+  if(P.pos.y>CEIL){
+    // the planets are solid: land on them (the Sun burns)
+    for(const b of PLANETS){const dx=P.pos.x-b.x,dy=P.pos.y+1-b.y,dz=P.pos.z-b.z,d=Math.hypot(dx,dy,dz)||1,min=b.r+(b.sun?800:1.4);
+      if(d<min){const nx=dx/d,ny=dy/d,nz=dz/d;P.pos.set(b.x+nx*min,b.y+ny*min-1,b.z+nz*min);const vr=P.vel.x*nx+P.vel.y*ny+P.vel.z*nz;if(vr<0){P.vel.x-=nx*vr;P.vel.y-=ny*vr;P.vel.z-=nz*vr;}
+        if(b.sun){if(time-(P.sunT||-9)>0.5){P.sunT=time;Damage.apply(null,P,25,'fire',{burn:{dps:8,time:2}});feed('Too hot','Nobody lands on the Sun');}P.vel.set(nx*400,ny*400,nz*400);}
+        else{P.vel.mul(0.8);if(lastBody!==b){lastBody=b;toast('You landed on '+b.name,'Take in the view · fly off whenever you like','cyan');SFX.chime();addXP(50);}}}}
+    const nb=nearestBody();if(nb.b&&nb.d<nb.b.r*1.5&&lastBody!==nb.b&&time-(nb.b.seenT||-99)>30){nb.b.seenT=time;feed('Approaching '+nb.b.name,Math.round(nb.d/1000)+' km');}
+    if(nb.d>nb.b.r*3)lastBody=null;
+  }
+  // coming back down: re-enter over the city
+  if(P.pos.y<CEIL&&(Math.abs(P.pos.x)>LIMIT||Math.abs(P.pos.z)>LIMIT)){const k=LIMIT*0.85;P.pos.x=clamp(P.pos.x,-k,k);P.pos.z=clamp(P.pos.z,-k,k);
+    flashWhite=Math.max(flashWhite,0.5);feed('Re-entry','Back over the city');for(let i=0;i<30;i++)emit(P.pos.x,P.pos.y+1,P.pos.z,rr(-8,8),rr(4,14),rr(-8,8),0.6,FIRE[1],2,0,1);}
+}
+function spaceMode(){const nb=nearestBody();return 'Space · '+nb.b.name+' '+(nb.d>1000?Math.round(nb.d/1000)+' km':Math.round(Math.max(0,nb.d))+' m');}
+// the Earth below and the planets, only drawn when you are high enough to see them
+function drawSpace(){
+  if(camPos.y<300)return;
+  queue(PLANET_MESH,at(EARTH.x,EARTH.y,EARTH.z,0,0,0,EARTH.r,EARTH.r,EARTH.r),EARTH.col,0);
+  for(const b of PLANETS){
+    if(b.sun){queue(PLANET_MESH,at(b.x,b.y,b.z,0,0,0,b.r,b.r,b.r),[1.6,1.3,.7,1],F_UN);queue(MESH.glowSphere,at(b.x,b.y,b.z,0,0,0,b.r*1.6,b.r*1.6,b.r*1.6),[1,.75,.35,0.35],F_ADD);continue;}
+    queue(PLANET_MESH,at(b.x,b.y,b.z,0,time*0.01,0,b.r,b.r,b.r),b.col,0);
+    if(b.bands)for(let i=-2;i<=2;i++){const y=i*0.28,rr_=Math.sqrt(1-y*y)*1.002;queue(PLANET_MESH,at(b.x,b.y+y*b.r,b.z,0,0,0,b.r*rr_,b.r*0.06,b.r*rr_),b.bands,0);}
+    if(b.ring){queue(MESH.ring,M4.alignY(tmpM(),b.x,b.y,b.z,0.25,1,0.15,b.r*2.3),b.ring,F_BL);queue(MESH.ring,M4.alignY(tmpM(),b.x,b.y,b.z,0.25,1,0.15,b.r*1.8),[b.ring[0]*0.8,b.ring[1]*0.8,b.ring[2]*0.8,0.6],F_BL);}}
+}
+// sunlight in space comes from the Sun itself
+function spaceLight(){const S=PLANETS[PLANETS.length-1],dx=S.x-camPos.x,dy=S.y-camPos.y,dz=S.z-camPos.z,l=Math.hypot(dx,dy,dz)||1;return [dx/l,dy/l,dz/l];}
 // ================================================================
 // NPCs: people, drones, vehicles, rival supers, shops
 // ================================================================
@@ -5770,7 +5839,7 @@ function updatePlayer(dt){
     else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(conDrive()&&!P.flying)driveConstruct(dt,inF,inR,shift);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
       let tx=fwdX*cp*inF+rX*inR,ty=sp*inF+((keys.Space?1:0)-(keys.KeyC?1:0)),tz=fwdZ*cp*inF+rZ*inR;const l=Math.hypot(tx,ty,tz);if(l>1){tx/=l;ty/=l;tz/=l;}
-      const base=(AL&&AL.flies?AL.flySpeed:flySpeed()*conSpeedMul())*slowMul,spd=shift?base*(AL&&AL.flies?1.5:POWERS.flight.boost):base,k=damp(shift?1.8:3,dt);
+      const base=(AL&&AL.flies?AL.flySpeed:flySpeed()*conSpeedMul())*slowMul*spaceSpeedMul(),spd=shift?base*(AL&&AL.flies?1.5:POWERS.flight.boost):base,k=damp(shift?1.8:3,dt);
       const lk=P.launchT>0?k*0.06:k;if(P.launchT>0)P.launchT-=dt; // a charged launch keeps its momentum for a moment
       P.vel.x+=(tx*spd-P.vel.x)*lk;P.vel.y+=(ty*spd-P.vel.y)*lk;P.vel.z+=(tz*spd-P.vel.z)*lk;
     }else{
@@ -5803,7 +5872,8 @@ function updatePlayer(dt){
       if(P.zip&&col.wall&&P.zip.t>0.15){P.zip=null;P.vel.set(col.wall.nx*4,14,col.wall.nz*4);}
       playerBodies(prevY);}
   }
-  P.pos.x=clamp(P.pos.x,-LIMIT,LIMIT);P.pos.z=clamp(P.pos.z,-LIMIT,LIMIT);if(P.pos.y>CEIL){P.pos.y=CEIL;P.vel.y=Math.min(P.vel.y,0);}
+  if(P.pos.y<CEIL||!P.flying){P.pos.x=clamp(P.pos.x,-LIMIT,LIMIT);P.pos.z=clamp(P.pos.z,-LIMIT,LIMIT);}else{P.pos.x=clamp(P.pos.x,-SPACE.lim,SPACE.lim);P.pos.z=clamp(P.pos.z,-SPACE.lim,SPACE.lim);}
+  if(P.pos.y>CEIL&&!P.flying){P.pos.y=CEIL;P.vel.y=Math.min(P.vel.y,0);}else if(P.pos.y>SPACE.lim){P.pos.y=SPACE.lim;P.vel.y=Math.min(P.vel.y,0);} // fliers can climb into space
   if(!onIsland(P.pos.x,P.pos.z)&&P.grounded&&P.pos.y<-0.5&&Math.random()<0.3)emit(P.pos.x,-0.8,P.pos.z,rr(-2,2),rr(2,4),rr(-2,2),0.6,WATER[0],1,15,1);
   if(!wasGrounded&&P.grounded&&!P.flying){
     const impact=-vyBefore;
@@ -5930,7 +6000,7 @@ function updateCamera(dt){
   }
   const fx=camF.x,fy=camF.y,fz=camF.z;let rx=-fz,rz=fx;const rl=Math.hypot(rx,rz)||1;rx/=rl;rz/=rl;camR.set(rx,0,rz);camU.set(-rz*fy,rz*fx-rx*fz,rx*fy);
   M4.lookAt(VIEW,camPos.x,camPos.y,camPos.z,camPos.x+fx,camPos.y+fy,camPos.z+fz,0,1,0);
-  M4.perspective(PROJ,fov*Math.PI/180,W/H,0.3,4000);M4.mul(VP,PROJ,VIEW);
+  {const hi=camPos.y>CEIL;M4.perspective(PROJ,fov*Math.PI/180,W/H,hi?clamp(camPos.y*0.002,0.3,4):0.3,hi?700000:4000);}M4.mul(VP,PROJ,VIEW);
   const menu=state!=='play'&&!preview;
   const fxp=menu?0:P.pos.x,fzp=menu?0:P.pos.z,fyp=menu?0:Math.min(P.pos.y,120),ext=menu?520:170,tex=ext*2/SHADOW;
   const ld=env.ldir,cxs=Math.round(fxp/tex)*tex,czs=Math.round(fzp/tex)*tex;
@@ -6205,7 +6275,7 @@ function drawRemote(r){
   if(r.flags&FLAG.shield)queue(MESH.glowSphere,at(r.pos.x,r.pos.y+1.35,r.pos.z,0,time,0,1.9,2.1,1.9),[.3,.75,1,0.25],F_ADD);
 }
 function buildDrawList(){
-  dlN=0;
+  dlN=0;drawSpace();
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
     const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.phasing?0.45:0;
     if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else if(P.construct&&conHidesRider(P.construct.id)){/* inside the race car, or the suit has become the vehicle */}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;}
@@ -6274,8 +6344,11 @@ function buildDrawList(){
 function setMainFrameUniforms(){
   const u=MAIN.u;
   gl.uniformMatrix4fv(u.uVP,false,VP);gl.uniformMatrix4fv(u.uLVP,false,LVP);
-  gl.uniform3fv(u.uLDir,env.ldir);gl.uniform3fv(u.uLCol,env.lcol);gl.uniform3fv(u.uSky,env.sky);gl.uniform3fv(u.uGnd,env.gnd);
-  gl.uniform3fv(u.uFogC,env.hor);gl.uniform2f(u.uFog,state==='play'?160:300,state==='play'?1150:1500);
+  const sk=spaceK(camPos.y);
+  if(sk>0){const sl=spaceLight(),d=mix3(env.ldir,sl,sk),l=Math.hypot(...d)||1;gl.uniform3f(u.uLDir,d[0]/l,d[1]/l,d[2]/l);gl.uniform3fv(u.uLCol,mix3(env.lcol,[2.6,2.5,2.3],sk));}
+  else{gl.uniform3fv(u.uLDir,env.ldir);gl.uniform3fv(u.uLCol,env.lcol);}
+  gl.uniform3fv(u.uSky,mix3(env.sky,[.01,.01,.02],sk));gl.uniform3fv(u.uGnd,mix3(env.gnd,[0,0,0],sk));
+  gl.uniform3fv(u.uFogC,mix3(env.hor,[0,0,0],sk));gl.uniform2f(u.uFog,lerp(state==='play'?160:300,4e5,sk),lerp(state==='play'?1150:1500,9e5,sk));
   gl.uniform3f(u.uCam,camPos.x,camPos.y,camPos.z);gl.uniform1f(u.uNight,env.night);gl.uniform1f(u.uTime,time);gl.uniform1f(u.uExpo,1.0);
   gl.uniform1f(u.uShTexel,1/SHADOW);gl.uniform1i(u.uShadow,0);gl.uniform1f(u.uShOn,save.settings.shadows?1:0);
   const n=gatherLights();gl.uniform1f(u.uPLn,n);if(n){gl.uniform4fv(u.uPL,PL_POS);gl.uniform3fv(u.uPLC,PL_COL);}
@@ -6317,7 +6390,7 @@ function render(){
   gl.disable(gl.DEPTH_TEST);gl.depthMask(false);gl.disable(gl.BLEND);gl.useProgram(SKY.p);const s=SKY.u,th=Math.tan(fov*Math.PI/360);
   gl.uniform3f(s.uFwd,camF.x,camF.y,camF.z);gl.uniform3f(s.uRight,camR.x,camR.y,camR.z);gl.uniform3f(s.uUp,camU.x,camU.y,camU.z);
   gl.uniform2f(s.uTan,th*W/H,th);gl.uniform3fv(s.uSunDir,env.sun);gl.uniform3fv(s.uZen,env.zen);gl.uniform3fv(s.uHor,env.hor);gl.uniform3fv(s.uSunCol,env.suncol);
-  gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uTime,time);gl.uniform1f(s.uExpo,1.0);
+  gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uTime,time);gl.uniform1f(s.uExpo,1.0);gl.uniform1f(s.uSpace,spaceK(camPos.y));
   gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);
@@ -6353,7 +6426,7 @@ function updateHud(dt){
   hud.shbar.hidden=!P.shieldOn&&!P.ringShield;if(P.shieldOn)setW(hud.shb,'sh',P.shield/pstat('energyShield','absorb'));else if(P.ringShield)setW(hud.shb,'sh',P.rsHp/pstat('ringShield','absorb'));
   const mins=Math.floor(tod*24*60);setText(hud.clock,'clock',String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0'));
   const sp=P.vel.len();
-  setText(hud.mode,'mode',P.dead?'Down':P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.phasing?'Phasing':timeStopT>0?'Time stopped':frozenT>0?'Frozen in time':P.speeding?'Super speed x'+Math.min(P.dial,dialMax()):isSpeed()?'On foot · dial x'+Math.min(P.dial,dialMax())+(P.fastMode?' · fast mode':''):P.charging?'Charging':P.grounded?'On foot':'Airborne');
+  setText(hud.mode,'mode',P.dead?'Down':inSpace()?spaceMode():P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.phasing?'Phasing':timeStopT>0?'Time stopped':frozenT>0?'Frozen in time':P.speeding?'Super speed x'+Math.min(P.dial,dialMax()):isSpeed()?'On foot · dial x'+Math.min(P.dial,dialMax())+(P.fastMode?' · fast mode':''):P.charging?'Charging':P.grounded?'On foot':'Airborne');
   for(const s of slotEls){
     if(s.bandTimer){setW(s.bandTimer,'bt',P.alien?P.alien.t/P.alien.max:0);s.s.classList.toggle('bad',!!P.alien&&P.alien.t<5);continue;}
     if(s.alien!==undefined){if(!P.alien)continue;const ab=ALIENS[P.alien.id].abilities[s.alien],f=ab.cd?P.alien.cds[s.alien]/ab.cd:0,v=Math.round(f*100);
@@ -6435,7 +6508,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
-  tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
+  tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>

@@ -185,7 +185,7 @@ out vec2 vP;void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&
 const SKY_FS=`#version 300 es
 precision highp float;in vec2 vP;out vec4 o;
 uniform vec3 uFwd;uniform vec3 uRight;uniform vec3 uUp;uniform vec2 uTan;uniform vec3 uSunDir;uniform vec3 uZen;uniform vec3 uHor;uniform vec3 uSunCol;
-uniform float uNight;uniform float uTime;uniform float uExpo;
+uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uSpace;
 ${GLSL_COMMON}
 float fbm(vec2 p){float s=0.0,a=0.5;for(int i=0;i<5;i++){s+=a*vnoise(p);p=p*2.03+vec2(1.7,9.2);a*=0.5;}return s;}
 void main(){
@@ -206,6 +206,10 @@ void main(){
     vec3 cc=uHor*0.85+uSunCol*0.05+vec3(0.5)*(1.0-uNight);
     col=mix(col,cc*(1.0-0.25*cl),cl*0.8);
   }
+  if(uSpace>0.0){ // above the atmosphere: black sky, lots of stars, a bright sun
+    vec3 q2=d*300.0;vec3 ip2=floor(q2);float s2=h31(ip2);float st2=step(0.9955,s2)*smoothstep(0.45,0.0,length(fract(q2)-0.5));
+    vec3 spc=vec3(st2)*(0.4+1.2*fract(s2*97.0)); // the Sun itself is drawn as a body out there
+    col=mix(col,spc,uSpace);}
   o=vec4(pow(aces(col*uExpo),vec3(1.0/2.2)),1.0);
 }`;
 
