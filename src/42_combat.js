@@ -69,7 +69,7 @@ function punch(){
     P.vel.x=fx*s;P.vel.z=fz*s;if(air||P.flying)P.vel.y=fy*s;P.burstT=0.14;}}
   if(air){P.vel.y=Math.max(P.vel.y,fin?4:2.5);P.floatT=fin?0.2:0.45;}
   const AL=P.alien?ALIENS[P.alien.id]:null,am=AL?(AL.scale>2?3.5:1.6):1;
-  const dmg=CONFIG.punch.damage*strengthMul()*am*(fin?COMBAT.finMul:comboN===3?1.25:1);
+  const dmg=CONFIG.punch.damage*strengthMul()*am*speedPunchMul()*(fin?COMBAT.finMul:comboN===3?1.25:1);
   const hits=meleeTargets(fx,fy,fz,COMBAT.reach*(AL?Math.max(1,AL.scale*0.8):1));let hx=0,hy=0,hz=0;
   for(const a of hits){
     const c=center(a);hx=c.x;hy=c.y;hz=c.z;const dx=c.x-P.pos.x,dz=c.z-P.pos.z,l=Math.hypot(dx,dz)||1,ux=dx/l,uz=dz/l;

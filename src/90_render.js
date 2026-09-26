@@ -341,8 +341,8 @@ function drawRemote(r){
 function buildDrawList(){
   dlN=0;
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
-    const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):0;
-    if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0;P.pos.y+=ro;drawSuper(P,m,true);P.pos.y-=ro;}
+    const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.phasing?0.45:0;
+    if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0,jx=P.phasing||P.vibT>0?rr(-.07,.07):0,jz=jx?rr(-.07,.07):0;P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;}
     if(P.cp&&P.hand){const h=P.hand,k=Math.min(1,P.cp.t/1.2),s=0.3+k*0.6+Math.sin(time*30)*0.05;queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s,s,s),[1,.85,.5,0.9],F_ADD);queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s*2.5,s*2.5,s*2.5),[1,.6,.3,0.25*k],F_ADD);}
     GHOST=0;
     if(P.shieldOn){const s=1.9+Math.sin(time*6)*0.05;queue(MESH.glowSphere,at(P.pos.x,P.pos.y+1.35,P.pos.z,0,time,0,s,s*1.1,s),[.3,.75,1,0.16+0.2*clamp(P.shield/pstat('energyShield','absorb'),0,1)],F_ADD);}
@@ -353,7 +353,7 @@ function buildDrawList(){
     const wp=P.web||P.zip;if(wp&&P.hand){const h=P.hand;queue(MESH.box,M4.beam(tmpM(),h[12],h[13],h[14],wp.x,wp.y,wp.z,0.06),[.95,.95,1,1],0);}
     if(P.tk){const a=P.tk.a,c=center(a),s=(a.radius||1)*1.6;queue(MESH.glowSphere,at(c.x,c.y,c.z,0,0,0,s,s,s),[.6,.35,1,0.22],F_ADD);}
   }
-  for(const r of MP.peers.values())drawRemote(r);
+  for(const r of MP.peers.values()){const fr=r.tsUntil>time&&r.tsPos,sv=fr?r.pos.clone():null;if(fr)r.pos.copy(r.tsPos);GHOST=r.ex&&r.ex[1]?0.4:0;drawRemote(r);GHOST=0;if(fr)r.pos.copy(sv);}
   for(const r of rivals){if(inView(r.pos.x,r.pos.z,500)<0)continue;r.firing=time-(r.castT||-9)<0.3;if(r.rag)drawRagdoll(r,ragColorsSuper(r.look));else drawSuper(r,r.look,false);}
   for(const h of humans)drawHuman(h);
   for(const v of vehicles)drawVehicle(v,v.mesh,v.pos.x,v.pos.y,v.pos.z,v.rx,v.yaw,v.rz,v.tint,v.flash,v.siren,v.hw,v.hl,v.state==='wreck');
@@ -387,6 +387,7 @@ function buildDrawList(){
     if(p.rock){queue(MESH.box,at(p.x,p.y,p.z,time*5,time*3,0,1.1,0.9,1.0),[.25,.18,.14,1],F_SH);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.3,1.3,1.3),[1,.4,.1,0.4],F_ADD);}
     else if(p.kind==='fire'){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.7,0.7,0.7),[1,.6,.2,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.8,1.8,1.8),[1,.35,.05,0.4],F_ADD);}
     else if(p.kind==='blast'){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.5,0.5,0.5),[.5,.9,1,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.4,1.4,1.4),[.2,.6,1,0.4],F_ADD);}
+    else if(p.kind==='bolt'){let px=p.x,py=p.y,pz=p.z;for(let i=1;i<=3;i++){const qx=p.x-p.vx*0.012*i+rr(-.4,.4),qy=p.y-p.vy*0.012*i+rr(-.4,.4),qz=p.z-p.vz*0.012*i+rr(-.4,.4);queue(MESH.glowBox,M4.beam(tmpM(),px,py,pz,qx,qy,qz,0.18),[1,.9,.5,1],F_ADD);px=qx;py=qy;pz=qz;}queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.1,1.1,1.1),[1,.8,.3,0.5],F_ADD);}
     else if(p.kind==='ring'){const s=p.small?0.28:0.5*(p.big||1);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.02,p.y-p.vy*0.02,p.z-p.vz*0.02,s*0.7),[RING_C[0],RING_C[1],RING_C[2],1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,s*2.4,s*2.4,s*2.4),[RING_C[0],RING_C[1],RING_C[2],0.35],F_ADD);}
     else if(p.kind==='web'){queue(MESH.sphere,at(p.x,p.y,p.z,time*6,time*4,0,0.55,0.55,0.55),[.95,.95,1,1],0);}
     else if(p.kind==='rocket'){queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.03,p.y-p.vy*0.03,p.z-p.vz*0.03,0.5),[1,.6,.3,1],0);}

@@ -31,6 +31,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyC'&&hasWeb()&&!P.grounded&&!P.flying&&spiderAirTrick())return;
   if(e.code in SLOT_CODES){abilityDown(SLOT_CODES[e.code]);guideDone('ability');return;}
   if(e.code==='KeyX'){if(P.construct&&constructX())return;dashPress();return;}
+  if(isSpeed()){if(e.code==='KeyF'){toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
   if(e.code==='KeyF')toggleFlight();else if(e.code==='Space')pressJump();
 });
 addEventListener('keyup',e=>{keys[e.code]=false;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();});
@@ -45,6 +46,7 @@ canvas.addEventListener('mousedown',e=>{
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('wheel',e=>{if(state==='play'&&!paused&&!dialOpen&&isSpeed()&&Math.abs(e.deltaY)>1)turnDial(e.deltaY<0?1:-1);},{passive:true});
 addEventListener('mousemove',e=>{if(state!=='play'||paused||touchOn())return;if(dialOpen){if(locked)dialMove(e.movementX,e.movementY);return;}if(locked||mmbLook||rmbLook)look(e.movementX,e.movementY);});
 function requestLock(){if(touchOn())return;try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
 function lockFail(){lockFailed=true;if(!lockHint){lockHint=true;toast('Mouse lock not available here','Hold the middle mouse button and drag to look','cyan');}}
@@ -129,7 +131,7 @@ function buildTouchButtons(){
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
-    for(const id of save.character.movement){if(id==='flight')B('FLY','fly');else if(id==='superSpeed')B('SPEED','speed');else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
+    for(const id of save.character.movement){if(id==='flight')B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
   B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
 }
@@ -151,6 +153,10 @@ function touchAct(a,down){
   else if(a==='web'){if(down)webPress();else webRelease();}
   else if(a==='use'){if(down)interact();}
   else if(a==='band'){if(down)bandPress();}
+  else if(a==='fast'){if(down)toggleFastMode();}
+  else if(a==='phase'){if(down)togglePhase();}
+  else if(a==='dialup'){if(down)turnDial(1);}
+  else if(a==='dialdn'){if(down)turnDial(-1);}
   else if(a==='lock'){if(down)lockToggle();}
   else if(a==='dash'){if(down)dashPress();}
 }
@@ -241,7 +247,7 @@ function updatePlayer(dt){
   spiderTick(dt);
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
-  const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=P.alien&&P.alien.phase>0;
+  const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=(P.alien&&P.alien.phase>0)||P.phasing;
   P.speeding=false;
   if(P.wallRun)wallRunStep(dt,inF,inR);
   else if(P.wall){
@@ -267,8 +273,8 @@ function updatePlayer(dt){
     }else{
       let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
       const am=AL?AL.speed:P.construct&&!P.flying?conSpeedMul():1;
-      const canSpeed=hasPower('superSpeed')&&shift&&P.grounded&&l>0.1&&P.en>1;P.speeding=canSpeed;
-      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*pstat('superSpeed','mult'):shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul;
+      const canSpeed=hasPower('superSpeed')&&(shift||P.fastMode)&&P.grounded&&l>0.1&&P.en>1;P.speeding=canSpeed;
+      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*speedMult():shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul;
       const hsp=Math.hypot(P.vel.x,P.vel.z);
       if(!P.grounded&&hsp>spd+2){ // keep swing / leap momentum: steer it instead of braking
         if(l>0.1){const turn=damp(1.8,dt),nx=P.vel.x+(tx*hsp-P.vel.x)*turn,nz=P.vel.z+(tz*hsp-P.vel.z)*turn,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hsp;P.vel.z=nz/nl*hsp;}

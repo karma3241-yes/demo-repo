@@ -229,6 +229,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   #create .sheet-card,#sheet.side .sheet-card{width:100%;max-height:58vh;border-radius:14px 14px 0 0;padding:14px 16px}
 }
  #gl.slowmo{filter:saturate(.55) contrast(1.08) hue-rotate(-8deg)}
+ #gl.tstop{filter:saturate(.12) contrast(1.15) brightness(1.04) sepia(.18)}
 #lockmark{position:absolute;left:0;top:0;width:46px;height:46px;border:2px solid #ff5a3d;border-radius:8px;box-shadow:0 0 10px rgba(255,90,61,.7);clip-path:polygon(0 0,35% 0,35% 12%,12% 12%,12% 35%,0 35%,0 65%,12% 65%,12% 88%,35% 88%,35% 100%,65% 100%,65% 88%,88% 88%,88% 65%,100% 65%,100% 35%,88% 35%,88% 12%,65% 12%,65% 0,100% 0,100% 100%,0 100%);pointer-events:none}
 #combo{position:absolute;left:50%;top:calc(50% - 64px);transform:translateX(-50%);font-family:var(--display);font-size:22px;color:#fff1b8;text-shadow:0 2px 0 #7a3a00,0 0 12px rgba(255,160,40,.7);pointer-events:none}
 #combo.pop{animation:comboPop .18s ease-out}@keyframes comboPop{from{transform:translateX(-50%) scale(1.35)}to{transform:translateX(-50%) scale(1)}}
@@ -1481,6 +1482,7 @@ function hitMotion(t,src,opt){
 const Damage={
   apply(src,t,amount,type='hit',opt={}){
     if(!t||!(amount>0))return 0;
+    if(tsIntercept(src,t,amount,type,opt))return amount;
     if(t===P){
       if(P.dead||state!=='play')return 0;
       if(P.iframeT>0){if(time-(P.dodgeT||-9)>0.4){P.dodgeT=time;feed('Dodged','');}return 0;}
@@ -1748,6 +1750,9 @@ function projImpact(p,hit){
   }else if(p.kind==='blast'){
     if(hit)Damage.apply(p.owner,hit,p.dmg,'blast',{knock:p.knock});
     burst(p.x,p.y,p.z,20,14,0.4,CYAN,1.2,0,2);ringFx(p.x,p.y,p.z,0.5,4,0.25,[.4,.85,1]);
+  }else if(p.kind==='bolt'){
+    if(hit)Damage.apply(p.owner,hit,p.dmg,'shock',{stun:0.8,knock:14});areaDamage(p.x,p.y,p.z,3.5,p.dmg*0.35,p.owner,{type:'shock',exclude:hit});
+    for(let i=0;i<6;i++){const a=rr(0,TAU);tracer(p.x,p.y,p.z,p.x+Math.cos(a)*rr(2,5),p.y+rr(-1,3),p.z+Math.sin(a)*rr(2,5),SPD_C,0.08,0.2);}burst(p.x,p.y,p.z,24,14,0.4,[SPD_C,[1,1,1]],1.2,0,2);SFX.tone('sawtooth',1600,120,0.2,0.08);
   }else if(p.kind==='ring'){
     if(hit)Damage.apply(p.owner,hit,p.dmg,'ring',{knock:p.knock});
     burst(p.x,p.y,p.z,p.small?6:18,p.small?6:14,0.35,[RING_C,[.8,1,.85]],1.1,0,2);if(!p.small)ringFx(p.x,p.y,p.z,0.5,3*(p.big||1),0.25,RING_C);
@@ -1786,7 +1791,7 @@ function computeAim(range){
   aim.t=best;aim.x=ox+dx*best;aim.y=oy+dy*best;aim.z=oz+dz*best;aim.actor=actor;aim.surface=surface;aim.nx=nx;aim.ny=ny;aim.nz=nz;aim.hitAny=best<range+t0-0.01;
   return aim;
 }
-const canAct=()=>state==='play'&&!paused&&!P.dead&&P.stun<=0;
+const canAct=()=>state==='play'&&!paused&&!P.dead&&P.stun<=0&&!(frozenT>0);
 function noEnergy(id){if(id)PS[id].flash=0.4;SFX.tone('square',220,150,0.1,0.06);hud.en.classList.add('warn');setTimeout(()=>hud.en.classList.remove('warn'),300);}
 function faceAim(){P.heroYaw=Math.atan2(camF.x,camF.z);castT=time;}
 function handPoint(){const s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw);return {x:P.pos.x+s*0.8+c*0.45,y:P.pos.y+1.95,z:P.pos.z+c*0.8-s*0.45};}
@@ -1960,7 +1965,7 @@ function updatePowers(dt){
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   P.heat=Math.max(0,P.heat-dt*0.35);
   if(P.stun>0)P.stun-=dt;
-  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);
+  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateSpeed(dt);remoteStreaks();
 }
 // ================================================================
 // Melee combat: lock-on, 4-hit chains, finishers, dash, wall slams
@@ -2033,7 +2038,7 @@ function punch(){
     P.vel.x=fx*s;P.vel.z=fz*s;if(air||P.flying)P.vel.y=fy*s;P.burstT=0.14;}}
   if(air){P.vel.y=Math.max(P.vel.y,fin?4:2.5);P.floatT=fin?0.2:0.45;}
   const AL=P.alien?ALIENS[P.alien.id]:null,am=AL?(AL.scale>2?3.5:1.6):1;
-  const dmg=CONFIG.punch.damage*strengthMul()*am*(fin?COMBAT.finMul:comboN===3?1.25:1);
+  const dmg=CONFIG.punch.damage*strengthMul()*am*speedPunchMul()*(fin?COMBAT.finMul:comboN===3?1.25:1);
   const hits=meleeTargets(fx,fy,fz,COMBAT.reach*(AL?Math.max(1,AL.scale*0.8):1));let hx=0,hy=0,hz=0;
   for(const a of hits){
     const c=center(a);hx=c.x;hy=c.y;hz=c.z;const dx=c.x-P.pos.x,dz=c.z-P.pos.z,l=Math.hypot(dx,dz)||1,ux=dx/l,uz=dz/l;
@@ -3036,6 +3041,107 @@ function drawRing(){
   if(P.construct)drawConstruct(P,P.construct.id,true);
 }
 // ================================================================
+// Speedster: speed dial, fast mode, phasing, lightning, slow time and time stop
+// ================================================================
+// Shift runs, F toggles fast mode (always running), C vibrates you through walls,
+// [ and ] (or the mouse wheel) turn the speed dial, or how slow time runs while Slow Time is on.
+// Punches hit harder the higher the dial. Time Stop freezes everyone for 3 seconds;
+// whatever you hit in that moment lands all at once when time starts again.
+const SPD_C=[1,.82,.25],SPD_C2=[1,.45,.15];
+const isSpeed=()=>hasTrav('superSpeed')&&!P.alien;
+const dialMax=()=>Math.round(3+9*mk('superSpeed')); // x3 at the start, x12 mastered
+P.dial=2;P.fastMode=false;P.phasing=false;P.slowOn=false;
+let timeStopT=0,frozenT=0,slowK=0.3,tsQueue=[],tsPath=[],tsBy=null,lastStreak=null;
+function speedMult(){return isSpeed()?Math.max(1.5,Math.min(P.dial,dialMax())):pstat('superSpeed','mult');}
+const speedPunchMul=()=>isSpeed()?1+0.3*(Math.min(P.dial,dialMax())-1):1;
+function turnDial(dir){
+  if(!isSpeed())return false;
+  if(P.slowOn){slowK=clamp(slowK-dir*0.06,0.06,0.7);feed('Slow time','World at '+Math.round(slowK*100)+'% speed');return true;}
+  const m=dialMax(),v=clamp((P.dial|0)+dir,1,m);if(v===P.dial&&dir>0){feed('Speed dial x'+v,'Master super speed to push it higher (max x'+m+')');return true;}
+  P.dial=v;feed('Speed dial x'+v,v>=m?'As fast as you can go for now':'');SFX.tone('square',300+v*80,300+v*90,0.06,0.05);return true;
+}
+function toggleFastMode(){if(!isSpeed())return;P.fastMode=!P.fastMode;feed(P.fastMode?'Fast mode on':'Fast mode off',P.fastMode?'You run at the speed dial without holding Shift':'');}
+function togglePhase(){
+  if(!isSpeed()||!canAct())return;
+  if(P.phasing){P.phaseOff=true;return;}
+  if(P.en<5){noEnergy();return;}
+  P.phasing=true;P.phaseOff=false;SFX.tone('sawtooth',120,900,0.3,0.06);feed('Phasing','Walls can\'t stop you · press C again to become solid');
+}
+function endPhase(force){
+  if(!P.phasing)return;const b=inBuilding(P.pos.x,P.pos.y+1,P.pos.z,0.3);
+  if(b&&!force){P.phaseOff=true;return;} // stay intangible until you are out of the wall
+  P.phasing=false;P.phaseOff=false;if(b){P.pos.y=b.y1+0.1;P.vel.set(0,0,0);}
+}
+// ---- moves ----
+Object.assign(POWER_FN,{
+  lightningThrow(){faceAim();const h=handPoint(),d=dirTo(h,aim.x,aim.y,aim.z),sp=160;
+    fireProj({kind:'bolt',owner:P,x:h.x,y:h.y,z:h.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg:pstat('lightningThrow','damage')*(1+0.12*(P.dial-1)),r:0.6,life:1.6});
+    SFX.tone('sawtooth',1800,200,0.2,0.1);for(let i=0;i<6;i++)tracer(h.x,h.y,h.z,h.x+rr(-1.5,1.5),h.y+rr(-1.5,1.5),h.z+rr(-1.5,1.5),SPD_C,0.05,0.12);},
+  phaseStrike(){const t=lockT&&lockT.alive?lockT:aim.actor&&aim.actor.kind!=='prop'&&aim.actor.kind!=='vehicle'?aim.actor:nearestFoe(aim.x,aim.y,aim.z,6);
+    if(!t||Math.hypot(t.pos.x-P.pos.x,t.pos.z-P.pos.z)>30){PS.phaseStrike.cd=0;P.en+=POWERS.phaseStrike.energy;feed('No one in reach','Phase Strike reaches 30 m · lock on with Z');return;}
+    const c=center(t),dx=c.x-P.pos.x,dz=c.z-P.pos.z,l=Math.hypot(dx,dz)||1,x0=P.pos.x,y0=P.pos.y,z0=P.pos.z;
+    if(l>3){P.pos.set(c.x-dx/l*1.6,Math.max(t.pos.y,groundY(c.x,c.z,c.y+1)),c.z-dz/l*1.6);streak(x0,y0+1.2,z0,P.pos.x,P.pos.y+1.2,P.pos.z);}
+    P.heroYaw=Math.atan2(dx,dz);P.punchT=time;P.punchKind='jab';P.punchArm=1;P.vibT=0.35;
+    later(0.18,()=>{if(!t.alive)return;const q=center(t);Damage.apply(P,t,pstat('phaseStrike','damage')*strengthMul(),'phase',{stun:2,kv:t.kind==='boss'?null:[dx/l*6,4,dz/l*6]});
+      burst(q.x,q.y,q.z,40,8,0.5,[[1,.2,.2],SPD_C],1.2,4,2);SFX.tone('sawtooth',80,40,0.3,0.15);addShake(0.3);});
+    SFX.tone('square',2000,2400,0.3,0.04);},
+});
+CHANNEL_FN.speedTornado=dt=>{
+  const R=pstat('speedTornado','radius'),dps=pstat('speedTornado','dps')*(1+0.1*(P.dial-1));P.heroYaw+=30*dt;P.spinT=0.2;castT=time;
+  for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||a.kind==='boss'||a===P.car)continue;const dx=P.pos.x-a.pos.x,dz=P.pos.z-a.pos.z,d=Math.hypot(dx,dz)||1;if(d>R||Math.abs(a.pos.y-P.pos.y)>R)continue;
+    if(a.kind==='remote'||a.net){if(time-(a.twT||-9)>0.4){a.twT=time;Damage.apply(P,a,dps*0.4,'wind',{kv:[-dz/d*18,16,dx/d*18]});}continue;}
+    if(a.kind==='human'){a.air=true;a.vel.set(dx/d*3-dz/d*16,Math.min(a.vel.y+36*dt,16),dz/d*3+dx/d*16);a.tumble=6;}
+    else if(a.kind==='vehicle'&&a.vtype!=='truck'&&d<R*0.7){if(a.state!=='thrown'){if(a.driver)ejectDriver(a);a.state='thrown';a.sx=rr(-3,3);a.sy=3;a.sz=rr(-3,3);a.thrower=P;a.throwDmg=30;}a.life=3;a.vel.set(dx/d*3-dz/d*14,12,dz/d*3+dx/d*14);}
+    else if(a.vel){a.vel.x+=-dz/d*20*dt;a.vel.z+=dx/d*20*dt;a.vel.y+=18*dt;}
+    Damage.apply(P,a,dps*dt,'wind');}
+  hitProps(P.pos.x,P.pos.y,P.pos.z,R*0.5,P,18);
+  for(let k=0;k<6;k++){const an=rr(0,TAU),h=rr(0,R*1.2),r=1+h*0.4;emit(P.pos.x+Math.cos(an)*r,P.pos.y+h,P.pos.z+Math.sin(an)*r,-Math.sin(an)*20,rr(3,8),Math.cos(an)*20,0.6,Math.random()<0.4?SPD_C:[.85,.85,.85],rr(1,2),0,0.5);}
+};
+TOGGLE_FN.slowTime=()=>{P.slowOn=!P.slowOn;SFX.tone('sine',P.slowOn?600:200,P.slowOn?150:700,0.5,0.1);
+  if(P.slowOn)feed('Slow time',MP.online()?'In a shared city you just get faster; the others keep their speed':'[ and ] set how slow the world runs');};
+POWER_FN.timeStop=()=>{startTimeStop(P,POWERS.timeStop.duration);MP.fx('ts',{d:POWERS.timeStop.duration});};
+function startTimeStop(by,d){
+  if(by===P){timeStopT=d;tsQueue=[];tsPath=[[P.pos.x,P.pos.y+1.2,P.pos.z]];feed('Time stopped','Everything you do lands when time starts again');}
+  else{frozenT=d;tsBy=by;if(by){by.tsPos=by.pos.clone();by.tsUntil=time+d;}P.charging=false;mouseL=false;if(P.cp)P.cp=null;}
+  flashWhite=0.4;SFX.tone('sine',1200,80,0.8,0.15);SFX.boom(0.5,0.3);addShake(0.2);
+}
+// your hits during a time stop wait here until time starts again
+function tsIntercept(src,t,amount,type,opt){
+  if(!(timeStopT>0)||src!==P||t===P||opt._ts)return false;
+  tsQueue.push([t,amount,type,Object.assign({},opt,{_ts:true})]);const c=center(t);burst(c.x,c.y,c.z,6,3,0.3,[SPD_C],0.8,0,2);return true;
+}
+function endTimeStop(){
+  const q=tsQueue;tsQueue=[];
+  for(let i=1;i<tsPath.length;i++){const a=tsPath[i-1],b=tsPath[i];streak(a[0],a[1],a[2],b[0],b[1],b[2]);}
+  q.forEach((h,i)=>later(i*0.025,()=>{const [t,amt,type,opt]=h;if(t.alive===false&&t.kind!=='remote')return;Damage.apply(P,t,amt,type,opt);const c=center(t);burst(c.x,c.y,c.z,20,10,0.4,[SPD_C,[1,1,1]],1.2,0,2);}));
+  if(q.length){SFX.boom(0.8,0.8);addShake(0.5);feed(q.length+' hits landed at once','');}flashWhite=0.3;
+}
+// the world clock: 0 while time is stopped, slowed by Slow Time (single player) and Time Dilation
+function worldTimeK(){if(timeStopT>0||frozenT>0)return 0;if(MP.online())return 1;if(P.slowOn&&isSpeed())return slowK;if(timeDil>0)return 0.25;return 1;}
+function updateTimeStop(dt){
+  if(timeStopT>0){timeStopT-=dt;const L=tsPath[tsPath.length-1];if(Math.hypot(P.pos.x-L[0],P.pos.z-L[2])>2&&tsPath.length<400)tsPath.push([P.pos.x,P.pos.y+1.2,P.pos.z]);if(timeStopT<=0)endTimeStop();}
+  if(frozenT>0){frozenT-=dt;if(frozenT<=0&&tsBy){const r=tsBy;if(r.tsPos)streak(r.tsPos.x,r.tsPos.y+1.2,r.tsPos.z,r.pos.x,r.pos.y+1.2,r.pos.z);tsBy=null;}}
+  canvas.classList.toggle('tstop',timeStopT>0||frozenT>0);canvas.classList.toggle('slowmo',!(timeStopT>0||frozenT>0)&&((P.slowOn&&isSpeed())||timeDil>0));
+}
+// lightning streak between two points
+function streak(ax,ay,az,bx,by,bz){const n=Math.max(2,Math.min(12,Math.round(Math.hypot(bx-ax,by-ay,bz-az)/4)));let px=ax,py=ay,pz=az;
+  for(let i=1;i<=n;i++){const k=i/n,j=i<n?1.2:0,qx=lerp(ax,bx,k)+rr(-j,j),qy=lerp(ay,by,k)+rr(-j,j),qz=lerp(az,bz,k)+rr(-j,j);
+    tracer(px,py,pz,qx,qy,qz,i%2?SPD_C:SPD_C2,0.12,0.5);tracer(px,py,pz,qx,qy,qz,[1,1,1],0.04,0.4);px=qx;py=qy;pz=qz;}}
+function updateSpeed(dt){
+  if(!isSpeed()){P.phasing=false;P.slowOn=false;P.fastMode=false;return;}
+  if(P.dial>dialMax())P.dial=dialMax();
+  if(P.phasing){P.en=Math.max(0,P.en-6*dt);P.lastSpend=time;if(P.en<=0)endPhase(true);else if(P.phaseOff)endPhase(false);}
+  if(P.slowOn){P.en=Math.max(0,P.en-pstat('slowTime','drain')*dt);P.lastSpend=time;if(P.en<=0){P.slowOn=false;feed('Out of energy','Time runs normally again');}if(MP.online())hasteT=Math.max(hasteT,0.15);}
+  if(P.vibT>0)P.vibT-=dt;
+  // lightning trails behind you when you really move
+  const hs=Math.hypot(P.vel.x,P.vel.z),c=center(P);
+  if(hs>24){if(lastStreak&&Math.random()<0.7){const L=lastStreak;tracer(L[0],L[1],L[2],c.x+rr(-.4,.4),c.y+rr(-.6,.4),c.z+rr(-.4,.4),Math.random()<0.5?SPD_C:SPD_C2,0.07,0.35);}lastStreak=[c.x,c.y,c.z];
+    if(Math.random()<0.3)tracer(c.x,c.y,c.z,c.x+rr(-1.2,1.2),c.y+rr(-1,1),c.z+rr(-1.2,1.2),[1,1,1],0.04,0.1);}else lastStreak=null;
+  if(P.speeding)addMastery('superSpeed',hs*dt*0.004);
+}
+function remoteStreaks(){for(const r of MP.peers.values()){if(!(r.flags&FLAG.speed)){r.lastS=null;continue;}const c={x:r.pos.x,y:r.pos.y+1.2,z:r.pos.z};
+  if(r.lastS&&Math.random()<0.7)tracer(r.lastS.x,r.lastS.y,r.lastS.z,c.x,c.y,c.z,SPD_C,0.07,0.35);r.lastS=c;}}
+// ================================================================
 // NPCs: people, drones, vehicles, rival supers, shops
 // ================================================================
 const humans=[],drones=[],vehicles=[],rivals=[],props=[],crimes=[],gangs=[];
@@ -3810,6 +3916,7 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
     else if(d.k==='s'){const R=clamp(n(d.r),2,60);ringFx(n(d.x),n(d.y),n(d.z),1,R,0.5,[.45,.85,1]);SFX.boom(0.6*SFX.vol(n(d.x),n(d.y),n(d.z)),1);}
     else if(d.k==='gw'){wells.push({x:n(d.x),y:n(d.y),z:n(d.z),t:0,dur:4,R:24,dmg:0,visual:true});}
     else if(d.k==='hold'){if(d.to===this.myPeer&&!P.dead)P.heldBy={x:n(d.x),y:n(d.y),z:n(d.z),t:time,by:r};}
+    else if(d.k==='ts'){startTimeStop(r,clamp(n(d.d),0,5));}
     else if(d.k==='rg'){if(d.g==='o'){ringFx(r.pos.x,r.pos.y+1.5,r.pos.z,1,20,0.7,RING_C);burst(r.pos.x,r.pos.y+1.5,r.pos.z,80,20,1,[RING_C,[1,1,1]],1.6,0,2);}else onRingFx(d,n);}
     else if(d.k==='t'){ringFx(r.pos.x,r.pos.y+1.5,r.pos.z,1,8,0.6,BAND_COL);burst(r.pos.x,r.pos.y+1.5,r.pos.z,50,14,0.8,[BAND_COL,[1,1,1]],1.4,0,2);}
   },
@@ -4555,6 +4662,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyC'&&hasWeb()&&!P.grounded&&!P.flying&&spiderAirTrick())return;
   if(e.code in SLOT_CODES){abilityDown(SLOT_CODES[e.code]);guideDone('ability');return;}
   if(e.code==='KeyX'){if(P.construct&&constructX())return;dashPress();return;}
+  if(isSpeed()){if(e.code==='KeyF'){toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
   if(e.code==='KeyF')toggleFlight();else if(e.code==='Space')pressJump();
 });
 addEventListener('keyup',e=>{keys[e.code]=false;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();});
@@ -4569,6 +4677,7 @@ canvas.addEventListener('mousedown',e=>{
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('wheel',e=>{if(state==='play'&&!paused&&!dialOpen&&isSpeed()&&Math.abs(e.deltaY)>1)turnDial(e.deltaY<0?1:-1);},{passive:true});
 addEventListener('mousemove',e=>{if(state!=='play'||paused||touchOn())return;if(dialOpen){if(locked)dialMove(e.movementX,e.movementY);return;}if(locked||mmbLook||rmbLook)look(e.movementX,e.movementY);});
 function requestLock(){if(touchOn())return;try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
 function lockFail(){lockFailed=true;if(!lockHint){lockHint=true;toast('Mouse lock not available here','Hold the middle mouse button and drag to look','cyan');}}
@@ -4653,7 +4762,7 @@ function buildTouchButtons(){
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
-    for(const id of save.character.movement){if(id==='flight')B('FLY','fly');else if(id==='superSpeed')B('SPEED','speed');else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
+    for(const id of save.character.movement){if(id==='flight')B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
   B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
 }
@@ -4675,6 +4784,10 @@ function touchAct(a,down){
   else if(a==='web'){if(down)webPress();else webRelease();}
   else if(a==='use'){if(down)interact();}
   else if(a==='band'){if(down)bandPress();}
+  else if(a==='fast'){if(down)toggleFastMode();}
+  else if(a==='phase'){if(down)togglePhase();}
+  else if(a==='dialup'){if(down)turnDial(1);}
+  else if(a==='dialdn'){if(down)turnDial(-1);}
   else if(a==='lock'){if(down)lockToggle();}
   else if(a==='dash'){if(down)dashPress();}
 }
@@ -4765,7 +4878,7 @@ function updatePlayer(dt){
   spiderTick(dt);
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
-  const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=P.alien&&P.alien.phase>0;
+  const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=(P.alien&&P.alien.phase>0)||P.phasing;
   P.speeding=false;
   if(P.wallRun)wallRunStep(dt,inF,inR);
   else if(P.wall){
@@ -4791,8 +4904,8 @@ function updatePlayer(dt){
     }else{
       let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
       const am=AL?AL.speed:P.construct&&!P.flying?conSpeedMul():1;
-      const canSpeed=hasPower('superSpeed')&&shift&&P.grounded&&l>0.1&&P.en>1;P.speeding=canSpeed;
-      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*pstat('superSpeed','mult'):shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul;
+      const canSpeed=hasPower('superSpeed')&&(shift||P.fastMode)&&P.grounded&&l>0.1&&P.en>1;P.speeding=canSpeed;
+      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*speedMult():shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul;
       const hsp=Math.hypot(P.vel.x,P.vel.z);
       if(!P.grounded&&hsp>spd+2){ // keep swing / leap momentum: steer it instead of braking
         if(l>0.1){const turn=damp(1.8,dt),nx=P.vel.x+(tx*hsp-P.vel.x)*turn,nz=P.vel.z+(tz*hsp-P.vel.z)*turn,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hsp;P.vel.z=nz/nl*hsp;}
@@ -5218,8 +5331,8 @@ function drawRemote(r){
 function buildDrawList(){
   dlN=0;
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
-    const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):0;
-    if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0;P.pos.y+=ro;drawSuper(P,m,true);P.pos.y-=ro;}
+    const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.phasing?0.45:0;
+    if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0,jx=P.phasing||P.vibT>0?rr(-.07,.07):0,jz=jx?rr(-.07,.07):0;P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;}
     if(P.cp&&P.hand){const h=P.hand,k=Math.min(1,P.cp.t/1.2),s=0.3+k*0.6+Math.sin(time*30)*0.05;queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s,s,s),[1,.85,.5,0.9],F_ADD);queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s*2.5,s*2.5,s*2.5),[1,.6,.3,0.25*k],F_ADD);}
     GHOST=0;
     if(P.shieldOn){const s=1.9+Math.sin(time*6)*0.05;queue(MESH.glowSphere,at(P.pos.x,P.pos.y+1.35,P.pos.z,0,time,0,s,s*1.1,s),[.3,.75,1,0.16+0.2*clamp(P.shield/pstat('energyShield','absorb'),0,1)],F_ADD);}
@@ -5230,7 +5343,7 @@ function buildDrawList(){
     const wp=P.web||P.zip;if(wp&&P.hand){const h=P.hand;queue(MESH.box,M4.beam(tmpM(),h[12],h[13],h[14],wp.x,wp.y,wp.z,0.06),[.95,.95,1,1],0);}
     if(P.tk){const a=P.tk.a,c=center(a),s=(a.radius||1)*1.6;queue(MESH.glowSphere,at(c.x,c.y,c.z,0,0,0,s,s,s),[.6,.35,1,0.22],F_ADD);}
   }
-  for(const r of MP.peers.values())drawRemote(r);
+  for(const r of MP.peers.values()){const fr=r.tsUntil>time&&r.tsPos,sv=fr?r.pos.clone():null;if(fr)r.pos.copy(r.tsPos);GHOST=r.ex&&r.ex[1]?0.4:0;drawRemote(r);GHOST=0;if(fr)r.pos.copy(sv);}
   for(const r of rivals){if(inView(r.pos.x,r.pos.z,500)<0)continue;r.firing=time-(r.castT||-9)<0.3;if(r.rag)drawRagdoll(r,ragColorsSuper(r.look));else drawSuper(r,r.look,false);}
   for(const h of humans)drawHuman(h);
   for(const v of vehicles)drawVehicle(v,v.mesh,v.pos.x,v.pos.y,v.pos.z,v.rx,v.yaw,v.rz,v.tint,v.flash,v.siren,v.hw,v.hl,v.state==='wreck');
@@ -5264,6 +5377,7 @@ function buildDrawList(){
     if(p.rock){queue(MESH.box,at(p.x,p.y,p.z,time*5,time*3,0,1.1,0.9,1.0),[.25,.18,.14,1],F_SH);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.3,1.3,1.3),[1,.4,.1,0.4],F_ADD);}
     else if(p.kind==='fire'){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.7,0.7,0.7),[1,.6,.2,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.8,1.8,1.8),[1,.35,.05,0.4],F_ADD);}
     else if(p.kind==='blast'){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.5,0.5,0.5),[.5,.9,1,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.4,1.4,1.4),[.2,.6,1,0.4],F_ADD);}
+    else if(p.kind==='bolt'){let px=p.x,py=p.y,pz=p.z;for(let i=1;i<=3;i++){const qx=p.x-p.vx*0.012*i+rr(-.4,.4),qy=p.y-p.vy*0.012*i+rr(-.4,.4),qz=p.z-p.vz*0.012*i+rr(-.4,.4);queue(MESH.glowBox,M4.beam(tmpM(),px,py,pz,qx,qy,qz,0.18),[1,.9,.5,1],F_ADD);px=qx;py=qy;pz=qz;}queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.1,1.1,1.1),[1,.8,.3,0.5],F_ADD);}
     else if(p.kind==='ring'){const s=p.small?0.28:0.5*(p.big||1);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.02,p.y-p.vy*0.02,p.z-p.vz*0.02,s*0.7),[RING_C[0],RING_C[1],RING_C[2],1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,s*2.4,s*2.4,s*2.4),[RING_C[0],RING_C[1],RING_C[2],0.35],F_ADD);}
     else if(p.kind==='web'){queue(MESH.sphere,at(p.x,p.y,p.z,time*6,time*4,0,0.55,0.55,0.55),[.95,.95,1,1],0);}
     else if(p.kind==='rocket'){queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.03,p.y-p.vy*0.03,p.z-p.vz*0.03,0.5),[1,.6,.3,1],0);}
@@ -5359,7 +5473,7 @@ function updateHud(dt){
   hud.shbar.hidden=!P.shieldOn;if(P.shieldOn)setW(hud.shb,'sh',P.shield/pstat('energyShield','absorb'));
   const mins=Math.floor(tod*24*60);setText(hud.clock,'clock',String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0'));
   const sp=P.vel.len();
-  setText(hud.mode,'mode',P.dead?'Down':P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.speeding?'Super speed':P.charging?'Charging':P.grounded?'On foot':'Airborne');
+  setText(hud.mode,'mode',P.dead?'Down':P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.phasing?'Phasing':timeStopT>0?'Time stopped':frozenT>0?'Frozen in time':P.speeding?'Super speed x'+Math.min(P.dial,dialMax()):isSpeed()?'On foot · dial x'+Math.min(P.dial,dialMax())+(P.fastMode?' · fast mode':''):P.charging?'Charging':P.grounded?'On foot':'Airborne');
   for(const s of slotEls){
     if(s.bandTimer){setW(s.bandTimer,'bt',P.alien?P.alien.t/P.alien.max:0);s.s.classList.toggle('bad',!!P.alien&&P.alien.t<5);continue;}
     if(s.alien!==undefined){if(!P.alien)continue;const ab=ALIENS[P.alien.id].abilities[s.alien],f=ab.cd?P.alien.cds[s.alien]/ab.cd:0,v=Math.round(f*100);
@@ -5419,8 +5533,8 @@ function frame(now){
   const live=!paused||(state==='play'&&MP.online()); // in a room the world never stops
   if(live){
     time+=dt;timeFast=!!keys.KeyT&&state==='play';updateEnv(dt);
-    if(state==='play'){if(mouseL)punch();updatePlayer(dt);}
-    const wdt=dt*(timeDil>0&&!MP.online()?0.25:1);canvas.classList.toggle('slowmo',timeDil>0);
+    if(state==='play'&&!(frozenT>0)){if(mouseL)punch();updatePlayer(dt);}
+    updateTimeStop(dt);const wdt=dt*worldTimeK();
     updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);
     if(state==='play'){saveT+=dt;if(saveT>CONFIG.autosave){saveT=0;persist();syncPlayerDoc();}}
   }
@@ -5441,8 +5555,8 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
-  tlights,lightFor,P2P,WS,PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,summonConstruct,dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
-  sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateWorld(dt);separateHumans();updateRemotes(dt);updateProjs(dt);updateOrbs(dt);updateFx(dt);updateRagdolls(dt);updateBuildings(dt);FX.update(dt);SMOKE.update(dt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
+  tlights,lightFor,P2P,WS,PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,summonConstruct,dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
+  sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>
 </body>

@@ -35,6 +35,7 @@ function hitMotion(t,src,opt){
 const Damage={
   apply(src,t,amount,type='hit',opt={}){
     if(!t||!(amount>0))return 0;
+    if(tsIntercept(src,t,amount,type,opt))return amount;
     if(t===P){
       if(P.dead||state!=='play')return 0;
       if(P.iframeT>0){if(time-(P.dodgeT||-9)>0.4){P.dodgeT=time;feed('Dodged','');}return 0;}
@@ -302,6 +303,9 @@ function projImpact(p,hit){
   }else if(p.kind==='blast'){
     if(hit)Damage.apply(p.owner,hit,p.dmg,'blast',{knock:p.knock});
     burst(p.x,p.y,p.z,20,14,0.4,CYAN,1.2,0,2);ringFx(p.x,p.y,p.z,0.5,4,0.25,[.4,.85,1]);
+  }else if(p.kind==='bolt'){
+    if(hit)Damage.apply(p.owner,hit,p.dmg,'shock',{stun:0.8,knock:14});areaDamage(p.x,p.y,p.z,3.5,p.dmg*0.35,p.owner,{type:'shock',exclude:hit});
+    for(let i=0;i<6;i++){const a=rr(0,TAU);tracer(p.x,p.y,p.z,p.x+Math.cos(a)*rr(2,5),p.y+rr(-1,3),p.z+Math.sin(a)*rr(2,5),SPD_C,0.08,0.2);}burst(p.x,p.y,p.z,24,14,0.4,[SPD_C,[1,1,1]],1.2,0,2);SFX.tone('sawtooth',1600,120,0.2,0.08);
   }else if(p.kind==='ring'){
     if(hit)Damage.apply(p.owner,hit,p.dmg,'ring',{knock:p.knock});
     burst(p.x,p.y,p.z,p.small?6:18,p.small?6:14,0.35,[RING_C,[.8,1,.85]],1.1,0,2);if(!p.small)ringFx(p.x,p.y,p.z,0.5,3*(p.big||1),0.25,RING_C);

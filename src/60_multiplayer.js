@@ -86,6 +86,7 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
     else if(d.k==='s'){const R=clamp(n(d.r),2,60);ringFx(n(d.x),n(d.y),n(d.z),1,R,0.5,[.45,.85,1]);SFX.boom(0.6*SFX.vol(n(d.x),n(d.y),n(d.z)),1);}
     else if(d.k==='gw'){wells.push({x:n(d.x),y:n(d.y),z:n(d.z),t:0,dur:4,R:24,dmg:0,visual:true});}
     else if(d.k==='hold'){if(d.to===this.myPeer&&!P.dead)P.heldBy={x:n(d.x),y:n(d.y),z:n(d.z),t:time,by:r};}
+    else if(d.k==='ts'){startTimeStop(r,clamp(n(d.d),0,5));}
     else if(d.k==='rg'){if(d.g==='o'){ringFx(r.pos.x,r.pos.y+1.5,r.pos.z,1,20,0.7,RING_C);burst(r.pos.x,r.pos.y+1.5,r.pos.z,80,20,1,[RING_C,[1,1,1]],1.6,0,2);}else onRingFx(d,n);}
     else if(d.k==='t'){ringFx(r.pos.x,r.pos.y+1.5,r.pos.z,1,8,0.6,BAND_COL);burst(r.pos.x,r.pos.y+1.5,r.pos.z,50,14,0.8,[BAND_COL,[1,1,1]],1.4,0,2);}
   },
