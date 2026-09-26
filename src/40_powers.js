@@ -37,8 +37,9 @@ function abilityDown(slot){
   if(c.type==='hold'){if(id==='telekinesis')tkGrab();return;}
   if(c.type==='toggle'){togglePower(id);return;}
   if(s.cd>0){s.flash=0.3;return;}
-  if(!spend(c.energy)){noEnergy(id);return;}
-  s.cd=pstat(id,'cooldown');POWER_FN[id]();
+  if(c.ring!=null){if(!ringSpend(c.ring*(id==='blackHole'?1:1))){noEnergy(id);return;}}else if(!spend(c.energy||0)){noEnergy(id);return;}
+  if(!POWER_FN[id])return;
+  s.cd=pstat(id,'cooldown')||0;POWER_FN[id]();
 }
 function abilityUp(slot){
   if(P.alien){alienAbilityUp(slot);return;}
@@ -48,7 +49,8 @@ function abilityUp(slot){
   if(id==='telekinesis')tkThrow();
 }
 function togglePower(id){
-  if(id==='metalSkin'){P.metal=!P.metal;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1,4,0.3,[.8,.85,.9]);SFX.tone('sawtooth',P.metal?300:500,P.metal?120:900,0.3,0.1);return;}
+  if(TOGGLE_FN[id]){TOGGLE_FN[id]();return;}
+  if(id==='metalSkin'||id==='metalForms'){P.metal=!P.metal;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1,4,0.3,[.8,.85,.9]);SFX.tone('sawtooth',P.metal?300:500,P.metal?120:900,0.3,0.1);return;}
   if(id==='energyShield'){
     const s=PS.energyShield;
     if(P.shieldOn){P.shieldOn=false;P.shield=0;s.cd=3;return;}
@@ -57,9 +59,10 @@ function togglePower(id){
     P.shieldOn=true;P.shield=pstat('energyShield','absorb');ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3,0.3,[.4,.85,1]);SFX.tone('sine',400,900,0.3,0.12);
   }
 }
+const flySpeed=()=>hasTrav('powerRing')?pstat('powerRing','speed'):pstat('flight','speed');
 function toggleFlight(){
   if(!hasPower('flight')||!canAct()||P.car)return;
-  if(P.alien&&ALIENS[P.alien.id].flies)return;
+  if(P.alien)return; // alien forms fly (or not) on their own
   if(!P.flying&&P.en<5){noEnergy();return;}
   P.flying=!P.flying;P.charging=false;P.web=null;P.wall=null;
   if(P.flying){if(P.grounded)P.vel.y=22;P.grounded=false;SFX.whoosh();burst(P.pos.x,P.pos.y+0.3,P.pos.z,24,14,0.7,DUST,1.6,-2,2);}
@@ -74,6 +77,9 @@ function bolt(x,y,z,remote){
   burst(x,y,z,50,30,0.6,CYAN,1.4,6,1.5);ringFx(x,y+0.2,z,1,12,0.4,[.7,.85,1]);flashWhite=0.55;
   SFX.boom(0.9,1.6);SFX.tone('sawtooth',1800,80,0.4,0.15);addShake(0.4);scare(x,z,40);
 }
+const TOGGLE_FN={},CHANNEL_FN={};
+// ring charge: the Ring Bearer spends this instead of energy, and it only refills with the oath
+function ringSpend(n){if(!hasTrav('powerRing'))return spend(n);if(save.ring<n)return false;save.ring-=n;return true;}
 const POWER_FN={
   fireball(){faceAim();const h=handPoint(),d=dirTo(h,aim.x,aim.y,aim.z),sp=POWERS.fireball.speed;
     fireProj({kind:'fire',owner:P,x:h.x,y:h.y,z:h.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg:pstat('fireball','damage'),radius:pstat('fireball','radius'),
@@ -176,18 +182,18 @@ function updatePowers(dt){
     const c=POWERS[id],s=PS[id];if(c.type!=='channel'||!s.holding)continue;
     const cost=c.energyPerSec*dt;if(P.en<cost){s.holding=false;noEnergy(id);continue;}
     P.en-=cost;P.lastSpend=time;
-    if(id==='laserVision'){laserTick(dt);lasering=true;}else if(id==='repulsors')repulsorTick(dt);else iceTick(dt);
+    if(id==='laserVision'){laserTick(dt);lasering=true;}else if(id==='repulsors')repulsorTick(dt);else if(CHANNEL_FN[id])CHANNEL_FN[id](dt);else iceTick(dt);
   }
   if(ice){iceVisuals();if(!PS.iceCloud.holding){ice.t-=dt;if(ice.t<=0)ice=null;}}
   SFX.setLaser(lasering);
   if(P.tk)tkTick(dt);
   const drainT=(n)=>{P.en=Math.max(0,P.en-n*dt);if(CONFIG.energy.togglesBlockRegen)P.lastSpend=time;return P.en>0;};
-  if(P.flying&&!drainT(pstat('flight','drain'))){P.flying=false;feed('Out of energy','You stopped flying');}
+  if(P.flying&&!P.alien&&!drainT(pstat('flight','drain'))){P.flying=false;feed('Out of energy','You stopped flying');}
   if(P.metal&&!drainT(POWERS.metalSkin.drain)){P.metal=false;feed('Out of energy','Metal Skin wore off');}
   if(P.speeding&&!drainT(pstat('superSpeed','drain')))P.speeding=false;
   if(time-P.lastSpend>CONFIG.energy.delay)P.en=Math.min(maxEn(),P.en+enRegen()*dt);
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   P.heat=Math.max(0,P.heat-dt*0.35);
   if(P.stun>0)P.stun-=dt;
-  updateHeroAbilities(dt);
+  updateHeroAbilities(dt);updateWebbed(dt);
 }

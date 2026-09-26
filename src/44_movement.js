@@ -9,7 +9,7 @@ const MOVE={webRange:[90,170],chainAngle:0.55,releaseBoost:1.12,swingJump:16,zip
   runUp:20,runUpFast:30,runSide:24,runTime:1.5,sideTime:1.8,leapUp:21,leapOut:17};
 let webHeld=false;
 const hasWeb=()=>hasPower('webSwing')&&!P.alien;
-const webRange=()=>{const l=powerLevel('webSwing');return MOVE.webRange[0]+(MOVE.webRange[1]-MOVE.webRange[0])*(l-1)/9;};
+const webRange=()=>pstat('webSwing','range');
 // find a building point above and ahead to swing from (anchor assist)
 function findAnchor(R){
   let fx=camF.x,fz=camF.z;const hs=Math.hypot(P.vel.x,P.vel.z);if(hs>12&&!keys.KeyS){fx=fx*0.4+P.vel.x/hs*0.6;fz=fz*0.4+P.vel.z/hs*0.6;}
@@ -66,7 +66,7 @@ function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
   const gy=groundY(P.pos.x,P.pos.z,P.pos.y+1),dy=P.pos.y+1.6-W.y;
   if(dy<-W.L*0.6&&P.pos.y>gy+1.5){const hs=Math.hypot(P.vel.x,P.vel.z)||1;P.vel.x+=P.vel.x/hs*8*dt;P.vel.z+=P.vel.z/hs*8*dt;}
   if(P.pos.y<gy+3)W.L=Math.max(8,Math.min(W.L,W.y-gy-3.5)); // never drag along the street
-  P.vel.mul(1-0.03*dt);{const v=P.vel.len();if(v>70)P.vel.mul(70/v);}
+  P.vel.mul(1-0.03*dt);{const v=P.vel.len(),cap=70+35*webMk();if(v>cap)P.vel.mul(cap/v);}
   // chain: past the anchor on the upswing, let go and grab the next one
   const ax=P.pos.x-W.x,az=P.pos.z-W.z,hs=Math.hypot(P.vel.x,P.vel.z);
   if(webHeld&&time-W.t>0.5&&hs>8&&(ax*P.vel.x+az*P.vel.z)>0&&P.vel.y>-2&&(P.pos.y+1.6-W.y)>-W.L*MOVE.chainAngle){

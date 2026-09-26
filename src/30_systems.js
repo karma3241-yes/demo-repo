@@ -38,6 +38,7 @@ const Damage={
     if(t===P){
       if(P.dead||state!=='play')return 0;
       if(P.iframeT>0){if(time-(P.dodgeT||-9)>0.4){P.dodgeT=time;feed('Dodged','');}return 0;}
+      if(spiderSense(src,type))return 0;
       if(src&&src.kind!=='remote'&&type!=='pvp')amount*=CONFIG.health.npcTaken;
       if(P.shield>0){const a=Math.min(P.shield,amount);P.shield-=a;amount-=a;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1.5,2.6,0.25,[.4,.85,1]);if(P.shield<=0)breakShield();}
       if(P.metal)amount*=1-pstat('metalSkin','dr');
@@ -266,6 +267,7 @@ function updateProjs(dt){
     p.vy-=p.grav*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
     if(p.kind==='fire'){emit(p.x,p.y,p.z,rr(-2,2),rr(-2,2),rr(-2,2),0.35,FIRE[(Math.random()*4)|0],1.6,-3,1);if(Math.random()<0.3)smoke(p.x,p.y,p.z,1,0.2,1.5,0.8,0.2);}
     else if(p.kind==='blast'&&Math.random()<0.7)emit(p.x,p.y,p.z,0,0,0,0.25,CYAN[(Math.random()*3)|0],1.2,0,0);
+    else if(p.kind==='web'&&Math.random()<0.6)emit(p.x,p.y,p.z,0,0,0,0.3,[.95,.95,1],0.8,0,0);
     else if(p.kind==='rocket'){emit(p.x,p.y,p.z,rr(-1,1),rr(-1,1),rr(-1,1),0.3,FIRE[1],1.2,0,1);if(Math.random()<0.5)smoke(p.x,p.y,p.z,1,0.2,1.6,1.0,0.35);}
     let hit=null,done=p.life<=0;
     if(!done){
@@ -297,6 +299,8 @@ function projImpact(p,hit){
   }else if(p.kind==='blast'){
     if(hit)Damage.apply(p.owner,hit,p.dmg,'blast',{knock:p.knock});
     burst(p.x,p.y,p.z,20,14,0.4,CYAN,1.2,0,2);ringFx(p.x,p.y,p.z,0.5,4,0.25,[.4,.85,1]);
+  }else if(p.kind==='web'){
+    if(p.webBomb&&p.owner===P)webBurst(p.x,p.y,p.z);else burst(p.x,p.y,p.z,20,8,0.5,[[.95,.95,1]],1,4,2);
   }else if(p.kind==='rocket'){
     explode(p.x,p.y,p.z,0.6);areaDamage(p.x,p.y,p.z,4.5,p.dmg,p.owner,{knock:10});
     if(onSurface)addScorch(p.x,p.y,p.z,2,p.nx,p.ny,p.nz);

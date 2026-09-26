@@ -24,7 +24,7 @@ function updateHud(dt){
     const st=PS[s.id],c=POWERS[s.id];
     if(s.id==='morphBand'){s.s.classList.toggle('on',!!P.alien||dialOpen);s.s.classList.toggle('bad',st.flash>0);const f=band.cd>0?band.cd/pstat('morphBand','recharge'):0,v=Math.round(clamp(f,0,1)*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}continue;}
-    const active=st.holding||(s.id==='metalSkin'&&P.metal)||(s.id==='energyShield'&&P.shieldOn)||(s.id==='telekinesis'&&!!P.tk)||(s.id==='flight'&&P.flying)||(s.id==='superSpeed'&&P.speeding)||(s.id==='webSwing'&&!!P.web)||(s.id==='wallClimb'&&!!P.wall);
+    const active=st.holding||((s.id==='metalSkin'||s.id==='metalForms')&&P.metal)||(s.id==='energyShield'&&P.shieldOn)||(s.id==='telekinesis'&&!!P.tk)||(s.id==='flight'&&P.flying)||(s.id==='superSpeed'&&P.speeding)||(s.id==='webSwing'&&!!P.web)||(s.id==='wallClimb'&&!!P.wall);
     s.s.classList.toggle('on',active);s.s.classList.toggle('bad',st.flash>0);
     if(s.cd){const f=c.cooldown?st.cd/pstat(s.id,'cooldown'):0;const v=Math.round(f*100);if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}}
     const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}}
@@ -57,6 +57,7 @@ function startPlay(first){
   helpTimer=18;P.hp=maxHp();P.en=maxEn();
   toast(first?'Welcome to Nova Bay':'Welcome back, '+save.character.name,first?'Crimes show up on your minimap. Stop them, or join in.':'LV '+save.level+' · '+repTier(save.reputation).name,'gold');
   syncPlayerDoc(true);renderGuide();
+  if(save.migrated)later(3,()=>toast('Powers updated','You now pick one traversal and one body mod. Your hero was converted; Change powers in the pause menu is free right now.','gold'));
 }
 $('start').addEventListener('click',()=>{SFX.init();if(!save.character)openCreator();else startPlay(false);});
 $('m-lb').addEventListener('click',()=>openSheet('lb'));$('m-mp').addEventListener('click',()=>openSheet('mp'));$('p-mp').addEventListener('click',()=>openSheet('mp'));$('m-set').addEventListener('click',()=>openSheet('set'));
@@ -96,5 +97,5 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
-  tlights,lightFor,P2P,WS,PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,
+  tlights,lightFor,P2P,WS,PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateWorld(dt);separateHumans();updateRemotes(dt);updateProjs(dt);updateOrbs(dt);updateFx(dt);updateRagdolls(dt);updateBuildings(dt);FX.update(dt);SMOKE.update(dt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};

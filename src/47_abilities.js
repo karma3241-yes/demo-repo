@@ -18,7 +18,7 @@ Object.assign(POWER_FN,{
     const tgt=first?center(first):{x:aim.x,y:aim.y,z:aim.z},d=dirTo(h,tgt.x,tgt.y,tgt.z);
     thrown.push({kind:'disc',x:h.x,y:h.y,z:h.z,vx:d[0]*85,vy:d[1]*85,vz:d[2]*85,t:0,back:false,max:1.2,hit:new Set(),target:first||null,left:Math.round(pstat('ricochetShield','bounces')),spin:0});SFX.whoosh();},
   coreBeam(){bigBeam={kind:'core',t:0,wind:0.45,dur:1.5,w:1.4,dps:pstat('coreBeam','dps')};SFX.tone('sawtooth',200,900,0.45,0.1);},
-  bladeClaws(){
+  bladeLeap(){
     const R=pstat('bladeClaws','range');let tx=P.pos.x+camF.x*R,tz=P.pos.z+camF.z*R;
     if(lockT&&lockT.alive){const c=center(lockT);tx=c.x;tz=c.z;}
     const dx=tx-P.pos.x,dz=tz-P.pos.z,l=Math.hypot(dx,dz)||1,ux=dx/l,uz=dz/l,dist=Math.min(l+2,R);

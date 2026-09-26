@@ -5,7 +5,7 @@ const keys={};let mouseL=false,mmbLook=false,rmbLook=false,locked=false,lockFail
 const touchIn={x:0,y:0};let lookT=-9;
 const sensK=()=>0.0023*save.settings.sens;
 function look(dx,dy,k=1){P.yaw-=dx*sensK()*k;P.pitch=clamp(P.pitch+(save.settings.invertY?1:-1)*dy*sensK()*k,-1.3,1.25);lookT=time;}
-const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2};
+const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2,Digit4:3,Digit5:4};
 const DIAL_CODES={Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,Digit6:5};
 addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
@@ -25,6 +25,8 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyV'){bandPress();return;}
   if(P.car)return;
+  if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&P.web){swingBoost();return;}
+  if(e.code==='KeyC'&&hasWeb()&&!P.grounded&&!P.flying&&spiderAirTrick())return;
   if(e.code in SLOT_CODES){abilityDown(SLOT_CODES[e.code]);guideDone('ability');return;}
   if(e.code==='KeyX'){dashPress();return;}
   if(e.code==='KeyF')toggleFlight();else if(e.code==='Space')pressJump();
@@ -55,11 +57,14 @@ function setPaused(v){
 }
 function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
-function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else webZip();}
-function releaseJump(){if(P.charging&&canAct())doJump();P.charging=false;}
+function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
+// web-slingers: tap Space in the air to web-zip, hold it to open the web wings
+function releaseJump(){if(P.charging&&canAct())doJump();P.charging=false;
+  if(P.spaceT&&!P.wings&&time-P.spaceT<0.22&&!P.grounded&&canAct())webZip();P.spaceT=0;}
 function doJump(){
   const k=clamp(P.chargeT/1.0,0,1),jm=P.alien?alienDef().jump:1;P.charging=false;if(!P.grounded||P.flying)return;
-  P.vel.y=(CONFIG.move.jump+k*k*(CONFIG.move.superJump-CONFIG.move.jump))*jm;P.grounded=false;
+  if(hasWeb()&&k>0.35){slingLaunch(k);return;}
+  P.vel.y=(CONFIG.move.jump+k*k*(CONFIG.move.superJump*(1+0.45*mk('jump'))-CONFIG.move.jump))*jm;P.grounded=false;if(k>0.35)addMastery('jump',k*6);
   if(k<0.35&&(keys.ShiftLeft||keys.ShiftRight||P.speeding)){P.vel.x*=1.35;P.vel.z*=1.35;P.vel.y*=1.1;} // parkour leap
   if(k>0.35){SFX.boom(0.5*k,0.7);ringFx(P.pos.x,P.pos.y+0.4,P.pos.z,1,14*k,0.5,[1,.9,.6]);burst(P.pos.x,P.pos.y+0.4,P.pos.z,40,26*k,0.8,DUST,2.2,-3,2.5);addShake(0.3*k);hitProps(P.pos.x,P.pos.y,P.pos.z,3*k,P,8);}
 }
@@ -109,7 +114,7 @@ tl.addEventListener('pointermove',e=>{
   else if(e.pointerId===lookId){look(e.clientX-lx,e.clientY-ly,2.2);lx=e.clientX;ly=e.clientY;}});
 const endTouch=e=>{if(e.pointerId===stickId){stickId=null;touchIn.x=touchIn.y=0;knob.style.transform='';stick.style.left='';stick.style.top='';stick.classList.remove('on');}if(e.pointerId===lookId)lookId=null;};
 tl.addEventListener('pointerup',endTouch);tl.addEventListener('pointercancel',endTouch);
-const SHORT={stormHammer:'HAMMER',repulsors:'REPULS',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
+const SHORT={bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'REPULS',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
 function bindTouchBtn(b,act){
   b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{b.setPointerCapture(e.pointerId);}catch(err){}b.classList.add('down');touchAct(act,true);});
   const up=()=>{if(!b.classList.contains('down'))return;b.classList.remove('down');touchAct(act,false);};
@@ -225,6 +230,7 @@ function updatePlayer(dt){
   const inF=clamp((keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)+touchIn.y,-1,1);
   const inR=clamp((keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+touchIn.x,-1,1);
   if(P.car){driveCar(dt,inF,inR);return;}
+  spiderTick(dt);
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
   const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=P.alien&&P.alien.phase>0;
@@ -245,10 +251,10 @@ function updatePlayer(dt){
       if(Math.random()<0.8)emit(P.pos.x,P.pos.y+1.3,P.pos.z,0,0,0,0.4,[.8,1,1],1.4,0,0);}
     else if(P.burstT>0){P.burstT-=dt;if(!P.flying&&!P.grounded)P.vel.y-=CONFIG.move.gravity*0.35*dt;}
     else if(P.zip)zipStep(dt);
-    else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.flying){
+    else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
       let tx=fwdX*cp*inF+rX*inR,ty=sp*inF+((keys.Space?1:0)-(keys.KeyC?1:0)),tz=fwdZ*cp*inF+rZ*inR;const l=Math.hypot(tx,ty,tz);if(l>1){tx/=l;ty/=l;tz/=l;}
-      const base=(AL&&AL.flies?AL.flySpeed:pstat('flight','speed'))*slowMul,spd=shift?base*POWERS.flight.boost:base,k=damp(shift?1.8:3,dt);
+      const base=(AL&&AL.flies?AL.flySpeed:flySpeed())*slowMul,spd=shift?base*(AL&&AL.flies?1.5:POWERS.flight.boost):base,k=damp(shift?1.8:3,dt);
       P.vel.x+=(tx*spd-P.vel.x)*k;P.vel.y+=(ty*spd-P.vel.y)*k;P.vel.z+=(tz*spd-P.vel.z)*k;
     }else{
       let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
@@ -260,6 +266,7 @@ function updatePlayer(dt){
         if(l>0.1){const turn=damp(1.8,dt),nx=P.vel.x+(tx*hsp-P.vel.x)*turn,nz=P.vel.z+(tz*hsp-P.vel.z)*turn,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hsp;P.vel.z=nz/nl*hsp;}
         const drag=1-0.22*dt;P.vel.x*=drag;P.vel.z*=drag;}
       else{const k=P.grounded?damp(12,dt):damp(1.6,dt);P.vel.x+=(tx*spd-P.vel.x)*k;P.vel.z+=(tz*spd-P.vel.z)*k;}P.vel.y-=(P.slam?30:CONFIG.move.gravity)*(P.floatT>0&&P.vel.y<3?0.12:1)*dt;
+      if(hasWeb()&&!P.grounded&&P.pitch<-0.5&&inF>0){P.vel.y-=30*dt;P.vel.x+=fwdX*12*dt;P.vel.z+=fwdZ*12*dt;} // dive
       if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
     }
     const prevY=P.pos.y;P.pos.addS(P.vel,dt);
@@ -283,6 +290,7 @@ function updatePlayer(dt){
   if(!wasGrounded&&P.grounded&&!P.flying){
     const impact=-vyBefore;
     if(P.slam){P.slam=false;shockAt(P.pos.x,P.pos.y+0.6,P.pos.z,1.3);burst(P.pos.x,P.pos.y+0.3,P.pos.z,80,40,1.1,DUST,3,-2,2);crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,5,[.42,.41,.4]);}
+    else if(hasWeb()&&impact>25&&impact<130)landingRoll(impact);
     else if(impact>58||(AL&&AL.scale>2&&impact>25)){ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,16,0.45,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,50,26,0.9,DUST,2.6,-3,2.4);SFX.boom(0.55,0.7);addShake(0.45);
       areaDamage(P.pos.x,P.pos.y+0.5,P.pos.z,10,25*strengthMul(),P,{knock:14});crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,3.5,[.42,.41,.4]);}
   }
@@ -290,13 +298,14 @@ function updatePlayer(dt){
   if(P.speeding){for(const h of humans){if(!h.alive||h.air||time-(h.bumpT||-9)<0.6)continue;if(Math.abs(h.pos.x-P.pos.x)<1.8&&Math.abs(h.pos.z-P.pos.z)<1.8&&Math.abs(h.pos.y-P.pos.y)<2){h.bumpT=time;Damage.apply(P,h,pstat('superSpeed','hitDmg'),'bump',{knock:20});}}
     if(Math.random()<0.8)emit(P.pos.x,P.pos.y+rr(0.3,2.4),P.pos.z,0,0,0,0.35,[.55,.8,1],1.3,0,0);}
   moved+=Math.hypot(P.vel.x,P.vel.z)*dt;if(moved>25)guideDone('move');
+  if(!P.alien&&save.character){const sp=P.vel.len();if(P.flying)addMastery(save.character.movement[0],sp*dt*0.015);else if(P.speeding)addMastery('superSpeed',sp*dt*0.012);}
   // facing, tilt, limbs
   const hs=Math.hypot(P.vel.x,P.vel.z),sp3=P.vel.len();
   const aiming=time-castT<0.6||beam||PS.iceCloud.holding||P.tk||(P.alien&&P.alien.channel)||(lockT&&!P.web&&!P.flying);let yawRate=0;
   if(!P.wall&&time-P.punchT>0.3){let ty=P.heroYaw;if(lockT&&!P.web&&!P.flying){const c=center(lockT);ty=Math.atan2(c.x-P.pos.x,c.z-P.pos.z);}else if(aiming)ty=Math.atan2(camF.x,camF.z);else if(hs>1.5)ty=Math.atan2(P.vel.x,P.vel.z);
     const prev=P.heroYaw;P.heroYaw=angLerp(P.heroYaw,ty,damp(P.flying?5:12,dt));yawRate=angLerp(0,P.heroYaw-prev,1)/Math.max(dt,1e-3);}
   let tilt=0,bank=0;
-  if((P.flying||P.web)&&sp3>8){tilt=clamp(Math.atan2(hs,P.vel.y),0,1.5)*clamp(sp3/40,0,1);bank=clamp(-yawRate*0.25,-0.7,0.7);}
+  if((P.flying||P.web||P.wings)&&sp3>8){tilt=clamp(Math.atan2(hs,P.vel.y),0,1.5)*clamp(sp3/40,0,1);bank=clamp(-yawRate*0.25,-0.7,0.7);}
   if(P.speeding)tilt=0.35;if(aiming)tilt=Math.min(tilt,0.5);if(P.web)tilt*=0.5;
   P.tilt=lerp(P.tilt,tilt,damp(6,dt));P.bank=lerp(P.bank,bank,damp(4,dt));
   let tl=0,tr=0,kl=0,kr=0,al=0,ar=0,el=-0.25,er=-0.25,alz=-0.12,arz=0.12,cape=0.15;
@@ -305,6 +314,7 @@ function updatePlayer(dt){
   else if(P.zip){ar=-3.0;er=0;al=-3.0;el=0;tl=0.2;tr=-0.1;kl=0.4;kr=0.2;cape=1.2;}
   else if(P.wall){const c=Math.sin(time*8)*(Math.abs(inF)+Math.abs(inR)>0.1?1:0);al=-2.6+c*0.4;ar=-2.6-c*0.4;tl=0.4+c*0.3;tr=0.4-c*0.3;kl=0.9-c*0.4;kr=0.9+c*0.4;el=er=-0.6;cape=0.1;}
   else if(P.web){ar=-3.0;er=0;al=-0.6;el=-0.9;tl=0.3;tr=-0.2;kl=0.6;kr=0.3;cape=clamp(sp3/30,0.3,1.4);}
+  else if(P.wings){al=ar=-0.1;alz=-1.45;arz=1.45;el=er=0;tl=0.12;tr=-0.12;kl=kr=0.15;cape=1.2;}
   else if(P.flying){if(sp3>20){ar=-2.95;er=0;al=-0.15;el=-0.2;tl=0.05;tr=0.22;kl=0.1;kr=0.5;cape=0.12+Math.sin(time*18)*0.06;}
     else{al=-0.3+Math.sin(time*2)*0.1;ar=-0.3-Math.sin(time*2)*0.1;alz=-0.35;arz=0.35;el=er=-0.5;tl=0.15+Math.sin(time*1.7)*0.1;tr=-0.05+Math.sin(time*1.7+1)*0.1;kl=0.3;kr=0.5;cape=0.35+Math.sin(time*3)*0.12;}}
   else if(P.grounded){P.phase+=dt*hs*(P.speeding?0.18:0.3)/(AL?Math.max(1,AL.scale*0.7):1);const k=Math.min(hs/14,1.25),sw=Math.sin(P.phase)*k*0.95;

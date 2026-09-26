@@ -88,7 +88,8 @@ function drawSuper(s,m,isPlayer){
   const a=s.anim,box=m.metal?MESH.mbox:MESH.box,sph=m.metal?MESH.msphere:MESH.sphere;
   const suit=m.metal?SILVER:m.suit,suit2=m.metal?SILVER2:m.suit2,cape=m.cape,acc=m.acc,skin=m.metal?SILVER:SKIN_C;
   const fl=s.flash?s.flash*0.6:0,sh=F_SH;
-  const root=at(s.pos.x,s.pos.y,s.pos.z,0,s.heroYaw,0);
+  let root=at(s.pos.x,s.pos.y,s.pos.z,0,s.heroYaw,0);
+  if(s.flip){const e=clamp(s.flip.t/s.flip.dur,0,1),q=e*e*(3-2*e);root=child(child(at(s.pos.x,s.pos.y+1.2,s.pos.z,0,s.heroYaw+s.flip.ry*q,0),0,0,0,s.flip.rx*q,0,0),0,-1.2,0);}
   const crouch=s.charging?-0.35*Math.min(s.chargeT,1):0;
   const kl=a.kneeL||0,kr=a.kneeR||0;
   const body=child(root,0,1.28+crouch-Math.max(0,Math.min(kl,kr))*0.12,0,s.tilt,0,s.bank);
@@ -369,7 +370,7 @@ function buildDrawList(){
     const hc=crimes.find(c=>c.type==='vault');if(hc&&hc.boss&&hc.boss.alive){const b=hc.boss,mid=(vaultY+b.pos.y)/2,len=b.pos.y-vaultY;const p=0.5+Math.sin(time*5)*0.2;
       queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,time,0,8,len,8),[.4,1,.7,0.18*p],F_ADD);queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,0,0,4,len,4),[.6,1,.8,0.25*p],F_ADD);}}
   for(const c of crimes)if(c.type==='shop'&&c.shop&&Math.sin(time*10)>0)queue(MESH.glowBox,at(c.shop.fx,5.8,c.shop.fz,0,0,0,0.5,0.5,0.5),[1,.1,.1,1],0);
-  drawProps();drawRubble();drawHelis();drawHeroAbilities();
+  drawProps();drawRubble();drawHelis();drawHeroAbilities();drawSpider();
   for(const w of windows){if(inView(w.x,w.z,320)<0)continue;const ax=w.nx!==0;
     queue(MESH.box,at(w.x,w.y,w.z,0,0,0,ax?0.06:2.1,2.3,ax?2.1:0.06),[.02,.02,.025,1],F_UN);
     for(const [u,v,s] of [[-0.8,0.9,0.5],[0.85,-0.8,0.4],[0.7,0.95,0.3]])queue(MESH.box,at(w.x+(ax?w.nx*0.02:u),w.y+v,w.z+(ax?u:w.nz*0.02),0,0,u*0.8,ax?0.04:s,s*0.8,ax?s:0.04),[.55,.7,.8,1],0);}
@@ -385,6 +386,7 @@ function buildDrawList(){
     if(p.rock){queue(MESH.box,at(p.x,p.y,p.z,time*5,time*3,0,1.1,0.9,1.0),[.25,.18,.14,1],F_SH);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.3,1.3,1.3),[1,.4,.1,0.4],F_ADD);}
     else if(p.kind==='fire'){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.7,0.7,0.7),[1,.6,.2,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.8,1.8,1.8),[1,.35,.05,0.4],F_ADD);}
     else if(p.kind==='blast'){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.5,0.5,0.5),[.5,.9,1,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.4,1.4,1.4),[.2,.6,1,0.4],F_ADD);}
+    else if(p.kind==='web'){queue(MESH.sphere,at(p.x,p.y,p.z,time*6,time*4,0,0.55,0.55,0.55),[.95,.95,1,1],0);}
     else if(p.kind==='rocket'){queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.03,p.y-p.vy*0.03,p.z-p.vz*0.03,0.5),[1,.6,.3,1],0);}
     else{queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.45,0.45,0.45),[1,.25,.2,1],0);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.05,p.y-p.vy*0.05,p.z-p.vz*0.05,0.3),[1,.2,.15,0.5],F_ADD);}}
   for(const t of tracers){const k=t.life/t.max;queue(MESH.glowBox,M4.beam(tmpM(),t.ax,t.ay,t.az,t.bx,t.by,t.bz,t.w),[t.col[0],t.col[1],t.col[2],k],F_ADD);}

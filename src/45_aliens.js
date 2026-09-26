@@ -35,7 +35,7 @@ function transformInto(id){
   const frac=P.hp/maxHp();stopAllPowers();
   P.alien={id,t:pstat('morphBand','duration'),max:pstat('morphBand','duration'),cds:[0,0,0],armor:0,veil:0,phase:0,channel:false,warn:0};
   P.radius=0.8*Math.max(1,a.scale*0.8);P.height=2.7*a.scale;P.hp=frac*maxHp();
-  if(a.flies){P.flying=true;P.grounded=false;}
+  P.flying=!!a.flies;if(a.flies)P.grounded=false; // alien forms move with their own body, not your flight power
   const c=center(P);ringFx(c.x,c.y,c.z,1,10*a.scale,0.6,BAND_COL);ringFx(c.x,c.y,c.z,1,6,0.4,[1,1,1]);
   burst(c.x,c.y,c.z,90,18,1,[BAND_COL,[.85,.7,1],[1,1,1]],1.6,0,2);flashWhite=0.45;SFX.transform();addShake(0.3);
   toast(a.name,a.blurb,'purple');MP.fx('t',{});buildHotbar();buildTouchButtons();MP.bump();
