@@ -207,14 +207,15 @@ function updateStreetProps(dt){
 function addScorch(x,y,z,r,nx=0,ny=1,nz=0,cr=false){if(scorches.length>=110)scorches.shift();scorches.push({x:x+nx*0.07,y:y+ny*0.07,z:z+nz*0.07,r,nx,ny,nz,life:cr?150:60,cr});}
 function addFire(x,y,z,t,r,big=false){if(fires.length>=24)fires.shift();const f={x,y,z,t,r,big};fires.push(f);return f;}
 function explode(x,y,z,s=1){
-  burst(x,y,z,Math.round(55*s),26*s,1.0,FIRE,3.2*s,-4,1.8);
-  burst(x,y,z,Math.round(26*s),48*s,0.7,SPARK,1.0,20,0.6);
-  smoke(x,y,z,Math.max(2,Math.round(5*s)),2*s,5*s,3,0.22);
+  const q=Math.min(s,4),big=s/q; // particle counts stay sane for giant blasts; particles just get bigger and faster
+  burst(x,y,z,Math.round(55*q),26*s,1.0,FIRE,3.2*s,-4,1.8);
+  burst(x,y,z,Math.round(26*q),48*s,0.7,SPARK,1.0*big,20,0.6);
+  smoke(x,y,z,Math.max(2,Math.round(5*q)),2*s,5*s,3,0.22);
   ringFx(x,y,z,1,14*s,0.45,[1,.6,.25]);
-  const v=SFX.vol(x,y,z);SFX.boom(v*Math.min(1,0.6*s),0.9+s*0.3);addShake(0.5*s*v);
+  const v=SFX.vol(x,y,z);SFX.boom(v*Math.min(1,0.6*s),0.9+q*0.3);addShake(0.5*q*v);
   scare(x,z,45*s);
-  spawnDebris(x,y,z,Math.max(1,Math.round(3*s)),METAL,16*s);
-  const b=inBuilding(x,y,z,4);if(b&&b.bld)damageBuilding(b.bld,120*s,x,y,z,0,0);if(b&&b.y1>3){spawnDebris(x,y,z,Math.round(7*s),b.col||WALK,13*s);breakWindowAt(b,x,y,z);if(s>0.9)breakWindowAt(b,x,y+4,z);if(s>=0.7){const n=faceNormal(b,x,y,z);if(n[1]===0)addScorch(x,y,z,2.2*s,n[0],0,n[2],true);}}
+  spawnDebris(x,y,z,Math.max(1,Math.round(3*q)),METAL,16*q);
+  const b=inBuilding(x,y,z,4);if(b&&b.bld)damageBuilding(b.bld,120*s,x,y,z,0,0);if(b&&b.y1>3){spawnDebris(x,y,z,Math.round(7*q),b.col||WALK,13*q);breakWindowAt(b,x,y,z);if(s>0.9)breakWindowAt(b,x,y+4,z);if(s>=0.7){const n=faceNormal(b,x,y,z);if(n[1]===0)addScorch(x,y,z,Math.min(2.2*s,30),n[0],0,n[2],true);}}
   hitProps(x,y,z,4*s,null,14*s);
 }
 function areaDamage(x,y,z,R,dmg,src,opt={}){
@@ -260,7 +261,9 @@ function updateFx(dt){
 // Projectiles
 // ================================================================
 const projs=[];
-function fireProj(p){if(castK>1&&p.owner===P&&!p.visual){p.r=(p.r||0.6)*castK;p.big=(p.big||1)*castK;if(p.radius&&p.kind!=='fire')p.radius*=castK;}projs.push(Object.assign({life:4,grav:0,r:0.6,age:0,homing:false},p));if(p.owner===P&&!p.visual)MP.fx('p',{pk:p.kind,x:Math.round(p.x*10)/10,y:Math.round(p.y*10)/10,z:Math.round(p.z*10)/10,vx:Math.round(p.vx),vy:Math.round(p.vy),vz:Math.round(p.vz)});}
+function fireProj(p){if(castK>1&&p.owner===P&&!p.visual){p.r=(p.r||0.6)*castK;p.big=(p.big||1)*castK;if(p.radius&&p.kind!=='fire')p.radius*=castK;}
+  // shots from a grown construct are grown too: wider, heavier, faster and with a bigger blast
+  if(p.owner===P&&!p.visual&&P.construct){const g=conGrow(P.construct.id);if(g>1.001){const sg=Math.sqrt(g);p.r=(p.r||0.6)*g;p.big=(p.big||1)*g;p.dmg=(p.dmg||0)*sg;p.vx*=sg;p.vy*=sg;p.vz*=sg;p.sc=g;if(p.kind==='rocket')p.blast=(p.blast||4.5)*g;if(p.knock)p.knock*=Math.min(sg,6);}}projs.push(Object.assign({life:4,grav:0,r:0.6,age:0,homing:false},p));if(p.owner===P&&!p.visual)MP.fx('p',{pk:p.kind,x:Math.round(p.x*10)/10,y:Math.round(p.y*10)/10,z:Math.round(p.z*10)/10,vx:Math.round(p.vx),vy:Math.round(p.vy),vz:Math.round(p.vz)});}
 function updateProjs(dt){
   for(let i=projs.length-1;i>=0;i--){
     const p=projs[i];p.age+=dt;p.life-=dt;

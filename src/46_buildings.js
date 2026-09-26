@@ -56,13 +56,35 @@ function updateBuildings(dt){
         for(let i=0;i<6;i++)smoke(cx+rr(-w,w)*0.5,2,cz+rr(-d,d)*0.5,3,w*0.5,22,9,0.3);}}
     else if(b.state==='down'){b.t+=dt;if(near&&Math.random()<dt*1.5)smoke(rr(b.x0,b.x1),1,rr(b.z0,b.z1),1,3,8,5,0.22);
       if(time>=b.regrowAt){if(playersNear(cx,cz,Math.max(w,d)*0.5+25))b.regrowAt=time+10;else{b.state='grow';b.t=0;}}}
+    else if(b.state==='ring'){ // rebuilt by the ring: a green hard-light copy rises first, then the real building fills it
+      b.t+=dt;const t=b.t-b.ringDelay;if(t<0)continue;
+      if(t>=RING_BUILD.ghost){const k=Math.min(1,(t-RING_BUILD.ghost)/RING_BUILD.fill),e=k*k*(3-2*k);b.off=b.ringOff*(1-e);writeBldVerts(b);
+        if(near&&Math.random()<0.6)emit(rr(b.x0,b.x1),rr(0,b.h),rr(b.z0,b.z1),0,rr(2,6),0,0.6,RING_C,1.4,0,0);
+        if(k>=1){b.state='up';b.off=0;b.hp=b.maxHp;b.rubble=null;writeBldVerts(b);for(const c of b.cols)c.dead=false;bldActive.delete(b);if(near)ringFx(cx,1,cz,1,Math.max(w,d),0.4,RING_C);}}
+      else if(b.rubble&&Math.random()<dt*8)b.rubble.pop();}
     else if(b.state==='grow'){b.t+=dt;const k=Math.min(1,b.t/BLD.growTime),e=k*k*(3-2*k);b.off=-(b.h+30)*(1-e);b.tilt=0;writeBldVerts(b);
       if(near&&Math.random()<0.4)smoke(rr(b.x0,b.x1),1,rr(b.z0,b.z1),1,2,6,3,0.25);
       if(k>=1){b.state='up';b.off=0;b.hp=b.maxHp;b.rubble=null;writeBldVerts(b);for(const c of b.cols)c.dead=false;bldActive.delete(b);}}
   }
 }
+// the Ring Bearer rebuilds every broken building at once (Y): 10 ring charge
+const RING_BUILD={ghost:0.9,fill:0.8,cost:10};
+function ringRebuild(){
+  if(!isRing()||!canAct())return false;const list=bldgs.filter(b=>b.state!=='up'&&b.state!=='ring');
+  if(!list.length){feed('Nothing to rebuild','Every building in the city is standing');return true;}
+  if(save.ring<RING_BUILD.cost){ringOut();return true;}save.ring-=RING_BUILD.cost;
+  for(const b of list){const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;b.state='ring';b.t=0;b.tilt=0;b.ringDelay=Math.min(1.5,Math.hypot(cx-P.pos.x,cz-P.pos.z)/900);
+    b.off=b.off||-(b.h+30);if(b.off>-(b.h+2))b.off=-(b.h+30);b.ringOff=b.off;writeBldVerts(b);bldActive.add(b);}
+  ringCast();const c=center(P);ringFx(c.x,c.y,c.z,1,60,0.8,RING_C);burst(c.x,c.y,c.z,80,20,1,[RING_C,[1,1,1]],1.6,0,2);flashWhite=Math.max(flashWhite,0.25);SFX.transform();
+  toast('The city rebuilt','Your ring puts back '+list.length+' building'+(list.length>1?'s':''),'cyan');addMastery('powerRing',10);return true;
+}
 function drawRubble(){
-  for(const b of bldActive){if(!b.rubble)continue;const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;const q=inView(cx,cz,600,60);if(q<0)continue;
+  for(const b of bldActive){if(b.state==='ring'){const t=b.t-b.ringDelay;if(t<0)continue;const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;if(inView(cx,cz,1200,80)<0)continue;
+      const up=clamp(t/RING_BUILD.ghost,0,1),fade=t>RING_BUILD.ghost?1-clamp((t-RING_BUILD.ghost)/RING_BUILD.fill,0,1):1,a=0.32*fade+0.05;
+      for(const c of b.cols){const h=(c.y1-c.y0)*up,w=c.x1-c.x0,d=c.z1-c.z0,x=(c.x0+c.x1)/2,z=(c.z0+c.z1)/2;if(h<0.05)continue;
+        queue(MESH.glowBox,at(x,c.y0+h/2,z,0,0,0,w+0.3,h,d+0.3),[RING_C[0]*0.7,RING_C[1],RING_C[2]*0.8,a],F_BL);
+        queue(MESH.glowBox,at(x,c.y0+h,z,0,0,0,w+0.5,0.25,d+0.5),[RING_C[0],RING_C[1],RING_C[2],0.8*fade],F_ADD);}}
+    if(!b.rubble)continue;const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;const q=inView(cx,cz,600,60);if(q<0)continue;
     const sink=b.state==='grow'?Math.min(1,b.t/BLD.growTime):0;
     for(const r of b.rubble)queue(MESH.box,at(r.x,r.y-sink*8,r.z,r.rx,r.ry,r.rz,r.sx,r.sy,r.sz),[b.col[0]*r.k,b.col[1]*r.k,b.col[2]*r.k,1],q<250*250?F_SH:0);}
 }

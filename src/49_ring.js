@@ -76,8 +76,12 @@ function dismissConstruct(quiet){
 function ringCast(){faceAim();castT=time;}
 function ringProj(o,d,sp,dmg,extra){fireProj(Object.assign({kind:'ring',owner:P,x:o.x,y:o.y,z:o.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg,knock:10,r:0.5,life:2.2},extra||{}));}
 // where construct weapons fire from
+// grown constructs fire from their grown muzzles (constructs with their own scale already account for it)
+function growMuzzle(o){const K=P.construct;if(!K||CONSTRUCTS[K.id].scale)return o;const g=conGrow(K.id);if(g<=1.001)return o;return {x:P.pos.x+(o.x-P.pos.x)*g,y:P.pos.y+(o.y-P.pos.y)*g,z:P.pos.z+(o.z-P.pos.z)*g};}
 function conMuzzle(side){
-  const K=P.construct;if(K&&CONSTRUCTS[K.id].ext)return conExtMuzzle(K.id,side);
+  const K=P.construct;if(K&&CONSTRUCTS[K.id].ext)return conExtMuzzle(K.id,side);return growMuzzle(conMuzzle0(side));}
+function conMuzzle0(side){
+  const K=P.construct;
   const sc=K&&CONSTRUCTS[K.id].scale?conScale(K.id):1,s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw);
   if(K&&K.id==='jet')return {x:P.pos.x+s*3+c*side*1.6,y:P.pos.y+1.1,z:P.pos.z+c*3-s*side*1.6};
   if(K&&K.id==='dragon')return {x:P.pos.x+s*5.5,y:P.pos.y+1.4,z:P.pos.z+c*5.5};
@@ -109,9 +113,9 @@ function constructPrimary(){
   if(K.cd>0)return true;
   if(!ringSpend(id==='bubble'?1:0.5)){ringOut();return true;}
   ringCast();const sc=CONSTRUCTS[id].scale?conScale(id):1;
-  if(id==='bubble'){K.cd=0.7;K.spikeT=0.35;const R=6*conSize();areaDamage(P.pos.x,P.pos.y+1.3,P.pos.z,R,45*(1+ringMk()),P,{knock:24,type:'blast'});ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1,R,0.3,RING_C);SFX.tone('square',500,1200,0.12,0.08);hitProps(P.pos.x,P.pos.y,P.pos.z,R*0.6,P,18);}
+  if(id==='bubble'){K.cd=0.7;K.spikeT=0.35;const g=conGrow(id),R=6*conSize()*g;areaDamage(P.pos.x,P.pos.y+1.3,P.pos.z,R,45*(1+ringMk())*Math.sqrt(g),P,{knock:24,type:'blast'});ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1,R,0.3,RING_C);SFX.tone('square',500,1200,0.12,0.08);hitProps(P.pos.x,P.pos.y,P.pos.z,R*0.6,P,18);}
   else if(id==='mech'||id==='titan'){const g=conGrow(id);K.cd=id==='titan'?0.9:0.55;K.punchT=time;K.arm=-(K.arm||1);conSmash(3.2*sc,(id==='titan'?160:80)*(1+ringMk())*g,(id==='titan'?60:36)*Math.sqrt(g),14*Math.sqrt(g),RING_C);if(g>2){addShake(0.1*g);SFX.boom(0.4,0.5);}}
-  else if(id==='dragon'){K.cd=0.6;K.biteT=time;conSmash(8,90*(1+ringMk()),40,18,RING_C);}
+  else if(id==='dragon'){const g=conGrow(id);K.cd=0.6;K.biteT=time;conSmash(8*g,90*(1+ringMk())*Math.sqrt(g),40*Math.sqrt(g),18*Math.sqrt(g),RING_C);}
   return true;
 }
 function constructPrimaryUp(){const K=P.construct;if(K){K.gunning=false;if(CONSTRUCTS[K.id].ext)conExtPrimaryUp(K);}}
@@ -131,7 +135,7 @@ function constructX(){
   if(CONSTRUCTS[id].ext)return conExtX(K);
   if(K.cdx>0)return true;
   if(id==='mech'||id==='titan'){if(!ringSpend(3)){ringOut();return true;}K.cdx=2.5;ringCast();fireMissiles(id==='titan'?8:4);}
-  else if(id==='dragon'){if(!ringSpend(2)){ringOut();return true;}K.cdx=4;K.roarT=time;const c=center(P);ringFx(c.x,c.y,c.z,1,26,0.5,RING_C);areaDamage(c.x,c.y,c.z,22,60*(1+ringMk()),P,{knock:30,type:'blast'});SFX.boom(0.7,0.6);addShake(0.4);scare(c.x,c.z,80);}
+  else if(id==='dragon'){if(!ringSpend(2)){ringOut();return true;}K.cdx=4;K.roarT=time;const c=center(P),g=conGrow(id);ringFx(c.x,c.y,c.z,1,26*g,0.5,RING_C);areaDamage(c.x,c.y,c.z,22*g,60*(1+ringMk())*Math.sqrt(g),P,{knock:30,type:'blast'});SFX.boom(0.7,0.6);addShake(0.4);scare(c.x,c.z,80);}
   else return false;
   return true;
 }
@@ -187,13 +191,13 @@ function updateRing(dt){
       else if(K.gunning||K.gunning2){K.gun-=dt;if(K.gun<=0&&canAct()){if(ringSpend(K.id==='rifle'?0.08:0.12)){if(K.id==='rifle'){ringCast();rifleShot(false);}else{if(!C.drive)ringCast();fireGun();}}else ringOut();K.gun=K.id==='titan'?0.06:K.id==='rifle'?0.09:0.08;}}
       if(C.ext)conExtTick(K,dt);
       if(K.breath&&canAct()){if(!ringSpend(1.6*dt)){K.breath=false;ringOut();}else{ringCast();const o=conMuzzle(0),d=dirTo(o,aim.x,aim.y,aim.z);
-        for(let i=0;i<4;i++){const s=rr(30,45);emit(o.x,o.y,o.z,(d[0]+rr(-.12,.12))*s,(d[1]+rr(-.1,.1))*s,(d[2]+rr(-.12,.12))*s,0.6,[rr(.3,.6),1,rr(.4,.7)],rr(1.2,2.4),0,0.5);}
-        for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||a.held)continue;const c=center(a),vx=c.x-o.x,vy=c.y-o.y,vz=c.z-o.z,s=vx*d[0]+vy*d[1]+vz*d[2];if(s<0||s>26)continue;
-          if(Math.hypot(vx-d[0]*s,vy-d[1]*s,vz-d[2]*s)>2+s*0.25)continue;Damage.apply(P,a,70*(1+ringMk())*dt,'fire',{burn:{dps:10,time:2}});}
+        {const bg=conGrow(K.id);for(let i=0;i<4;i++){const s=rr(30,45)*bg;emit(o.x,o.y,o.z,(d[0]+rr(-.12,.12))*s,(d[1]+rr(-.1,.1))*s,(d[2]+rr(-.12,.12))*s,0.6,[rr(.3,.6),1,rr(.4,.7)],rr(1.2,2.4)*bg,0,0.5);}}
+        for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||a.held)continue;const c=center(a),vx=c.x-o.x,vy=c.y-o.y,vz=c.z-o.z,s=vx*d[0]+vy*d[1]+vz*d[2],bg=conGrow(K.id);if(s<0||s>26*bg)continue;
+          if(Math.hypot(vx-d[0]*s,vy-d[1]*s,vz-d[2]*s)>(2+s/bg*0.25)*bg)continue;Damage.apply(P,a,70*(1+ringMk())*dt,'fire',{burn:{dps:10,time:2}});}
         hitProps(o.x+d[0]*12,o.y+d[1]*12,o.z+d[2]*12,4,P,10);if(Math.random()<dt*4)addScorch(aim.x,aim.y,aim.z,2,aim.nx,aim.ny,aim.nz);}}
-      if(K.ramT>0){K.ramT-=dt;for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||time-(a.ramHit||-9)<0.5)continue;const c=center(a);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1.3,c.z-P.pos.z)<3.2*conSize()){a.ramHit=time;Damage.apply(P,a,60*(1+ringMk()),'punch',{kv:[P.vel.x*0.6,14,P.vel.z*0.6],flung:true});}}}
+      if(K.ramT>0){K.ramT-=dt;for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||time-(a.ramHit||-9)<0.5)continue;const c=center(a);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1.3,c.z-P.pos.z)<3.2*conSize()*conGrow(K.id)){a.ramHit=time;Damage.apply(P,a,60*(1+ringMk()),'punch',{kv:[P.vel.x*0.6,14,P.vel.z*0.6],flung:true});}}}
       if((K.grow||1)>1.5)titanTrample(K,dt);
-      if(conFuel()<=0&&!C.free){dismissConstruct();ringOut();}}
+      if(conFuel()<=0&&!C.free&&!C.weapon){dismissConstruct();ringOut();}}
     if(isRing()){if(P.ringShield){save.ring=Math.max(0,save.ring-pstat('ringShield','ringDrain')*dt);if(save.ring<=0){P.ringShield=false;ringOut();}}
     {const mx=pstat('ringShield','absorb');if(P.rsHp==null)P.rsHp=mx;if(time-(P.rsHitT||-9)>2.5)P.rsHp=Math.min(mx,P.rsHp+mx*0.12*dt);}
     if(save.ring<=0&&P.flying&&!P.alien){P.flying=false;}}
@@ -242,13 +246,13 @@ function openOath(){
   oathWire();
   if(!isRing()||P.dead||state!=='play'||oathOpen)return;
   if(save.ring>=99.5){feed('Your ring is fully charged','');return;}
-  if(P.construct)dismissConstruct(true);
+  // you keep your construct and stay where you are: in the air you hang there while you speak
   // the game keeps running and the mouse stays locked: on a keyboard your keys type straight into the oath
   oathOpen=true;oathStart=save.ring;oathIn.value='';oathEl.hidden=false;oathEl.classList.toggle('mini',!!save.oathKnown);renderOath(0);
   const tch=touchOn();oathIn.readOnly=!tch;oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';
   $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the lantern away')
     :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the lantern away.');
-  $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;P.flying=false;
+  $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;P.charging=false;
   for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);
   SFX.tone('sine',200,400,0.6,0.08);
 }
@@ -287,6 +291,12 @@ function scaleQueued(n0,px,py,pz,g){const seen=new Set();
   for(let i=n0;i<dlN;i++){const M=drawList[i].M;if(M===ID||seen.has(M))continue;seen.add(M);
     for(let k=0;k<12;k++)M[k]*=g;M[12]=px+(M[12]-px)*g;M[13]=py+(M[13]-py)*g;M[14]=pz+(M[14]-pz)*g;}}
 const conDrawGrow=(s,id,isPlayer)=>{const C=CONSTRUCTS[id];if(!C||C.scale)return 1;return isPlayer?conGrow(id):Math.max(1,s.cz||1);};
+// the hero never grows with a construct: a grown ride just lifts the seat, and a grown weapon is held by a giant hard-light copy of you
+const GIANT_LOOK={suit:[.3,1,.5,1],suit2:[.2,.75,.4,1],cape:[.36,1,.52,1],acc:[.9,1,.95,1],skin:[.45,1,.6,1],hair:[.25,.8,.45,1],capeOn:false,metal:false};
+const riderSeat=(id,g)=>{const C=CONSTRUCTS[id];return C&&!C.scale?riderOffset(id)*g:riderOffset(id);};
+function drawGiantWielder(s,id,g){const C=CONSTRUCTS[id];if(!C||!C.weapon||g<1.5)return;
+  const px={pos:s.pos,heroYaw:s.heroYaw,anim:s.anim,tilt:s.tilt||0,bank:s.bank||0,eye:new V3(),vel:s.vel,flash:0,flip:s.flip,firing:false},was=GHOST,n0=dlN;
+  GHOST=0.28;drawSuper(px,GIANT_LOOK,false);GHOST=was;scaleQueued(n0,s.pos.x,s.pos.y,s.pos.z,g);}
 function drawConstruct(s,id,isPlayer){const n0=dlN;drawConstruct0(s,id,isPlayer);const g=conDrawGrow(s,id,isPlayer);if(g>1.001)scaleQueued(n0,s.pos.x,s.pos.y,s.pos.z,g);}
 function drawConstruct0(s,id,isPlayer){
   const C=CONSTRUCTS[id];if(!C)return;if(C.ext){drawConExt(s,id,isPlayer);return;}const K=isPlayer?P.construct:null,sz=isPlayer?conSize()*conGrow(id):(s.cz||1),yaw=s.heroYaw||0,x=s.pos.x,y=s.pos.y,z=s.pos.z,pulse=0.85+Math.sin(time*6)*0.08;
@@ -321,6 +331,7 @@ function drawConstruct0(s,id,isPlayer){
 // the rider sits inside the construct; mechs raise the hero into the cockpit
 function riderOffset(id,sz){const C=CONSTRUCTS[id];if(id==='bike')return 0.45;if(C&&C.rider!=null)return C.rider;if(!C||!C.scale)return 0;return 1.3*C.scale*(sz||conSize()*conGrow(id))+0.2*C.scale;}
 function drawRing(){
+  drawPrimed();
   for(const F of ringFxList){
     if(F.kind==='hammer'){const k=Math.min(1,F.t/0.38),R=F.R,alpha=F.t>0.5?Math.max(0,1-(F.t-0.5)/0.3):1;
       // pivots behind the target and swings from overhead down onto it

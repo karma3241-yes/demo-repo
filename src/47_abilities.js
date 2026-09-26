@@ -93,7 +93,7 @@ function updateHeroAbilities(dt){
   if(bigBeam){const B=bigBeam;B.t+=dt;
     if(!canAct()&&B.t<B.wind){bigBeam=null;beam=null;}
     else if(B.t>=B.wind){faceAim();const o=B.kind==='core'?{x:P.pos.x+Math.sin(P.heroYaw)*0.5,y:P.pos.y+1.9,z:P.pos.z+Math.cos(P.heroYaw)*0.5}:B.kind==='cannon'?conExtMuzzle('cannon',0):handPoint();
-      const d=dirTo(o,aim.x,aim.y,aim.z),range=B.kind==='core'?160:B.kind==='cannon'?320:240;let tb=rayCity(o.x,o.y,o.z,d[0],d[1],d[2],range);const hb=tb<range?RAYHIT.b:null,hn=[RAYHIT.nx,RAYHIT.ny,RAYHIT.nz];
+      const d=dirTo(o,aim.x,aim.y,aim.z),range=(B.kind==='core'?160:B.kind==='cannon'?320:240)*(B.sc||1);let tb=rayCity(o.x,o.y,o.z,d[0],d[1],d[2],range);const hb=tb<range?RAYHIT.b:null,hn=[RAYHIT.nx,RAYHIT.ny,RAYHIT.nz];
       if(d[1]<0){const tg=(0.05-o.y)/d[1];if(tg>0&&tg<tb)tb=tg;}
       const ex=o.x+d[0]*tb,ey=o.y+d[1]*tb,ez=o.z+d[2]*tb;B.o=o;B.e={x:ex,y:ey,z:ez};beam={x:ex,y:ey,z:ez,w:B.w};
       for(const a of actors){if(!a.alive||a===P||a.kind==='prop')continue;const c=center(a),vx=c.x-o.x,vy=c.y-o.y,vz=c.z-o.z,s=vx*d[0]+vy*d[1]+vz*d[2];if(s<0||s>tb+1)continue;
