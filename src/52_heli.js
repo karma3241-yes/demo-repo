@@ -21,7 +21,7 @@ function heliWants(){
 }
 function manageHelis(dt){
   const wanted=heliWants(),live=helis.filter(h=>h.alive&&!h.leave);
-  const want=wanted.length?Math.min(3,wanted.length+(save.reputation<=-1500&&P.heat>=7?1:0)):0;
+  const want=!ROOM.police?0:wanted.length?Math.min(3,wanted.length+(P.stars>=5?1:0)+(save.reputation<=-1500&&P.heat>=7?1:0)):0;
   if(live.length<want){heliT-=dt;if(heliT<=0){heliT=rr(12,20);const t=wanted[live.length%wanted.length];spawnHeli(t);}}
   else heliT=Math.max(heliT,6);
   for(const h of live)if(!wanted.includes(h.target)){const t=wanted[0];if(t)h.target=t;else h.leave=true;}

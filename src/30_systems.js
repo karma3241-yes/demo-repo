@@ -78,11 +78,11 @@ function playerDown(killer){
   P.dead=true;P.deadT=CONFIG.health.respawn;stopAllPowers();
   explode(P.pos.x,P.pos.y+1.2,P.pos.z,0.8);
   $('dead').hidden=false;$('deads').textContent=(killer&&killer.name?killer.name+' took you down. ':'')+'Back in '+CONFIG.health.respawn+' seconds. You keep your level, powers and reputation.';
-  MP.sendDown(killer);Bus.emit('playerDefeated',{killer});
+  MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
 }
 function respawn(){
   const s=SPAWNS[(Math.random()*SPAWNS.length)|0];if(P.alien)revertAlien(true);
-  P.dead=false;P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();P.heat=0;P.stun=0;P.lastHit=-99;
+  P.dead=false;P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();clearWanted();P.stun=0;P.lastHit=-99;
   $('dead').hidden=true;
 }
 
@@ -110,7 +110,7 @@ Bus.on('damaged',({source,target,amount})=>{
   if(target.kind!=='vehicle'&&target.kind!=='prop')addXP(amount*CONFIG.progression.dmgXp);
   if(target.crime)target.crime.helped=true;
   if(target.kind==='human'&&(target.role==='civilian'||target.role==='police')){
-    if(time-(target.repT||-9)>0.4){target.repT=time;if(target.role==='civilian')addRep(REP.civHit);P.heat=Math.min(10,P.heat+(target.role==='police'?4:1.5));}
+    if(time-(target.repT||-9)>0.4){target.repT=time;if(target.role==='civilian')addRep(REP.civHit);addWanted(target.role==='police'?2:0.7,target.role==='police'?60:20);}
   }
 });
 Bus.on('defeated',({target,killer})=>{
@@ -118,9 +118,9 @@ Bus.on('defeated',({target,killer})=>{
   if(killer!==P)return;
   let xp=0,rep=0,label='';
   if(target.kind==='human'){const c=NPCS[target.role];xp=c.xp;rep=c.rep;label={civilian:'Civilian down',thug:'Thug defeated',boss:'Crime boss defeated',police:'Police officer down'}[target.role];
-    if(target.role==='police')P.heat=10;}
+    if(target.role==='police')addWanted(6,500);else if(target.role==='civilian')addWanted(3,200);}
   else if(target.kind==='drone'){xp=NPCS.drone.xp;rep=NPCS.drone.rep;label='Drone destroyed';}
-  else if(target.kind==='heli'){xp=150;rep=-40;label='Police helicopter down';P.heat=10;}
+  else if(target.kind==='heli'){xp=150;rep=-40;label='Police helicopter down';addWanted(10,2000);}
   else if(target.kind==='rival'){xp=NPCS.rival.xp+NPCS.rival.xpPerLvl*target.level;rep=target.faction==='villain'?NPCS.rival.rep:-NPCS.rival.rep;if(target.bounty){xp*=2;rep*=2;}label=target.name+' defeated'+(target.bounty?' · bounty claimed':'');}
   else if(target.kind==='boss'){const c=NPCS[target.type];xp=c.xp;rep=c.rep;label=(target.type==='ship'?'Mothership':'Titan mech')+' destroyed';}
   else return;

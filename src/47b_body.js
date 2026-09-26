@@ -21,6 +21,8 @@ function metalUp(){
   P.mw=(P.mw+1)%METAL_W.length;const W=METAL_W[P.mw];feed(W.name,W.note);SFX.tone('square',180,90,0.12,0.08);SFX.punch(0.6);
   if(P.hand)burst(P.hand[12],P.hand[13],P.hand[14],14,5,0.3,[[.85,.88,.92],[1,1,1]],0.7,0,2);
 }
+// how far your finishers send people: the armor taps them, the storm god and the sun titan launch them
+const heroKnockMul=()=>P.alien?1:hasPower('armorSuit')?0.45:hasPower('stormBody')||hasPower('solarBody')?1.4:1;
 const bodyPunchMul=()=>{const W=metalWeapon();return (W?W.dmg:1)*(P.giantS>1.05?1+P.giantS:1)*(hasPower('solarBody')&&!P.alien?1.5:1);};
 const bodyReach=()=>{const W=metalWeapon();return (W?W.reach:0)+(hasPower('elasticBody')&&!P.alien?pstat('elasticBody','reach')*0.45:0)+(P.giantS>1.05?(P.giantS-1)*1.6:0);};
 // shield arm: most damage bounces off while you are not swinging
@@ -82,7 +84,12 @@ function drawBody(){
   if(state!=='play'||P.dead||P.alien||P.rag||!P.hand)return;
   // preset gear: the storm god's hammer, the armor's thrusters
   if(hasPower('stormBody')&&!thrown.some(t=>t.kind==='hammer')&&P.suited!==false){const H=P.hand;
-    queue(MESH.box,child(H,0,-0.35,0,0,0,0,0.1,0.75,0.1),HANDLE_C,F_SH);queue(MESH.mbox,child(H,0,-0.8,0,0,0,0,0.55,0.34,0.34),HAMMER_C,F_SH);
+    // charging a launch: whirl the hammer overhead, faster and faster; flying: it spins out ahead of you
+    const k=P.fCharge?clamp((P.chargeT||0)/1.5,0,1):0,M=P.fCharge?child(H,0,-0.1,0,0,time*(12+26*k),0):P.flying?child(H,0,-0.05,0,time*16,0,0):H;
+    if(P.fCharge){queue(MESH.box,child(M,0.55,0,0,0,0,Math.PI/2,0.1,1.1,0.1),HANDLE_C,F_SH);queue(MESH.mbox,child(M,1.15,0,0,0,0,0,0.34,0.34,0.55),HAMMER_C,F_SH);
+      const hp=child(M,1.15,0,0);queue(MESH.ring,M4.alignY(tmpM(),H[12],H[13],H[14],0,1,0,1.2),[.6,.75,1,0.25+0.5*k],F_ADD);
+      if(Math.random()<0.3+0.6*k){tracer(hp[12],hp[13],hp[14],hp[12]+rr(-1.5,1.5),hp[13]+rr(-1,1.5),hp[14]+rr(-1.5,1.5),[.6,.75,1],0.06,0.1);emit(hp[12],hp[13],hp[14],rr(-6,6),rr(-2,2),rr(-6,6),0.35,[.8,.85,.9],1,0,1);}}
+    else{queue(MESH.box,child(M,0,-0.35,0,0,0,0,0.1,0.75,0.1),HANDLE_C,F_SH);queue(MESH.mbox,child(M,0,-0.8,0,0,0,0,0.55,0.34,0.34),HAMMER_C,F_SH);}
     if(P.flying){const s=0.9+Math.sin(time*20)*0.1;queue(MESH.ring,M4.alignY(tmpM(),H[12],H[13],H[14],Math.sin(P.heroYaw),0,Math.cos(P.heroYaw),s),[.6,.75,1,0.6],F_ADD);if(Math.random()<0.15)tracer(H[12],H[13],H[14],H[12]+rr(-2,2),H[13]+rr(-2,2),H[14]+rr(-2,2),[.6,.75,1],0.05,0.08);}}
   if(hasPower('armorSuit')&&P.flying&&P.suited!==false){const H=P.hand,g=0.35+Math.random()*0.15;queue(MESH.glowSphere,at(H[12],H[13],H[14],0,0,0,g,g,g),[1,.85,.55,0.8],F_ADD);
     for(const sd of [-1,1]){const c=Math.cos(P.heroYaw),sn=Math.sin(P.heroYaw);queue(MESH.glowSphere,at(P.pos.x+c*sd*0.25,P.pos.y+0.1,P.pos.z-sn*sd*0.25,0,0,0,g*1.2,g*1.6,g*1.2),[1,.75,.45,0.8],F_ADD);}}

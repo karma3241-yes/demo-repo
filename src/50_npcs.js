@@ -369,7 +369,7 @@ for(const s of atms){const p={kind:'prop',role:'atm',ref:s,faction:'object',aliv
 const CASH=[[.3,.9,.4],[1,.85,.3]];
 function robProp(p,src){
   const c=NPCS[p.role];p.reopen=c.reopen;burst(p.pos.x,p.pos.y+1.5,p.pos.z,50,12,1.4,CASH,1.3,8,1.2);SFX.chime();
-  if(src===P){addXP(c.xp);addRep(c.rep);P.heat=10;save.stats.crimesCommitted++;
+  if(src===P){addXP(c.xp);addRep(c.rep);addWanted(5,1000);save.stats.crimesCommitted++;
     feed('+'+c.xp+' XP · '+c.rep+' rep',p.role==='shop'?'You robbed the '+p.ref.name:'You cracked an ATM');scare(p.pos.x,p.pos.z,40);}
 }
 function updateProps(dt){for(const p of props){if(p.flash>0)p.flash=Math.max(0,p.flash-dt*5);if(!p.alive){p.reopen-=dt;if(p.reopen<=0){p.alive=true;p.hp=p.maxHp;}}}}
@@ -557,7 +557,7 @@ function updateCrimes(dt){
       if(r==='cleared'&&WS.host)WS.crimeReward(c);}}
   if(state!=='play')return;
   const small=crimes.filter(c=>!c.heist).length;
-  if(small<CRIMES.maxActive){crimeT-=dt;if(crimeT<=0){crimeT=rr(CRIMES.spawnGap[0],CRIMES.spawnGap[1]);startRandomCrime();}}
+  if(small<CRIMES.maxActive&&ROOM.crimes){crimeT-=dt;if(crimeT<=0){crimeT=rr(CRIMES.spawnGap[0],CRIMES.spawnGap[1]);startRandomCrime();}}
   if(vaultGoneT>0){vaultGoneT-=dt;if(vaultGoneT<=0&&bank)vaultY=bank.vault.y;}
   if(!crimes.some(c=>c.heist)&&save.level>=CRIMES.heistMinLevel){heistT-=dt;if(heistT<=0){heistT=rr(CRIMES.heistGap[0],CRIMES.heistGap[1]);if(!(Math.random()<0.5&&startVaultHeist()))startTruckHeist();}}
 }
@@ -581,7 +581,7 @@ function managePopulation(dt){
   const countNear=(r,c)=>{let n=0;for(const h of humans)if(h.alive&&h.role===r&&!h.crime&&!h.gang&&Math.abs(h.pos.x-c.x)<150&&Math.abs(h.pos.z-c.z)<150)n++;return n;};
   C.forEach((c,ci)=>{const me=ci===0,who=PL[ci],heat=me?P.heat>0:!!(who.flags&FLAG.wanted);
     let civ=countNear('civilian',c);for(let i=0;civ<CRIMES.population.civilians*k*(me?1:0.7)&&i<3;i++,civ++){const p=sidewalkPointNear(c.x,c.z,45,150);spawnHuman('civilian',p.x,p.z,{path:p.path});}
-    const wantPolice=Math.round(CRIMES.population.police*k*(me?1:0.7))+(heat?3:0);
+    const stars=me?P.stars:heat?2:0,wantPolice=ROOM.police?Math.round(CRIMES.population.police*k*(me?1:0.7))+(heat?1+Math.round(stars*1.5):0):0;
     let pol=countNear('police',c);for(let i=0;pol<wantPolice&&i<2;i++,pol++){const p=sidewalkPointNear(c.x,c.z,heat?55:60,heat?90:150);const h=spawnHuman('police',p.x,p.z,{path:p.path});if(heat&&(me?!P.dead&&state==='play':who.alive))h.target=who;}});
   manageGangs();
   for(const r of rivals.slice())if(r.alive&&far(r.pos,450))removeActor(r);

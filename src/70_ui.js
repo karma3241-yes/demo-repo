@@ -89,7 +89,7 @@ function updateTags(){
     t.t.hidden=false;t.t.style.transform=`translate(${p[0].toFixed(1)}px,${p[1].toFixed(1)}px) translate(-50%,-100%)`;
     if(t.name!==name){t.name=name;t.n.textContent=name;t.n.hidden=!name;}if(t.col!==col){t.col=col;t.n.style.color=col||'';}
     if(max){t.hb.hidden=false;t.b.style.width=(clamp(hp/max,0,1)*100).toFixed(1)+'%';}else t.hb.hidden=true;};
-  for(const r of MP.peers.values())if(r.alive&&d2h(r,P)<400*400)add(r.pos.x,r.pos.y+(r.car?3:3.4),r.pos.z,r.name+' · LV '+r.level+' · '+repTier(r.rep||0).name,FACTION_COL[r.faction],r.hp,100);
+  for(const r of MP.peers.values())if(r.alive&&d2h(r,P)<400*400)add(r.pos.x,r.pos.y+(r.car?3:3.4),r.pos.z,r.name+' · LV '+r.level+' · '+repTier(r.rep||0).name+(r.stars?' '+'★'.repeat(r.stars):'')+(r.bounty?' · $'+r.bounty.toLocaleString('en-US'):''),FACTION_COL[r.faction],r.hp,100);
   for(const r of rivals)if(r.alive&&d2h(r,P)<220*220)add(r.pos.x,r.pos.y+3.4,r.pos.z,r.name+' · LV '+r.level+(r.bounty?' · BOUNTY':''),FACTION_COL[r.faction],r.hp,r.maxHp);
   for(const h of humans){if(!h.alive||h.hidden)continue;const d=d2h(h,P);
     if(h.downed>0&&d<45*45)add(h.pos.x,h.pos.y+1.2,h.pos.z,playerFaction()==='villain'?'Injured':'Injured · G to help','#7dffb0',0,0);
@@ -236,6 +236,8 @@ function renderMP(){
     const inp=el('input',{type:'text',value:link,readonly:'readonly','aria-label':'Invite link'});
     B.append(el('h3',{text:'Room code'}),el('p',{class:'roomcode',text:P2P.code}),inp,el('div',{class:'cta'},copy,el('button',{class:'ghost',type:'button',text:'Leave room',onclick:()=>P2P.leave()})),
       el('h3',{text:'Players · '+names.length+'/'+P2P_MAX}),el('ul',{class:'plist'},...names.map(n=>el('li',{text:n}))));
+    if(P2P.host)renderHostControls(B);
+    else B.append(el('h3',{text:'Room rules'}),el('p',{class:'muted',text:PVP_MODES[ROOM.pvp]+' · crimes '+(ROOM.crimes?'on':'off')+' · police '+(ROOM.police?'on':'off')+(ROOM.locked?' · locked':'')+'. The host sets these.'}));
     return;}
   if(P2P.state==='starting'){B.append(el('p',{class:'pts',text:P2P.statusText()}),el('button',{class:'ghost',type:'button',text:'Cancel',onclick:()=>P2P.leave()}));return;}
   if(P2P.state==='error')B.append(el('p',{class:'note warn',text:P2P.err}));
@@ -273,7 +275,7 @@ function pickCard(id,on,onclick,tag,extra){const c=POWERS[id];
     el('span',{text:PRESETS[id]?PRESETS[id].blurb:c.desc}),extra?el('span',{class:'cat',text:extra}):null);}
 function renderCreator(){
   const y=creatorBody.scrollTop;creatorBody.textContent='';const d=draft;
-  creatorBody.appendChild(el('p',{class:'muted',text:creatorMode==='rechoose'?'Pick new powers. Skill points you spent on powers you drop come back to you. You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':'Pick one way to get around. Three of them are full hero kits; Flight lets you build your own hero from a body mod and two abilities. Powers are free, and you can change them later from the pause menu (once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes). Traversal gets stronger the more you use it; skill points upgrade everything else.'}));
+  creatorBody.appendChild(el('p',{class:'muted',text:creatorMode==='rechoose'?'Pick new powers. Skill points you spent on powers you drop come back to you.'+(CONFIG.rechoiceCooldown>0?' You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':''):'Pick one way to get around. Three of them are full hero kits; Flight lets you build your own hero from a body mod and two abilities. Powers are free, and you can change them later from the pause menu (once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes). Traversal gets stronger the more you use it; skill points upgrade everything else.'}));
   if(creatorMode!=='rechoose')renderLook(creatorBody);
   const redraw=()=>{d.confirm=false;renderCreator();};
   creatorBody.appendChild(el('h3',{text:'Traversal · pick 1'}));

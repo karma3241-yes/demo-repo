@@ -10,12 +10,13 @@ It works on laptops and phones. The game detects your device and switches betwee
 
 ## Your hero
 
-- **Build your hero.** When you create a hero you pick **one traversal power**. Three of them are complete hero kits (**presets**) that come with their own body and abilities. The fourth, **Flight**, lets you build your own: pick **one body mod** (its signature move goes in slot 1) and **2 abilities**. You can swap later with **Change powers** in the pause menu, once every 10 minutes. Skill points you spent on powers you drop come back to you.
+- **Build your hero.** When you create a hero you pick **one traversal power**. Six of them are complete hero kits (**presets**: Web-Slinger, Speedster, Storm God, Armored Inventor, Sun Titan and Ring Bearer) that come with their own body and abilities. The last, **Flight**, lets you build your own: pick **one body mod** (its signature move goes in slot 1) and **2 abilities**. You can swap later with **Change powers** in the pause menu whenever you like. Skill points you spent on powers you drop come back to you.
 - **Level up by fighting.** You earn XP from fights, from damage you deal, and from glowing orbs around the city (yellow 25 XP, blue 50, red 100; red orbs only appear on rooftops). Each level gives you **3 skill points**.
 - **Spend skill points** to upgrade your abilities and body mod (up to level 10) and four passives: Strength, Vitality, Healing and Energy (up to level 50 each). Upgraded powers look stronger too. For example, Laser Vision starts as a thin orange line and ends as a thick red beam, and Telekinesis lifts more, and heavier things, as it levels up. **Reset skill points** at the bottom of the Skills screen refunds everything you spent.
 - **Traversal grows with use.** Your traversal power has no skill points. It gets better the more you use it (mastery 1–10): flight gets faster, jumps go higher, web swings get faster and unlock new tricks, the speed dial goes higher, and ring constructs get bigger and unlock new shapes.
 - **Suit up** with `U`. You swap between your civilian clothes and your suit, and each kind of hero changes differently.
 - **Reputation** decides your side. Stopping criminals makes you a Hero (Rookie → Vigilante → Protector → Guardian → Legend). Hurting civilians and police, or robbing shops and ATMs, makes you a Villain (Troublemaker → Outlaw → Menace → Supervillain → Nemesis). Villains get chased by police, and at −1500 reputation a bounty puts rival heroes on your trail.
+- **How hard you get hit** depends on your hero: the Armored Inventor barely gets knocked back (×0.45), while the Storm God and the Sun Titan get sent flying further (×1.4).
 
 Saves from before this update are converted automatically: you keep your level, reputation and upgrades, get the closest new build, and can change powers for free once.
 
@@ -39,10 +40,11 @@ All of these are original characters inspired by famous hero styles.
 - **Time Stop** freezes everyone for 3 seconds, other players included. Everything you hit in that moment lands at once when time starts again, and your path shows as lightning streaks.
 
 **Ring Bearer** (Power Ring). Everything runs on **ring charge**, which never refills by itself.
-- **Recharging:** press `O` to hold up the lantern and type the oath to recharge. At 0 charge you can only walk. After you've typed it once, `Tab` (or NEXT WORD) fills in each word for you.
+- **Recharging:** press `O` to hold up the lantern and type the oath to recharge. The game doesn't pause and the mouse stays locked: just start typing, and `Enter` or `Esc` puts the lantern away. The first time, the oath shows in the middle of the screen with an explanation. After you've typed it once, it sits as plain text in the bottom-right corner and `Tab` (NEXT WORD on touch screens) fills in each word for you. At 0 charge you can only walk.
 - **Flying:** `F` flies.
 - **Constructs:** `B` builds your default construct and `V` opens the construct wheel. The choices are a spiked Bubble, a Jet (guns and homing missiles), a Mech and a Huge Mech (punches, guns, missile salvos; the huge one tramples buildings) and a Dragon you ride (claw strike, breath, roar). Inside a construct, left click, right click and `X` are its attacks.
 - **Abilities:** Ring Blast, Hammer Smash, Chain Lasso and Ring Shield.
+- **Ring Shield** has its own health (shown on the HUD shield bar) that grows as you upgrade it. Holding it up barely costs charge, and each hit it takes costs a little more. If it breaks, it takes 4 seconds to rebuild.
 - **Black Hole** costs 95% of your charge. It drags in people, cars, rubble and whole buildings; only the strong or the very fast get away.
 
 ### Build your own (Flight)
@@ -85,7 +87,7 @@ You start tough: 220 health, and ordinary people and police do half damage to yo
 
 ### Getting around
 
-- **Wall running** is for everyone: sprint (hold `Shift`) into a wall to run up it, or hit it at an angle to run along it. `Space` leaps off.
+- **Wall running** is for everyone: sprint (hold `Shift`) into a wall to run up it, or hit it at an angle to run along it. `Space` leaps off. The Speedster's wall running gets faster with the speed dial.
 - **Parkour leap:** a quick jump while sprinting carries you much further.
 - **At night** the street lamps and car headlights light up the streets around you.
 
@@ -117,6 +119,7 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `Space` | Jump. Hold, then release for a super jump. Leap off walls |
 | `F` | Flight on/off. Hold it on the ground to charge, then let go to blast off into the sky |
 | `U` | Suit up / suit down |
+| `O` | Ring Bearer: hold up the lantern and type the oath |
 | `G` | Get in or out of a car, or help an injured person up |
 | `V` | Morph Band dial / change back (Ring Bearer: construct wheel) |
 | `Tab` or `K` | Skills and upgrades |
@@ -137,7 +140,9 @@ Nova Bay is a 16 × 16 block island with a downtown of glass towers, a brick old
 - **Almost everything breaks.** Street lamps, traffic lights, benches, trees, bus stops, mailboxes and hydrants shatter into pieces (and hydrants spray water). Windows break from explosions, lasers and crashes. Cars can be wrecked, and debris bounces off buildings. Broken street furniture comes back after a couple of minutes.
 - **Crimes** play out on their own and only show up as icons on your minimap. There are no pop-ups. Drones rob shops and float the loot to a getaway van, drones hack ATMs, thugs mug people, and thieves break into cars and drive off. If you step in and stop one, you get a bonus.
 - **Heists** are rare and big. The mothership tries to lift the bank vault into the sky, or a Titan mech rips open an armored truck.
-- **People react.** Civilians flee from fights and from villains. Criminals can leave people injured on the ground; heroes can help them up with `G`. Thug gangs hang around alleys and attack heroes on sight. Police go after villains and wanted criminals, and patrol cars chase them with sirens. When your heat is high, **police helicopters** circle overhead, sweep a searchlight at night and fire at you; shoot one down and it spins out of the sky. Rival heroes and villains with their own powers roam the city too.
+- **People react.** Civilians flee from fights and from villains. Criminals can leave people injured on the ground; heroes can help them up with `G`. Thug gangs hang around alleys and attack heroes on sight. Police go after villains and wanted criminals, and patrol cars chase them with sirens. When you're wanted, **police helicopters** join in at 4 stars; they circle overhead, sweep a searchlight at night and fire at you; shoot one down and it spins out of the sky. Rival heroes and villains with their own powers roam the city too.
+- **Wanted level.** Crimes against civilians and police earn you wanted stars (1–5), shown at the top of the HUD. 1 star sends officers on foot, 2 brings police cars, 3 sends more of everything, 4 calls in helicopters and 5 is everything at once. Stay out of the police's sight and you lose a star at a time; the stars blink while they can't see you. Getting knocked out clears them.
+- **Bounty.** As a villain, your crimes also build a bounty (bigger the more stars you have). It stays on your head until a hero takes you down: a hero player collects it as XP and reputation, and a rival hero can claim it too. Other players can see your stars and bounty on your name tag.
 
 ## Multiplayer
 
@@ -149,7 +154,17 @@ Nova Bay is a 16 × 16 block island with a downtown of glass towers, a brick old
 
 In the claude.ai version, players are shared but each player's city runs on their own device.
 
-In both, heroes can't hurt other heroes and villains can't hurt other villains; neutral players can fight anyone. Knocking out another player gives you XP and moves your reputation (towards Hero if you beat a villain, towards Villain if you beat a hero). Opening the menu doesn't pause you in multiplayer.
+In both, by default heroes can't hurt other heroes and villains can't hurt other villains; neutral players can fight anyone. Knocking out another player gives you XP and moves your reputation (towards Hero if you beat a villain, towards Villain if you beat a hero). Opening the menu doesn't pause you in multiplayer.
+
+**Host controls (room codes).** The player who created the room gets **Host controls** in the Multiplayer screen:
+- **Player fighting:** heroes vs villains (the default), everyone can fight, or no fighting between players.
+- **Crimes happen** and **Police and wanted levels** on or off.
+- **Lock the room** so nobody new can join.
+- **Time of day:** morning, noon, evening or night, for everyone.
+- **Rebuild the city now** grows every collapsed building back right away, for everyone.
+- **Remove a player** from the room.
+
+Everyone else sees the current room rules in their Multiplayer screen.
 
 ## Saving and the leaderboard
 
@@ -171,8 +186,9 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 | `44_movement.js` | Web swinging, web zip, wall running |
 | `45_aliens.js` | Morph Band aliens |
 | `46_buildings.js` | Building damage, collapse and regrowth |
+| `49d_wanted.js` | Wanted stars and bounty |
 | `50_npcs.js`, `52_heli.js` | People, traffic, police, helicopters, crimes, heists, rivals |
-| `60_multiplayer.js`, `62_worldsync.js` | Players over the claude.ai room or room codes, and the shared host city |
+| `60_multiplayer.js`, `62_worldsync.js`, `63_host.js` | Players over the claude.ai room or room codes, the shared host city, and room host controls |
 | `70_ui.js`, `80_player.js` | HUD, menus, input, driving, player movement |
 | `90_render.js`, `99_main.js` | Camera, models, draw list, main loop |
 

@@ -105,9 +105,12 @@ function tryWallRun(col,inF,inR,fwdX,fwdZ,rX,rZ,shift){
 }
 function wallRunStep(dt,inF,inR){
   const R=P.wallRun,b=R.b;R.t+=dt;
-  const fast=hasWeb()||P.speeding||(keys.ShiftLeft||keys.ShiftRight)?1:0;
-  if(R.mode==='up'){const sp=(hasPower('superSpeed')&&fast?MOVE.runUpFast:MOVE.runUp)*(R.t>R.max-0.4?0.5:1);P.vel.set(-R.nx*2,sp,-R.nz*2);}
-  else{const sp=MOVE.runSide*(fast?1.2:1);P.vel.x=R.tx*sp-R.nx*2;P.vel.z=R.tz*sp-R.nz*2;P.vel.y-=CONFIG.move.gravity*0.2*dt;if(R.t<0.25)P.vel.y=Math.max(P.vel.y,4);}
+  const fast=hasWeb()||P.speeding||P.fastMode||(keys.ShiftLeft||keys.ShiftRight)?1:0;
+  // speedsters run walls as fast as their speed dial lets them
+  const spd=isSpeed()&&fast?Math.max(MOVE.runUpFast,CONFIG.move.run*speedMult()*0.7):0;
+  if(spd&&Math.random()<0.8){const c=center(P);tracer(c.x,c.y-1,c.z,c.x+R.nx*0.4+rr(-.5,.5),c.y-1-(R.mode==='up'?spd*0.05:0),c.z+R.nz*0.4+rr(-.5,.5),SPD_C,0.07,0.3);}
+  if(R.mode==='up'){const sp=(spd||(hasPower('superSpeed')&&fast?MOVE.runUpFast:MOVE.runUp))*(R.t>R.max-0.4?0.5:1);P.vel.set(-R.nx*2,sp,-R.nz*2);if(spd)addMastery('superSpeed',dt*0.3);}
+  else{const sp=Math.max(MOVE.runSide*(fast?1.2:1),spd);P.vel.x=R.tx*sp-R.nx*2;P.vel.z=R.tz*sp-R.nz*2;P.vel.y-=CONFIG.move.gravity*0.2*dt;if(R.t<0.25)P.vel.y=Math.max(P.vel.y,4);}
   P.pos.addS(P.vel,dt);
   // stay glued to the face
   if(R.nx!==0)P.pos.x=R.nx>0?b.x1+P.radius:b.x0-P.radius;else P.pos.z=R.nz>0?b.z1+P.radius:b.z0-P.radius;
