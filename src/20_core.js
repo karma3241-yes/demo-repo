@@ -13,7 +13,7 @@ const CONFIG={
   autosave:30,
   drive:{maxSpeed:42,accel:16,brake:34,reverse:12,steer:1.7,grip:6},
   traffic:{cars:95,police:4,follow:11,stopLine:14},
-  rechoiceCooldown:600,
+  rechoiceCooldown:0, // seconds between power changes (off for now)
   destruction:{propRespawn:120,windowLife:150},
 };
 // [min,max] pairs are the values at power level 1 and 10
@@ -52,7 +52,7 @@ const POWERS={
   ringBlast:{name:'Ring Blast',cat:'preset',type:'instant',ring:2,desc:'A bolt of hard light from your ring.',cooldown:0.35,damage:[25,100]},
   hammerSmash:{name:'Hammer Smash',cat:'preset',type:'instant',ring:6,desc:'Build a giant hammer and bring it down on whatever you aim at.',cooldown:3,damage:[60,240],radius:[6,12]},
   chainLasso:{name:'Chain Lasso',cat:'preset',type:'instant',ring:5,desc:'Lasso a target with a construct chain, swing them around and slam them down.',cooldown:4,damage:[40,150]},
-  ringShield:{name:'Ring Shield',cat:'preset',type:'toggle',desc:'A hard-light dome that blocks attacks. Drains ring charge while it is up.',ringDrain:[4,1.5]},
+  ringShield:{name:'Ring Shield',cat:'preset',type:'toggle',desc:'A hard-light dome with its own health that blocks every hit. Barely costs charge to hold up, a little more while it is being hit. Enough punishment breaks it.',ringDrain:[0.3,0.1],absorb:[180,700],cooldown:4},
   blackHole:{name:'Black Hole',cat:'preset',type:'instant',ring:95,desc:'Pour almost all of your ring into a black hole. It tears buildings, rubble and people into it. Only the strong or fast escape.',cooldown:30,radius:[40,70],duration:6},
   morphBand:{name:'Morph Band',cat:'special',type:'special',key:'V',desc:'An alien wrist device. Transform into one of six alien forms, each with its own body and powers. Upgrades unlock more aliens and longer transformations.',duration:[45,150],recharge:[40,12],power:[1,2]},
   stormHammer:{name:'Storm Hammer',cat:'offence',type:'instant',desc:'Hurl an enchanted hammer. It calls lightning down on whatever it hits, smashes everything in its path and flies back to your hand.',energy:18,cooldown:3,damage:[40,170],stun:[0.5,1.2],range:[45,90]},
@@ -117,7 +117,7 @@ const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
 function cleanName(s){return String(s).replace(/[^\p{L}\p{N} _.'-]/gu,'').replace(/\s+/g,' ').trim().slice(0,16);}
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
-function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,
+function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
 function validCharacter(c){
   if(!c||typeof c!=='object')return null;
@@ -157,7 +157,7 @@ function loadSave(){
   if(s.stats&&typeof s.stats==='object')for(const k in f.stats)f.stats[k]=Math.floor(num(s.stats[k],0,0,1e9));
   f.rechoiceAt=f.migrated?0:num(s.rechoiceAt,0,0,1e15);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
-  f.ring=num(s.ring,100,0,100);f.oathKnown=s.oathKnown===true;
+  f.ring=num(s.ring,100,0,100);f.oathKnown=s.oathKnown===true;f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car'])if(s.guide[k]===true)f.guide[k]=true;
   return f;

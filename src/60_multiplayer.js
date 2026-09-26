@@ -45,7 +45,7 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
     applyPresence(r,pr);
   },
   remove(id){const r=this.peers.get(id);if(!r)return;this.peers.delete(id);removeFrom(actors,r);if(state==='play')feed(r.name+' left','');if(sheetOpen==='mp')renderSheet();},
-  canFight(t){const a=playerFaction(),b=t.faction;return !(a!=='neutral'&&a===b);},
+  canFight(t){if(ROOM.pvp==='off')return false;if(ROOM.pvp==='all')return true;const a=playerFaction(),b=t.faction;return !(a!=='neutral'&&a===b);},
   hit(t,amount,type,opt){
     if(!this.net()||P.dead||state!=='play')return 0;
     if(!this.canFight(t)){if(time-(t.ffT||-9)>2){t.ffT=time;feed('Same side','You and '+t.name+' are both '+(t.faction==='hero'?'heroes':'villains'));}return 0;}
@@ -86,6 +86,7 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
     else if(d.k==='s'){const R=clamp(n(d.r),2,60);ringFx(n(d.x),n(d.y),n(d.z),1,R,0.5,[.45,.85,1]);SFX.boom(0.6*SFX.vol(n(d.x),n(d.y),n(d.z)),1);}
     else if(d.k==='gw'){wells.push({x:n(d.x),y:n(d.y),z:n(d.z),t:0,dur:4,R:24,dmg:0,visual:true});}
     else if(d.k==='hold'){if(d.to===this.myPeer&&!P.dead)P.heldBy={x:n(d.x),y:n(d.y),z:n(d.z),t:time,by:r};}
+    else if(d.k==='bc'){onBountyFx(d,r);}
     else if(d.k==='ts'){startTimeStop(r,clamp(n(d.d),0,5));}
     else if(d.k==='rg'){if(d.g==='o'){ringFx(r.pos.x,r.pos.y+1.5,r.pos.z,1,20,0.7,RING_C);burst(r.pos.x,r.pos.y+1.5,r.pos.z,80,20,1,[RING_C,[1,1,1]],1.6,0,2);}else onRingFx(d,n);}
     else if(d.k==='t'){ringFx(r.pos.x,r.pos.y+1.5,r.pos.z,1,8,0.6,BAND_COL);burst(r.pos.x,r.pos.y+1.5,r.pos.z,50,14,0.8,[BAND_COL,[1,1,1]],1.4,0,2);}
@@ -102,6 +103,7 @@ function myPresence(){
   // presence patches merge on the server, so optional fields are always sent (null clears them)
   o.b=beam?(beam.w?[r1(beam.x),r1(beam.y),r1(beam.z),r1(beam.w)]:[r1(beam.x),r1(beam.y),r1(beam.z)]):null;const wp=P.web||P.zip;o.w=wp?[r1(wp.x),r1(wp.y),r1(wp.z)]:null;o.k=P.tk&&P.tk.hold?P.tk.hold.map(r1):null;o.c=null;
   o.cn=P.construct?P.construct.id:null;o.ex=presExtra();
+  o.st=P.stars||0;o.bty=save.bounty||0;
   if(P.car){o.c=[P.car.model,r2(P.car.yaw),P.car.tint.slice(0,3).map(r2)];o.x=r1(P.car.pos.x);o.y=r1(P.car.pos.y);o.z=r1(P.car.pos.z);}
   return o;
 }
@@ -120,6 +122,7 @@ function applyPresence(r,p){
   r.beam=Array.isArray(p.b)?{x:n(p.b[0]),y:n(p.b[1]),z:n(p.b[2]),w:clamp(n(p.b[3]),0,8)}:null;r.web=Array.isArray(p.w)?{x:n(p.w[0]),y:n(p.w[1]),z:n(p.w[2])}:null;
   r.tk=Array.isArray(p.k)&&p.k.length===3?{x:n(p.k[0]),y:n(p.k[1]),z:n(p.k[2])}:null;
   r.car=Array.isArray(p.c)&&CARS[p.c[0]]?{model:p.c[0],yaw:n(p.c[1]),tint:Array.isArray(p.c[2])?[clamp(n(p.c[2][0]),0,1),clamp(n(p.c[2][1]),0,1),clamp(n(p.c[2][2]),0,1),1]:[1,1,1,1]}:null;
+  r.stars=clamp(n(p.st)|0,0,5);r.bounty=clamp(n(p.bty),0,1e6);
   r.cn=CONSTRUCTS[p.cn]?p.cn:null;r.ex=Array.isArray(p.ex)?p.ex.map(n).slice(0,6):null;r.giantS=r.ex&&r.ex[2]>1?clamp(r.ex[2],1,4):1;if(r.ex&&r.ex[3])r.look=civLook(r.look);else if(r.ex&&r.ex[4])r.look.armor=true;
   if(r.pos.y<-40)r.pos.copy(r.tp);
   r.alive=!(r.flags&FLAG.dead)&&!(r.flags&FLAG.invis);r.firing=!!r.beam;
@@ -162,7 +165,7 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   changed(){MP.dirty=true;if(sheetOpen==='mp')renderSheet();},
   fail(msg){this.shutdown();this.state='error';this.err=msg;this.changed();if(state==='play')feed('Multiplayer',msg);},
   shutdown(){
-    clearTimeout(this.timer);this.open=false;
+    clearTimeout(this.timer);this.open=false;resetRoom();
     for(const c of this.conns.values())try{c.close();}catch(e){}this.conns.clear();
     if(this.hostConn)try{this.hostConn.close();}catch(e){}this.hostConn=null;
     if(this.peer)try{this.peer.destroy();}catch(e){}this.peer=null;
@@ -203,7 +206,8 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   accept(conn){
     conn.on('open',()=>{
       if(this.conns.size>=P2P_MAX-1){try{conn.send({t:'full'});}catch(e){}setTimeout(()=>conn.close(),300);return;}
-      this.conns.set(conn.peer,conn);
+      if(ROOM.locked){try{conn.send({t:'locked'});}catch(e){}setTimeout(()=>conn.close(),300);return;}
+      this.conns.set(conn.peer,conn);conn.send({t:'rs',d:ROOM});
       if(this.myLast)conn.send({t:'pr',from:MP.myPeer,p:this.myLast});
       for(const [id,o] of this.conns)if(id!==conn.peer&&o.lastPr)conn.send({t:'pr',from:id,p:o.lastPr});
       this.changed();});
@@ -225,6 +229,9 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
     else if(m.t==='left'&&from)MP.remove(from);
     else if(m.t==='ev'&&from&&P2P_TOPICS.includes(m.topic))this.deliver(from,m.topic,m.d);
     else if(m.t==='full')this.fail('That room is full ('+P2P_MAX+' players)');
+    else if(m.t==='locked')this.fail('The host has locked that room');
+    else if(m.t==='kick')this.fail('The host removed you from the room');
+    else if(m.t==='rs')applyRoom(m.d);else if(m.t==='rebuild')rebuildCity(false);
     else if(m.t==='ws')WS.onSnapshot(m.d);else if(m.t==='ph')WS.onNpcHit(m.d);else if(m.t==='rw')WS.onReward(m.d);
   },
   deliver(from,topic,d){const msg={peer:from,isMe:false,data:d};if(topic==='hit')MP.onHit(msg);else if(topic==='down')MP.onDown(msg);else if(topic==='fx')MP.onFx(msg);

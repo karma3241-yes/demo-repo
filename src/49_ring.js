@@ -14,7 +14,7 @@ const CONSTRUCTS={
   dragon:{name:'Dragon',unlock:7,cost:18,drain:1,fly:true,speed:1.5,attacks:'LMB strike · RMB breath · X roar',blurb:'Ride a hard-light dragon'},
 };
 const CON_IDS=Object.keys(CONSTRUCTS);
-const OATH='My will holds fast. What I imagine, I make last. Let every foe be humbled by my ring of light.';
+const OATH='Through fear and doubt my will holds fast. What I imagine, I make last. Let every foe who stands to fight be humbled by my ring of light.';
 let conPick='bubble',oathOpen=false,oathStart=0;
 const isRing=()=>hasTrav('powerRing')&&!P.alien;
 const ringMk=()=>mk('powerRing');
@@ -121,9 +121,15 @@ Object.assign(POWER_FN,{
     holes.push({x,y,z,t:0,dur:pstat('blackHole','duration'),R,next:0,hitT:0,own:true});MP.fx('rg',{g:'b',x:Math.round(x),y:Math.round(y),z:Math.round(z),r:Math.round(R)});
     SFX.tone('sine',60,30,3,0.2);SFX.boom(0.8,0.4);addShake(0.6);flashWhite=0.3;feed('Black hole','Everything nearby is falling in');addMastery('powerRing',20);},
 });
-TOGGLE_FN.ringShield=()=>{if(P.ringShield){P.ringShield=false;SFX.tone('sine',900,300,0.2,0.08);return;}if(save.ring<2){ringOut();return;}P.ringShield=true;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3.5,0.3,RING_C);SFX.tone('sine',300,900,0.3,0.1);};
-// the shield soaks every hit, the ring pays for it
-function ringAbsorb(amount){if(!P.ringShield||!isRing())return amount;save.ring=Math.max(0,save.ring-amount*0.03);ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,2.5,3.6,0.2,RING_C);if(save.ring<=0){P.ringShield=false;ringOut();}return 0;}
+TOGGLE_FN.ringShield=()=>{if(P.ringShield){P.ringShield=false;SFX.tone('sine',900,300,0.2,0.08);return;}
+  if(PS.ringShield.cd>0){PS.ringShield.flash=0.3;feed('Shield is rebuilding',Math.ceil(PS.ringShield.cd)+' s');return;}
+  if(save.ring<1){ringOut();return;}const mx=pstat('ringShield','absorb');if(!(P.rsHp>0))P.rsHp=mx;P.rsHp=Math.min(P.rsHp,mx);
+  P.ringShield=true;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3.5,0.3,RING_C);SFX.tone('sine',300,900,0.3,0.1);};
+// the shield soaks every hit with its own health; each hit costs a little ring charge, and it breaks if it runs out
+function ringAbsorb(amount){if(!P.ringShield||!isRing())return amount;
+  P.rsHp-=amount;P.rsHitT=time;save.ring=Math.max(0,save.ring-amount*0.01);ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,2.5,3.6,0.2,RING_C);
+  if(P.rsHp<=0){P.rsHp=0;P.ringShield=false;PS.ringShield.cd=pstat('ringShield','cooldown');SFX.tone('square',600,120,0.3,0.1);burst(P.pos.x,P.pos.y+1.3,P.pos.z,40,10,0.5,[RING_C],1.2,0,2);feed('Shield broken','It rebuilds in '+Math.round(PS.ringShield.cd)+' s');}
+  else if(save.ring<=0){P.ringShield=false;ringOut();}return 0;}
 function onRingFx(d,n){
   if(d.g==='h')ringFxList.push({kind:'hammer',x:n(d.x),y:n(d.y),z:n(d.z),t:0,R:clamp(n(d.r),2,30),dmg:0,yaw:0,visual:true,hit:false});
   else if(d.g==='b')holes.push({x:n(d.x),y:n(d.y),z:n(d.z),t:0,dur:6,R:clamp(n(d.r),10,100),next:0,hitT:0,visual:true});
@@ -147,6 +153,7 @@ function updateRing(dt){
       if(K.ramT>0){K.ramT-=dt;for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||time-(a.ramHit||-9)<0.5)continue;const c=center(a);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1.3,c.z-P.pos.z)<3.2*conSize()){a.ramHit=time;Damage.apply(P,a,60*(1+ringMk()),'punch',{kv:[P.vel.x*0.6,14,P.vel.z*0.6],flung:true});}}}
       if(save.ring<=0){dismissConstruct();ringOut();}}
     if(P.ringShield){save.ring=Math.max(0,save.ring-pstat('ringShield','ringDrain')*dt);if(save.ring<=0){P.ringShield=false;ringOut();}}
+    {const mx=pstat('ringShield','absorb');if(P.rsHp==null)P.rsHp=mx;if(time-(P.rsHitT||-9)>2.5)P.rsHp=Math.min(mx,P.rsHp+mx*0.12*dt);}
     if(save.ring<=0&&P.flying&&!P.alien){P.flying=false;}
   }else{if(P.construct)dismissConstruct(true);P.ringShield=false;}
   for(let i=ringFxList.length-1;i>=0;i--){const F=ringFxList[i];F.t+=dt;
@@ -194,12 +201,24 @@ function openOath(){
   if(!isRing()||P.dead||state!=='play'||oathOpen)return;
   if(save.ring>=99.5){feed('Your ring is fully charged','');return;}
   if(P.construct)dismissConstruct(true);
-  oathOpen=true;oathStart=save.ring;oathIn.value='';oathEl.hidden=false;renderOath(0);
-  $('oath-note').textContent=save.oathKnown?'Tab fills in the next word · Esc to put the lantern away':'Type it once and after that Tab fills in each word · Esc to put the lantern away';$('oath-next').hidden=!save.oathKnown;P.lantern=true;P.flying=false;
-  for(const k in keys)keys[k]=false;mouseL=false;if(locked)document.exitPointerLock();setTimeout(()=>oathIn.focus(),30);
+  // the game keeps running and the mouse stays locked: on a keyboard your keys type straight into the oath
+  oathOpen=true;oathStart=save.ring;oathIn.value='';oathEl.hidden=false;oathEl.classList.toggle('mini',!!save.oathKnown);renderOath(0);
+  const tch=touchOn();oathIn.readOnly=!tch;oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';
+  $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the lantern away')
+    :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the lantern away.');
+  $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;P.flying=false;
+  for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);
   SFX.tone('sine',200,400,0.6,0.08);
 }
-function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathEl.hidden=true;P.lantern=false;oathIn.blur();if(save.settings.autoLock&&!touchOn()&&state==='play'&&!paused)requestLock();}
+function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathEl.hidden=true;P.lantern=false;oathIn.blur();}
+// keyboard typing while the lantern is out (called from the main key handler before anything else)
+function oathKey(e){
+  e.preventDefault();const k=e.key;
+  if(e.code==='Escape'||e.code==='Enter'||e.code==='NumpadEnter'){closeOath();return;}
+  if(e.code==='Tab'){oathNextWord();return;}
+  if(k==='Backspace')oathIn.value=oathIn.value.slice(0,-1);else if(k.length===1&&!e.ctrlKey&&!e.metaKey)oathIn.value+=k;else return;
+  oathIn.dispatchEvent(new Event('input'));
+}
 function oathWire(){if(oathEl)return;oathEl=$('oath');oathIn=$('oath-in');oathText=$('oath-text');
 oathIn.addEventListener('input',()=>{
   const want=oathNorm(OATH),got=oathNorm(oathIn.value);let n=0;while(n<got.length&&got[n]===want[n])n++;

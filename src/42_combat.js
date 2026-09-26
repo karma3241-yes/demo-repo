@@ -83,7 +83,7 @@ function punch(){
   for(const a of hits){
     const c=center(a);hx=c.x;hy=c.y;hz=c.z;const dx=c.x-P.pos.x,dz=c.z-P.pos.z,l=Math.hypot(dx,dz)||1,ux=dx/l,uz=dz/l;
     const opt={stun:fin?COMBAT.finStun:COMBAT.stun,flung:fin,combo:comboN};
-    if(fin){const s=Math.sqrt(strengthMul())*am*(MW?MW.knock:1)*(P.giantS>1.05?1.5:1);
+    if(fin){const s=Math.sqrt(strengthMul())*am*(MW?MW.knock:1)*(P.giantS>1.05?1.5:1)*heroKnockMul();
       if(upper)opt.kv=[ux*3,COMBAT.upper*Math.min(1.4,s),uz*3];
       else if(spike)opt.kv=[ux*5,-COMBAT.spike,uz*5];
       else opt.kv=[ux*COMBAT.launch*Math.min(1.6,s),9,uz*COMBAT.launch*Math.min(1.6,s)];

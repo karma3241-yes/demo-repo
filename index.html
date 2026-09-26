@@ -38,7 +38,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hi
 .stats b{color:var(--ink);font-weight:700;letter-spacing:.02em}
 #spwrap.glow b{color:var(--gold)}
 .chip{color:#1a0508;background:var(--health);border-radius:3px;padding:0 6px;font-weight:700;letter-spacing:.14em}
-#bounty{background:var(--gold)}
+#bounty{background:var(--gold)}#wanted{background:transparent;color:#ffd23f;font-size:15px;letter-spacing:.08em;text-shadow:0 0 6px rgba(0,0,0,.8)}#wanted.blink{animation:wblink .6s steps(2) infinite}@keyframes wblink{50%{opacity:.25}}
 .hud-tr{position:absolute;top:16px;right:16px;padding:10px 14px;text-align:right;display:grid;gap:2px}
 #clock{font-family:var(--display);font-size:20px;letter-spacing:.06em}
 #mode{font-size:11px;letter-spacing:.2em;color:var(--energy);text-transform:uppercase}
@@ -209,6 +209,7 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
 .dslot.locked{opacity:.4;filter:grayscale(1)}
 #dial.green{background:radial-gradient(circle at center,rgba(10,60,26,.55),rgba(3,8,6,.75) 70%)}#dial.green #dial-ring{border-color:rgba(93,255,134,.35);box-shadow:0 0 60px rgba(93,255,134,.22) inset}#dial.green #dial-ring::after{border-color:#5dff86;box-shadow:0 0 30px #5dff86,0 0 12px #5dff86 inset;background:rgba(6,26,12,.8)}#dial.green #dial-info{color:#c9ffd8}
 #oath{position:fixed;left:50%;bottom:max(120px,16vh);transform:translateX(-50%);z-index:6;width:min(640px,calc(100% - 32px));padding:16px 18px;box-sizing:border-box;text-align:center;border:1px solid rgba(93,255,134,.45);box-shadow:0 0 40px rgba(93,255,134,.25)}
+#oath.mini{left:auto;right:16px;bottom:max(140px,19vh);transform:none;width:min(320px,calc(100% - 32px));padding:0;text-align:right;background:none;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}#oath.mini h3{display:none}#oath.mini p{font-size:13px;margin:0 0 4px;color:rgba(233,243,255,.55);text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.7)}#oath.mini input{display:none}#oath.mini small{margin-top:2px;text-shadow:0 1px 3px #000}#oath.mini button{padding:4px 10px;font-size:11px}
 #oath h3{margin:0 0 8px;font-size:12px;letter-spacing:.24em;color:#8dffb0;font-weight:600}#oath p{margin:0 0 10px;font-size:17px;line-height:1.5;color:rgba(233,243,255,.45)}#oath p b{color:#b6ffca;font-weight:600;text-shadow:0 0 12px rgba(93,255,134,.7)}
 #oath input{width:100%;box-sizing:border-box;padding:10px 12px;font:inherit;font-size:15px;color:#e9f3ff;background:rgba(0,0,0,.45);border:1px solid rgba(93,255,134,.5);border-radius:8px;outline:none}#oath small{display:block;margin-top:8px;font-size:11px;color:var(--ink-dim);letter-spacing:.1em}
 #dial-info{position:absolute;left:50%;bottom:max(18px,4vh);transform:translateX(-50%);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#e2ccff;text-align:center;width:min(560px,92vw)}
@@ -1270,7 +1271,7 @@ const CONFIG={
   autosave:30,
   drive:{maxSpeed:42,accel:16,brake:34,reverse:12,steer:1.7,grip:6},
   traffic:{cars:95,police:4,follow:11,stopLine:14},
-  rechoiceCooldown:600,
+  rechoiceCooldown:0, // seconds between power changes (off for now)
   destruction:{propRespawn:120,windowLife:150},
 };
 // [min,max] pairs are the values at power level 1 and 10
@@ -1309,7 +1310,7 @@ const POWERS={
   ringBlast:{name:'Ring Blast',cat:'preset',type:'instant',ring:2,desc:'A bolt of hard light from your ring.',cooldown:0.35,damage:[25,100]},
   hammerSmash:{name:'Hammer Smash',cat:'preset',type:'instant',ring:6,desc:'Build a giant hammer and bring it down on whatever you aim at.',cooldown:3,damage:[60,240],radius:[6,12]},
   chainLasso:{name:'Chain Lasso',cat:'preset',type:'instant',ring:5,desc:'Lasso a target with a construct chain, swing them around and slam them down.',cooldown:4,damage:[40,150]},
-  ringShield:{name:'Ring Shield',cat:'preset',type:'toggle',desc:'A hard-light dome that blocks attacks. Drains ring charge while it is up.',ringDrain:[4,1.5]},
+  ringShield:{name:'Ring Shield',cat:'preset',type:'toggle',desc:'A hard-light dome with its own health that blocks every hit. Barely costs charge to hold up, a little more while it is being hit. Enough punishment breaks it.',ringDrain:[0.3,0.1],absorb:[180,700],cooldown:4},
   blackHole:{name:'Black Hole',cat:'preset',type:'instant',ring:95,desc:'Pour almost all of your ring into a black hole. It tears buildings, rubble and people into it. Only the strong or fast escape.',cooldown:30,radius:[40,70],duration:6},
   morphBand:{name:'Morph Band',cat:'special',type:'special',key:'V',desc:'An alien wrist device. Transform into one of six alien forms, each with its own body and powers. Upgrades unlock more aliens and longer transformations.',duration:[45,150],recharge:[40,12],power:[1,2]},
   stormHammer:{name:'Storm Hammer',cat:'offence',type:'instant',desc:'Hurl an enchanted hammer. It calls lightning down on whatever it hits, smashes everything in its path and flies back to your hand.',energy:18,cooldown:3,damage:[40,170],stun:[0.5,1.2],range:[45,90]},
@@ -1374,7 +1375,7 @@ const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
 function cleanName(s){return String(s).replace(/[^\p{L}\p{N} _.'-]/gu,'').replace(/\s+/g,' ').trim().slice(0,16);}
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
-function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,
+function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
 function validCharacter(c){
   if(!c||typeof c!=='object')return null;
@@ -1414,7 +1415,7 @@ function loadSave(){
   if(s.stats&&typeof s.stats==='object')for(const k in f.stats)f.stats[k]=Math.floor(num(s.stats[k],0,0,1e9));
   f.rechoiceAt=f.migrated?0:num(s.rechoiceAt,0,0,1e15);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
-  f.ring=num(s.ring,100,0,100);f.oathKnown=s.oathKnown===true;
+  f.ring=num(s.ring,100,0,100);f.oathKnown=s.oathKnown===true;f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
@@ -1537,11 +1538,11 @@ function playerDown(killer){
   P.dead=true;P.deadT=CONFIG.health.respawn;stopAllPowers();
   explode(P.pos.x,P.pos.y+1.2,P.pos.z,0.8);
   $('dead').hidden=false;$('deads').textContent=(killer&&killer.name?killer.name+' took you down. ':'')+'Back in '+CONFIG.health.respawn+' seconds. You keep your level, powers and reputation.';
-  MP.sendDown(killer);Bus.emit('playerDefeated',{killer});
+  MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
 }
 function respawn(){
   const s=SPAWNS[(Math.random()*SPAWNS.length)|0];if(P.alien)revertAlien(true);
-  P.dead=false;P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();P.heat=0;P.stun=0;P.lastHit=-99;
+  P.dead=false;P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();clearWanted();P.stun=0;P.lastHit=-99;
   $('dead').hidden=true;
 }
 
@@ -1569,7 +1570,7 @@ Bus.on('damaged',({source,target,amount})=>{
   if(target.kind!=='vehicle'&&target.kind!=='prop')addXP(amount*CONFIG.progression.dmgXp);
   if(target.crime)target.crime.helped=true;
   if(target.kind==='human'&&(target.role==='civilian'||target.role==='police')){
-    if(time-(target.repT||-9)>0.4){target.repT=time;if(target.role==='civilian')addRep(REP.civHit);P.heat=Math.min(10,P.heat+(target.role==='police'?4:1.5));}
+    if(time-(target.repT||-9)>0.4){target.repT=time;if(target.role==='civilian')addRep(REP.civHit);addWanted(target.role==='police'?2:0.7,target.role==='police'?60:20);}
   }
 });
 Bus.on('defeated',({target,killer})=>{
@@ -1577,9 +1578,9 @@ Bus.on('defeated',({target,killer})=>{
   if(killer!==P)return;
   let xp=0,rep=0,label='';
   if(target.kind==='human'){const c=NPCS[target.role];xp=c.xp;rep=c.rep;label={civilian:'Civilian down',thug:'Thug defeated',boss:'Crime boss defeated',police:'Police officer down'}[target.role];
-    if(target.role==='police')P.heat=10;}
+    if(target.role==='police')addWanted(6,500);else if(target.role==='civilian')addWanted(3,200);}
   else if(target.kind==='drone'){xp=NPCS.drone.xp;rep=NPCS.drone.rep;label='Drone destroyed';}
-  else if(target.kind==='heli'){xp=150;rep=-40;label='Police helicopter down';P.heat=10;}
+  else if(target.kind==='heli'){xp=150;rep=-40;label='Police helicopter down';addWanted(10,2000);}
   else if(target.kind==='rival'){xp=NPCS.rival.xp+NPCS.rival.xpPerLvl*target.level;rep=target.faction==='villain'?NPCS.rival.rep:-NPCS.rival.rep;if(target.bounty){xp*=2;rep*=2;}label=target.name+' defeated'+(target.bounty?' · bounty claimed':'');}
   else if(target.kind==='boss'){const c=NPCS[target.type];xp=c.xp;rep=c.rep;label=(target.type==='ship'?'Mothership':'Titan mech')+' destroyed';}
   else return;
@@ -1853,7 +1854,7 @@ function flyChargeRelease(){
   if(!P.fCharge)return false;P.fCharge=false;const t=P.chargeT||0,on=P.charging&&P.grounded;P.charging=false;
   if(!on||t<0.25){if(!P.flying)toggleFlight();return true;}
   const k=clamp(t/1.5,0,1);toggleFlight();if(!P.flying)return true;
-  P.vel.set(camF.x*25*k,70+170*k,camF.z*25*k);P.launchT=0.5+1.3*k;P.pos.y+=0.3;
+  P.vel.set(camF.x*25*k,70+170*k,camF.z*25*k);P.launchT=0.5+1.3*k;P.pos.y+=0.3;P.hammerUpT=time;if(hasPower('stormBody')&&k>0.4)bolt(P.pos.x,P.pos.y,P.pos.z,true);
   ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,10+22*k,0.5,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,Math.round(30+60*k),14+24*k,0.9,DUST,2.4,-3,2.5);
   if(k>0.5)crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,2+3*k,[.42,.41,.4]);SFX.boom(0.4+0.5*k,0.8);addShake(0.2+0.5*k);hitProps(P.pos.x,P.pos.y,P.pos.z,3+4*k,P,12);
   addMastery(save.character.movement[0],10*k);return true;
@@ -2058,7 +2059,7 @@ function updatePowers(dt){
   if(P.speeding&&!drainT(pstat('superSpeed','drain')))P.speeding=false;
   if(time-P.lastSpend>CONFIG.energy.delay)P.en=Math.min(maxEn(),P.en+enRegen()*dt);
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
-  P.heat=Math.max(0,P.heat-dt*0.35);
+  updateWanted(dt);
   if(P.stun>0)P.stun-=dt;
   updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
 }
@@ -2147,7 +2148,7 @@ function punch(){
   for(const a of hits){
     const c=center(a);hx=c.x;hy=c.y;hz=c.z;const dx=c.x-P.pos.x,dz=c.z-P.pos.z,l=Math.hypot(dx,dz)||1,ux=dx/l,uz=dz/l;
     const opt={stun:fin?COMBAT.finStun:COMBAT.stun,flung:fin,combo:comboN};
-    if(fin){const s=Math.sqrt(strengthMul())*am*(MW?MW.knock:1)*(P.giantS>1.05?1.5:1);
+    if(fin){const s=Math.sqrt(strengthMul())*am*(MW?MW.knock:1)*(P.giantS>1.05?1.5:1)*heroKnockMul();
       if(upper)opt.kv=[ux*3,COMBAT.upper*Math.min(1.4,s),uz*3];
       else if(spike)opt.kv=[ux*5,-COMBAT.spike,uz*5];
       else opt.kv=[ux*COMBAT.launch*Math.min(1.6,s),9,uz*COMBAT.launch*Math.min(1.6,s)];
@@ -2417,9 +2418,12 @@ function tryWallRun(col,inF,inR,fwdX,fwdZ,rX,rZ,shift){
 }
 function wallRunStep(dt,inF,inR){
   const R=P.wallRun,b=R.b;R.t+=dt;
-  const fast=hasWeb()||P.speeding||(keys.ShiftLeft||keys.ShiftRight)?1:0;
-  if(R.mode==='up'){const sp=(hasPower('superSpeed')&&fast?MOVE.runUpFast:MOVE.runUp)*(R.t>R.max-0.4?0.5:1);P.vel.set(-R.nx*2,sp,-R.nz*2);}
-  else{const sp=MOVE.runSide*(fast?1.2:1);P.vel.x=R.tx*sp-R.nx*2;P.vel.z=R.tz*sp-R.nz*2;P.vel.y-=CONFIG.move.gravity*0.2*dt;if(R.t<0.25)P.vel.y=Math.max(P.vel.y,4);}
+  const fast=hasWeb()||P.speeding||P.fastMode||(keys.ShiftLeft||keys.ShiftRight)?1:0;
+  // speedsters run walls as fast as their speed dial lets them
+  const spd=isSpeed()&&fast?Math.max(MOVE.runUpFast,CONFIG.move.run*speedMult()*0.7):0;
+  if(spd&&Math.random()<0.8){const c=center(P);tracer(c.x,c.y-1,c.z,c.x+R.nx*0.4+rr(-.5,.5),c.y-1-(R.mode==='up'?spd*0.05:0),c.z+R.nz*0.4+rr(-.5,.5),SPD_C,0.07,0.3);}
+  if(R.mode==='up'){const sp=(spd||(hasPower('superSpeed')&&fast?MOVE.runUpFast:MOVE.runUp))*(R.t>R.max-0.4?0.5:1);P.vel.set(-R.nx*2,sp,-R.nz*2);if(spd)addMastery('superSpeed',dt*0.3);}
+  else{const sp=Math.max(MOVE.runSide*(fast?1.2:1),spd);P.vel.x=R.tx*sp-R.nx*2;P.vel.z=R.tz*sp-R.nz*2;P.vel.y-=CONFIG.move.gravity*0.2*dt;if(R.t<0.25)P.vel.y=Math.max(P.vel.y,4);}
   P.pos.addS(P.vel,dt);
   // stay glued to the face
   if(R.nx!==0)P.pos.x=R.nx>0?b.x1+P.radius:b.x0-P.radius;else P.pos.z=R.nz>0?b.z1+P.radius:b.z0-P.radius;
@@ -2795,6 +2799,8 @@ function metalUp(){
   P.mw=(P.mw+1)%METAL_W.length;const W=METAL_W[P.mw];feed(W.name,W.note);SFX.tone('square',180,90,0.12,0.08);SFX.punch(0.6);
   if(P.hand)burst(P.hand[12],P.hand[13],P.hand[14],14,5,0.3,[[.85,.88,.92],[1,1,1]],0.7,0,2);
 }
+// how far your finishers send people: the armor taps them, the storm god and the sun titan launch them
+const heroKnockMul=()=>P.alien?1:hasPower('armorSuit')?0.45:hasPower('stormBody')||hasPower('solarBody')?1.4:1;
 const bodyPunchMul=()=>{const W=metalWeapon();return (W?W.dmg:1)*(P.giantS>1.05?1+P.giantS:1)*(hasPower('solarBody')&&!P.alien?1.5:1);};
 const bodyReach=()=>{const W=metalWeapon();return (W?W.reach:0)+(hasPower('elasticBody')&&!P.alien?pstat('elasticBody','reach')*0.45:0)+(P.giantS>1.05?(P.giantS-1)*1.6:0);};
 // shield arm: most damage bounces off while you are not swinging
@@ -2856,7 +2862,12 @@ function drawBody(){
   if(state!=='play'||P.dead||P.alien||P.rag||!P.hand)return;
   // preset gear: the storm god's hammer, the armor's thrusters
   if(hasPower('stormBody')&&!thrown.some(t=>t.kind==='hammer')&&P.suited!==false){const H=P.hand;
-    queue(MESH.box,child(H,0,-0.35,0,0,0,0,0.1,0.75,0.1),HANDLE_C,F_SH);queue(MESH.mbox,child(H,0,-0.8,0,0,0,0,0.55,0.34,0.34),HAMMER_C,F_SH);
+    // charging a launch: whirl the hammer overhead, faster and faster; flying: it spins out ahead of you
+    const k=P.fCharge?clamp((P.chargeT||0)/1.5,0,1):0,M=P.fCharge?child(H,0,-0.1,0,0,time*(12+26*k),0):P.flying?child(H,0,-0.05,0,time*16,0,0):H;
+    if(P.fCharge){queue(MESH.box,child(M,0.55,0,0,0,0,Math.PI/2,0.1,1.1,0.1),HANDLE_C,F_SH);queue(MESH.mbox,child(M,1.15,0,0,0,0,0,0.34,0.34,0.55),HAMMER_C,F_SH);
+      const hp=child(M,1.15,0,0);queue(MESH.ring,M4.alignY(tmpM(),H[12],H[13],H[14],0,1,0,1.2),[.6,.75,1,0.25+0.5*k],F_ADD);
+      if(Math.random()<0.3+0.6*k){tracer(hp[12],hp[13],hp[14],hp[12]+rr(-1.5,1.5),hp[13]+rr(-1,1.5),hp[14]+rr(-1.5,1.5),[.6,.75,1],0.06,0.1);emit(hp[12],hp[13],hp[14],rr(-6,6),rr(-2,2),rr(-6,6),0.35,[.8,.85,.9],1,0,1);}}
+    else{queue(MESH.box,child(M,0,-0.35,0,0,0,0,0.1,0.75,0.1),HANDLE_C,F_SH);queue(MESH.mbox,child(M,0,-0.8,0,0,0,0,0.55,0.34,0.34),HAMMER_C,F_SH);}
     if(P.flying){const s=0.9+Math.sin(time*20)*0.1;queue(MESH.ring,M4.alignY(tmpM(),H[12],H[13],H[14],Math.sin(P.heroYaw),0,Math.cos(P.heroYaw),s),[.6,.75,1,0.6],F_ADD);if(Math.random()<0.15)tracer(H[12],H[13],H[14],H[12]+rr(-2,2),H[13]+rr(-2,2),H[14]+rr(-2,2),[.6,.75,1],0.05,0.08);}}
   if(hasPower('armorSuit')&&P.flying&&P.suited!==false){const H=P.hand,g=0.35+Math.random()*0.15;queue(MESH.glowSphere,at(H[12],H[13],H[14],0,0,0,g,g,g),[1,.85,.55,0.8],F_ADD);
     for(const sd of [-1,1]){const c=Math.cos(P.heroYaw),sn=Math.sin(P.heroYaw);queue(MESH.glowSphere,at(P.pos.x+c*sd*0.25,P.pos.y+0.1,P.pos.z-sn*sd*0.25,0,0,0,g*1.2,g*1.6,g*1.2),[1,.75,.45,0.8],F_ADD);}}
@@ -2992,7 +3003,7 @@ const CONSTRUCTS={
   dragon:{name:'Dragon',unlock:7,cost:18,drain:1,fly:true,speed:1.5,attacks:'LMB strike · RMB breath · X roar',blurb:'Ride a hard-light dragon'},
 };
 const CON_IDS=Object.keys(CONSTRUCTS);
-const OATH='My will holds fast. What I imagine, I make last. Let every foe be humbled by my ring of light.';
+const OATH='Through fear and doubt my will holds fast. What I imagine, I make last. Let every foe who stands to fight be humbled by my ring of light.';
 let conPick='bubble',oathOpen=false,oathStart=0;
 const isRing=()=>hasTrav('powerRing')&&!P.alien;
 const ringMk=()=>mk('powerRing');
@@ -3099,9 +3110,15 @@ Object.assign(POWER_FN,{
     holes.push({x,y,z,t:0,dur:pstat('blackHole','duration'),R,next:0,hitT:0,own:true});MP.fx('rg',{g:'b',x:Math.round(x),y:Math.round(y),z:Math.round(z),r:Math.round(R)});
     SFX.tone('sine',60,30,3,0.2);SFX.boom(0.8,0.4);addShake(0.6);flashWhite=0.3;feed('Black hole','Everything nearby is falling in');addMastery('powerRing',20);},
 });
-TOGGLE_FN.ringShield=()=>{if(P.ringShield){P.ringShield=false;SFX.tone('sine',900,300,0.2,0.08);return;}if(save.ring<2){ringOut();return;}P.ringShield=true;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3.5,0.3,RING_C);SFX.tone('sine',300,900,0.3,0.1);};
-// the shield soaks every hit, the ring pays for it
-function ringAbsorb(amount){if(!P.ringShield||!isRing())return amount;save.ring=Math.max(0,save.ring-amount*0.03);ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,2.5,3.6,0.2,RING_C);if(save.ring<=0){P.ringShield=false;ringOut();}return 0;}
+TOGGLE_FN.ringShield=()=>{if(P.ringShield){P.ringShield=false;SFX.tone('sine',900,300,0.2,0.08);return;}
+  if(PS.ringShield.cd>0){PS.ringShield.flash=0.3;feed('Shield is rebuilding',Math.ceil(PS.ringShield.cd)+' s');return;}
+  if(save.ring<1){ringOut();return;}const mx=pstat('ringShield','absorb');if(!(P.rsHp>0))P.rsHp=mx;P.rsHp=Math.min(P.rsHp,mx);
+  P.ringShield=true;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3.5,0.3,RING_C);SFX.tone('sine',300,900,0.3,0.1);};
+// the shield soaks every hit with its own health; each hit costs a little ring charge, and it breaks if it runs out
+function ringAbsorb(amount){if(!P.ringShield||!isRing())return amount;
+  P.rsHp-=amount;P.rsHitT=time;save.ring=Math.max(0,save.ring-amount*0.01);ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,2.5,3.6,0.2,RING_C);
+  if(P.rsHp<=0){P.rsHp=0;P.ringShield=false;PS.ringShield.cd=pstat('ringShield','cooldown');SFX.tone('square',600,120,0.3,0.1);burst(P.pos.x,P.pos.y+1.3,P.pos.z,40,10,0.5,[RING_C],1.2,0,2);feed('Shield broken','It rebuilds in '+Math.round(PS.ringShield.cd)+' s');}
+  else if(save.ring<=0){P.ringShield=false;ringOut();}return 0;}
 function onRingFx(d,n){
   if(d.g==='h')ringFxList.push({kind:'hammer',x:n(d.x),y:n(d.y),z:n(d.z),t:0,R:clamp(n(d.r),2,30),dmg:0,yaw:0,visual:true,hit:false});
   else if(d.g==='b')holes.push({x:n(d.x),y:n(d.y),z:n(d.z),t:0,dur:6,R:clamp(n(d.r),10,100),next:0,hitT:0,visual:true});
@@ -3125,6 +3142,7 @@ function updateRing(dt){
       if(K.ramT>0){K.ramT-=dt;for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||time-(a.ramHit||-9)<0.5)continue;const c=center(a);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1.3,c.z-P.pos.z)<3.2*conSize()){a.ramHit=time;Damage.apply(P,a,60*(1+ringMk()),'punch',{kv:[P.vel.x*0.6,14,P.vel.z*0.6],flung:true});}}}
       if(save.ring<=0){dismissConstruct();ringOut();}}
     if(P.ringShield){save.ring=Math.max(0,save.ring-pstat('ringShield','ringDrain')*dt);if(save.ring<=0){P.ringShield=false;ringOut();}}
+    {const mx=pstat('ringShield','absorb');if(P.rsHp==null)P.rsHp=mx;if(time-(P.rsHitT||-9)>2.5)P.rsHp=Math.min(mx,P.rsHp+mx*0.12*dt);}
     if(save.ring<=0&&P.flying&&!P.alien){P.flying=false;}
   }else{if(P.construct)dismissConstruct(true);P.ringShield=false;}
   for(let i=ringFxList.length-1;i>=0;i--){const F=ringFxList[i];F.t+=dt;
@@ -3172,12 +3190,24 @@ function openOath(){
   if(!isRing()||P.dead||state!=='play'||oathOpen)return;
   if(save.ring>=99.5){feed('Your ring is fully charged','');return;}
   if(P.construct)dismissConstruct(true);
-  oathOpen=true;oathStart=save.ring;oathIn.value='';oathEl.hidden=false;renderOath(0);
-  $('oath-note').textContent=save.oathKnown?'Tab fills in the next word · Esc to put the lantern away':'Type it once and after that Tab fills in each word · Esc to put the lantern away';$('oath-next').hidden=!save.oathKnown;P.lantern=true;P.flying=false;
-  for(const k in keys)keys[k]=false;mouseL=false;if(locked)document.exitPointerLock();setTimeout(()=>oathIn.focus(),30);
+  // the game keeps running and the mouse stays locked: on a keyboard your keys type straight into the oath
+  oathOpen=true;oathStart=save.ring;oathIn.value='';oathEl.hidden=false;oathEl.classList.toggle('mini',!!save.oathKnown);renderOath(0);
+  const tch=touchOn();oathIn.readOnly=!tch;oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';
+  $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the lantern away')
+    :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the lantern away.');
+  $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;P.flying=false;
+  for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);
   SFX.tone('sine',200,400,0.6,0.08);
 }
-function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathEl.hidden=true;P.lantern=false;oathIn.blur();if(save.settings.autoLock&&!touchOn()&&state==='play'&&!paused)requestLock();}
+function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathEl.hidden=true;P.lantern=false;oathIn.blur();}
+// keyboard typing while the lantern is out (called from the main key handler before anything else)
+function oathKey(e){
+  e.preventDefault();const k=e.key;
+  if(e.code==='Escape'||e.code==='Enter'||e.code==='NumpadEnter'){closeOath();return;}
+  if(e.code==='Tab'){oathNextWord();return;}
+  if(k==='Backspace')oathIn.value=oathIn.value.slice(0,-1);else if(k.length===1&&!e.ctrlKey&&!e.metaKey)oathIn.value+=k;else return;
+  oathIn.dispatchEvent(new Event('input'));
+}
 function oathWire(){if(oathEl)return;oathEl=$('oath');oathIn=$('oath-in');oathText=$('oath-text');
 oathIn.addEventListener('input',()=>{
   const want=oathNorm(OATH),got=oathNorm(oathIn.value);let n=0;while(n<got.length&&got[n]===want[n])n++;
@@ -3401,13 +3431,61 @@ function renderHeroKeys(){
   const K=(k,t)=>{box.appendChild(el('kbd',{text:k}));box.appendChild(el('span',{text:t}));};
   const m=c.movement[0];
   if(m==='webSwing'){K('Right click','Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
-  else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
+  else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
   else if(m==='powerRing'){K('F','Fly · hold on the ground to charge a launch');K('B · V','Build a construct · pick one');K('O','Recite the oath to recharge the ring');K('Click · Right click · X','Construct attacks');}
   else if(m==='flight'||m==='stormFlight'||m==='armorFlight'||m==='solarFlight'){K('F','Fly · hold on the ground to charge a launch');}
   if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
   if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
   K('U','Suit up or down');
 }
+// ================================================================
+// Wanted level (1-5 stars) and bounty
+// ================================================================
+// Crimes against civilians and police build heat. Heat becomes stars: 1 star sends officers,
+// 2 brings police cars, 3 sends more of everything, 4 calls in helicopters, 5 is everything
+// at once. Stay out of sight of the police long enough and you lose a star at a time.
+// Villains also build a bounty. It stays on your head until a hero player takes you down
+// and collects it (a rival hero NPC can claim it too).
+const WANTED={stars:[1,4,9,16,26],max:40,lose:[0,10,13,16,20,25]};
+P.wantedPts=0;P.stars=0;let unseenT=0;
+const starsFor=p=>{let s=0;for(const t of WANTED.stars)if(p>=t)s++;return s;};
+function syncHeat(){P.heat=P.stars?P.stars*2:0;} // older systems read P.heat: police chase above 0, helicopters from 7 (4 stars)
+function addWanted(n,bounty){
+  if(!(n>0)||P.dead||state!=='play'||!ROOM.police)return;
+  const before=P.stars;P.wantedPts=Math.min(WANTED.max,P.wantedPts+n);P.stars=starsFor(P.wantedPts);unseenT=0;syncHeat();
+  if(P.stars>before){SFX.tone('square',700,900,0.12,0.06);later(0.15,()=>SFX.tone('square',900,700,0.12,0.06));
+    feed('Wanted '+'★'.repeat(P.stars),['','The police are looking for you','Police cars are on the way','Every cop in the city wants you','Helicopters are in the air','Everything they have'][P.stars]);}
+  if(bounty&&playerFaction()!=='hero')addBounty(bounty*(1+P.stars*0.5));
+}
+function clearWanted(){P.wantedPts=0;P.stars=0;unseenT=0;syncHeat();}
+function addBounty(n){n=Math.round(n/10)*10;if(n<=0)return;save.bounty=Math.min(1e6,(save.bounty||0)+n);}
+// can the police see you right now?
+function policeSee(){
+  for(const h of humans)if(h.alive&&h.role==='police'&&!h.hidden&&Math.abs(h.pos.x-P.pos.x)<80&&Math.abs(h.pos.z-P.pos.z)<80&&Math.hypot(h.pos.x-P.pos.x,h.pos.y-P.pos.y,h.pos.z-P.pos.z)<75)return true;
+  for(const v of vehicles)if(v.alive&&v.vtype==='police'&&(v.state==='chase'||v.siren)&&Math.hypot(v.pos.x-P.pos.x,v.pos.z-P.pos.z)<95)return true;
+  for(const h of helis)if(h.alive&&!h.leave&&Math.hypot(h.pos.x-P.pos.x,h.pos.z-P.pos.z)<160)return true;
+  return false;
+}
+function updateWanted(dt){
+  if(!P.stars){syncHeat();return;}
+  if(P.dead||P.invisible>0||!ROOM.police)unseenT+=dt*3;else if(policeSee())unseenT=0;else unseenT+=dt;
+  if(unseenT>WANTED.lose[P.stars]){P.stars--;P.wantedPts=P.stars?WANTED.stars[P.stars-1]:0;unseenT=0;syncHeat();
+    feed(P.stars?'Wanted '+'★'.repeat(P.stars):'You lost them',P.stars?'Lost a star · keep out of sight':'The police stopped looking');}
+  syncHeat();
+}
+// you went down: the police stand down; a hero (player or rival) who took you down collects your bounty
+function bountyOnDown(killer){
+  clearWanted();const b=save.bounty||0;if(!b||!killer)return;
+  if(killer.kind==='remote'&&killer.faction==='hero'){MP.fx('bc',{to:killer.peer,a:b,n:save.character?save.character.name:'A villain'});save.bounty=0;feed('Bounty claimed',killer.name+' collected your $'+b.toLocaleString('en-US')+' bounty');}
+  else if(killer.kind==='rival'&&killer.faction==='hero'){save.bounty=0;feed('Bounty claimed',killer.name+' collected your $'+b.toLocaleString('en-US')+' bounty');}
+  persist();
+}
+function onBountyFx(d,r){
+  if(d.to!==MP.myPeer)return;const a=clamp(+d.a||0,0,1e6);if(!a)return;
+  const xp=Math.round(a/10),rep=Math.round(Math.min(500,a/100));addXP(xp);addRep(rep);
+  toast('Bounty collected · $'+a.toLocaleString('en-US'),'You took down '+(cleanName(String(d.n||''))||r.name)+' · +'+xp+' XP · +'+rep+' rep','gold');SFX.chime();persist();
+}
+const starText=n=>'★'.repeat(n)+'☆'.repeat(5-n);
 // ================================================================
 // NPCs: people, drones, vehicles, rival supers, shops
 // ================================================================
@@ -3779,7 +3857,7 @@ for(const s of atms){const p={kind:'prop',role:'atm',ref:s,faction:'object',aliv
 const CASH=[[.3,.9,.4],[1,.85,.3]];
 function robProp(p,src){
   const c=NPCS[p.role];p.reopen=c.reopen;burst(p.pos.x,p.pos.y+1.5,p.pos.z,50,12,1.4,CASH,1.3,8,1.2);SFX.chime();
-  if(src===P){addXP(c.xp);addRep(c.rep);P.heat=10;save.stats.crimesCommitted++;
+  if(src===P){addXP(c.xp);addRep(c.rep);addWanted(5,1000);save.stats.crimesCommitted++;
     feed('+'+c.xp+' XP · '+c.rep+' rep',p.role==='shop'?'You robbed the '+p.ref.name:'You cracked an ATM');scare(p.pos.x,p.pos.z,40);}
 }
 function updateProps(dt){for(const p of props){if(p.flash>0)p.flash=Math.max(0,p.flash-dt*5);if(!p.alive){p.reopen-=dt;if(p.reopen<=0){p.alive=true;p.hp=p.maxHp;}}}}
@@ -3967,7 +4045,7 @@ function updateCrimes(dt){
       if(r==='cleared'&&WS.host)WS.crimeReward(c);}}
   if(state!=='play')return;
   const small=crimes.filter(c=>!c.heist).length;
-  if(small<CRIMES.maxActive){crimeT-=dt;if(crimeT<=0){crimeT=rr(CRIMES.spawnGap[0],CRIMES.spawnGap[1]);startRandomCrime();}}
+  if(small<CRIMES.maxActive&&ROOM.crimes){crimeT-=dt;if(crimeT<=0){crimeT=rr(CRIMES.spawnGap[0],CRIMES.spawnGap[1]);startRandomCrime();}}
   if(vaultGoneT>0){vaultGoneT-=dt;if(vaultGoneT<=0&&bank)vaultY=bank.vault.y;}
   if(!crimes.some(c=>c.heist)&&save.level>=CRIMES.heistMinLevel){heistT-=dt;if(heistT<=0){heistT=rr(CRIMES.heistGap[0],CRIMES.heistGap[1]);if(!(Math.random()<0.5&&startVaultHeist()))startTruckHeist();}}
 }
@@ -3991,7 +4069,7 @@ function managePopulation(dt){
   const countNear=(r,c)=>{let n=0;for(const h of humans)if(h.alive&&h.role===r&&!h.crime&&!h.gang&&Math.abs(h.pos.x-c.x)<150&&Math.abs(h.pos.z-c.z)<150)n++;return n;};
   C.forEach((c,ci)=>{const me=ci===0,who=PL[ci],heat=me?P.heat>0:!!(who.flags&FLAG.wanted);
     let civ=countNear('civilian',c);for(let i=0;civ<CRIMES.population.civilians*k*(me?1:0.7)&&i<3;i++,civ++){const p=sidewalkPointNear(c.x,c.z,45,150);spawnHuman('civilian',p.x,p.z,{path:p.path});}
-    const wantPolice=Math.round(CRIMES.population.police*k*(me?1:0.7))+(heat?3:0);
+    const stars=me?P.stars:heat?2:0,wantPolice=ROOM.police?Math.round(CRIMES.population.police*k*(me?1:0.7))+(heat?1+Math.round(stars*1.5):0):0;
     let pol=countNear('police',c);for(let i=0;pol<wantPolice&&i<2;i++,pol++){const p=sidewalkPointNear(c.x,c.z,heat?55:60,heat?90:150);const h=spawnHuman('police',p.x,p.z,{path:p.path});if(heat&&(me?!P.dead&&state==='play':who.alive))h.target=who;}});
   manageGangs();
   for(const r of rivals.slice())if(r.alive&&far(r.pos,450))removeActor(r);
@@ -4042,7 +4120,7 @@ function heliWants(){
 }
 function manageHelis(dt){
   const wanted=heliWants(),live=helis.filter(h=>h.alive&&!h.leave);
-  const want=wanted.length?Math.min(3,wanted.length+(save.reputation<=-1500&&P.heat>=7?1:0)):0;
+  const want=!ROOM.police?0:wanted.length?Math.min(3,wanted.length+(P.stars>=5?1:0)+(save.reputation<=-1500&&P.heat>=7?1:0)):0;
   if(live.length<want){heliT-=dt;if(heliT<=0){heliT=rr(12,20);const t=wanted[live.length%wanted.length];spawnHeli(t);}}
   else heliT=Math.max(heliT,6);
   for(const h of live)if(!wanted.includes(h.target)){const t=wanted[0];if(t)h.target=t;else h.leave=true;}
@@ -4142,7 +4220,7 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
     applyPresence(r,pr);
   },
   remove(id){const r=this.peers.get(id);if(!r)return;this.peers.delete(id);removeFrom(actors,r);if(state==='play')feed(r.name+' left','');if(sheetOpen==='mp')renderSheet();},
-  canFight(t){const a=playerFaction(),b=t.faction;return !(a!=='neutral'&&a===b);},
+  canFight(t){if(ROOM.pvp==='off')return false;if(ROOM.pvp==='all')return true;const a=playerFaction(),b=t.faction;return !(a!=='neutral'&&a===b);},
   hit(t,amount,type,opt){
     if(!this.net()||P.dead||state!=='play')return 0;
     if(!this.canFight(t)){if(time-(t.ffT||-9)>2){t.ffT=time;feed('Same side','You and '+t.name+' are both '+(t.faction==='hero'?'heroes':'villains'));}return 0;}
@@ -4183,6 +4261,7 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
     else if(d.k==='s'){const R=clamp(n(d.r),2,60);ringFx(n(d.x),n(d.y),n(d.z),1,R,0.5,[.45,.85,1]);SFX.boom(0.6*SFX.vol(n(d.x),n(d.y),n(d.z)),1);}
     else if(d.k==='gw'){wells.push({x:n(d.x),y:n(d.y),z:n(d.z),t:0,dur:4,R:24,dmg:0,visual:true});}
     else if(d.k==='hold'){if(d.to===this.myPeer&&!P.dead)P.heldBy={x:n(d.x),y:n(d.y),z:n(d.z),t:time,by:r};}
+    else if(d.k==='bc'){onBountyFx(d,r);}
     else if(d.k==='ts'){startTimeStop(r,clamp(n(d.d),0,5));}
     else if(d.k==='rg'){if(d.g==='o'){ringFx(r.pos.x,r.pos.y+1.5,r.pos.z,1,20,0.7,RING_C);burst(r.pos.x,r.pos.y+1.5,r.pos.z,80,20,1,[RING_C,[1,1,1]],1.6,0,2);}else onRingFx(d,n);}
     else if(d.k==='t'){ringFx(r.pos.x,r.pos.y+1.5,r.pos.z,1,8,0.6,BAND_COL);burst(r.pos.x,r.pos.y+1.5,r.pos.z,50,14,0.8,[BAND_COL,[1,1,1]],1.4,0,2);}
@@ -4199,6 +4278,7 @@ function myPresence(){
   // presence patches merge on the server, so optional fields are always sent (null clears them)
   o.b=beam?(beam.w?[r1(beam.x),r1(beam.y),r1(beam.z),r1(beam.w)]:[r1(beam.x),r1(beam.y),r1(beam.z)]):null;const wp=P.web||P.zip;o.w=wp?[r1(wp.x),r1(wp.y),r1(wp.z)]:null;o.k=P.tk&&P.tk.hold?P.tk.hold.map(r1):null;o.c=null;
   o.cn=P.construct?P.construct.id:null;o.ex=presExtra();
+  o.st=P.stars||0;o.bty=save.bounty||0;
   if(P.car){o.c=[P.car.model,r2(P.car.yaw),P.car.tint.slice(0,3).map(r2)];o.x=r1(P.car.pos.x);o.y=r1(P.car.pos.y);o.z=r1(P.car.pos.z);}
   return o;
 }
@@ -4217,6 +4297,7 @@ function applyPresence(r,p){
   r.beam=Array.isArray(p.b)?{x:n(p.b[0]),y:n(p.b[1]),z:n(p.b[2]),w:clamp(n(p.b[3]),0,8)}:null;r.web=Array.isArray(p.w)?{x:n(p.w[0]),y:n(p.w[1]),z:n(p.w[2])}:null;
   r.tk=Array.isArray(p.k)&&p.k.length===3?{x:n(p.k[0]),y:n(p.k[1]),z:n(p.k[2])}:null;
   r.car=Array.isArray(p.c)&&CARS[p.c[0]]?{model:p.c[0],yaw:n(p.c[1]),tint:Array.isArray(p.c[2])?[clamp(n(p.c[2][0]),0,1),clamp(n(p.c[2][1]),0,1),clamp(n(p.c[2][2]),0,1),1]:[1,1,1,1]}:null;
+  r.stars=clamp(n(p.st)|0,0,5);r.bounty=clamp(n(p.bty),0,1e6);
   r.cn=CONSTRUCTS[p.cn]?p.cn:null;r.ex=Array.isArray(p.ex)?p.ex.map(n).slice(0,6):null;r.giantS=r.ex&&r.ex[2]>1?clamp(r.ex[2],1,4):1;if(r.ex&&r.ex[3])r.look=civLook(r.look);else if(r.ex&&r.ex[4])r.look.armor=true;
   if(r.pos.y<-40)r.pos.copy(r.tp);
   r.alive=!(r.flags&FLAG.dead)&&!(r.flags&FLAG.invis);r.firing=!!r.beam;
@@ -4259,7 +4340,7 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   changed(){MP.dirty=true;if(sheetOpen==='mp')renderSheet();},
   fail(msg){this.shutdown();this.state='error';this.err=msg;this.changed();if(state==='play')feed('Multiplayer',msg);},
   shutdown(){
-    clearTimeout(this.timer);this.open=false;
+    clearTimeout(this.timer);this.open=false;resetRoom();
     for(const c of this.conns.values())try{c.close();}catch(e){}this.conns.clear();
     if(this.hostConn)try{this.hostConn.close();}catch(e){}this.hostConn=null;
     if(this.peer)try{this.peer.destroy();}catch(e){}this.peer=null;
@@ -4300,7 +4381,8 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   accept(conn){
     conn.on('open',()=>{
       if(this.conns.size>=P2P_MAX-1){try{conn.send({t:'full'});}catch(e){}setTimeout(()=>conn.close(),300);return;}
-      this.conns.set(conn.peer,conn);
+      if(ROOM.locked){try{conn.send({t:'locked'});}catch(e){}setTimeout(()=>conn.close(),300);return;}
+      this.conns.set(conn.peer,conn);conn.send({t:'rs',d:ROOM});
       if(this.myLast)conn.send({t:'pr',from:MP.myPeer,p:this.myLast});
       for(const [id,o] of this.conns)if(id!==conn.peer&&o.lastPr)conn.send({t:'pr',from:id,p:o.lastPr});
       this.changed();});
@@ -4322,6 +4404,9 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
     else if(m.t==='left'&&from)MP.remove(from);
     else if(m.t==='ev'&&from&&P2P_TOPICS.includes(m.topic))this.deliver(from,m.topic,m.d);
     else if(m.t==='full')this.fail('That room is full ('+P2P_MAX+' players)');
+    else if(m.t==='locked')this.fail('The host has locked that room');
+    else if(m.t==='kick')this.fail('The host removed you from the room');
+    else if(m.t==='rs')applyRoom(m.d);else if(m.t==='rebuild')rebuildCity(false);
     else if(m.t==='ws')WS.onSnapshot(m.d);else if(m.t==='ph')WS.onNpcHit(m.d);else if(m.t==='rw')WS.onReward(m.d);
   },
   deliver(from,topic,d){const msg={peer:from,isMe:false,data:d};if(topic==='hit')MP.onHit(msg);else if(topic==='down')MP.onDown(msg);else if(topic==='fx')MP.onFx(msg);
@@ -4550,6 +4635,49 @@ Bus.on('damaged',({source,target})=>{if(WS.host&&source&&source.kind==='remote'&
 Bus.on('defeated',({target,killer})=>{if(!WS.host||!killer||killer.kind!=='remote'||!target)return;
   P2P.sendTo(killer.peer,{t:'rw',d:{k:'kill',kind:target.kind,role:target.role,type:target.type,level:target.level,faction:target.faction,bounty:target.bounty?1:0,name:target.name||''}});});
 // ================================================================
+// Room host controls (room-code multiplayer)
+// ================================================================
+// The player who created the room decides the rules for everyone: who can fight whom,
+// whether crimes and police happen, the time of day, and who is in the room.
+const ROOM_DEFAULT={pvp:'factions',crimes:true,police:true,locked:false};
+const ROOM=Object.assign({},ROOM_DEFAULT);
+const PVP_MODES={factions:'Heroes vs villains',all:'Everyone can fight',off:'No fighting between players'};
+const isRoomHost=()=>P2P.state==='open'&&P2P.host;
+function resetRoom(){Object.assign(ROOM,ROOM_DEFAULT);}
+function applyRoom(d,quiet){
+  if(!d||typeof d!=='object')return;const before=JSON.stringify(ROOM);
+  if(PVP_MODES[d.pvp])ROOM.pvp=d.pvp;for(const k of ['crimes','police','locked'])if(typeof d[k]==='boolean')ROOM[k]=d[k];
+  if(!ROOM.police){clearWanted();for(const h of humans)if(h.role==='police'&&h.target===P)h.target=null;}
+  if(!quiet&&before!==JSON.stringify(ROOM)&&state==='play')feed('Room rules changed',PVP_MODES[ROOM.pvp]+(ROOM.crimes?'':' · no crimes')+(ROOM.police?'':' · no police'));
+  if(sheetOpen==='mp')renderSheet();
+}
+function hostSet(k,v){if(!isRoomHost())return;ROOM[k]=v;applyRoom(ROOM,true);P2P.broadcast({t:'rs',d:ROOM},null);if(state==='play')feed('Room rules changed','');}
+function kickPeer(id){
+  if(!isRoomHost())return;const c=P2P.conns.get(id),r=MP.peers.get(id);
+  if(c){try{c.send({t:'kick'});}catch(e){}setTimeout(()=>{try{c.close();}catch(e){}},250);}
+  if(r)feed(r.name+' was removed','');
+}
+// grow every fallen building back right away, for everyone in the room
+function rebuildCity(broadcast){
+  let n=0;for(const b of bldgs)if(b.state==='down'||b.state==='fall'){b.state='down';b.regrowAt=time;n++;}
+  if(broadcast&&isRoomHost())P2P.broadcast({t:'rebuild'},null);
+  feed('Rebuilding the city',n?n+' building'+(n>1?'s':'')+' growing back':'Nothing to rebuild');
+}
+function renderHostControls(B){
+  const tgl=(label,k,note)=>{const c=el('input',{type:'checkbox'});c.checked=!!ROOM[k];c.addEventListener('change',()=>hostSet(k,c.checked));
+    return el('label',{class:'row'},el('span',{text:label+(note?' · '+note:'')}),c);};
+  const pvp=el('select',{'aria-label':'Player fighting'},...Object.keys(PVP_MODES).map(k=>{const o=el('option',{value:k,text:PVP_MODES[k]});if(ROOM.pvp===k)o.selected=true;return o;}));
+  pvp.addEventListener('change',()=>hostSet('pvp',pvp.value));
+  const tods=[['Morning',0.3],['Noon',0.5],['Evening',0.74],['Night',0.95]].map(([n,v])=>el('button',{class:'ghost',type:'button',text:n,onclick:()=>{tod=v;feed('Time of day',n);}}));
+  B.append(el('h3',{text:'Host controls'}),
+    el('label',{class:'row'},el('span',{text:'Player fighting'}),pvp),
+    tgl('Crimes happen','crimes'),tgl('Police and wanted levels','police'),tgl('Lock the room','locked','nobody new can join'),
+    el('p',{class:'muted',text:'Time of day'}),el('div',{class:'cta'},...tods),
+    el('div',{class:'cta'},el('button',{class:'ghost',type:'button',text:'Rebuild the city now',onclick:()=>rebuildCity(true)})));
+  if(MP.peers.size){B.append(el('p',{class:'muted',text:'Remove a player'}));
+    for(const [id,r] of MP.peers)B.append(el('div',{class:'row'},el('span',{text:r.name+' · LV '+r.level}),el('button',{class:'ghost',type:'button',text:'Remove',onclick:()=>kickPeer(id)})));}
+}
+// ================================================================
 // HUD
 // ================================================================
 const $=id=>document.getElementById(id);
@@ -4640,7 +4768,7 @@ function updateTags(){
     t.t.hidden=false;t.t.style.transform=`translate(${p[0].toFixed(1)}px,${p[1].toFixed(1)}px) translate(-50%,-100%)`;
     if(t.name!==name){t.name=name;t.n.textContent=name;t.n.hidden=!name;}if(t.col!==col){t.col=col;t.n.style.color=col||'';}
     if(max){t.hb.hidden=false;t.b.style.width=(clamp(hp/max,0,1)*100).toFixed(1)+'%';}else t.hb.hidden=true;};
-  for(const r of MP.peers.values())if(r.alive&&d2h(r,P)<400*400)add(r.pos.x,r.pos.y+(r.car?3:3.4),r.pos.z,r.name+' · LV '+r.level+' · '+repTier(r.rep||0).name,FACTION_COL[r.faction],r.hp,100);
+  for(const r of MP.peers.values())if(r.alive&&d2h(r,P)<400*400)add(r.pos.x,r.pos.y+(r.car?3:3.4),r.pos.z,r.name+' · LV '+r.level+' · '+repTier(r.rep||0).name+(r.stars?' '+'★'.repeat(r.stars):'')+(r.bounty?' · $'+r.bounty.toLocaleString('en-US'):''),FACTION_COL[r.faction],r.hp,100);
   for(const r of rivals)if(r.alive&&d2h(r,P)<220*220)add(r.pos.x,r.pos.y+3.4,r.pos.z,r.name+' · LV '+r.level+(r.bounty?' · BOUNTY':''),FACTION_COL[r.faction],r.hp,r.maxHp);
   for(const h of humans){if(!h.alive||h.hidden)continue;const d=d2h(h,P);
     if(h.downed>0&&d<45*45)add(h.pos.x,h.pos.y+1.2,h.pos.z,playerFaction()==='villain'?'Injured':'Injured · G to help','#7dffb0',0,0);
@@ -4787,6 +4915,8 @@ function renderMP(){
     const inp=el('input',{type:'text',value:link,readonly:'readonly','aria-label':'Invite link'});
     B.append(el('h3',{text:'Room code'}),el('p',{class:'roomcode',text:P2P.code}),inp,el('div',{class:'cta'},copy,el('button',{class:'ghost',type:'button',text:'Leave room',onclick:()=>P2P.leave()})),
       el('h3',{text:'Players · '+names.length+'/'+P2P_MAX}),el('ul',{class:'plist'},...names.map(n=>el('li',{text:n}))));
+    if(P2P.host)renderHostControls(B);
+    else B.append(el('h3',{text:'Room rules'}),el('p',{class:'muted',text:PVP_MODES[ROOM.pvp]+' · crimes '+(ROOM.crimes?'on':'off')+' · police '+(ROOM.police?'on':'off')+(ROOM.locked?' · locked':'')+'. The host sets these.'}));
     return;}
   if(P2P.state==='starting'){B.append(el('p',{class:'pts',text:P2P.statusText()}),el('button',{class:'ghost',type:'button',text:'Cancel',onclick:()=>P2P.leave()}));return;}
   if(P2P.state==='error')B.append(el('p',{class:'note warn',text:P2P.err}));
@@ -4824,7 +4954,7 @@ function pickCard(id,on,onclick,tag,extra){const c=POWERS[id];
     el('span',{text:PRESETS[id]?PRESETS[id].blurb:c.desc}),extra?el('span',{class:'cat',text:extra}):null);}
 function renderCreator(){
   const y=creatorBody.scrollTop;creatorBody.textContent='';const d=draft;
-  creatorBody.appendChild(el('p',{class:'muted',text:creatorMode==='rechoose'?'Pick new powers. Skill points you spent on powers you drop come back to you. You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':'Pick one way to get around. Three of them are full hero kits; Flight lets you build your own hero from a body mod and two abilities. Powers are free, and you can change them later from the pause menu (once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes). Traversal gets stronger the more you use it; skill points upgrade everything else.'}));
+  creatorBody.appendChild(el('p',{class:'muted',text:creatorMode==='rechoose'?'Pick new powers. Skill points you spent on powers you drop come back to you.'+(CONFIG.rechoiceCooldown>0?' You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':''):'Pick one way to get around. Three of them are full hero kits; Flight lets you build your own hero from a body mod and two abilities. Powers are free, and you can change them later from the pause menu (once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes). Traversal gets stronger the more you use it; skill points upgrade everything else.'}));
   if(creatorMode!=='rechoose')renderLook(creatorBody);
   const redraw=()=>{d.confirm=false;renderCreator();};
   creatorBody.appendChild(el('h3',{text:'Traversal · pick 1'}));
@@ -4909,6 +5039,7 @@ addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
   if(e.code==='Tab'&&(sheetOpen||state!=='play'||creating))return;
   if(['Space','ArrowUp','ArrowDown','Tab'].includes(e.code))e.preventDefault();
+  if(oathOpen&&!touchOn()&&state==='play'&&!paused){oathKey(e);return;}
   const was=keys[e.code];keys[e.code]=true;if(was)return;
   if(dialOpen){if(e.code in DIAL_CODES){setDialSel(DIAL_CODES[e.code]);dialConfirm();}else if(e.code==='Escape'||e.code==='KeyV')closeDial();return;}
   if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
@@ -4940,7 +5071,7 @@ canvas.addEventListener('mousedown',e=>{
   if(paused){if(!sheetOpen&&!creating)resume();return;}
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
-  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car)return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car||oathOpen)return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
   else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
@@ -4996,7 +5127,7 @@ function enterCar(v){
   if(P.alien&&alienDef().flies)return;
   if(v.state==='road'||v.state==='chase'){const h=spawnHuman(v.vtype==='police'?'police':'civilian',v.pos.x+Math.cos(v.yaw)*2,v.pos.z-Math.sin(v.yaw)*2);
     if(h.role==='police')h.target=P;else npcFlee(h,P.pos.x,P.pos.z);
-    addRep(v.vtype==='police'?-10:-5);P.heat=Math.max(P.heat,v.vtype==='police'?10:4);feed('Carjacked',v.vtype==='police'?'-10 rep · the police want their car back':'-5 rep');}
+    addRep(v.vtype==='police'?-10:-5);addWanted(v.vtype==='police'?4:1.5,150);feed('Carjacked',v.vtype==='police'?'-10 rep · the police want their car back':'-5 rep');}
   if(v.driver)ejectDriver(v);if(v.crime&&v.state==='flee'){v.escaped=false;}
   stopAllPowers();P.car=v;v.state='player';v.spd=v.state==='road'?v.maxSpd*0.5:0;v.siren=false;P.flying=false;P.charging=false;
   if(!save.guide.car){save.guide.car=true;toast('Driving','W and S to drive, A and D to steer, Space to drift, G to get out','cyan');}
@@ -5085,7 +5216,7 @@ function driveCar(dt,inF,inR){
   else v.spd*=1-0.5*dt;
   if(hb)v.spd*=1-1.2*dt;
   v.spd=clamp(v.spd,-D.reverse,D.maxSpeed);
-  const turn=inR*D.steer*clamp(v.spd/9,-1,1)*(hb?1.7:1);v.yaw+=turn*dt;
+  const turn=inR*D.steer*clamp(v.spd/9,-1,1)*(hb?1.7:1);v.yaw-=turn*dt; // D steers right
   const fx=Math.sin(v.yaw),fz=Math.cos(v.yaw),prevY=v.pos.y;
   v.pos.x+=fx*v.spd*dt;v.pos.z+=fz*v.spd*dt;
   // buildings: push out and bounce
@@ -5245,6 +5376,8 @@ function updatePlayer(dt){
   else{if(P.vel.y>0){al=-2.7;ar=-2.7;el=er=-0.1;tl=0.5;tr=-0.3;kl=0.9;kr=0.3;cape=0.4;}else{al=-1.2;ar=-1.2;alz=-0.9;arz=0.9;el=er=-0.4;tl=0.3;tr=-0.2;kl=0.5;kr=0.4;cape=clamp(-P.vel.y/35,0.3,2.6);}
     if(P.slam){al=-3;ar=-3;alz=-0.2;arz=0.2;tl=0.9;tr=0.9;kl=kr=1.5;cape=2.8;}}
   if(P.tk){ar=-1.7;al=-1.7;alz=-0.3;arz=0.3;el=er=-0.2;}
+  if(hasPower('stormBody')&&!P.alien&&P.suited!==false&&!thrown.some(t=>t.kind==='hammer')){ // the storm god's hammer arm
+    if(P.fCharge){ar=-2.9;arz=0.25;er=0;al=-0.6;}else if(time-(P.hammerUpT||-9)<0.6){ar=-3.1;arz=0.05;er=0;}else if(P.flying&&sp3>12){ar=-2.95;er=0;arz=0.05;}}
   if(time-castT<0.25&&!beam){ar=-1.6;er=0;}
   const k=damp(14,dt);a.legL=lerp(a.legL,tl,k);a.legR=lerp(a.legR,tr,k);a.kneeL=lerp(a.kneeL||0,kl,k);a.kneeR=lerp(a.kneeR||0,kr,k);a.armL=lerp(a.armL,al,k);a.armR=lerp(a.armR,ar,k);
   a.elbL=lerp(a.elbL||0,el,k);a.elbR=lerp(a.elbR||0,er,k);a.armLz=lerp(a.armLz,alz,k);a.armRz=lerp(a.armRz,arz,k);a.cape=lerp(a.cape,cape,damp(8,dt));
@@ -5744,10 +5877,11 @@ function updateHud(dt){
   setText(hud.htier,'tier',t.name);if(lastHud.tf!==t.faction){lastHud.tf=t.faction;hud.htier.style.color=FACTION_COL[t.faction];}
   setText(hud.lvl,'lvl','LV '+save.level);setW(hud.xpb,'xp',save.xp/xpNeed());
   setText(hud.rep,'rep',(save.reputation>0?'+':'')+save.reputation.toLocaleString('en-US'));setText(hud.sp,'sp',String(save.sp));
-  hud.spwrap.classList.toggle('glow',save.sp>0);hud.bounty.hidden=!hasBounty();hud.wanted.hidden=!(P.heat>0);
+  hud.spwrap.classList.toggle('glow',save.sp>0);hud.bounty.hidden=!(save.bounty>0);if(save.bounty>0)setText(hud.bounty,'bty','BOUNTY $'+save.bounty.toLocaleString('en-US'));
+  hud.wanted.hidden=!P.stars;if(P.stars){setText(hud.wanted,'wstar',starText(P.stars));hud.wanted.classList.toggle('blink',unseenT>2);}
   setW(hud.hpb,'hp',P.hp/maxHp());{const rg=isRing();if(lastHud.rg!==rg){lastHud.rg=rg;$('enm').classList.toggle('ring',rg);$('enm').firstElementChild.firstChild.nodeValue=rg?'RING ':'ENERGY ';}
     if(rg){setW(hud.enb,'en',save.ring/100);setText(hud.ent,'ent',String(Math.floor(save.ring))+'%');}else{setW(hud.enb,'en',P.en/maxEn());setText(hud.ent,'ent',String(Math.floor(P.en)));}}setText(hud.hpt,'hpt',String(Math.ceil(P.hp)));
-  hud.shbar.hidden=!P.shieldOn;if(P.shieldOn)setW(hud.shb,'sh',P.shield/pstat('energyShield','absorb'));
+  hud.shbar.hidden=!P.shieldOn&&!P.ringShield;if(P.shieldOn)setW(hud.shb,'sh',P.shield/pstat('energyShield','absorb'));else if(P.ringShield)setW(hud.shb,'sh',P.rsHp/pstat('ringShield','absorb'));
   const mins=Math.floor(tod*24*60);setText(hud.clock,'clock',String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0'));
   const sp=P.vel.len();
   setText(hud.mode,'mode',P.dead?'Down':P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.phasing?'Phasing':timeStopT>0?'Time stopped':frozenT>0?'Frozen in time':P.speeding?'Super speed x'+Math.min(P.dial,dialMax()):isSpeed()?'On foot · dial x'+Math.min(P.dial,dialMax())+(P.fastMode?' · fast mode':''):P.charging?'Charging':P.grounded?'On foot':'Airborne');
@@ -5832,7 +5966,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
-  tlights,lightFor,P2P,WS,PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,summonConstruct,dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
+  tlights,lightFor,P2P,WS,PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,summonConstruct,dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>

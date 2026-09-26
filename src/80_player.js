@@ -11,6 +11,7 @@ addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
   if(e.code==='Tab'&&(sheetOpen||state!=='play'||creating))return;
   if(['Space','ArrowUp','ArrowDown','Tab'].includes(e.code))e.preventDefault();
+  if(oathOpen&&!touchOn()&&state==='play'&&!paused){oathKey(e);return;}
   const was=keys[e.code];keys[e.code]=true;if(was)return;
   if(dialOpen){if(e.code in DIAL_CODES){setDialSel(DIAL_CODES[e.code]);dialConfirm();}else if(e.code==='Escape'||e.code==='KeyV')closeDial();return;}
   if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
@@ -42,7 +43,7 @@ canvas.addEventListener('mousedown',e=>{
   if(paused){if(!sheetOpen&&!creating)resume();return;}
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
-  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car)return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car||oathOpen)return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
   else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
@@ -98,7 +99,7 @@ function enterCar(v){
   if(P.alien&&alienDef().flies)return;
   if(v.state==='road'||v.state==='chase'){const h=spawnHuman(v.vtype==='police'?'police':'civilian',v.pos.x+Math.cos(v.yaw)*2,v.pos.z-Math.sin(v.yaw)*2);
     if(h.role==='police')h.target=P;else npcFlee(h,P.pos.x,P.pos.z);
-    addRep(v.vtype==='police'?-10:-5);P.heat=Math.max(P.heat,v.vtype==='police'?10:4);feed('Carjacked',v.vtype==='police'?'-10 rep · the police want their car back':'-5 rep');}
+    addRep(v.vtype==='police'?-10:-5);addWanted(v.vtype==='police'?4:1.5,150);feed('Carjacked',v.vtype==='police'?'-10 rep · the police want their car back':'-5 rep');}
   if(v.driver)ejectDriver(v);if(v.crime&&v.state==='flee'){v.escaped=false;}
   stopAllPowers();P.car=v;v.state='player';v.spd=v.state==='road'?v.maxSpd*0.5:0;v.siren=false;P.flying=false;P.charging=false;
   if(!save.guide.car){save.guide.car=true;toast('Driving','W and S to drive, A and D to steer, Space to drift, G to get out','cyan');}
@@ -187,7 +188,7 @@ function driveCar(dt,inF,inR){
   else v.spd*=1-0.5*dt;
   if(hb)v.spd*=1-1.2*dt;
   v.spd=clamp(v.spd,-D.reverse,D.maxSpeed);
-  const turn=inR*D.steer*clamp(v.spd/9,-1,1)*(hb?1.7:1);v.yaw+=turn*dt;
+  const turn=inR*D.steer*clamp(v.spd/9,-1,1)*(hb?1.7:1);v.yaw-=turn*dt; // D steers right
   const fx=Math.sin(v.yaw),fz=Math.cos(v.yaw),prevY=v.pos.y;
   v.pos.x+=fx*v.spd*dt;v.pos.z+=fz*v.spd*dt;
   // buildings: push out and bounce
@@ -347,6 +348,8 @@ function updatePlayer(dt){
   else{if(P.vel.y>0){al=-2.7;ar=-2.7;el=er=-0.1;tl=0.5;tr=-0.3;kl=0.9;kr=0.3;cape=0.4;}else{al=-1.2;ar=-1.2;alz=-0.9;arz=0.9;el=er=-0.4;tl=0.3;tr=-0.2;kl=0.5;kr=0.4;cape=clamp(-P.vel.y/35,0.3,2.6);}
     if(P.slam){al=-3;ar=-3;alz=-0.2;arz=0.2;tl=0.9;tr=0.9;kl=kr=1.5;cape=2.8;}}
   if(P.tk){ar=-1.7;al=-1.7;alz=-0.3;arz=0.3;el=er=-0.2;}
+  if(hasPower('stormBody')&&!P.alien&&P.suited!==false&&!thrown.some(t=>t.kind==='hammer')){ // the storm god's hammer arm
+    if(P.fCharge){ar=-2.9;arz=0.25;er=0;al=-0.6;}else if(time-(P.hammerUpT||-9)<0.6){ar=-3.1;arz=0.05;er=0;}else if(P.flying&&sp3>12){ar=-2.95;er=0;arz=0.05;}}
   if(time-castT<0.25&&!beam){ar=-1.6;er=0;}
   const k=damp(14,dt);a.legL=lerp(a.legL,tl,k);a.legR=lerp(a.legR,tr,k);a.kneeL=lerp(a.kneeL||0,kl,k);a.kneeR=lerp(a.kneeR||0,kr,k);a.armL=lerp(a.armL,al,k);a.armR=lerp(a.armR,ar,k);
   a.elbL=lerp(a.elbL||0,el,k);a.elbR=lerp(a.elbR||0,er,k);a.armLz=lerp(a.armLz,alz,k);a.armRz=lerp(a.armRz,arz,k);a.cape=lerp(a.cape,cape,damp(8,dt));
