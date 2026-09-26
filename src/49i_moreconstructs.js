@@ -116,17 +116,17 @@ Object.assign(CONSTRUCTS,{
         queue(MESH.glowSphere,child(R,sd*1,0,-5.2,0,0,0,0.8,0.8,1.3),[.7,1,.8,0.7],F_ADD);if(K&&K.cdx>2.5)queue(MESH.glowSphere,child(R,sd*1,0,-9,0,0,0,1,1,6),[1,1,1,0.5],F_ADD);}}},
   // ---- blades & guns ----
   sword:{name:'Giant Sword',weapon:true,len:6,unlock:1,cost:3,drain:0.1,speed:1,ext:true,attacks:'LMB slash · RMB spin attack',blurb:'A blade of light as long as a car',
-    onPrimary(K){if(K.cd>0)return;if(!ringSpend(0.6)){ringOut();return;}ringCast();K.cd=0.4;K.slashT=time;K.sd=-(K.sd||1);bladeSweep(K,6,70,30,10);SFX.swish();},
-    onAlt(K,down){if(!down||K.cd2>0)return;if(!ringSpend(1.5)){ringOut();return;}K.cd2=1.5;K.spinT=time;P.flip={t:0,dur:0.5,rx:0,ry:TAU};const g=conG(K);
+    onPrimary(K){if(K.cd>0)return;ringCast();K.cd=0.4;K.slashT=time;K.sd=-(K.sd||1);bladeSweep(K,6,70,30,10);SFX.swish();},
+    onAlt(K,down){if(!down||K.cd2>0)return;K.cd2=1.5;K.spinT=time;P.flip={t:0,dur:0.5,rx:0,ry:TAU};const g=conG(K);
       areaDamage(P.pos.x,P.pos.y+1.3,P.pos.z,8*g,90*(1+ringMk())*Math.sqrt(g),P,{knock:26,type:'slash'});hitProps(P.pos.x,P.pos.y+1,P.pos.z,6*g,P,20);ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1,8*g,0.3,RING_C);SFX.swish();},
     draw(s,K){const yaw=s.heroYaw||0,sy=Math.sin(yaw),cy=Math.cos(yaw),k=K&&time-(K.slashT||-9)<0.25?(time-K.slashT)/0.25:1,sw=K&&k<1?lerp(-1.3,1.3,k)*(K.sd||1):0.3;
       const R=at(s.pos.x+cy*0.55+sy*0.3,s.pos.y+1.5,s.pos.z-sy*0.55+cy*0.3,-0.2,yaw+sw,0);
       glowQ(child(R,0,0,3,0,0,0,0.1,0.45,5.2),0.6);glowQ(child(R,0,0,0.35,0,0,0,0.9,0.12,0.14),0.7);glowQ(child(R,0,0,-0.1,0,0,0,0.1,0.12,0.6),0.7);
       queue(MESH.glowBox,child(R,0,0,3,0,0,0,0.03,0.2,5.2),[1,1,1,0.8],F_ADD);}},
   warhammer:{name:'War Hammer',weapon:true,len:4,unlock:3,cost:4,drain:0.14,speed:0.95,ext:true,attacks:'LMB smash · RMB ground quake',blurb:'Flatten the street in front of you',
-    onPrimary(K){if(K.cd>0)return;if(!ringSpend(1.2)){ringOut();return;}ringCast();K.cd=0.9;K.slashT=time;const g=conG(K),fx=Math.sin(P.heroYaw),fz=Math.cos(P.heroYaw),x=P.pos.x+fx*3*g,z=P.pos.z+fz*3*g,y=groundY(x,z,P.pos.y+3);
+    onPrimary(K){if(K.cd>0)return;ringCast();K.cd=0.9;K.slashT=time;const g=conG(K),fx=Math.sin(P.heroYaw),fz=Math.cos(P.heroYaw),x=P.pos.x+fx*3*g,z=P.pos.z+fz*3*g,y=groundY(x,z,P.pos.y+3);
       areaDamage(x,y+1,z,5*g,110*(1+ringMk())*strengthMul()*Math.sqrt(g),P,{knock:28,type:'blast'});crater(x,y+0.05,z,0,1,0,Math.min(10,2.5*g),[.42,.41,.4]);SFX.boom(0.7,0.7);addShake(0.4);},
-    onAlt(K,down){if(!down||K.cd2>0)return;if(!ringSpend(3)){ringOut();return;}K.cd2=3;K.slashT=time;const g=conG(K),R=16*g;
+    onAlt(K,down){if(!down||K.cd2>0)return;K.cd2=3;K.slashT=time;const g=conG(K),R=16*g;
       ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,R,0.6,RING_C);burst(P.pos.x,P.pos.y+0.3,P.pos.z,80,R,0.9,DUST,2.6,-3,2);areaDamage(P.pos.x,P.pos.y+0.8,P.pos.z,R,80*(1+ringMk())*Math.sqrt(g),P,{knock:40,type:'blast'});hitProps(P.pos.x,P.pos.y,P.pos.z,R*0.7,P,26);SFX.boom(1,1.2);addShake(0.8);scare(P.pos.x,P.pos.z,R*2);},
     draw(s,K){const yaw=s.heroYaw||0,sy=Math.sin(yaw),cy=Math.cos(yaw),k=K&&time-(K.slashT||-9)<0.3?(time-K.slashT)/0.3:1,sw=K&&k<1?lerp(-2.2,0.3,k):-1.1;
       const R=at(s.pos.x+cy*0.55,s.pos.y+1.6,s.pos.z-sy*0.55,sw,yaw,0);glowQ(child(R,0,0,1.3,0,0,0,0.12,0.12,2.6),0.6);glowQ(child(R,0,0,2.7,0,0,0,1.5,0.9,0.9),0.55);glowQ(child(R,0,0,2.7,0,0,0,1.6,0.2,1),0.7);}},
@@ -152,11 +152,13 @@ Object.assign(CONSTRUCTS,{
       glowQ(child(R,0,0,0.1,0,0,0,0.45,0.45,0.7),0.55);for(let i=0;i<6;i++){const a=i/6*TAU+rot;glowQ(child(R,Math.cos(a)*0.16,Math.sin(a)*0.16,1,0,0,0,0.07,0.07,1.6),0.6);}
       glowQ(child(R,0,-0.35,-0.1,0,0,0,0.12,0.4,0.15),0.5);if(K&&K.gunning)queue(MESH.glowSphere,child(R,0,0,1.9,0,0,0,0.3,0.3,0.4),[1,1,1,0.8],F_ADD);}},
   towershield:{name:'Tower Shield',weapon:true,block:0.8,len:3,unlock:2,cost:3,drain:0.1,speed:0.9,ext:true,attacks:'Blocks 80% of every hit · LMB bash · RMB shield charge',blurb:'Hide behind a wall of light',
-    onPrimary(K){if(K.cd>0)return;if(!ringSpend(0.5)){ringOut();return;}ringCast();K.cd=0.6;K.slashT=time;bladeSweep(K,3.5,50,32,8);},
-    onAlt(K,down){if(!down||K.cd2>0)return;if(!ringSpend(1.5)){ringOut();return;}K.cd2=1.3;K.ramT=0.45;P.vel.set(camF.x*55,Math.max(camF.y*55,2),camF.z*55);SFX.whoosh();},
+    onPrimary(K){if(K.cd>0)return;ringCast();K.cd=0.6;K.slashT=time;bladeSweep(K,3.5,50,32,8);},
+    onAlt(K,down){if(!down||K.cd2>0)return;K.cd2=1.3;K.ramT=0.45;P.vel.set(camF.x*55,Math.max(camF.y*55,2),camF.z*55);SFX.whoosh();},
     draw(s,K){const yaw=s.heroYaw||0,sy=Math.sin(yaw),cy=Math.cos(yaw),push=K&&time-(K.slashT||-9)<0.2?0.5:0,R=at(s.pos.x+sy*(1+push),s.pos.y+1.4,s.pos.z+cy*(1+push),0,yaw,0);
       glowQ(child(R,0,0,0,0,0,0,1.6,2.6,0.12),0.35);glowQ(child(R,0,0,0.02,0,0,0,1.7,0.12,0.14),0.7);glowQ(child(R,0,1.25,0.02,0,0,0,1.7,0.12,0.14),0.6);glowQ(child(R,0,-1.25,0.02,0,0,0,1.7,0.12,0.14),0.6);
       queue(MESH.ring,M4.alignY(tmpM(),s.pos.x+sy*(1.08+push),s.pos.y+1.4,s.pos.z+cy*(1.08+push),sy,0,cy,0.5),[RING_C[0],RING_C[1],RING_C[2],0.8],F_ADD);}},
 });
 CON_PAGES.push(['cycle','chopper','skates','board','monster'],['tank','heli','glider','ufo','starship'],['sword','warhammer','bow','minigun','towershield']);
 for(const pg of CON_PAGES)for(const id of pg)if(!CON_IDS.includes(id))CON_IDS.push(id);
+// weapon constructs cost charge to build and for every shot they fire, but nothing to hold and nothing to swing
+for(const id in CONSTRUCTS){const C=CONSTRUCTS[id];if(C.weapon)C.drain=0;}

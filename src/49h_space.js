@@ -45,9 +45,7 @@ function updateSpace(dt){
     const nb=nearestBody();if(nb.b&&nb.d<nb.b.r*1.5&&lastBody!==nb.b&&time-(nb.b.seenT||-99)>30){nb.b.seenT=time;feed('Approaching '+nb.b.name,Math.round(nb.d/1000)+' km');}
     if(nb.d>nb.b.r*3)lastBody=null;
   }
-  // coming back down: re-enter over the city
-  if(P.pos.y<CEIL&&(P.pos.x<X0-200||P.pos.x>X1+200||P.pos.z<Z0-200||P.pos.z>Z1+200)){P.pos.x=clamp(P.pos.x,X0+40,X1-40);P.pos.z=clamp(P.pos.z,Z0+40,Z1-40);
-    flashWhite=Math.max(flashWhite,0.5);feed('Re-entry','Back over the city');for(let i=0;i<30;i++)emit(P.pos.x,P.pos.y+1,P.pos.z,rr(-8,8),rr(4,14),rr(-8,8),0.6,FIRE[1],2,0,1);}
+  if(!onIsland(P.pos.x,P.pos.z)&&Math.hypot(P.pos.x,P.pos.z)>4000&&P.pos.y<CEIL&&time-(P.seaMsgT||-99)>120){P.seaMsgT=time;feed('Open ocean','Nova Bay is '+Math.round(Math.hypot(P.pos.x,P.pos.z)/1000)+' km away');}
 }
 function spaceMode(){const nb=nearestBody();return 'Space · '+nb.b.name+' '+(nb.d>1000?Math.round(nb.d/1000)+' km':Math.round(Math.max(0,nb.d))+' m');}
 // the Earth below and the planets, only drawn when you are high enough to see them

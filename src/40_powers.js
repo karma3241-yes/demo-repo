@@ -7,14 +7,21 @@ let beam=null,ice=null,lastScorch=0,castT=-9;
 // ---- skill size: hold a power key and scroll to grow or shrink what it makes, up to the size of the Earth ----
 // Growing a step costs a little energy (ring charge for the Ring Bearer); shrinking gives back a quarter of it.
 // castK is the size of the power being cast right now: radius and range scale with it, damage with its square root.
-const SKILL_GROW={mul:1.2,max:12000,ring:0.9,energy:3,refund:0.25};
+const SKILL_GROW={mul:1.2,max:30,ring:0.9,energy:3,refund:0.25};
 let castK=1,heldSlot=-1;
 const skillSize=id=>(PS[id]&&PS[id].grow)||1;
 function withCast(id,fn){const was=castK;castK=skillSize(id);try{return fn();}finally{castK=was;}}
+// while a power's key is held, show how big it will be where you aim
+function drawPrimed(){
+  if(heldSlot<0||!save.character||P.alien||state!=='play')return;const id=save.character.abilities[heldSlot],s=id&&PS[id];if(!s||!s.primed)return;
+  const R=withCast(id,()=>{const r=POWERS[id].radius!=null?pstat(id,'radius'):null;return r;});const k=skillSize(id),col=hasTrav('powerRing')?RING_C:[1,.85,.5],pu=0.5+Math.sin(time*8)*0.15;
+  if(R){queue(MESH.ring,M4.alignY(tmpM(),aim.x,aim.y+0.2,aim.z,aim.nx||0,aim.ny||1,aim.nz||0,R),[col[0],col[1],col[2],pu],F_ADD);queue(MESH.ring,M4.alignY(tmpM(),aim.x,aim.y+0.2,aim.z,aim.nx||0,aim.ny||1,aim.nz||0,R*0.96),[col[0],col[1],col[2],pu*0.6],F_ADD);}
+  if(k>1.01||!R){const h=handPoint(),g=0.25+0.15*Math.min(k,30)**0.5;queue(MESH.glowSphere,at(h.x,h.y,h.z,0,0,0,g,g,g),[col[0],col[1],col[2],0.6],F_ADD);}
+}
 function skillGrowStep(slot,dir){
   const id=save.character&&!P.alien&&save.character.abilities[slot];if(!id||!PS[id]||!canAct())return false;
   const s=PS[id],g=s.grow||1,ng=dir>0?Math.min(SKILL_GROW.max,g*SKILL_GROW.mul):Math.max(1,g/SKILL_GROW.mul);
-  if(Math.abs(ng-g)<1e-6){if(time-(s.maxMsg||-9)>3){s.maxMsg=time;feed(POWERS[id].name+(dir>0?' is as big as the Earth':' is back to normal size'),'');}return true;}
+  if(Math.abs(ng-g)<1e-6){if(time-(s.maxMsg||-9)>3){s.maxMsg=time;feed(POWERS[id].name+(dir>0?' is as big as it gets (×30)':' is back to normal size'),'');}return true;}
   const ring=hasTrav('powerRing'),cost=ring?SKILL_GROW.ring:SKILL_GROW.energy;
   if(ng>g){if(ring?save.ring<cost:!spend(cost,id)){noEnergy(id);return true;}if(ring)save.ring-=cost;}
   else{const back=cost*SKILL_GROW.refund,m=heroMeter();if(ring)save.ring=Math.min(100,save.ring+back);else if(m)save[m.key]=Math.min(meterCap(m),save[m.key]+back*(m.rate||1));else P.en=Math.min(maxEn(),P.en+back);}
@@ -55,13 +62,19 @@ function abilityDown(slot){
   if(c.type==='hold'){if(id==='telekinesis')tkGrab();return;}
   if(c.type==='toggle'){togglePower(id);return;}
   if(s.cd>0){s.flash=0.3;return;}
+  // instant powers wait for the key to come back up: while it is held you can scroll to size them
+  s.primed=true;s.primeT=time;
+}
+function castPrimed(id){
+  const c=POWERS[id],s=PS[id];if(!canAct())return;
   if(c.ring!=null){if(!ringSpend(c.ring*(id==='blackHole'?1:1))){noEnergy(id);return;}}else if(!spend(c.energy||0,id)){noEnergy(id);return;}
   if(!POWER_FN[id])return;
   s.cd=(pstat(id,'cooldown')||0)*cdMul();withCast(id,POWER_FN[id]);
 }
-function abilityUp(slot){
+function abilityUp(slot,cancel){
   if(P.alien){alienAbilityUp(slot);return;}
   const id=save.character&&save.character.abilities[slot];if(!id)return;
+  if(PS[id]&&PS[id].primed){PS[id].primed=false;if(!cancel&&!(PS[id].cd>0))castPrimed(id);}
   if(POWERS[id].type==='channel')PS[id].holding=false;
   if(POWERS[id].type==='charge'&&PS[id].holding){PS[id].holding=false;withCast(id,()=>chargeFire(id));}
   if(id==='telekinesis')tkThrow();

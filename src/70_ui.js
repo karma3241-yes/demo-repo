@@ -332,25 +332,28 @@ const dialEl=$('dial');
 // the radial picker is shared by the Morph Band (aliens) and the power ring (constructs)
 function dialItems(){
   if(dialKind==='armor')return ARMOR_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Armored Inventor mastery '+c.unlock,glow:'#ff6a3d',info:c.name+' · '+c.attacks,pick:()=>summonConstruct(id)};});
-  if(dialKind==='construct')return CON_PAGES[dialPage].map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Ring mastery '+c.unlock,glow:'#5dff86',info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
+  if(dialKind==='construct')return CON_PAGES.flat().map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Ring mastery '+c.unlock,glow:'#5dff86',cost:c.cost,info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
   return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),lock:'Band LV '+a.unlock,glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · '),pick:()=>transformInto(id)};});
 }
 let dialPage=0;
-function dialPageTurn(d){if(dialKind!=='construct')return;dialPage=(dialPage+d+CON_PAGES.length)%CON_PAGES.length;openDial('construct',true);SFX.tone('sine',500,700,0.06,0.04);}
+function dialPageTurn(d){} // every construct is on the wheel at once now: nothing to page through
 function openDial(kind='alien',keepPage){
-  if(kind==='construct'&&!keepPage)dialPage=Math.max(0,CON_PAGES.findIndex(p=>p.includes(conPick)));
-  dialKind=kind;const list=dialItems();dialOpen=true;dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');dialEl.classList.toggle('red',kind==='armor');const ring=$('dial-ring');ring.textContent='';
-  list.forEach((a,i)=>{const ang=i/list.length*TAU-Math.PI/2;
-    const b=el('button',{type:'button',class:'dslot'+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*38).toFixed(1)}%;top:${(50+Math.sin(ang)*38).toFixed(1)}%`,
-      onclick:()=>{if(a.on){closeDial();a.pick();}},onmouseenter:()=>setDialSel(i)},el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:a.on?a.blurb:a.lock}));
+  dialKind=kind;const list=dialItems();dialOpen=true;dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');dialEl.classList.toggle('red',kind==='armor');dialEl.classList.toggle('all',kind==='construct');const ring=$('dial-ring');ring.textContent='';
+  const two=kind==='construct',nIn=two?DIAL_INNER:list.length; // constructs: an inner ring (mechs, flyers, rides, weapons) and an outer ring (everything newer)
+  list.forEach((a,i)=>{const inner=i<nIn,k=inner?i:i-nIn,n=inner?nIn:list.length-nIn,ang=k/n*TAU-Math.PI/2,rad=two?(inner?25:43):38;
+    const b=el('button',{type:'button',class:'dslot'+(two?' mini':'')+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*rad).toFixed(1)}%;top:${(50+Math.sin(ang)*rad).toFixed(1)}%`,
+      onclick:()=>{if(a.on){closeDial();a.pick();}},onmouseenter:()=>setDialSel(i)},two?null:el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:two?(a.on?a.cost+' charge':a.lock):a.on?a.blurb:a.lock}));
     b.style.setProperty('--g',a.glow);ring.appendChild(b);});
-  if(kind==='construct'){const pb=el('button',{type:'button',class:'dpage',text:['Mechs & flyers','Rides & weapons','Bikes & boards','Heavy & sky','Blades & guns'][dialPage]+' · page '+(dialPage+1)+'/'+CON_PAGES.length+' ▸',onclick:e=>{e.stopPropagation();dialPageTurn(1);}});ring.appendChild(pb);}
-  $('dial-info').textContent=kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · Q / E or the wheel for more':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
+  if(kind==='construct')ring.appendChild(el('div',{class:'dpage'},'All '+list.length+' constructs'));
+  $('dial-info').textContent=kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · move toward the centre for the inner ring':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
 }
 function setDialSel(i){dialSel=i;for(const b of dialEl.querySelectorAll('.dslot'))b.classList.toggle('sel',+b.dataset.i===i);
   const a=dialItems()[i];if(a)$('dial-info').textContent=a.info;}
-function dialMove(dx,dy){dialVX=clamp(dialVX+dx,-120,120);dialVY=clamp(dialVY+dy,-120,120);if(Math.hypot(dialVX,dialVY)<25)return;
-  const a=Math.atan2(dialVY,dialVX)+Math.PI/2,n=dialItems().length;setDialSel(((Math.round(a/TAU*n)%n)+n)%n);}
+const DIAL_INNER=10;
+function dialMove(dx,dy){dialVX=clamp(dialVX+dx,-120,120);dialVY=clamp(dialVY+dy,-120,120);const m=Math.hypot(dialVX,dialVY);if(m<25)return;
+  const a=Math.atan2(dialVY,dialVX)+Math.PI/2,N=dialItems().length;
+  if(dialKind==='construct'){const inner=m<85,n=inner?DIAL_INNER:N-DIAL_INNER,k=((Math.round(a/TAU*n)%n)+n)%n;setDialSel(inner?k:DIAL_INNER+k);return;} // push the mouse further out to reach the outer ring
+  setDialSel(((Math.round(a/TAU*N)%N)+N)%N);}
 function dialConfirm(){if(dialSel<0)return;const a=dialItems()[dialSel];if(a&&a.on){closeDial();a.pick();}else SFX.tone('square',200,150,0.1,0.06);}
 function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----

@@ -55,7 +55,7 @@ function conExtPrimary(K){
 function conExtPrimaryUp(K){K.gunning=false;if(CONSTRUCTS[K.id].onPrimaryUp){CONSTRUCTS[K.id].onPrimaryUp(K);return;}
   if(K.id==='cannon'&&K.charging){K.charging=false;const k=clamp(K.chargeT/1.5,0,1);if(k<0.2)return;
     if(!ringSpend(3+7*k)){ringOut();return;}ringCast();K.cd=2.5;K.kick=time;
-    bigBeam={kind:'cannon',t:0,wind:0,dur:0.6+1.6*k,w:1.6+3.4*k,dps:(260+900*k)*(1+ringMk())*strengthMul()};SFX.boom(0.6+0.4*k,0.5);addShake(0.3+0.5*k);flashWhite=Math.max(flashWhite,0.2*k);
+    {const g=conGrow('cannon');bigBeam={kind:'cannon',t:0,wind:0,dur:0.6+1.6*k,w:(1.6+3.4*k)*g,sc:g,dps:(260+900*k)*(1+ringMk())*strengthMul()*Math.sqrt(g)};}SFX.boom(0.6+0.4*k,0.5);addShake(0.3+0.5*k);flashWhite=Math.max(flashWhite,0.2*k);
     addMastery('powerRing',3+6*k);}
 }
 function conExtAlt(K,down){
@@ -108,7 +108,8 @@ function drawConExt(s,id,isPlayer){
     return;}
 }
 // where each of these fires from
-function conExtMuzzle(id,side){const s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw),cp=Math.cos(P.pitch),sp=Math.sin(-P.pitch);
+function conExtMuzzle(id,side){return growMuzzle(conExtMuzzle0(id,side));}
+function conExtMuzzle0(id,side){const s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw),cp=Math.cos(P.pitch),sp=Math.sin(-P.pitch);
   if(CONSTRUCTS[id].armor)return armorMuzzle(id,side,s,c);if(CONSTRUCTS[id].muzzle)return CONSTRUCTS[id].muzzle(side,s,c,cp,sp);
   if(id==='bike')return {x:P.pos.x+s*1.8+c*side*0.35,y:P.pos.y+1.1,z:P.pos.z+c*1.8-s*side*0.35};
   if(id==='racer')return {x:P.pos.x+s*2.6+c*side*0.9,y:P.pos.y+0.9,z:P.pos.z+c*2.6-s*side*0.9};
