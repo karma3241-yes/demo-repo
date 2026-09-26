@@ -11,7 +11,7 @@ function el(tag,attrs={},...kids){
   return e;
 }
 const hud={root:$('hud'),hname:$('hname'),htier:$('htier'),lvl:$('lvl'),xpb:$('xpb'),rep:$('rep'),sp:$('sp'),spwrap:$('spwrap'),bounty:$('bounty'),wanted:$('wanted'),
-  clock:$('clock'),mode:$('mode'),hpb:$('hpb'),hpt:$('hpt'),enb:$('enb'),ent:$('ent'),en:$('enm'),shbar:$('shbar'),shb:$('shb'),hotbar:$('hotbar'),
+  clock:$('clock'),mode:$('mode'),hpb:$('hpb'),hpt:$('hpt'),enb:$('enb'),enb2:$('enb2'),ent:$('ent'),en:$('enm'),shbar:$('shbar'),shb:$('shb'),hotbar:$('hotbar'),
   cross:$('cross'),prompt:$('prompt'),charge:$('charge'),chargeb:$('chargeb'),toasts:$('toasts'),feed:$('feed'),tags:$('tags'),
   bossbar:$('bossbar'),bossname:$('bossname'),bossb:$('bossb'),keys:$('keys'),vig:$('vig'),flash:$('flash')};
 function toast(title,sub='',cls=''){
@@ -256,11 +256,22 @@ function renderSettings(){
       el('div',{class:'lb-tabs'},...modes.map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.controls===k),text:l,onclick:()=>{s.controls=k;persist();applyTouchUI();buildHotbar();renderSheet();}})))),
     el('div',{class:'field'},el('span',{text:'Ring oath · how the Ring Bearer recites it'}),
       el('div',{class:'lb-tabs'},...[['voice','Say it out loud'],['type','Type it (Tab)']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.oathInput===k),disabled:k==='voice'&&!voiceOK(),text:l,onclick:()=>{s.oathInput=k;persist();if(k==='voice')askMic(true);renderSheet();}}))),
-      el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line; you can still type it too.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
+      el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line, and you can keep moving and fighting (no ring powers until you finish). O or Esc puts the lantern away.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
+    ...(s.oathInput==='voice'&&voiceOK()?micSettings(s,rng):[]),
     row('Lock the mouse when you click into the game',chk('autoLock')),
     el('p',{class:'muted',text:'Press L any time to lock or unlock the mouse. While it is unlocked, hold the middle mouse button and drag to look around.'}),
     row('Mouse sensitivity',rng('sens',0.3,3,0.05)),row('Invert vertical look',chk('invertY')),
     row('Volume',rng('volume',0,1,0.05,()=>SFX.setVolume(s.volume))),row('Shadows',chk('shadows')));
+}
+// Ring oath loudness: say the oath louder than the line and finishing it overcharges the ring to 200
+function micSettings(s,rng){
+  const lvl=el('div',{class:'miclvl',id:'set-miclvl'},el('i'),el('b'));
+  const test=el('button',{class:'ghost',type:'button',text:MIC.users.has('test')?'Stop the mic test':'Test your mic',onclick:()=>{
+    if(MIC.users.has('test'))micOff('test');else micOn('test');test.textContent=MIC.users.has('test')?'Stop the mic test':'Test your mic';}});
+  const out=[el('label',{class:'row'},el('span',{text:'Overcharge loudness'}),rng('micLoud',0.2,0.95,0.01,micShow)),lvl,
+    el('div',{class:'cta'},test),
+    el('p',{class:'muted',text:'Say the oath loud enough to pass the white line at any point and finishing it overcharges the ring to 200. Test your mic and speak to see where your voice lands.'})];
+  setTimeout(micShow,0);return out;
 }
 // ---- character creator ----
 const creator=$('create'),creatorBody=$('create-body');

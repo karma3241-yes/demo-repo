@@ -27,6 +27,23 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hi
 .bar.shield{height:4px;margin-top:3px}.bar.shield i{background:#8fe3ff}
 #enm.warn .bar.en{box-shadow:0 0 0 2px var(--health)}
 #enm.ring .bar.en i{background:linear-gradient(90deg,#128a3a,#6dff95)}#enm.ring span b{color:#8dffb0}
+/* overcharged ring (100-200): a second, brighter layer over the full bar, a pulsing glow and bubbles fizzing up off it */
+#enb2{display:none}#enm.ring.over #enb2{display:block;width:0;background:linear-gradient(90deg,#b6ffca,#f4fff7);box-shadow:0 0 8px #8dffb0}
+#enm.ring.over{position:relative}#enm.ring.over .bar.en{box-shadow:0 0 6px 1px rgba(109,255,149,.65);animation:ringGlow 1.3s ease-in-out infinite}
+#enm.ring.over span b{color:#eafff0;text-shadow:0 0 8px #6dff95}
+#enm.ring.over::before,#enm.ring.over::after{content:'';position:absolute;left:0;right:0;bottom:0;height:10px;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 6% 70%,#f4fff7 0 1.4px,transparent 2.3px),radial-gradient(circle at 19% 40%,#b6ffca 0 1.6px,transparent 2.5px),radial-gradient(circle at 33% 80%,#f4fff7 0 1.4px,transparent 2.3px),radial-gradient(circle at 47% 30%,#8dffb0 0 1.7px,transparent 2.6px),radial-gradient(circle at 61% 65%,#f4fff7 0 1.4px,transparent 2.3px),radial-gradient(circle at 76% 35%,#b6ffca 0 1.6px,transparent 2.5px),radial-gradient(circle at 90% 75%,#f4fff7 0 1.4px,transparent 2.3px);
+  animation:ringFizz 1.6s linear infinite}
+#enm.ring.over::after{transform:translateX(3%);animation-delay:-.8s;filter:hue-rotate(-20deg)}
+@keyframes ringGlow{50%{box-shadow:0 0 14px 3px rgba(146,255,176,.9)}}
+@keyframes ringFizz{0%{opacity:0;translate:0 0}20%{opacity:1}100%{opacity:0;translate:0 -18px}}
+@media (prefers-reduced-motion:reduce){#enm.ring.over .bar.en{animation:none;box-shadow:0 0 10px 2px rgba(146,255,176,.8)}#enm.ring.over::before,#enm.ring.over::after{display:none}}
+/* mic level: a green fill with a white line at the overcharge loudness; bright once it's past the line */
+.miclvl{position:relative;height:6px;margin:10px 0 2px;border-radius:3px;background:rgba(255,255,255,.12)}
+.miclvl i{position:absolute;inset:0 auto 0 0;width:var(--lvl,0%);border-radius:3px;background:linear-gradient(90deg,#128a3a,#6dff95);transition:width .06s linear}
+.miclvl b{position:absolute;top:-3px;bottom:-3px;left:var(--thr,65%);width:2px;margin-left:-1px;border-radius:1px;background:#fff;box-shadow:0 0 4px #000}
+.miclvl.hit i{background:linear-gradient(90deg,#6dff95,#f4fff7);box-shadow:0 0 10px #8dffb0}
+#oath.mini .miclvl{width:160px;margin:4px 0 2px auto}
 #enm.bat .bar.en i{background:linear-gradient(90deg,#1b6fc4,#bff4ff)}#enm.bat span b{color:#bff4ff}
 #enm.bolt .bar.en i{background:linear-gradient(90deg,#4a3cff,#e6ecff)}#enm.bolt span b{color:#c9d2ff}
 #enm.cal .bar.en i{background:linear-gradient(90deg,#c88a12,#ffe14d)}#enm.cal span b{color:#ffe14d}
@@ -262,7 +279,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div class="hud-bc">
     <div class="meters panel">
       <div class="meter"><span>HEALTH <b id="hpt">100</b></span><div class="bar hp"><i id="hpb"></i></div><div class="bar shield" id="shbar" hidden><i id="shb"></i></div></div>
-      <div class="meter" id="enm"><span>ENERGY <b id="ent">100</b></span><div class="bar en"><i id="enb"></i></div></div>
+      <div class="meter" id="enm"><span>ENERGY <b id="ent">100</b></span><div class="bar en"><i id="enb"></i><i id="enb2"></i></div></div>
     </div>
     <div class="hotbar" id="hotbar"></div>
   </div>
@@ -323,7 +340,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
 <div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
 <div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div></div>
-<div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><small id="oath-note">Esc to put the lantern away</small></div>
+<div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><div id="oath-lvl" class="miclvl" hidden><i></i><b></b></div><small id="oath-note">Esc to put the lantern away</small></div>
 <div id="dead" class="overlay" hidden><div><p class="big">Knocked out</p><p class="sub" id="deads"></p></div></div>
 <div id="nogl" class="overlay" hidden><div><p class="big">No WebGL 2</p><p class="sub">This browser can't run the game. Try a recent Chrome, Edge, Firefox or Safari.</p></div></div>
 
