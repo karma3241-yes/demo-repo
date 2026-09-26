@@ -34,12 +34,15 @@ function webPress(){
   if(!hasWeb()||!canAct())return;
   const R=webRange(),h=handPoint();
   // yank a close target (or the locked one) instead of swinging
+  // (keep holding to stay webbed on: see tether below)
   const a=aim.actor;
   if(a&&a.kind!=='boss'&&a.kind!=='prop'&&a.kind!=='vehicle'){const c=center(a),d=Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z);
     if(d<(lockT?32:R)){if(!spend(POWERS.webSwing.energy)){noEnergy();return;}
       tracer(h.x,h.y,h.z,c.x,c.y,c.z,[.95,.95,1],0.08,0.2);const dx=P.pos.x-a.pos.x,dz=P.pos.z-a.pos.z,l=Math.hypot(dx,dz)||1;
       Damage.apply(P,a,5,'web',{stun:pstat('webSwing','stun'),kv:a.kind==='human'?[dx/l*Math.min(l,18),7,dz/l*Math.min(l,18)]:null});
-      SFX.tone('triangle',1300,500,0.12,0.08);return;}}
+      SFX.tone('triangle',1300,500,0.12,0.08);if(a.alive&&!tetherShielded(a))tetherTo(a,d);return;}}
+  if(a&&a.kind==='vehicle'&&a.alive){const c=center(a),d=Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z);
+    if(d<R*0.6){if(!spend(POWERS.webSwing.energy)){noEnergy();return;}tetherTo(a,d);SFX.tone('triangle',1100,500,0.12,0.08);return;}}
   // aimed surface above you, else the anchor assist
   let pt=null;
   if(aim.hitAny&&aim.surface&&!(aim.ny>0.5&&aim.y<2)&&aim.y>P.pos.y+3){const d=Math.hypot(aim.x-h.x,aim.y-h.y,aim.z-h.z);if(d<=R)pt={x:aim.x,y:aim.y,z:aim.z};}
@@ -49,8 +52,23 @@ function webPress(){
   if(P.grounded){P.vel.y=Math.max(P.vel.y,17);P.grounded=false;P.pos.y+=0.2;}
   attachWeb(pt);
 }
+// ---- web tether: hold right click on someone to stay webbed on; if they run or fly off, you get dragged along ----
+function tetherShielded(a){
+  if(a.kind==='remote')return !!(a.flags&FLAG.shield)||!!(a.ex&&(a.ex[0]||a.ex[5]));
+  return !!(a.shieldOn||a.ringShield);
+}
+function tetherTo(a,d){const c=center(a);P.web={x:c.x,y:c.y,z:c.z,L:Math.max(4,d*0.95),t:time,target:a};P.flying=false;P.wall=null;P.wallRun=null;P.charging=false;P.zip=null;
+  if(a.kind==='human'||a.kind==='rival')feed('Webbed on','Keep holding right click to hang on');}
+function tetherTick(W){
+  const a=W.target,c=center(a);W.x=c.x;W.y=c.y+0.4;W.z=c.z;
+  if(!a.alive||a.hp<=0||(a.kind==='remote'&&a.flags&FLAG.dead)||Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z)>320){P.web=null;return false;}
+  if(tetherShielded(a)){P.web=null;const h=handPoint();burst(lerp(h.x,c.x,0.5),lerp(h.y,c.y,0.5),lerp(h.z,c.z,0.5),16,6,0.4,[[.95,.95,1]],1,4,2);SFX.tone('square',900,200,0.15,0.08);feed('Web cut','Their shield sliced through it');return false;}
+  // reel in a little while you hold on, so you close the gap
+  if(W.L>5&&time-W.t>0.4)W.L=Math.max(5,W.L-4*(1/60));
+  return true;
+}
 function webRelease(boost=true){
-  webHeld=false;if(!P.web)return;const W=P.web;P.web=null;
+  webHeld=false;if(!P.web)return;const W=P.web;P.web=null;if(W.target)boost=false;
   if(boost&&!P.grounded){const hs=Math.hypot(P.vel.x,P.vel.z);
     // best release: moving forward and starting to rise
     const good=P.vel.y>-4&&hs>10;P.vel.x*=good?MOVE.releaseBoost:1.03;P.vel.z*=good?MOVE.releaseBoost:1.03;P.vel.y+=good?7:3;
@@ -60,16 +78,17 @@ function webRelease(boost=true){
 function swingJump(){if(!P.web)return;webRelease(true);P.vel.y+=MOVE.swingJump;SFX.whoosh();}
 function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
   const W=P.web,f=pstat('webSwing','force');
+  if(W.target&&!tetherTick(W))return;
   P.vel.y-=CONFIG.move.gravity*0.9*dt;
   P.vel.x+=(fwdX*inF+rX*inR)*26*f*dt;P.vel.z+=(fwdZ*inF+rZ*inR)*26*f*dt;
   // gravity assist through the bottom of the arc, gentle reel-in keeps the arc off the ground
   const gy=groundY(P.pos.x,P.pos.z,P.pos.y+1),dy=P.pos.y+1.6-W.y;
   if(dy<-W.L*0.6&&P.pos.y>gy+1.5){const hs=Math.hypot(P.vel.x,P.vel.z)||1;P.vel.x+=P.vel.x/hs*8*dt;P.vel.z+=P.vel.z/hs*8*dt;}
-  if(P.pos.y<gy+3)W.L=Math.max(8,Math.min(W.L,W.y-gy-3.5)); // never drag along the street
+  if(P.pos.y<gy+3&&!W.target)W.L=Math.max(8,Math.min(W.L,W.y-gy-3.5)); // never drag along the street
   P.vel.mul(1-0.03*dt);{const v=P.vel.len(),cap=70+35*webMk();if(v>cap)P.vel.mul(cap/v);}
   // chain: past the anchor on the upswing, let go and grab the next one
   const ax=P.pos.x-W.x,az=P.pos.z-W.z,hs=Math.hypot(P.vel.x,P.vel.z);
-  if(webHeld&&time-W.t>0.5&&hs>8&&(ax*P.vel.x+az*P.vel.z)>0&&P.vel.y>-2&&(P.pos.y+1.6-W.y)>-W.L*MOVE.chainAngle){
+  if(!W.target&&webHeld&&time-W.t>0.5&&hs>8&&(ax*P.vel.x+az*P.vel.z)>0&&P.vel.y>-2&&(P.pos.y+1.6-W.y)>-W.L*MOVE.chainAngle){
     const R=webRange();webRelease(true);webHeld=true;const pt=findAnchor(R);if(pt&&P.en>=POWERS.webSwing.energy*0.5){P.en-=POWERS.webSwing.energy*0.5;attachWeb(pt);}}
 }
 // ---- web zip / point launch: Space in mid-air (web swingers) ----

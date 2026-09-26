@@ -312,8 +312,9 @@ function projImpact(p,hit){
   }else if(p.kind==='web'){
     if(p.webBomb&&p.owner===P)webBurst(p.x,p.y,p.z);else burst(p.x,p.y,p.z,20,8,0.5,[[.95,.95,1]],1,4,2);
   }else if(p.kind==='rocket'){
-    explode(p.x,p.y,p.z,0.6);areaDamage(p.x,p.y,p.z,4.5,p.dmg,p.owner,{knock:10});
-    if(onSurface)addScorch(p.x,p.y,p.z,2,p.nx,p.ny,p.nz);
+    explode(p.x,p.y,p.z,p.blast?p.blast/7:0.6);areaDamage(p.x,p.y,p.z,p.blast||4.5,p.dmg,p.owner,{knock:p.blast?18:10});
+    if(onSurface)addScorch(p.x,p.y,p.z,p.blast?p.blast*0.4:2,p.nx,p.ny,p.nz);
+    if(p.bldDmg&&onSurface){const b=inBuilding(p.x-(p.nx||0)*0.8,p.y-(p.ny||0)*0.8,p.z-(p.nz||0)*0.8,0.5);if(b&&b.bld)damageBuilding(b.bld,p.bldDmg,p.x,p.y,p.z,-(p.nx||0),-(p.nz||0));}
   }else{
     if(hit)Damage.apply(p.owner,hit,p.dmg,'shot',{knock:p.knock||0});
     burst(p.x,p.y,p.z,10,10,0.35,p.col===1?CYAN:RED,1,8,2);

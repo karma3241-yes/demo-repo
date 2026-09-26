@@ -39,7 +39,7 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
       D.push([n,r1(d.pos.x),r1(d.pos.y),r1(d.pos.z),r2(d.yaw),(d.bag?1:0)|(d.alive?2:0),Math.round(d.hp/d.maxHp*100),d.shotN||0,tgt(d.target)]);}
     for(const q of rivals){if(!near(q,600))continue;const n=this.nid(q);seen.add(n);
       const rec=[n,r1(q.pos.x),r1(q.pos.y),r1(q.pos.z),r2(q.heroYaw),r2(q.tilt),r2(q.bank),(q.alive?1:0)|(time-(q.castT||-9)<0.3?2:0),Math.round(q.hp/q.maxHp*100),r1(q.vel.x),r1(q.vel.y),r1(q.vel.z)];
-      if(!known.has(n))rec.push({nm:q.name,fa:q.faction,lv:q.level,lk:[q.look.suit,q.look.cape,q.look.acc].map(c=>c.slice(0,3).map(r2)).concat([q.look.capeOn?1:0])});RV.push(rec);}
+      if(!known.has(n))rec.push({nm:q.name,fa:q.faction,lv:q.level,lk:[q.look.suit,q.look.cape,q.look.acc].map(c=>c.slice(0,3).map(r2)).concat([q.look.capeOn?1:0]),rb:q.robot?1:0,gs:q.giantS||1});RV.push(rec);}
     const msg={h:H,v:V,d:D,r:RV,hc:HC},rm=[];for(const n of known)if(!seen.has(n))rm.push(n);if(rm.length)msg.rm=rm;conn.known=seen;
     if(boss){const b=boss;msg.b=[this.nid(b),b.type,r1(b.pos.x),r1(b.pos.y),r1(b.pos.z),r2(b.yaw||0),r2(b.spin||0),Math.round(b.hp),Math.round(b.maxHp),r2(b.phase||0),r2(b.punchAnim||0),b.name||'',b.leave?1:0];}
     if(slow){msg.c=crimes.map(c=>[c.type,Math.round(c.x),Math.round(c.z),c.label,c.icon||'',c.heist?1:0]);msg.tod=Math.round(tod*1e4)/1e4;msg.tm=r1(time);msg.vy=r1(vaultY);
@@ -192,7 +192,7 @@ function mirrorRival(nid,full){
   const c=x=>Array.isArray(x)?[...x.slice(0,3).map(v=>clamp(+v||0,0,1)),1]:[.5,.5,.5,1],lk=Array.isArray(full.lk)?full.lk:[];
   const suit=c(lk[0]);const lv=clamp(+full.lv||1,1,100),hp=NPCS.rival.hp+NPCS.rival.hpPerLvl*lv;
   const r=Object.assign(mirrorBase(nid),{kind:'rival',name:String(full.nm||'Rival').slice(0,30),faction:full.fa==='hero'?'hero':'villain',level:lv,hp,maxHp:hp,heroYaw:0,tyaw:0,tilt:0,bank:0,
-    look:{suit,suit2:[suit[0]*0.6,suit[1]*0.6,suit[2]*0.6,1],cape:c(lk[1]),acc:c(lk[2]),capeOn:!!lk[3],metal:false},anim:{legL:0,legR:0,kneeL:0,kneeR:0,armL:0,armR:0,elbL:-0.3,elbR:-0.3,armLz:-0.12,armRz:0.12,cape:0.2},
+    look:{suit,suit2:[suit[0]*0.6,suit[1]*0.6,suit[2]*0.6,1],cape:c(lk[1]),acc:c(lk[2]),capeOn:!!lk[3],metal:false,armor:!!full.rb,visor:c(lk[2]).slice(0,3)},robot:!!full.rb,giantS:clamp(+full.gs||1,1,3),anim:{legL:0,legR:0,kneeL:0,kneeR:0,armL:0,armR:0,elbL:-0.3,elbR:-0.3,armLz:-0.12,armRz:0.12,cape:0.2},
     eye:new V3(),radius:0.9,cy:1.3,ys:0.55,castT:-9,phase:0,firing:false});
   WS.byId.set(nid,r);rivals.push(r);actors.push(r);return r;
 }

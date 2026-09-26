@@ -343,6 +343,7 @@ function updateRival(r,dt){
     else if(r.stun>0)r.stun-=dt;
     return;
   }
+  if(r.hunter&&hunterBrain(r,dt))return;
   r.scanT-=dt;if(r.scanT<=0){r.scanT=0.6;rivalScan(r);}
   let gx,gy,gz;
   if(r.target){const t=center(r.target),tx=t.x,ty=t.y,tz=t.z;r.orbit+=dt*0.45;const R=22;gx=tx+Math.cos(r.orbit)*R;gz=tz+Math.sin(r.orbit)*R;gy=Math.max(ty+7,5);}
@@ -584,7 +585,7 @@ function managePopulation(dt){
     const stars=me?P.stars:heat?2:0,wantPolice=ROOM.police?Math.round(CRIMES.population.police*k*(me?1:0.7))+(heat?1+Math.round(stars*1.5):0):0;
     let pol=countNear('police',c);for(let i=0;pol<wantPolice&&i<2;i++,pol++){const p=sidewalkPointNear(c.x,c.z,heat?55:60,heat?90:150);const h=spawnHuman('police',p.x,p.z,{path:p.path});if(heat&&(me?!P.dead&&state==='play':who.alive))h.target=who;}});
   manageGangs();
-  for(const r of rivals.slice())if(r.alive&&far(r.pos,450))removeActor(r);
+  for(const r of rivals.slice())if(r.alive&&!r.hunter&&far(r.pos,450))removeActor(r);
   for(const v of vehicles.slice())if(v.temp&&!v.crime&&(v.state==='flee'||v.state==='parked')&&(v.escaped||far(v.pos,250)))removeActor(v);
 }
 function manageRivals(dt){
@@ -598,6 +599,7 @@ function updateWorld(dt){
   for(const h of humans.slice())updateHuman(h,dt);
   for(const d of drones.slice())updateDrone(d,dt);
   for(const v of vehicles.slice())updateVehicle(v,dt);
+  updateHunters(dt);
   for(const r of rivals.slice())updateRival(r,dt);
   if(boss){if(boss.type==='ship')updateShip(boss,dt);else updateMech(boss,dt);}
   updateProps(dt);updateStreetProps(dt);updateCrimes(dt);managePopulation(dt);manageRivals(dt);updatePolice(dt);updateHelis(dt);updateAliens(dt);
