@@ -315,6 +315,7 @@ function updatePlayer(dt){
       if(P.zip&&col.wall&&P.zip.t>0.15){P.zip=null;P.vel.set(col.wall.nx*4,14,col.wall.nz*4);}
       playerBodies(prevY);}
   }
+  if(P.pos.y<CEIL&&P.flying&&(P.pos.x<X0-200||P.pos.x>X1+200||P.pos.z<Z0-200||P.pos.z>Z1+200))updateSpace(0); // coming down from space far out: re-enter over the city
   if(P.pos.y<CEIL||!P.flying){P.pos.x=clamp(P.pos.x,-LIMIT,LIMIT);P.pos.z=clamp(P.pos.z,-LIMIT,LIMIT);}else{P.pos.x=clamp(P.pos.x,-SPACE.lim,SPACE.lim);P.pos.z=clamp(P.pos.z,-SPACE.lim,SPACE.lim);}
   if(P.pos.y>CEIL&&!P.flying){P.pos.y=CEIL;P.vel.y=Math.min(P.vel.y,0);}else if(P.pos.y>SPACE.lim){P.pos.y=SPACE.lim;P.vel.y=Math.min(P.vel.y,0);} // fliers can climb into space
   if(!onIsland(P.pos.x,P.pos.z)&&P.grounded&&P.pos.y<-0.5&&Math.random()<0.3)emit(P.pos.x,-0.8,P.pos.z,rr(-2,2),rr(2,4),rr(-2,2),0.6,WATER[0],1,15,1);

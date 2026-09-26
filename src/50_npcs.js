@@ -213,9 +213,13 @@ function makeVehicle(vtype,model){
 }
 const laneOff=d=>d>0?-4.5:4.5;
 function setVehiclePos(v){if(v.axis===0){v.pos.set(v.lane,0,v.s);v.ty=v.dir>0?0:Math.PI;}else{v.pos.set(v.s,0,v.lane);v.ty=v.dir>0?Math.PI/2:-Math.PI/2;}if(v.state==='parked')v.yaw=v.ty;}
+// the road graph: axis 0 runs along z on an x grid line, axis 1 runs along x on a z grid line (see zEdge / xEdge in the world)
+const lineOrigin=ax=>ax===0?X0:Z0,sOrigin=ax=>ax===0?Z0:X0,nodeMax=ax=>ax===0?GZ:GX;
+const edgeOK=(ax,line,n)=>ax===0?zEdge(line,n):xEdge(line,n); // the stretch of road between node n and n+1
 function placeTraffic(v){
-  v.axis=Math.random()<0.5?0:1;const road=-HALF+CELL*(1+Math.floor(Math.random()*(GRID-1)));v.dir=Math.random()<0.5?1:-1;v.lane=road+laneOff(v.dir);
-  v.s=rr(-HALF+10,HALF-10);v.maxSpd=rr(13,22);v.spd=v.maxSpd*0.6;v.hp=v.maxHp;v.alive=true;v.state='road';v.rx=v.rz=0;v.flash=0;v.stalled=0;v.siren=false;v.driver=null;
+  let ax=0,line=0,n=0;for(let t=0;t<200;t++){ax=Math.random()<0.5?0:1;line=Math.floor(Math.random()*((ax===0?GX:GZ)+1));n=Math.floor(Math.random()*nodeMax(ax));if(edgeOK(ax,line,n))break;}
+  v.axis=ax;v.dir=Math.random()<0.5?1:-1;v.lane=lineOrigin(ax)+line*CELL+laneOff(v.dir);
+  v.s=sOrigin(ax)+(n+rr(0.2,0.8))*CELL;v.maxSpd=rr(13,22);v.spd=v.maxSpd*0.6;v.hp=v.maxHp;v.alive=true;v.state='road';v.rx=v.rz=0;v.flash=0;v.stalled=0;v.siren=false;v.driver=null;
   if(v.model!=='taxi'&&v.model!=='police')v.tint=pick(CAR_COLS).slice();setVehiclePos(v);v.yaw=v.ty;
 }
 function awayDir(v){const along=v.axis===0?v.pos.z:v.pos.x,pl=v.axis===0?P.pos.z:P.pos.x;return along>=pl?1:-1;}
@@ -231,8 +235,21 @@ function vehicleDestroyed(v){
   addFire(v.pos.x,v.pos.y+1,v.pos.z,12,1.2);
   if(v.driver)ejectDriver(v);
 }
-function nodeAhead(v){const f=(v.s+HALF)/CELL;const k=v.dir>0?Math.floor(f+1e-4)+1:Math.ceil(f-1e-4)-1;return {k,ns:-HALF+k*CELL};}
-function roadIndexOf(v){return Math.round((v.lane-laneOff(v.dir)+HALF)/CELL);}
+function nodeAhead(v){const o=sOrigin(v.axis),f=(v.s-o)/CELL;const k=v.dir>0?Math.floor(f+1e-4)+1:Math.ceil(f-1e-4)-1;return {k,ns:o+k*CELL};}
+function roadIndexOf(v){return Math.round((v.lane-laneOff(v.dir)-lineOrigin(v.axis))/CELL);}
+// reaching node k: carry on, turn, or turn around at a dead end (toward: an optional [dx,dz] to head for)
+function atNode(v,k,ns,turnChance,toward){
+  const line=roadIndexOf(v),straight=edgeOK(v.axis,line,v.dir>0?k:k-1),turns=[1,-1].filter(nd=>edgeOK(1-v.axis,k,nd>0?line:line-1));
+  if(toward){const want=v.axis===0?Math.sign(toward[0]):Math.sign(toward[1]),big=v.axis===0?Math.abs(toward[0])>Math.abs(toward[1]):Math.abs(toward[1])>Math.abs(toward[0]);
+    if(big&&turns.includes(want)){turnAtNode(v,ns,1-v.axis,want);return;}}
+  if(straight&&!(turns.length&&Math.random()<turnChance))return;
+  if(turns.length){turnAtNode(v,ns,1-v.axis,pick(turns));return;}
+  v.dir=-v.dir;v.lane=lineOrigin(v.axis)+line*CELL+laneOff(v.dir); // dead end: turn around
+}
+// never drive on a stretch of road that doesn't exist (off the shore): head back to the last intersection
+function keepOnRoad(v){const o=sOrigin(v.axis),f=(v.s-o)/CELL,n=Math.floor(f),line=roadIndexOf(v);
+  if(Math.abs(f-Math.round(f))*CELL<7||edgeOK(v.axis,line,n))return; // turning through an intersection puts you a lane's width past it
+  v.dir=-v.dir;v.lane=lineOrigin(v.axis)+line*CELL+laneOff(v.dir);}
 function obstacleAhead(v){
   const fx=v.axis===0?0:v.dir,fz=v.axis===0?v.dir:0;let best=99;
   const test=(x,z,w)=>{const dx=x-v.pos.x,dz=z-v.pos.z,f=dx*fx+dz*fz,l=Math.abs(dx*fz-dz*fx);if(f>0.5&&f<20&&l<1.4+w&&f<best)best=f;};
@@ -250,20 +267,17 @@ function driveTraffic(v,dt){
   let want=v.maxSpd*(chasing?1.7:1);
   if(v.stalled>0){v.stalled-=dt;want=0;}
   const {k,ns}=nodeAhead(v),dn=(ns-v.s)*v.dir;
-  if(!chasing&&k>=0&&k<=GRID){const ri=roadIndexOf(v);const L=v.axis===0?lightFor(ri,k,0):lightFor(k,ri,1);
+  if(!chasing&&k>=0&&k<=nodeMax(v.axis)){const ri=roadIndexOf(v);const L=v.axis===0?lightFor(ri,k,0):lightFor(k,ri,1);
     if(L!=='g'&&dn>CONFIG.traffic.stopLine-2)want=Math.min(want,Math.max(0,(dn-CONFIG.traffic.stopLine)*1.3));}
   const ob=obstacleAhead(v);if(ob<19)want=Math.min(want,Math.max(0,(ob-8.5)*1.6));
   v.spd+=clamp(want-v.spd,-28*dt,9*dt);
   const prev=v.s;v.s+=v.dir*v.spd*dt;
-  if((ns-prev)*v.dir>0&&(ns-v.s)*v.dir<=0&&k>0&&k<GRID){
-    // at an intersection: maybe turn
-    if(chasing&&!P.dead){const tx=P.car?P.car.pos.x:P.pos.x,tz=P.car?P.car.pos.z:P.pos.z,dx=tx-v.pos.x,dz=tz-v.pos.z;
-      if(v.axis===0&&Math.abs(dx)>Math.abs(dz)&&Math.abs(dx)>20)turnAtNode(v,ns,1,Math.sign(dx));
-      else if(v.axis===1&&Math.abs(dz)>Math.abs(dx)&&Math.abs(dz)>20)turnAtNode(v,ns,0,Math.sign(dz));}
-    else if(Math.random()<0.28){const nd=Math.random()<0.5?1:-1;turnAtNode(v,ns,1-v.axis,nd);}
+  if((ns-prev)*v.dir>0&&(ns-v.s)*v.dir<=0){
+    // at an intersection: carry on, turn (police head for you) or turn around at a dead end
+    let toward=null;if(chasing&&!P.dead){const tx=P.car?P.car.pos.x:P.pos.x,tz=P.car?P.car.pos.z:P.pos.z,dx=tx-v.pos.x,dz=tz-v.pos.z;if(Math.hypot(dx,dz)>20)toward=[dx,dz];}
+    atNode(v,k,ns,chasing?0:0.28,toward);
   }
-  if(Math.abs(v.s)>HALF+6){const r=Math.round((v.lane+HALF)/CELL)*CELL-HALF;v.dir=-v.dir;v.lane=r+laneOff(v.dir);v.s=clamp(v.s,-HALF-5,HALF+5);}
-  setVehiclePos(v);v.yaw=angLerp(v.yaw,v.ty,damp(8,dt));
+  keepOnRoad(v);setVehiclePos(v);v.yaw=angLerp(v.yaw,v.ty,damp(8,dt));
 }
 function updateVehicle(v,dt){
   v.flash=Math.max(0,v.flash-dt*5);
@@ -274,8 +288,8 @@ function updateVehicle(v,dt){
       else if(d<24&&!P.car&&P.pos.y<8){v.state='parked';v.parkT=18;v.spd=0;for(let i=0;i<2;i++){const h=spawnHuman('police',v.pos.x+rr(-2.5,2.5),v.pos.z+rr(-2.5,2.5));h.target=P;h.fromCar=v;}}}
       break;
     case 'parked':if(v.parkT!==undefined){v.parkT-=dt;if(v.parkT<=0){v.parkT=undefined;v.siren=false;v.state='road';}}break;
-    case 'flee':case 'stolen':{v.s+=v.dir*v.maxSpd*1.5*dt;setVehiclePos(v);v.yaw=angLerp(v.yaw,v.ty+(v.state==='stolen'?Math.sin(time*3+v.lane)*0.1:0),damp(6,dt));
-      if(Math.abs(v.s)>HALF-2)v.escaped=true;if(Math.random()<0.3)smoke(v.pos.x,0.6,v.pos.z,1,0.4,1.4,0.8,0.3);
+    case 'flee':case 'stolen':{const na=nodeAhead(v),pv=v.s;v.s+=v.dir*v.maxSpd*1.5*dt;if((na.ns-pv)*v.dir>0&&(na.ns-v.s)*v.dir<=0)atNode(v,na.k,na.ns,0.2,null);keepOnRoad(v);setVehiclePos(v);v.yaw=angLerp(v.yaw,v.ty+(v.state==='stolen'?Math.sin(time*3+v.lane)*0.1:0),damp(6,dt));
+      if(Math.hypot(v.pos.x-P.pos.x,v.pos.z-P.pos.z)>380)v.escaped=true;if(Math.random()<0.3)smoke(v.pos.x,0.6,v.pos.z,1,0.4,1.4,0.8,0.3);
       hitProps(v.pos.x,0.5,v.pos.z,2,null,v.maxSpd);break;}
     case 'thrown':{v.vel.y-=30*dt;v.pos.addS(v.vel,dt);v.rx+=v.sx*dt;v.yaw+=v.sy*dt;v.rz+=v.sz*dt;v.life-=dt;
       for(const a of actors){if(a===v||!a.alive||a.kind==='prop'||a.held||a.hitBy===v)continue;const c=center(a);
@@ -308,7 +322,7 @@ function rivalLook(f){
   return {suit:c4(suit),suit2:[...hex(suit,0.6),1],cape:c4(cape),acc:c4(acc),capeOn:Math.random()<0.7,metal:false};
 }
 function spawnRival(fac){
-  const a=rr(0,TAU),x=clamp(P.pos.x+Math.cos(a)*170,-HALF,HALF),z=clamp(P.pos.z+Math.sin(a)*170,-HALF,HALF);
+  const a=rr(0,TAU),x=clamp(P.pos.x+Math.cos(a)*170,X0,X1),z=clamp(P.pos.z+Math.sin(a)*170,Z0,Z1);
   const lvl=clamp(save.level+Math.round(rr(-2,2)),1,CONFIG.progression.levelCap),hp=NPCS.rival.hp+NPCS.rival.hpPerLvl*lvl;
   const r={kind:'rival',faction:fac,name:pick(RIVAL_NAMES[fac]),level:lvl,alive:true,hp,maxHp:hp,pos:new V3(x,55,z),vel:new V3(),heroYaw:0,tilt:0,bank:0,
     flash:0,stun:0,slow:0,slowT:0,burn:0,burnDps:0,held:false,thrown:null,cy:1.3,radius:0.9,ys:0.55,target:null,grudge:null,grudgeT:-99,attackT:rr(1,2),orbit:rr(0,TAU),
@@ -533,7 +547,7 @@ function startVaultHeist(){
   return true;
 }
 function startTruckHeist(){
-  let x=0,z=0;for(let t=0;t<40;t++){x=-HALF+CELL*(1+Math.floor(Math.random()*11));z=-HALF+CELL*(1+Math.floor(Math.random()*11));const d=Math.hypot(x-P.pos.x,z-P.pos.z);if(d>160&&d<430)break;}
+  let x=0,z=0;for(let t=0;t<80;t++){const k=1+Math.floor(Math.random()*(GX-1)),m=1+Math.floor(Math.random()*(GZ-2));if(!zEdge(k,m))continue;x=X0+k*CELL;z=Z0+m*CELL;const d=Math.hypot(x-P.pos.x,z-P.pos.z);if(d>160&&d<430)break;}
   const c=newCrime('truck',x,z,'Titan mech is breaking into an armored truck','!!');c.heist=true;
   const t=makeVehicle('truck');t.temp=true;t.state='parked';t.axis=0;t.lane=x+4.5;t.s=z+18;t.dir=1;setVehiclePos(t);t.crime=c;
   const m=spawnMech(x-14,z+18,c);m.truck=t;m.yaw=Math.PI/2;c.boss=m;c.actors.push(t,m);

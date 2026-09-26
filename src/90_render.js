@@ -318,7 +318,7 @@ function drawVehicle(v,mesh,x,y,z,rx,yaw,rz,tint,flash,siren,hw,hl,wreck){
 }
 function drawProps(){
   const night=env.night;
-  for(let bi=0;bi<GRID*GRID;bi++){const m=propMeshes[bi];const i=(bi/GRID)|0,j=bi%GRID,cx=-HALF+(i+.5)*CELL,cz=-HALF+(j+.5)*CELL;
+  for(let bi=0;bi<GX*GZ;bi++){const m=propMeshes[bi];const i=(bi/GZ)|0,j=bi%GZ,cx=cellX(i),cz=cellZ(j);
     const q=inView(cx,cz,440,90);if(q<0)continue;
     if(m)queue(m,ID,WHITE,q<170*170?F_SH:0);
     if(q>260*260)continue;
@@ -424,9 +424,9 @@ const PL_MAX=20,PL_POS=new Float32Array(PL_MAX*4),PL_COL=new Float32Array(PL_MAX
 function gatherLights(){
   const night=env.night;if(night<0.08)return 0;
   const fx=state==='play'?P.pos.x:camPos.x,fz=state==='play'?P.pos.z:camPos.z;plCand.length=0;
-  const bi0=Math.floor((fx+HALF)/CELL),bj0=Math.floor((fz+HALF)/CELL);
-  for(let i=bi0-2;i<=bi0+2;i++)for(let j=bj0-2;j<=bj0+2;j++){if(i<0||j<0||i>=GRID||j>=GRID)continue;
-    for(const p of blockProps[i*GRID+j]){if(p.type!=='lamp'||!p.alive)continue;const x=p.x+Math.sin(p.yaw)*1.7,z=p.z+Math.cos(p.yaw)*1.7,d=(x-fx)**2+(z-fz)**2;
+  const bi0=cellI(fx),bj0=cellJ(fz);
+  for(let i=bi0-2;i<=bi0+2;i++)for(let j=bj0-2;j<=bj0+2;j++){if(i<0||j<0||i>=GX||j>=GZ)continue;
+    for(const p of blockProps[i*GZ+j]){if(p.type!=='lamp'||!p.alive)continue;const x=p.x+Math.sin(p.yaw)*1.7,z=p.z+Math.cos(p.yaw)*1.7,d=(x-fx)**2+(z-fz)**2;
       if(d<200*200)plCand.push({x,y:p.y+6.2,z,d,r:28,c:0});}}
   for(const v of vehicles){if(!v.alive||v.state==='wreck'||v.state==='parked'||v.state==='thrown')continue;const d=(v.pos.x-fx)**2+(v.pos.z-fz)**2;if(d>120*120)continue;
     const s=Math.sin(v.yaw),c=Math.cos(v.yaw),hl=v.hl||2;plCand.push({x:v.pos.x+s*(hl+5),y:v.pos.y+1.2,z:v.pos.z+c*(hl+5),d:d+900,r:13,c:1});}

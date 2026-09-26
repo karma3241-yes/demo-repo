@@ -42,18 +42,18 @@ function buildHotbar(){
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd:null,lv,trav:true});
   }
 }
-const mapCv=document.createElement('canvas');mapCv.width=mapCv.height=Math.round((EDGE+130)*2*0.5);
+const MAPO=EDGE+130,mapCv=document.createElement('canvas');mapCv.width=mapCv.height=Math.round(MAPO*2*0.5);
 (function drawMapBase(){
-  const c=mapCv.getContext('2d'),s=0.5,o=EDGE+130;const X=v=>(v+o)*s;
+  const c=mapCv.getContext('2d'),s=0.5,o=MAPO;const X=v=>(v+o)*s;
   c.fillStyle='#0e2a3d';c.fillRect(0,0,mapCv.width,mapCv.height);
-  c.fillStyle='#2a3140';c.fillRect(X(-EDGE),X(-EDGE),EDGE*2*s,EDGE*2*s);
-  for(let i=0;i<GRID;i++)for(let j=0;j<GRID;j++){const cx=-HALF+(i+.5)*CELL,cz=-HALF+(j+.5)*CELL;c.fillStyle='#161b25';c.fillRect(X(cx-30),X(cz-30),60*s,60*s);}
+  const h=CELL/2+SHORE;c.fillStyle='#2a3140';for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++)if(cellAt(i,j))c.fillRect(X(cellX(i)-h),X(cellZ(j)-h),h*2*s,h*2*s);
+  for(const r of BRIDGE_RECTS)c.fillRect(X(r.x0),X(r.z0),(r.x1-r.x0)*s,(r.z1-r.z0)*s);
+  for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++){if(!isBlock(i,j))continue;c.fillStyle='#161b25';c.fillRect(X(cellX(i)-30),X(cellZ(j)-30),60*s,60*s);}
   for(const r of mapRects){if(r.col===-1)c.fillStyle='#1f4d2c';else if(r.col===-2)c.fillStyle='#4a3c30';else{const l=Math.round(26+clamp(r.col/260,0,1)*46);c.fillStyle=`hsl(212,22%,${l}%)`;}
     c.fillRect(X(r.x0),X(r.z0),Math.max(1,(r.x1-r.x0)*s),Math.max(1,(r.z1-r.z0)*s));}
   c.fillStyle='#1d5f8a';for(const l of lakes){c.beginPath();c.arc(X(l.x),X(l.z),l.r*s,0,TAU);c.fill();}
   if(bank){c.fillStyle='#b8953a';c.fillRect(X(bank.x0),X(bank.z0),(bank.x1-bank.x0)*s,(bank.z1-bank.z0)*s);}
 })();
-const MAPO=EDGE+130;
 const mapEl=$('map'),mctx=mapEl.getContext('2d');
 const CRIME_COL={shop:'#ff5a3d',atm:'#ffb13d',mug:'#ffb13d',car:'#ffb13d',vault:'#ff3d5e',truck:'#ff3d5e'};
 function drawMinimap(yaw){
