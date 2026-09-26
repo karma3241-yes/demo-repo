@@ -270,12 +270,13 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div id="keys" class="panel">
     <kbd>WASD</kbd><span>Move</span>
     <kbd>Click</kbd><span>Punch (hold to keep swinging)</span>
-    <kbd>1 2 3</kbd><span>Your abilities (also Q E R)</span>
+    <kbd>1 – 5</kbd><span>Your abilities (also Q E R)</span>
     <kbd>Space</kbd><span>Jump · hold for a super jump</span>
     <kbd>F · Shift · Right click</kbd><span>Movement powers</span>
     <kbd>Z · X</kbd><span>Lock on · dash</span>
     <kbd>G</kbd><span>Enter a car · help someone up</span>
     <kbd>V</kbd><span>Morph Band (if you have it)</span>
+    <div id="keys-hero" style="display:contents"></div>
     <kbd>Tab</kbd><span>Skills and upgrades</span>
     <kbd>L</kbd><span>Lock or unlock the mouse</span>
     <kbd>Esc</kbd><span>Pause</span>
@@ -311,6 +312,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div class="pause-btns"><button class="ghost" id="p-skills" type="button">Skills</button><button class="ghost" id="p-look" type="button">Appearance</button><button class="ghost" id="p-powers" type="button">Change powers</button><button class="ghost" id="p-mp" type="button">Multiplayer</button><button class="ghost" id="p-lb" type="button">Leaderboard</button><button class="ghost" id="p-set" type="button">Settings</button></div>
 </div></div>
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
+<div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
 <div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div></div>
 <div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><small id="oath-note">Esc to put the lantern away</small></div>
 <div id="dead" class="overlay" hidden><div><p class="big">Knocked out</p><p class="sub" id="deads"></p></div></div>

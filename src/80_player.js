@@ -23,6 +23,7 @@ addEventListener('keydown',e=>{
   if(paused||P.dead)return;
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
+  if(e.code==='KeyU'){suitToggle();return;}
   if(e.code==='KeyV'){if(isRing())openDial('construct');else bandPress();return;}
   if(e.code==='KeyO'&&isRing()){openOath();return;}
   if(e.code==='KeyB'&&isRing()&&!P.car){summonConstruct();return;}
@@ -135,7 +136,7 @@ function buildTouchButtons(){
     for(const id of save.character.movement){if(id==='flight')B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
   if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
-  B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
+  B('SUIT','suit');B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
 }
 function touchAct(a,down){
   if(a==='pause'){if(down&&state==='play')setPaused(true);return;}
@@ -157,6 +158,7 @@ function touchAct(a,down){
   else if(a==='band'){if(down)bandPress();}
   else if(a==='fast'){if(down)toggleFastMode();}
   else if(a==='tkmore'){if(down)tkGrabMore();}
+  else if(a==='suit'){if(down)suitToggle();}
   else if(a==='phase'){if(down)togglePhase();}
   else if(a==='dialup'){if(down)turnDial(1);}
   else if(a==='dialdn'){if(down)turnDial(-1);}
@@ -171,7 +173,8 @@ function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch'
 function playerLook(){
   const t=creating&&draft?draft:save.character;
   if(!t)return {suit:c4(SUIT_OPTS[0]),suit2:[...hex(SUIT_OPTS[0],0.6),1],cape:c4(CAPE_OPTS[0]),acc:c4(ACC_OPTS[0]),capeOn:true,metal:false};
-  return {suit:c4(SUIT_OPTS[t.suit]),suit2:[...hex(SUIT_OPTS[t.suit],0.6),1],cape:c4(CAPE_OPTS[t.cape]),acc:c4(ACC_OPTS[t.accent]),capeOn:t.capeOn,metal:P.metal};
+  const m={suit:c4(SUIT_OPTS[t.suit]),suit2:[...hex(SUIT_OPTS[t.suit],0.6),1],cape:c4(CAPE_OPTS[t.cape]),acc:c4(ACC_OPTS[t.accent]),capeOn:t.capeOn,metal:P.metal};
+  return P.suited===false&&!creating&&sheetOpen!=='look'?civLook(m):m;
 }
 let LOOK=playerLook();
 function applyLook(){LOOK=playerLook();if(save.character)hud.hname.textContent=save.character.name;}

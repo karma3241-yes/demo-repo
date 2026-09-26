@@ -27,7 +27,7 @@ function feed(title,sub=''){
 const SLOT_KEYS=['1','2','3','4','5'],SLOT_ALT=['Q','E','R','',''];
 let slotEls=[];
 function buildHotbar(){
-  hud.hotbar.textContent='';slotEls=[];if(!save.character)return;
+  hud.hotbar.textContent='';slotEls=[];renderHeroKeys();if(!save.character)return;
   if(P.alien){const a=ALIENS[P.alien.id];
     a.abilities.forEach((ab,i)=>{const cd=el('i',{class:'cd'});const s=el('div',{class:'slot alien'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:ab.name}),el('small',{text:a.name}));hud.hotbar.appendChild(s);slotEls.push({alien:i,s,cd});});
     const tb=el('i');const s=el('div',{class:'slot move band'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Revert'}),el('div',{class:'bar tbar'},tb));hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});

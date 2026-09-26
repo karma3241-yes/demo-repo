@@ -98,18 +98,19 @@ function drawSuper(s,m,isPlayer){
   Q(box,child(body,0,0.72,0.2,0.08,0,0,0.66,0.46,0.12),suit2,sh,fl);
   Q(box,child(body,0,0.12,0,0,0,0,0.7,0.2,0.44),suit,sh,fl);
   Q(box,child(body,0,0.02,0,0,0,0,0.76,0.12,0.5),acc,sh,fl);
-  Q(MESH.glowBox,child(body,0,0.02,0.255,0,0,0,0.18,0.1,0.02),acc,0);
+  const civ=!!m.civ;
+  if(!civ)Q(MESH.glowBox,child(body,0,0.02,0.255,0,0,0,0.18,0.1,0.02),acc,0);
   Q(box,child(body,0,-0.14,0,0,0,0,0.7,0.26,0.44),suit2,sh,fl);
-  Q(MESH.glowBox,child(body,0,0.7,0.27,0,0,Math.PI/4,0.24,0.24,0.03),s.firing?[1,.3,.2,1]:acc,0);
+  if(!civ)Q(MESH.glowBox,child(body,0,0.7,0.27,0,0,Math.PI/4,0.24,0.24,0.03),s.firing?[1,.3,.2,1]:acc,0);
   Q(box,child(body,0,1.02,0,0,0,0,0.24,0.14,0.24),skin,sh,fl);
   Q(box,child(body,0,0.97,-0.02,0,0,0,0.5,0.1,0.34),suit2,sh,fl);
   // head
   const head=child(body,0,1.27,0.02);
   Q(sph,child(head,0,0,0,0,0,0,0.25,0.3,0.27),skin,sh,fl);
   Q(sph,child(head,0,0.1,-0.04,0,0,0,0.27,0.24,0.28),m.metal?SILVER2:HAIR,sh,fl);
-  Q(box,child(head,0,0.03,0.12,0,0,0,0.53,0.11,0.3),suit2,0,fl);
+  const mkK=isPlayer&&P.maskK!=null?P.maskK:1;if(!civ&&mkK>0.02)Q(box,child(head,0,0.03+(1-mkK)*0.25,0.12,0,0,0,0.53*mkK,0.11,0.3),suit2,0,fl);
   Q(box,child(head,0,-0.2,0.18,0,0,0,0.12,0.05,0.06),skin,0,fl);
-  const eyeC=s.firing?[1,.25,.15,1]:[.65,.95,1,1];
+  const eyeC=s.firing?[1,.25,.15,1]:civ?[.12,.1,.09,1]:[.65,.95,1,1];
   Q(MESH.glowBox,child(head,-0.1,0.03,0.275,0,0,0,0.09,0.04,0.02),eyeC,0);
   Q(MESH.glowBox,child(head,0.1,0.03,0.275,0,0,0,0.09,0.04,0.02),eyeC,0);
   const eyeM=child(head,0,0.03,0.3);s.eye.set(eyeM[12],eyeM[13],eyeM[14]);
@@ -120,9 +121,9 @@ function drawSuper(s,m,isPlayer){
     Q(box,child(shd,0,-0.22,0,0,0,0,0.22,0.42,0.24),suit,sh,fl);
     const elb=child(shd,0,-0.42,0,el,0,0);
     Q(sph,child(elb,0,0,0,0,0,0,0.12,0.12,0.12),suit,sh,fl);
-    Q(box,child(elb,0,-0.18,0,0,0,0,0.21,0.34,0.23),cape,sh,fl);
+    Q(box,child(elb,0,-0.18,0,0,0,0,0.21,0.34,0.23),civ?suit:cape,sh,fl);
     Q(box,child(elb,0,-0.08,0,0,0,0,0.25,0.08,0.27),acc,0,fl);
-    Q(box,child(elb,0,-0.42,0.02,0,0,0,0.24,0.2,0.26),cape,sh,fl);
+    Q(box,child(elb,0,-0.42,0.02,0,0,0,0.24,0.2,0.26),civ?skin:cape,sh,fl);
     if(side<0&&isPlayer&&hasPower('morphBand'))Q(MESH.glowCyl,child(elb,0,-0.26,0,0,0,0,0.14,0.07,0.14),BANDC,0);
     if(isPlayer&&side>0)s.hand=child(elb,0,-0.45,0);
   }
@@ -133,7 +134,7 @@ function drawSuper(s,m,isPlayer){
     const knee=child(hip,0,-0.52,0,kn,0,0);
     Q(box,child(knee,0,0.0,0.06,0,0,0,0.26,0.16,0.26),suit2,0,fl);
     Q(box,child(knee,0,-0.2,0,0,0,0,0.28,0.4,0.31),cape,sh,fl);
-    Q(box,child(knee,0,-0.47,0.06,0,0,0,0.31,0.18,0.44),cape,sh,fl);
+    Q(box,child(knee,0,-0.47,0.06,0,0,0,0.31,0.18,0.44),civ?[.16,.13,.11,1]:cape,sh,fl);
     Q(box,child(knee,0,-0.555,0.06,0,0,0,0.32,0.05,0.46),[.08,.08,.09,1],0,fl);
   }
   if(m.capeOn){let seg=child(body,0,0.94,-0.25,a.cape,0,0);const v=s.vel?s.vel.len():0;
@@ -342,14 +343,15 @@ function buildDrawList(){
   dlN=0;
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
     const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.phasing?0.45:0;
-    if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0,jx=P.phasing||P.vibT>0?rr(-.07,.07):0,jz=jx?rr(-.07,.07):0;P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;}
+    if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;}
     if(P.cp&&P.hand){const h=P.hand,k=Math.min(1,P.cp.t/1.2),s=0.3+k*0.6+Math.sin(time*30)*0.05;queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s,s,s),[1,.85,.5,0.9],F_ADD);queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s*2.5,s*2.5,s*2.5),[1,.6,.3,0.25*k],F_ADD);}
     GHOST=0;
     if(P.shieldOn){const s=1.9+Math.sin(time*6)*0.05;queue(MESH.glowSphere,at(P.pos.x,P.pos.y+1.35,P.pos.z,0,time,0,s,s*1.1,s),[.3,.75,1,0.16+0.2*clamp(P.shield/pstat('energyShield','absorb'),0,1)],F_ADD);}
-    if(beam&&!bigBeam){for(const sd of [-0.1,0.1]){const ex=P.eye.x+Math.cos(P.heroYaw)*sd,ez=P.eye.z-Math.sin(P.heroYaw)*sd;
-      queue(MESH.glowBox,M4.beam(tmpM(),ex,P.eye.y,ez,beam.x,beam.y,beam.z,0.07),[1,.55,.35,1],F_ADD);
-      queue(MESH.glowBox,M4.beam(tmpM(),ex,P.eye.y,ez,beam.x,beam.y,beam.z,0.3),[.9,.08,.03,0.5],F_BL);}
-      const g=1.2+Math.random()*0.4;queue(MESH.glowSphere,at(beam.x,beam.y,beam.z,0,0,0,g,g,g),[1,.5,.2,0.8],F_ADD);}
+    if(beam&&!bigBeam){const k=lvlK('laserVision'); // a thin orange line at first, a thick deep red beam when mastered
+      for(const sd of [-0.1,0.1]){const ex=P.eye.x+Math.cos(P.heroYaw)*sd,ez=P.eye.z-Math.sin(P.heroYaw)*sd;
+      queue(MESH.glowBox,M4.beam(tmpM(),ex,P.eye.y,ez,beam.x,beam.y,beam.z,0.035+0.07*k),[1,lerp(.75,.5,k),lerp(.5,.3,k),1],F_ADD);
+      queue(MESH.glowBox,M4.beam(tmpM(),ex,P.eye.y,ez,beam.x,beam.y,beam.z,0.12+0.3*k),[lerp(1,.9,k),lerp(.45,.05,k),lerp(.25,.02,k),0.3+0.3*k],F_BL);}
+      const g=(0.6+k*1.2)+Math.random()*0.4;queue(MESH.glowSphere,at(beam.x,beam.y,beam.z,0,0,0,g,g,g),[1,.5,.2,0.5+0.35*k],F_ADD);}
     const wp=P.web||P.zip;if(wp&&P.hand){const h=P.hand;queue(MESH.box,M4.beam(tmpM(),h[12],h[13],h[14],wp.x,wp.y,wp.z,0.06),[.95,.95,1,1],0);}
     if(P.tk&&!P.tk.giant)for(const a of [P.tk.a,...P.tk.more]){if(!a)continue;const c=center(a),s=(a.radius||1)*1.6*(0.8+tkLevel()*0.05);queue(MESH.glowSphere,at(c.x,c.y,c.z,0,0,0,s,s,s),[.6,.35,1,0.16+tkLevel()*0.015],F_ADD);}
   }
@@ -371,7 +373,7 @@ function buildDrawList(){
     const hc=crimes.find(c=>c.type==='vault');if(hc&&hc.boss&&hc.boss.alive){const b=hc.boss,mid=(vaultY+b.pos.y)/2,len=b.pos.y-vaultY;const p=0.5+Math.sin(time*5)*0.2;
       queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,time,0,8,len,8),[.4,1,.7,0.18*p],F_ADD);queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,0,0,4,len,4),[.6,1,.8,0.25*p],F_ADD);}}
   for(const c of crimes)if(c.type==='shop'&&c.shop&&Math.sin(time*10)>0)queue(MESH.glowBox,at(c.shop.fx,5.8,c.shop.fz,0,0,0,0.5,0.5,0.5),[1,.1,.1,1],0);
-  drawProps();drawRubble();drawHelis();drawHeroAbilities();drawSpider();drawRing();drawBody();
+  drawProps();drawRubble();drawHelis();drawHeroAbilities();drawSpider();drawRing();drawBody();drawSuit();
   for(const w of windows){if(inView(w.x,w.z,320)<0)continue;const ax=w.nx!==0;
     queue(MESH.box,at(w.x,w.y,w.z,0,0,0,ax?0.06:2.1,2.3,ax?2.1:0.06),[.02,.02,.025,1],F_UN);
     for(const [u,v,s] of [[-0.8,0.9,0.5],[0.85,-0.8,0.4],[0.7,0.95,0.3]])queue(MESH.box,at(w.x+(ax?w.nx*0.02:u),w.y+v,w.z+(ax?u:w.nz*0.02),0,0,u*0.8,ax?0.04:s,s*0.8,ax?s:0.04),[.55,.7,.8,1],0);}
@@ -385,8 +387,8 @@ function buildDrawList(){
     queue(MESH.glowSphere,at(o.x,y,o.z,0,0,0,s*2.8,s*2.8,s*2.8),[c[0],c[1],c[2],0.25],F_ADD);}
   for(const p of projs){
     if(p.rock){queue(MESH.box,at(p.x,p.y,p.z,time*5,time*3,0,1.1,0.9,1.0),[.25,.18,.14,1],F_SH);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.3,1.3,1.3),[1,.4,.1,0.4],F_ADD);}
-    else if(p.kind==='fire'){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.7,0.7,0.7),[1,.6,.2,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.8,1.8,1.8),[1,.35,.05,0.4],F_ADD);}
-    else if(p.kind==='blast'){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.5,0.5,0.5),[.5,.9,1,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.4,1.4,1.4),[.2,.6,1,0.4],F_ADD);}
+    else if(p.kind==='fire'){const f=clamp((p.radius||3)/4.2,0.6,1.8);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.7*f,0.7*f,0.7*f),[1,.6,.2,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.8*f,1.8*f,1.8*f),[1,.35,.05,0.4],F_ADD);}
+    else if(p.kind==='blast'){const f=p.big||1;queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.5*f,0.5*f,0.5*f),[.5,.9,1,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.4*f,1.4*f,1.4*f),[.2,.6,1,0.4],F_ADD);}
     else if(p.kind==='bolt'){let px=p.x,py=p.y,pz=p.z;for(let i=1;i<=3;i++){const qx=p.x-p.vx*0.012*i+rr(-.4,.4),qy=p.y-p.vy*0.012*i+rr(-.4,.4),qz=p.z-p.vz*0.012*i+rr(-.4,.4);queue(MESH.glowBox,M4.beam(tmpM(),px,py,pz,qx,qy,qz,0.18),[1,.9,.5,1],F_ADD);px=qx;py=qy;pz=qz;}queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.1,1.1,1.1),[1,.8,.3,0.5],F_ADD);}
     else if(p.kind==='ring'){const s=p.small?0.28:0.5*(p.big||1);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.02,p.y-p.vy*0.02,p.z-p.vz*0.02,s*0.7),[RING_C[0],RING_C[1],RING_C[2],1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,s*2.4,s*2.4,s*2.4),[RING_C[0],RING_C[1],RING_C[2],0.35],F_ADD);}
     else if(p.kind==='web'){queue(MESH.sphere,at(p.x,p.y,p.z,time*6,time*4,0,0.55,0.55,0.55),[.95,.95,1,1],0);}

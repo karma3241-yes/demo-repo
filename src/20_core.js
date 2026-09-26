@@ -180,6 +180,7 @@ const MASTERY_NOTES={webSwing:{3:'Backflips and twists unlocked',5:'Web wings gl
   flight:{5:'Supersonic flight',9:'Mach speed'},jump:{5:'Super jumps go much higher'}};
 // traversal stats grow with mastery (use), never below the level they were upgraded to before
 const statLevel=id=>POWERS[id].cat==='movement'?Math.max(powerLevel(id),masteryLevel(id)):powerLevel(id);
+const lvlK=id=>(powerLevel(id)-1)/(CONFIG.powerMax-1); // 0 at level 1, 1 at max: drives how strong a power looks
 function pstat(id,name,lvl){const v=POWERS[id][name];if(Array.isArray(v))return lerp(v[0],v[1],((lvl||statLevel(id))-1)/(CONFIG.powerMax-1));return v;}
 function faction(rep){return rep>=REP.heroAt?'hero':rep<=REP.villainAt?'villain':'neutral';}
 const playerFaction=()=>faction(save.reputation);

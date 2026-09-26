@@ -70,11 +70,11 @@ function toggleFlight(){
   P.flying=!P.flying;P.charging=false;P.web=null;P.wall=null;
   if(P.flying){if(P.grounded)P.vel.y=22;P.grounded=false;SFX.whoosh();burst(P.pos.x,P.pos.y+0.3,P.pos.z,24,14,0.7,DUST,1.6,-2,2);}
 }
-function bolt(x,y,z,remote){
+function bolt(x,y,z,remote,k=remote?0.5:lvlK('lightning')){const bw=0.55+0.9*k;
   if(!remote)MP.fx('b',{x:Math.round(x),y:Math.round(y),z:Math.round(z)});
   let px=x+rr(-12,12),py=y+150,pz=z+rr(-12,12);const n=11;
   for(let i=1;i<=n;i++){const k=i/n,j=(1-k)*6;const qx=lerp(px,x,1/(n-i+1))+(i<n?rr(-j,j):0),qy=lerp(py,y,1/(n-i+1)),qz=lerp(pz,z,1/(n-i+1))+(i<n?rr(-j,j):0);
-    tracer(px,py,pz,qx,qy,qz,[.6,.75,1],0.45,0.25);tracer(px,py,pz,qx,qy,qz,[1,1,1],0.14,0.25);
+    tracer(px,py,pz,qx,qy,qz,[.6,.75,1],0.45*bw,0.25);tracer(px,py,pz,qx,qy,qz,[1,1,1],0.14*bw,0.25);
     if(i>3&&Math.random()<0.25){const bx=qx+rr(-10,10),bz=qz+rr(-10,10);tracer(qx,qy,qz,bx,qy-rr(6,14),bz,[.6,.75,1],0.15,0.18);}
     px=qx;py=qy;pz=qz;}
   burst(x,y,z,50,30,0.6,CYAN,1.4,6,1.5);ringFx(x,y+0.2,z,1,12,0.4,[.7,.85,1]);flashWhite=0.55;
@@ -88,7 +88,7 @@ const POWER_FN={
     fireProj({kind:'fire',owner:P,x:h.x,y:h.y,z:h.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg:pstat('fireball','damage'),radius:pstat('fireball','radius'),
       burn:{dps:pstat('fireball','burnDps'),time:POWERS.fireball.burnTime},r:0.7,life:3});SFX.whoosh();},
   energyBlast(){faceAim();const h=handPoint(),d=dirTo(h,aim.x,aim.y,aim.z),sp=POWERS.energyBlast.speed;
-    fireProj({kind:'blast',owner:P,x:h.x,y:h.y,z:h.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg:pstat('energyBlast','damage'),knock:pstat('energyBlast','knock'),r:0.5,life:2});
+    fireProj({kind:'blast',owner:P,x:h.x,y:h.y,z:h.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg:pstat('energyBlast','damage'),knock:pstat('energyBlast','knock'),r:0.5,life:2,big:0.65+0.8*lvlK('energyBlast')});
     SFX.tone('square',700,1400,0.12,0.08);},
   lightning(){faceAim();let x=aim.x,y=aim.y,z=aim.z;const R=POWERS.lightning.range;
     if(!aim.hitAny||Math.hypot(x-P.pos.x,z-P.pos.z)>R){const k=Math.min(R,60);x=P.pos.x+camF.x*k;z=P.pos.z+camF.z*k;y=groundY(x,z,P.pos.y+20);}
@@ -258,5 +258,5 @@ function updatePowers(dt){
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   P.heat=Math.max(0,P.heat-dt*0.35);
   if(P.stun>0)P.stun-=dt;
-  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateSpeed(dt);updateBody(dt);remoteStreaks();
+  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);remoteStreaks();
 }
