@@ -2377,12 +2377,15 @@ function webPress(){
   if(!hasWeb()||!canAct())return;
   const R=webRange(),h=handPoint();
   // yank a close target (or the locked one) instead of swinging
+  // (keep holding to stay webbed on: see tether below)
   const a=aim.actor;
   if(a&&a.kind!=='boss'&&a.kind!=='prop'&&a.kind!=='vehicle'){const c=center(a),d=Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z);
     if(d<(lockT?32:R)){if(!spend(POWERS.webSwing.energy)){noEnergy();return;}
       tracer(h.x,h.y,h.z,c.x,c.y,c.z,[.95,.95,1],0.08,0.2);const dx=P.pos.x-a.pos.x,dz=P.pos.z-a.pos.z,l=Math.hypot(dx,dz)||1;
       Damage.apply(P,a,5,'web',{stun:pstat('webSwing','stun'),kv:a.kind==='human'?[dx/l*Math.min(l,18),7,dz/l*Math.min(l,18)]:null});
-      SFX.tone('triangle',1300,500,0.12,0.08);return;}}
+      SFX.tone('triangle',1300,500,0.12,0.08);if(a.alive&&!tetherShielded(a))tetherTo(a,d);return;}}
+  if(a&&a.kind==='vehicle'&&a.alive){const c=center(a),d=Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z);
+    if(d<R*0.6){if(!spend(POWERS.webSwing.energy)){noEnergy();return;}tetherTo(a,d);SFX.tone('triangle',1100,500,0.12,0.08);return;}}
   // aimed surface above you, else the anchor assist
   let pt=null;
   if(aim.hitAny&&aim.surface&&!(aim.ny>0.5&&aim.y<2)&&aim.y>P.pos.y+3){const d=Math.hypot(aim.x-h.x,aim.y-h.y,aim.z-h.z);if(d<=R)pt={x:aim.x,y:aim.y,z:aim.z};}
@@ -2392,8 +2395,23 @@ function webPress(){
   if(P.grounded){P.vel.y=Math.max(P.vel.y,17);P.grounded=false;P.pos.y+=0.2;}
   attachWeb(pt);
 }
+// ---- web tether: hold right click on someone to stay webbed on; if they run or fly off, you get dragged along ----
+function tetherShielded(a){
+  if(a.kind==='remote')return !!(a.flags&FLAG.shield)||!!(a.ex&&(a.ex[0]||a.ex[5]));
+  return !!(a.shieldOn||a.ringShield);
+}
+function tetherTo(a,d){const c=center(a);P.web={x:c.x,y:c.y,z:c.z,L:Math.max(4,d*0.95),t:time,target:a};P.flying=false;P.wall=null;P.wallRun=null;P.charging=false;P.zip=null;
+  if(a.kind==='human'||a.kind==='rival')feed('Webbed on','Keep holding right click to hang on');}
+function tetherTick(W){
+  const a=W.target,c=center(a);W.x=c.x;W.y=c.y+0.4;W.z=c.z;
+  if(!a.alive||a.hp<=0||(a.kind==='remote'&&a.flags&FLAG.dead)||Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z)>320){P.web=null;return false;}
+  if(tetherShielded(a)){P.web=null;const h=handPoint();burst(lerp(h.x,c.x,0.5),lerp(h.y,c.y,0.5),lerp(h.z,c.z,0.5),16,6,0.4,[[.95,.95,1]],1,4,2);SFX.tone('square',900,200,0.15,0.08);feed('Web cut','Their shield sliced through it');return false;}
+  // reel in a little while you hold on, so you close the gap
+  if(W.L>5&&time-W.t>0.4)W.L=Math.max(5,W.L-4*(1/60));
+  return true;
+}
 function webRelease(boost=true){
-  webHeld=false;if(!P.web)return;const W=P.web;P.web=null;
+  webHeld=false;if(!P.web)return;const W=P.web;P.web=null;if(W.target)boost=false;
   if(boost&&!P.grounded){const hs=Math.hypot(P.vel.x,P.vel.z);
     // best release: moving forward and starting to rise
     const good=P.vel.y>-4&&hs>10;P.vel.x*=good?MOVE.releaseBoost:1.03;P.vel.z*=good?MOVE.releaseBoost:1.03;P.vel.y+=good?7:3;
@@ -2403,16 +2421,17 @@ function webRelease(boost=true){
 function swingJump(){if(!P.web)return;webRelease(true);P.vel.y+=MOVE.swingJump;SFX.whoosh();}
 function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
   const W=P.web,f=pstat('webSwing','force');
+  if(W.target&&!tetherTick(W))return;
   P.vel.y-=CONFIG.move.gravity*0.9*dt;
   P.vel.x+=(fwdX*inF+rX*inR)*26*f*dt;P.vel.z+=(fwdZ*inF+rZ*inR)*26*f*dt;
   // gravity assist through the bottom of the arc, gentle reel-in keeps the arc off the ground
   const gy=groundY(P.pos.x,P.pos.z,P.pos.y+1),dy=P.pos.y+1.6-W.y;
   if(dy<-W.L*0.6&&P.pos.y>gy+1.5){const hs=Math.hypot(P.vel.x,P.vel.z)||1;P.vel.x+=P.vel.x/hs*8*dt;P.vel.z+=P.vel.z/hs*8*dt;}
-  if(P.pos.y<gy+3)W.L=Math.max(8,Math.min(W.L,W.y-gy-3.5)); // never drag along the street
+  if(P.pos.y<gy+3&&!W.target)W.L=Math.max(8,Math.min(W.L,W.y-gy-3.5)); // never drag along the street
   P.vel.mul(1-0.03*dt);{const v=P.vel.len(),cap=70+35*webMk();if(v>cap)P.vel.mul(cap/v);}
   // chain: past the anchor on the upswing, let go and grab the next one
   const ax=P.pos.x-W.x,az=P.pos.z-W.z,hs=Math.hypot(P.vel.x,P.vel.z);
-  if(webHeld&&time-W.t>0.5&&hs>8&&(ax*P.vel.x+az*P.vel.z)>0&&P.vel.y>-2&&(P.pos.y+1.6-W.y)>-W.L*MOVE.chainAngle){
+  if(!W.target&&webHeld&&time-W.t>0.5&&hs>8&&(ax*P.vel.x+az*P.vel.z)>0&&P.vel.y>-2&&(P.pos.y+1.6-W.y)>-W.L*MOVE.chainAngle){
     const R=webRange();webRelease(true);webHeld=true;const pt=findAnchor(R);if(pt&&P.en>=POWERS.webSwing.energy*0.5){P.en-=POWERS.webSwing.energy*0.5;attachWeb(pt);}}
 }
 // ---- web zip / point launch: Space in mid-air (web swingers) ----
@@ -3184,7 +3203,7 @@ function onRingFx(d,n){
   else if(d.g==='b')holes.push({x:n(d.x),y:n(d.y),z:n(d.z),t:0,dur:6,R:clamp(n(d.r),10,100),next:0,hitT:0,visual:true});
 }
 // extra presence slots other players need to draw you: [ring shield, speedster phase, time stop, suit]
-function presExtra(){return [P.ringShield?1:0,P.phasing?1:0,P.giantS>1.02?Math.round(P.giantS*100)/100:0,P.suited===false?1:0,hasPower('armorSuit')?1:0];}
+function presExtra(){return [P.ringShield?1:0,P.phasing?1:0,P.giantS>1.02?Math.round(P.giantS*100)/100:0,P.suited===false?1:0,hasPower('armorSuit')?1:0,(metalWeapon()||{}).id==='shield'?1:0];}
 // ---- per-frame ----
 function updateRing(dt){
   if(P.construct&&!!CONSTRUCTS[P.construct.id].armor!==armorForms())dismissConstruct(true);
@@ -4615,7 +4634,7 @@ function myPresence(){
   // presence patches merge on the server, so optional fields are always sent (null clears them)
   o.b=beam?(beam.w?[r1(beam.x),r1(beam.y),r1(beam.z),r1(beam.w)]:[r1(beam.x),r1(beam.y),r1(beam.z)]):null;const wp=P.web||P.zip;o.w=wp?[r1(wp.x),r1(wp.y),r1(wp.z)]:null;o.k=P.tk&&P.tk.hold?P.tk.hold.map(r1):null;o.c=null;
   o.cn=P.construct?P.construct.id:null;o.cz=P.construct&&CONSTRUCTS[P.construct.id].scale?Math.round(conSize()*conGrow(P.construct.id)*100)/100:0;o.ex=presExtra();
-  o.st=P.stars||0;o.bty=save.bounty||0;
+  o.wt=P.web&&P.web.target&&P.web.target.kind==='remote'?P.web.target.peer:null;o.st=P.stars||0;o.bty=save.bounty||0;
   if(P.car){o.c=[P.car.model,r2(P.car.yaw),P.car.tint.slice(0,3).map(r2)];o.x=r1(P.car.pos.x);o.y=r1(P.car.pos.y);o.z=r1(P.car.pos.z);}
   return o;
 }
@@ -4631,7 +4650,7 @@ function applyPresence(r,p){
   r.look={suit:c4(SUIT_OPTS[su]),suit2:[...hex(SUIT_OPTS[su],0.6),1],cape:c4(CAPE_OPTS[ca]),acc:c4(ACC_OPTS[ac]),capeOn:!!l[3],metal:false};
   r.flags=n(p.f)|0;r.look.metal=!!(r.flags&FLAG.metal);r.alien=ALIENS[p.al]?p.al:'';
   r.tp.set(n(p.x),n(p.y),n(p.z));r.vel.set(n(p.vx),n(p.vy),n(p.vz));r.stamp=time;r.tyaw=n(p.yw);r.ttilt=n(p.tl);r.tbank=n(p.bk);r.hp=clamp(n(p.hp),0,100);
-  r.beam=Array.isArray(p.b)?{x:n(p.b[0]),y:n(p.b[1]),z:n(p.b[2]),w:clamp(n(p.b[3]),0,8)}:null;r.web=Array.isArray(p.w)?{x:n(p.w[0]),y:n(p.w[1]),z:n(p.w[2])}:null;
+  r.beam=Array.isArray(p.b)?{x:n(p.b[0]),y:n(p.b[1]),z:n(p.b[2]),w:clamp(n(p.b[3]),0,8)}:null;r.web=Array.isArray(p.w)?{x:n(p.w[0]),y:n(p.w[1]),z:n(p.w[2])}:null;r.wt=typeof p.wt==='string'?p.wt.slice(0,80):null;
   r.tk=Array.isArray(p.k)&&p.k.length===3?{x:n(p.k[0]),y:n(p.k[1]),z:n(p.k[2])}:null;
   r.car=Array.isArray(p.c)&&CARS[p.c[0]]?{model:p.c[0],yaw:n(p.c[1]),tint:Array.isArray(p.c[2])?[clamp(n(p.c[2][0]),0,1),clamp(n(p.c[2][1]),0,1),clamp(n(p.c[2][2]),0,1),1]:[1,1,1,1]}:null;
   r.stars=clamp(n(p.st)|0,0,5);r.bounty=clamp(n(p.bty),0,1e6);
@@ -6082,7 +6101,7 @@ function drawRemote(r){
   if(r.cn&&!r.rag)drawConstruct(r,r.cn,false);if(r.ex&&r.ex[0])queue(MESH.glowSphere,at(r.pos.x,r.pos.y+1.3,r.pos.z,0,0,0,3.2,3.2,3.2),[RING_C[0],RING_C[1],RING_C[2],0.14],F_ADD);
   if(r.beam){const w=r.beam.w||0;if(w>0.5){queue(MESH.glowBox,M4.beam(tmpM(),r.pos.x,r.pos.y+1.8,r.pos.z,r.beam.x,r.beam.y,r.beam.z,w*0.5),[1,1,1,1],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),r.pos.x,r.pos.y+1.8,r.pos.z,r.beam.x,r.beam.y,r.beam.z,w*1.4),[.6,.85,1,0.45],F_ADD);}
     else{queue(MESH.glowBox,M4.beam(tmpM(),r.eye.x,r.eye.y,r.eye.z,r.beam.x,r.beam.y,r.beam.z,0.1),[1,.55,.35,1],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),r.eye.x,r.eye.y,r.eye.z,r.beam.x,r.beam.y,r.beam.z,0.35),[.9,.08,.03,0.45],F_BL);}}
-  if(r.web)queue(MESH.box,M4.beam(tmpM(),r.pos.x,r.pos.y+2.1,r.pos.z,r.web.x,r.web.y,r.web.z,0.06),[.95,.95,1,1],0);
+  if(r.web){let e=r.web;if(r.wt){const t=r.wt===MP.myPeer?P:MP.peers.get(r.wt);if(t)e=center(t);}queue(MESH.box,M4.beam(tmpM(),r.pos.x,r.pos.y+2.1,r.pos.z,e.x,e.y,e.z,0.06),[.95,.95,1,1],0);}
   if(r.tk){const g=1.6+Math.sin(time*6)*0.15;queue(MESH.glowSphere,at(r.tk.x,r.tk.y+1,r.tk.z,0,time,0,g,g,g),[.6,.35,1,0.22],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),r.pos.x,r.pos.y+1.9,r.pos.z,r.tk.x,r.tk.y+1,r.tk.z,0.12),[.7,.45,1,0.35],F_ADD);}
   if(r.flags&FLAG.shield)queue(MESH.glowSphere,at(r.pos.x,r.pos.y+1.35,r.pos.z,0,time,0,1.9,2.1,1.9),[.3,.75,1,0.25],F_ADD);
 }
@@ -6316,7 +6335,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
-  tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
+  tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,tetherTo,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>
