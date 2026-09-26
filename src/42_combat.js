@@ -69,23 +69,23 @@ function punch(){
     P.vel.x=fx*s;P.vel.z=fz*s;if(air||P.flying)P.vel.y=fy*s;P.burstT=0.14;}}
   if(air){P.vel.y=Math.max(P.vel.y,fin?4:2.5);P.floatT=fin?0.2:0.45;}
   const AL=P.alien?ALIENS[P.alien.id]:null,am=AL?(AL.scale>2?3.5:1.6):1;
-  const dmg=CONFIG.punch.damage*strengthMul()*am*(fin?COMBAT.finMul:comboN===3?1.25:1);
-  const hits=meleeTargets(fx,fy,fz,COMBAT.reach*(AL?Math.max(1,AL.scale*0.8):1));let hx=0,hy=0,hz=0;
+  const MW=metalWeapon(),dmg=CONFIG.punch.damage*strengthMul()*am*speedPunchMul()*bodyPunchMul()*(fin?COMBAT.finMul:comboN===3?1.25:1);
+  const hits=meleeTargets(fx,fy,fz,COMBAT.reach*(AL?Math.max(1,AL.scale*0.8):1)+(AL?0:bodyReach()));let hx=0,hy=0,hz=0;
   for(const a of hits){
     const c=center(a);hx=c.x;hy=c.y;hz=c.z;const dx=c.x-P.pos.x,dz=c.z-P.pos.z,l=Math.hypot(dx,dz)||1,ux=dx/l,uz=dz/l;
     const opt={stun:fin?COMBAT.finStun:COMBAT.stun,flung:fin,combo:comboN};
-    if(fin){const s=Math.sqrt(strengthMul())*am;
+    if(fin){const s=Math.sqrt(strengthMul())*am*(MW?MW.knock:1)*(P.giantS>1.05?1.5:1);
       if(upper)opt.kv=[ux*3,COMBAT.upper*Math.min(1.4,s),uz*3];
       else if(spike)opt.kv=[ux*5,-COMBAT.spike,uz*5];
       else opt.kv=[ux*COMBAT.launch*Math.min(1.6,s),9,uz*COMBAT.launch*Math.min(1.6,s)];
       if(upper)opt.apex=true;}
     else if(a.air||(a.kind==='rival'&&a.pos.y>groundY(a.pos.x,a.pos.z,a.pos.y+1)+1)||(a.kind==='remote'&&!(a.flags&FLAG.fly)&&a.pos.y>1.5)){opt.kv=[ux*2+P.vel.x*0.9,Math.max(2.5,P.vel.y+1),uz*2+P.vel.z*0.9];opt.float=0.6;}
     else opt.nudge=[ux*0.5,uz*0.5];
-    if(a.kind==='vehicle'){hitVehicle(a,dmg,fin,ux,uz,opt.kv);continue;}
+    if(a.kind==='vehicle'){hitVehicle(a,dmg*(MW&&MW.car||1),fin,ux,uz,opt.kv);continue;}
     Damage.apply(P,a,dmg,'punch',opt);
   }
   hitProps(P.pos.x+fx*1.8,P.pos.y+1.3,P.pos.z+fz*1.8,(fin?2.2:1.4)*am,P,(fin?22:10)*am);
-  if(hits.length){SFX.punch(fin?1.3:1);addShake(fin?0.4:0.1);burst(hx,hy,hz,fin?30:14,fin?18:10,0.35,SPARK,fin?1.3:0.9,0,3);ringFx(hx,hy,hz,0.3,fin?7:2.5,0.22,[1,.95,.8]);
+  if(hits.length){bodyAfterHit(hx,hy,hz,dmg);if(P.giantS>1.5)addShake(0.2);SFX.punch(fin?1.3:1);addShake(fin?0.4:0.1);burst(hx,hy,hz,fin?30:14,fin?18:10,0.35,SPARK,fin?1.3:0.9,0,3);ringFx(hx,hy,hz,0.3,fin?7:2.5,0.22,[1,.95,.8]);
     if(fin){slowT=Math.max(slowT,0.09);ringFx(hx,hy,hz,0.5,10,0.3,[1,1,1],[fx,fy,fz]);}}
   else{SFX.swish();
     if(fin){const t=rayCity(P.pos.x,P.pos.y+1.3,P.pos.z,fx,fy,fz,2.8);if(t<2.8){crater(P.pos.x+fx*t,P.pos.y+1.3+fy*t,P.pos.z+fz*t,RAYHIT.nx,RAYHIT.ny,RAYHIT.nz,1.8*am,RAYHIT.b&&RAYHIT.b.col);SFX.punch(1.3);addShake(0.3);}comboN=0;}}

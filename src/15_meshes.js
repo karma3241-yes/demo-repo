@@ -25,6 +25,7 @@ function carGeo(o){
   if(o.extra)o.extra(g);
   return g.mesh();
 }
+const VEH_S=1.35; // vehicles are modelled at real size; heroes are bigger than life, so cars scale up to match
 const CARS={
   sedan:carGeo({L:4.6,W:1.9,bt:1.05,cf:0.75,cb:-1.05,ry:1.65,wr:0.38}),
   compact:carGeo({L:3.9,W:1.8,bt:1.05,cf:0.7,cb:-1.3,ry:1.75,wr:0.36,wind:0.7}),

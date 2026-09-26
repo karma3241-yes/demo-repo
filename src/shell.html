@@ -26,6 +26,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hi
 .bar.boss i{background:linear-gradient(90deg,#8a0f25,#ff5a3d)}
 .bar.shield{height:4px;margin-top:3px}.bar.shield i{background:#8fe3ff}
 #enm.warn .bar.en{box-shadow:0 0 0 2px var(--health)}
+#enm.ring .bar.en i{background:linear-gradient(90deg,#128a3a,#6dff95)}#enm.ring span b{color:#8dffb0}
 #hud{position:fixed;inset:0;pointer-events:none;font-variant-numeric:tabular-nums}
 .hud-tl{position:absolute;top:16px;left:16px;padding:10px 12px;display:grid;gap:7px;min-width:220px}
 .who{display:flex;align-items:baseline;gap:10px;justify-content:space-between}
@@ -206,6 +207,10 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
 .dslot small{font-size:10px;line-height:1.35;color:var(--ink-dim)}
 .dslot.sel,.dslot:hover{border-color:var(--g,#fff);box-shadow:0 0 18px var(--g,#fff);transform:translate(-50%,-50%) scale(1.06)}
 .dslot.locked{opacity:.4;filter:grayscale(1)}
+#dial.green{background:radial-gradient(circle at center,rgba(10,60,26,.55),rgba(3,8,6,.75) 70%)}#dial.green #dial-ring{border-color:rgba(93,255,134,.35);box-shadow:0 0 60px rgba(93,255,134,.22) inset}#dial.green #dial-ring::after{border-color:#5dff86;box-shadow:0 0 30px #5dff86,0 0 12px #5dff86 inset;background:rgba(6,26,12,.8)}#dial.green #dial-info{color:#c9ffd8}
+#oath{position:fixed;left:50%;bottom:max(120px,16vh);transform:translateX(-50%);z-index:6;width:min(640px,calc(100% - 32px));padding:16px 18px;box-sizing:border-box;text-align:center;border:1px solid rgba(93,255,134,.45);box-shadow:0 0 40px rgba(93,255,134,.25)}
+#oath h3{margin:0 0 8px;font-size:12px;letter-spacing:.24em;color:#8dffb0;font-weight:600}#oath p{margin:0 0 10px;font-size:17px;line-height:1.5;color:rgba(233,243,255,.45)}#oath p b{color:#b6ffca;font-weight:600;text-shadow:0 0 12px rgba(93,255,134,.7)}
+#oath input{width:100%;box-sizing:border-box;padding:10px 12px;font:inherit;font-size:15px;color:#e9f3ff;background:rgba(0,0,0,.45);border:1px solid rgba(93,255,134,.5);border-radius:8px;outline:none}#oath small{display:block;margin-top:8px;font-size:11px;color:var(--ink-dim);letter-spacing:.1em}
 #dial-info{position:absolute;left:50%;bottom:max(18px,4vh);transform:translateX(-50%);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#e2ccff;text-align:center;width:min(560px,92vw)}
 #guide{position:absolute;right:16px;top:96px;padding:10px 14px;width:230px;box-sizing:border-box}
 #guide h4{margin:0 0 6px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
@@ -224,6 +229,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   #create .sheet-card,#sheet.side .sheet-card{width:100%;max-height:58vh;border-radius:14px 14px 0 0;padding:14px 16px}
 }
  #gl.slowmo{filter:saturate(.55) contrast(1.08) hue-rotate(-8deg)}
+ #gl.tstop{filter:saturate(.12) contrast(1.15) brightness(1.04) sepia(.18)}
 #lockmark{position:absolute;left:0;top:0;width:46px;height:46px;border:2px solid #ff5a3d;border-radius:8px;box-shadow:0 0 10px rgba(255,90,61,.7);clip-path:polygon(0 0,35% 0,35% 12%,12% 12%,12% 35%,0 35%,0 65%,12% 65%,12% 88%,35% 88%,35% 100%,65% 100%,65% 88%,88% 88%,88% 65%,100% 65%,100% 35%,88% 35%,88% 12%,65% 12%,65% 0,100% 0,100% 100%,0 100%);pointer-events:none}
 #combo{position:absolute;left:50%;top:calc(50% - 64px);transform:translateX(-50%);font-family:var(--display);font-size:22px;color:#fff1b8;text-shadow:0 2px 0 #7a3a00,0 0 12px rgba(255,160,40,.7);pointer-events:none}
 #combo.pop{animation:comboPop .18s ease-out}@keyframes comboPop{from{transform:translateX(-50%) scale(1.35)}to{transform:translateX(-50%) scale(1)}}
@@ -264,12 +270,13 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div id="keys" class="panel">
     <kbd>WASD</kbd><span>Move</span>
     <kbd>Click</kbd><span>Punch (hold to keep swinging)</span>
-    <kbd>1 2 3</kbd><span>Your abilities (also Q E R)</span>
+    <kbd>1 – 5</kbd><span>Your abilities (also Q E R)</span>
     <kbd>Space</kbd><span>Jump · hold for a super jump</span>
     <kbd>F · Shift · Right click</kbd><span>Movement powers</span>
     <kbd>Z · X</kbd><span>Lock on · dash</span>
     <kbd>G</kbd><span>Enter a car · help someone up</span>
     <kbd>V</kbd><span>Morph Band (if you have it)</span>
+    <div id="keys-hero" style="display:contents"></div>
     <kbd>Tab</kbd><span>Skills and upgrades</span>
     <kbd>L</kbd><span>Lock or unlock the mouse</span>
     <kbd>Esc</kbd><span>Pause</span>
@@ -305,7 +312,9 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div class="pause-btns"><button class="ghost" id="p-skills" type="button">Skills</button><button class="ghost" id="p-look" type="button">Appearance</button><button class="ghost" id="p-powers" type="button">Change powers</button><button class="ghost" id="p-mp" type="button">Multiplayer</button><button class="ghost" id="p-lb" type="button">Leaderboard</button><button class="ghost" id="p-set" type="button">Settings</button></div>
 </div></div>
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
+<div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
 <div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div></div>
+<div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><small id="oath-note">Esc to put the lantern away</small></div>
 <div id="dead" class="overlay" hidden><div><p class="big">Knocked out</p><p class="sub" id="deads"></p></div></div>
 <div id="nogl" class="overlay" hidden><div><p class="big">No WebGL 2</p><p class="sub">This browser can't run the game. Try a recent Chrome, Edge, Firefox or Safari.</p></div></div>
 

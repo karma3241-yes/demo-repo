@@ -22,7 +22,7 @@ function computeAim(range){
   aim.t=best;aim.x=ox+dx*best;aim.y=oy+dy*best;aim.z=oz+dz*best;aim.actor=actor;aim.surface=surface;aim.nx=nx;aim.ny=ny;aim.nz=nz;aim.hitAny=best<range+t0-0.01;
   return aim;
 }
-const canAct=()=>state==='play'&&!paused&&!P.dead&&P.stun<=0;
+const canAct=()=>state==='play'&&!paused&&!P.dead&&P.stun<=0&&!(frozenT>0);
 function noEnergy(id){if(id)PS[id].flash=0.4;SFX.tone('square',220,150,0.1,0.06);hud.en.classList.add('warn');setTimeout(()=>hud.en.classList.remove('warn'),300);}
 function faceAim(){P.heroYaw=Math.atan2(camF.x,camF.z);castT=time;}
 function handPoint(){const s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw);return {x:P.pos.x+s*0.8+c*0.45,y:P.pos.y+1.95,z:P.pos.z+c*0.8-s*0.45};}
@@ -32,13 +32,15 @@ function abilityDown(slot){
   const id=save.character&&save.character.abilities[slot];if(!id||!canAct())return;
   if(id==='morphBand'){bandPress();return;}
   const c=POWERS[id],s=PS[id];
+  if(id==='metalForms'){metalDown();return;}
   if(c.type==='channel'){s.holding=true;return;}
   if(c.type==='charge'){if(s.cd>0){s.flash=0.3;return;}s.holding=true;s.chargeT=0;SFX.tone('sawtooth',90,420,1.5,0.05);return;}
   if(c.type==='hold'){if(id==='telekinesis')tkGrab();return;}
   if(c.type==='toggle'){togglePower(id);return;}
   if(s.cd>0){s.flash=0.3;return;}
-  if(!spend(c.energy)){noEnergy(id);return;}
-  s.cd=pstat(id,'cooldown');POWER_FN[id]();
+  if(c.ring!=null){if(!ringSpend(c.ring*(id==='blackHole'?1:1))){noEnergy(id);return;}}else if(!spend(c.energy||0)){noEnergy(id);return;}
+  if(!POWER_FN[id])return;
+  s.cd=pstat(id,'cooldown')||0;POWER_FN[id]();
 }
 function abilityUp(slot){
   if(P.alien){alienAbilityUp(slot);return;}
@@ -46,9 +48,11 @@ function abilityUp(slot){
   if(POWERS[id].type==='channel')PS[id].holding=false;
   if(POWERS[id].type==='charge'&&PS[id].holding){PS[id].holding=false;chargeFire(id);}
   if(id==='telekinesis')tkThrow();
+  if(id==='metalForms')metalUp();
 }
 function togglePower(id){
-  if(id==='metalSkin'){P.metal=!P.metal;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1,4,0.3,[.8,.85,.9]);SFX.tone('sawtooth',P.metal?300:500,P.metal?120:900,0.3,0.1);return;}
+  if(TOGGLE_FN[id]){TOGGLE_FN[id]();return;}
+  if(id==='metalSkin'||id==='metalForms'){P.metal=!P.metal;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1,4,0.3,[.8,.85,.9]);SFX.tone('sawtooth',P.metal?300:500,P.metal?120:900,0.3,0.1);return;}
   if(id==='energyShield'){
     const s=PS.energyShield;
     if(P.shieldOn){P.shieldOn=false;P.shield=0;s.cd=3;return;}
@@ -57,29 +61,34 @@ function togglePower(id){
     P.shieldOn=true;P.shield=pstat('energyShield','absorb');ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3,0.3,[.4,.85,1]);SFX.tone('sine',400,900,0.3,0.12);
   }
 }
+const flySpeed=()=>{const m=save.character&&save.character.movement[0];return POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?pstat(m,'speed'):pstat('flight','speed');};
 function toggleFlight(){
   if(!hasPower('flight')||!canAct()||P.car)return;
-  if(P.alien&&ALIENS[P.alien.id].flies)return;
-  if(!P.flying&&P.en<5){noEnergy();return;}
+  if(P.alien)return; // alien forms fly (or not) on their own
+  if(isRing()){if(!P.flying&&save.ring<=0){ringOut();return;}if(P.construct&&CONSTRUCTS[P.construct.id].fly)return;}
+  else if(!P.flying&&P.en<5){noEnergy();return;}
   P.flying=!P.flying;P.charging=false;P.web=null;P.wall=null;
   if(P.flying){if(P.grounded)P.vel.y=22;P.grounded=false;SFX.whoosh();burst(P.pos.x,P.pos.y+0.3,P.pos.z,24,14,0.7,DUST,1.6,-2,2);}
 }
-function bolt(x,y,z,remote){
+function bolt(x,y,z,remote,k=remote?0.5:lvlK('lightning')){const bw=0.55+0.9*k;
   if(!remote)MP.fx('b',{x:Math.round(x),y:Math.round(y),z:Math.round(z)});
   let px=x+rr(-12,12),py=y+150,pz=z+rr(-12,12);const n=11;
   for(let i=1;i<=n;i++){const k=i/n,j=(1-k)*6;const qx=lerp(px,x,1/(n-i+1))+(i<n?rr(-j,j):0),qy=lerp(py,y,1/(n-i+1)),qz=lerp(pz,z,1/(n-i+1))+(i<n?rr(-j,j):0);
-    tracer(px,py,pz,qx,qy,qz,[.6,.75,1],0.45,0.25);tracer(px,py,pz,qx,qy,qz,[1,1,1],0.14,0.25);
+    tracer(px,py,pz,qx,qy,qz,[.6,.75,1],0.45*bw,0.25);tracer(px,py,pz,qx,qy,qz,[1,1,1],0.14*bw,0.25);
     if(i>3&&Math.random()<0.25){const bx=qx+rr(-10,10),bz=qz+rr(-10,10);tracer(qx,qy,qz,bx,qy-rr(6,14),bz,[.6,.75,1],0.15,0.18);}
     px=qx;py=qy;pz=qz;}
   burst(x,y,z,50,30,0.6,CYAN,1.4,6,1.5);ringFx(x,y+0.2,z,1,12,0.4,[.7,.85,1]);flashWhite=0.55;
   SFX.boom(0.9,1.6);SFX.tone('sawtooth',1800,80,0.4,0.15);addShake(0.4);scare(x,z,40);
 }
+const TOGGLE_FN={},CHANNEL_FN={};
+// ring charge: the Ring Bearer spends this instead of energy, and it only refills with the oath
+function ringSpend(n){if(!hasTrav('powerRing'))return spend(n);if(save.ring<n)return false;save.ring-=n;return true;}
 const POWER_FN={
   fireball(){faceAim();const h=handPoint(),d=dirTo(h,aim.x,aim.y,aim.z),sp=POWERS.fireball.speed;
     fireProj({kind:'fire',owner:P,x:h.x,y:h.y,z:h.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg:pstat('fireball','damage'),radius:pstat('fireball','radius'),
       burn:{dps:pstat('fireball','burnDps'),time:POWERS.fireball.burnTime},r:0.7,life:3});SFX.whoosh();},
   energyBlast(){faceAim();const h=handPoint(),d=dirTo(h,aim.x,aim.y,aim.z),sp=POWERS.energyBlast.speed;
-    fireProj({kind:'blast',owner:P,x:h.x,y:h.y,z:h.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg:pstat('energyBlast','damage'),knock:pstat('energyBlast','knock'),r:0.5,life:2});
+    fireProj({kind:'blast',owner:P,x:h.x,y:h.y,z:h.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg:pstat('energyBlast','damage'),knock:pstat('energyBlast','knock'),r:0.5,life:2,big:0.65+0.8*lvlK('energyBlast')});
     SFX.tone('square',700,1400,0.12,0.08);},
   lightning(){faceAim();let x=aim.x,y=aim.y,z=aim.z;const R=POWERS.lightning.range;
     if(!aim.hitAny||Math.hypot(x-P.pos.x,z-P.pos.z)>R){const k=Math.min(R,60);x=P.pos.x+camF.x*k;z=P.pos.z+camF.z*k;y=groundY(x,z,P.pos.y+20);}
@@ -127,45 +136,105 @@ function iceVisuals(){
   for(let i=0;i<3;i++){const a=rr(0,TAU),q=Math.sqrt(Math.random())*r;emit(ice.x+Math.cos(a)*q,ice.y+rr(-1.5,1.5),ice.z+Math.sin(a)*q,rr(-1,1),rr(-1,1),rr(-1,1),rr(0.5,1),[.55,.8,1],rr(0.5,1.2),1,0.5);}
   if(Math.random()<0.35)smoke(ice.x,ice.y-1,ice.z,1,r*0.7,6,1.6,0.85);
 }
-function tkGrab(){
-  if(P.tk)return;const a=aim.actor;const R=pstat('telekinesis','range');
-  if(!a||a.kind==='boss'||a.kind==='prop'||(a.kind==='vehicle'&&a.state!=='road'&&a.state!=='parked')){PS.telekinesis.flash=0.3;return;}
-  if(a.kind==='heli'||(a.kind==='remote'&&!MP.net())){PS.telekinesis.flash=0.3;return;}
-  if(Math.hypot(a.pos.x-P.pos.x,a.pos.y-P.pos.y,a.pos.z-P.pos.z)>R){PS.telekinesis.flash=0.3;feed('Too far','Telekinesis reaches '+Math.round(R)+' m');return;}
-  if(!spend(POWERS.telekinesis.energy)){noEnergy('telekinesis');return;}
-  P.tk={a,sendT:0};a.held=true;
-  if(a.kind==='remote'){feed('Holding '+a.name,'Let go to throw them');}
+// ---- telekinesis: grab (hold the key), right click grabs more, left click slams, let go to throw ----
+// Level decides what you can lift: people and drones from the start, cars at 3, trucks at 6,
+// chunks of rubble at 5 and slabs torn out of buildings at 9. More objects at once every 3 levels.
+const tkLevel=()=>powerLevel('telekinesis');
+const tkMax=()=>1+Math.floor((tkLevel()-1)/3);
+function tkCanLift(a,quiet){
+  if(!a||a.kind==='boss'||a.kind==='prop'||a.kind==='heli'||a.held||a===P.car)return false;
+  if(a.kind==='remote'&&!MP.net())return false;
+  if(a.kind==='vehicle'){if(a.state!=='road'&&a.state!=='parked')return false;const need=a.vtype==='truck'?6:3;
+    if(tkLevel()<need&&!(P.tk&&P.tk.giant)){if(!quiet)feed('Too heavy for now','Telekinesis LV '+need+' lifts '+(a.vtype==='truck'?'trucks':'cars'));return false;}}
+  return true;
+}
+function tkAttach(a){
+  a.held=true;
+  if(a.kind==='remote')feed('Holding '+a.name,'Let go to throw them');
   else if(a.net)P2P.emit('tg',{id:a.nid});
   else{if(a.kind==='vehicle'){a.state='held';if(a.driver)ejectDriver(a);}if(a.kind==='human')a.air=false;}
-  faceAim();SFX.tone('sine',200,520,0.4,0.1);ringFx(a.pos.x,a.pos.y+1,a.pos.z,0.5,4,0.3,[.75,.5,1]);
+  ringFx(a.pos.x,a.pos.y+1,a.pos.z,0.5,4,0.3,[.75,.5,1]);
+}
+function tkGrab(){
+  if(P.tk)return;const a=aim.actor,R=pstat('telekinesis','range');
+  if(!a||a.kind==='prop'){if(!tkRip(R))PS.telekinesis.flash=0.3;return;}
+  if(!tkCanLift(a)){PS.telekinesis.flash=0.3;return;}
+  if(Math.hypot(a.pos.x-P.pos.x,a.pos.y-P.pos.y,a.pos.z-P.pos.z)>R){PS.telekinesis.flash=0.3;feed('Too far','Telekinesis reaches '+Math.round(R)+' m');return;}
+  if(!spend(POWERS.telekinesis.energy)){noEnergy('telekinesis');return;}
+  P.tk={a,more:[],sendT:0};tkAttach(a);faceAim();SFX.tone('sine',200,520,0.4,0.1);
+}
+// right click while holding: add whatever you aim at
+function tkGrabMore(){
+  const T=P.tk;if(!T||T.giant)return false;const a=aim.actor,R=pstat('telekinesis','range');
+  if(1+T.more.length+(T.slab&&T.a?1:0)>=tkMax()){feed('Hands full','Telekinesis LV '+(tkMax()*3+1)+' holds one more');return true;}
+  if(!a||a===T.a||T.more.includes(a)||!tkCanLift(a)||a.kind==='remote'||Math.hypot(a.pos.x-P.pos.x,a.pos.z-P.pos.z)>R){PS.telekinesis.flash=0.3;return true;}
+  if(!spend(4)){noEnergy('telekinesis');return true;}
+  T.more.push(a);tkAttach(a);SFX.tone('sine',300,700,0.25,0.08);return true;
+}
+// rip a chunk of rubble (LV 5) or a slab of a building (LV 9) out of where you aim
+function tkRip(R){
+  if(!aim.hitAny||Math.hypot(aim.x-P.pos.x,aim.y-P.pos.y,aim.z-P.pos.z)>R)return false;const lv=tkLevel();
+  if(lv>=5)for(const b of bldActive){if(!b.rubble||!b.rubble.length)continue;let bi=-1,bd=10;b.rubble.forEach((r,i)=>{const d=Math.hypot(r.x-aim.x,r.z-aim.z);if(d<bd){bd=d;bi=i;}});
+    if(bi>=0){if(!spend(POWERS.telekinesis.energy)){noEnergy('telekinesis');return true;}const r=b.rubble.splice(bi,1)[0];
+      P.tk={a:null,more:[],sendT:0,slab:{x:r.x,y:r.y,z:r.z,sx:r.sx,sy:r.sy,sz:r.sz,col:[b.col[0]*r.k,b.col[1]*r.k,b.col[2]*r.k,1],rx:r.rx,ry:r.ry,rz:r.rz}};faceAim();SFX.tone('sine',120,400,0.5,0.12);return true;}}
+  if(aim.surface&&aim.ny<0.5){const b=inBuilding(aim.x-aim.nx*0.8,aim.y,aim.z-aim.nz*0.8,0.3);
+    if(b&&b.bld){if(lv<9){feed('Too heavy for now','Telekinesis LV 9 tears pieces out of buildings');return true;}
+      if(!spend(POWERS.telekinesis.energy*2)){noEnergy('telekinesis');return true;}const s=rr(4,6);
+      P.tk={a:null,more:[],sendT:0,slab:{x:aim.x+aim.nx*s*0.5,y:aim.y,z:aim.z+aim.nz*s*0.5,sx:s,sy:s*0.8,sz:s,col:b.col.concat([1]).slice(0,4),rx:0,ry:rr(0,TAU),rz:0}};
+      damageBuilding(b.bld,900,aim.x,aim.y,aim.z,-aim.nx,-aim.nz);crater(aim.x,aim.y,aim.z,aim.nx,aim.ny,aim.nz,s*0.6,b.col);faceAim();SFX.boom(0.5,0.6);addShake(0.3);return true;}}
+  return false;
+}
+function tkPoints(){ // where each held object floats: the first at the hold point, the rest in a ring around it
+  const T=P.tk,h=T.hold,out=[];const n=T.more.length,sx=-camF.z,sz=camF.x,sl=Math.hypot(sx,sz)||1;
+  T.more.forEach((a,i)=>{const an=(i+1)/(n+1)*Math.PI-Math.PI/2+time*0.6,r=3.2;out.push([h[0]+sx/sl*Math.sin(an)*r,h[1]+Math.cos(an)*r*0.6+1,h[2]+sz/sl*Math.sin(an)*r]);});
+  return out;
+}
+function tkMove(a,x,y,z,dt){
+  if(a.kind==='remote'){if(!a.alive||!MP.peers.has(a.peer))return false;P.tk.sendT-=dt;if(P.tk.sendT<=0){P.tk.sendT=0.1;MP.fx('hold',{to:a.peer,x:Math.round(x*10)/10,y:Math.round(y*10)/10,z:Math.round(z*10)/10});}return true;}
+  if(a.net)return true;
+  const k=damp(9,dt);a.pos.x+=(x-a.pos.x)*k;a.pos.y+=(y-a.pos.y)*k;a.pos.z+=(z-a.pos.z)*k;if(a.vel)a.vel.set(0,0,0);a.stun=Math.max(a.stun||0,0.3);
+  const n=1+Math.floor(tkLevel()/4);for(let i=0;i<n;i++)if(Math.random()<0.6)emit(a.pos.x+rr(-1.5,1.5),a.pos.y+rr(0,2),a.pos.z+rr(-1.5,1.5),0,rr(0,2),0,0.5,[.7,.45,1],0.9+tkLevel()*0.08,0,0);
+  return true;
 }
 function tkTick(dt){
-  const a=P.tk.a;
-  if(a.kind!=='vehicle'&&!a.alive&&!a.air&&a.kind!=='human'){tkDrop();return;}
-  const cost=POWERS.telekinesis.energyPerSec*dt;if(P.en<cost){tkThrow();return;}P.en-=cost;P.lastSpend=time;
-  const far=a.kind==='vehicle'?8:6.5;const hx=P.pos.x+camF.x*far,hy=P.pos.y+2.6+camF.y*far,hz=P.pos.z+camF.z*far;
-  P.tk.hold=[hx,Math.max(hy,0.5),hz];
-  if(a.kind==='remote'){if(!a.alive||!MP.peers.has(a.peer)){P.tk=null;a.held=false;return;}P.tk.sendT-=dt;if(P.tk.sendT<=0){P.tk.sendT=0.1;MP.fx('hold',{to:a.peer,x:Math.round(hx*10)/10,y:Math.round(Math.max(hy,0.5)*10)/10,z:Math.round(hz*10)/10});}return;}
-  const k=damp(9,dt);a.pos.x+=(hx-a.pos.x)*k;a.pos.y+=(Math.max(hy,0.5)-a.pos.y)*k;a.pos.z+=(hz-a.pos.z)*k;
-  if(a.vel)a.vel.set(0,0,0);a.stun=Math.max(a.stun||0,0.3);
-  if(Math.random()<0.6)emit(a.pos.x+rr(-1.5,1.5),a.pos.y+rr(0,2),a.pos.z+rr(-1.5,1.5),0,rr(0,2),0,0.5,[.7,.45,1],1.1,0,0);
+  const T=P.tk,a=T.a;
+  if(a&&a.kind!=='vehicle'&&!a.alive&&!a.air&&a.kind!=='human'&&a.kind!=='remote'){tkDrop();return;}
+  if(!T.giant){const cost=POWERS.telekinesis.energyPerSec*(1.3-0.1*tkLevel())*(1+T.more.length*0.5+(T.slab?1:0))*dt;if(P.en<cost){tkThrow();return;}P.en-=cost;P.lastSpend=time;}
+  const gs=P.giantS||1,far=T.giant?2.4*gs:T.slab?10:a&&a.kind==='vehicle'?8:6.5,hx=P.pos.x+camF.x*far,hy=P.pos.y+(T.giant?3*gs:2.6)+camF.y*far,hz=P.pos.z+camF.z*far;
+  T.hold=[hx,Math.max(hy,0.5),hz];
+  if(a&&!tkMove(a,hx,Math.max(hy,0.5),hz,dt)){T.a=null;a.held=false;}
+  const pts=tkPoints();T.more=T.more.filter((m,i)=>{if(!m.alive&&m.kind!=='vehicle'&&m.kind!=='human'){m.held=false;return false;}return tkMove(m,pts[i][0],Math.max(pts[i][1],0.5),pts[i][2],dt);});
+  if(T.slab){const S=T.slab,k=damp(7,dt),y=Math.max(hy,S.sy*0.5+0.3)+(a?S.sy+2:0);S.x+=(hx-S.x)*k;S.y+=(y-S.y)*k;S.z+=(hz-S.z)*k;S.ry+=dt*0.5;if(Math.random()<0.7)emit(S.x+rr(-S.sx,S.sx)*0.5,S.y-S.sy*0.5,S.z+rr(-S.sz,S.sz)*0.5,0,-2,0,0.6,[.7,.45,1],1.4,0,0);}
+  if(!T.a&&!T.more.length&&!T.slab)P.tk=null;
 }
-function tkThrow(){
-  if(!P.tk)return;const a=P.tk.a;P.tk=null;a.held=false;faceAim();
-  const sp=55,vx=camF.x*sp+P.vel.x*0.5,vy=camF.y*sp+6,vz=camF.z*sp+P.vel.z*0.5,dmg=pstat('telekinesis','throwDmg')*throwMul();
-  if(a.kind==='remote'){MP.hit(a,dmg,'throw',{kv:[vx,vy,vz],stun:1});SFX.whoosh();return;}
-  if(a.net){P2P.emit('tt',{id:a.nid,v:[vx,vy,vz].map(Math.round),d:Math.round(dmg)});SFX.whoosh();return;}
+function tkFling(a,vx,vy,vz,dmg){
+  a.held=false;
+  if(a.kind==='remote'){MP.hit(a,dmg,'throw',{kv:[vx,vy,vz],stun:1});return;}
+  if(a.net){P2P.emit('tt',{id:a.nid,v:[vx,vy,vz].map(Math.round),d:Math.round(dmg)});return;}
   if(a.kind==='vehicle'){a.state='thrown';a.vel.set(vx,vy,vz);a.sx=rr(-3,3);a.sy=rr(-2,2);a.sz=rr(-3,3);a.life=6;a.thrower=P;a.throwDmg=dmg;}
   else if(a.kind==='human'){a.air=true;a.vel.set(vx,vy,vz);a.tumble=rr(6,10);a.thrown={by:P,dmg};}
   else{a.vel.set(vx,vy,vz);a.thrown={by:P,dmg};a.stun=1;}
+}
+function tkThrow(){
+  if(!P.tk)return;const T=P.tk;P.tk=null;faceAim();
+  const sp=55+tkLevel()*2,dmg=pstat('telekinesis','throwDmg')*throwMul()*(T.giant?2:1),vx=camF.x*sp+P.vel.x*0.5,vy=camF.y*sp+6,vz=camF.z*sp+P.vel.z*0.5;
+  if(T.a)tkFling(T.a,vx,vy,vz,dmg);
+  T.more.forEach((m,i)=>tkFling(m,vx+rr(-6,6),vy+rr(-2,4),vz+rr(-6,6),dmg));
+  if(T.slab)throwSlab(T.slab,vx,vy,vz,dmg*2.5);
   SFX.whoosh();
 }
-function tkDrop(){if(!P.tk)return;const a=P.tk.a;P.tk=null;a.held=false;if(a.kind==='remote')return;if(a.net){P2P.emit('tt',{id:a.nid,v:[0,0,0],d:0});return;}if(a.kind==='vehicle'){a.state='thrown';a.vel.set(0,0,0);a.sx=a.sy=a.sz=0;a.life=6;a.thrower=P;a.throwDmg=10;}else if(a.kind==='human'){a.air=true;a.vel.set(0,0,0);}}
+// left click while holding: drive everything into the ground
+function tkSlam(){
+  if(!P.tk||P.tk.giant)return false;const T=P.tk;P.tk=null;const dmg=pstat('telekinesis','throwDmg')*throwMul()*1.4,vx=camF.x*8,vz=camF.z*8;
+  if(T.a)tkFling(T.a,vx,-70,vz,dmg);T.more.forEach(m=>tkFling(m,vx,-70,vz,dmg));if(T.slab)throwSlab(T.slab,vx,-80,vz,dmg*2.5);
+  SFX.tone('sine',400,80,0.3,0.12);addShake(0.2);return true;
+}
+function tkDrop(){if(!P.tk)return;const T=P.tk;P.tk=null;for(const a of [T.a,...T.more]){if(!a)continue;a.held=false;if(a.kind==='remote')continue;if(a.net){P2P.emit('tt',{id:a.nid,v:[0,0,0],d:0});continue;}if(a.kind==='vehicle'){a.state='thrown';a.vel.set(0,0,0);a.sx=a.sy=a.sz=0;a.life=6;a.thrower=P;a.throwDmg=10;}else if(a.kind==='human'){a.air=true;a.vel.set(0,0,0);}}if(T.slab)throwSlab(T.slab,0,0,0,50);}
 function stopAllPowers(){
   for(const k in PS)PS[k].holding=false;
   if(P.alien)P.alien.channel=false;
   P.flying=false;P.metal=false;P.shieldOn=false;P.shield=0;P.web=null;P.wall=null;P.charging=false;P.slam=false;P.speeding=false;P.wallRun=null;P.zip=null;
-  if(P.tk)tkDrop();beam=null;SFX.setLaser(false);SFX.setWind(0);
+  if(P.tk)tkDrop();beam=null;SFX.setLaser(false);SFX.setWind(0);if(P.construct)dismissConstruct(true);P.ringShield=false;closeOath();endGiant();
 }
 function updatePowers(dt){
   for(const k in PS){const s=PS[k];if(s.cd>0)s.cd=Math.max(0,s.cd-dt);if(s.flash>0)s.flash-=dt;}
@@ -176,18 +245,18 @@ function updatePowers(dt){
     const c=POWERS[id],s=PS[id];if(c.type!=='channel'||!s.holding)continue;
     const cost=c.energyPerSec*dt;if(P.en<cost){s.holding=false;noEnergy(id);continue;}
     P.en-=cost;P.lastSpend=time;
-    if(id==='laserVision'){laserTick(dt);lasering=true;}else if(id==='repulsors')repulsorTick(dt);else iceTick(dt);
+    if(id==='laserVision'){laserTick(dt);lasering=true;}else if(id==='repulsors')repulsorTick(dt);else if(CHANNEL_FN[id])CHANNEL_FN[id](dt);else iceTick(dt);
   }
   if(ice){iceVisuals();if(!PS.iceCloud.holding){ice.t-=dt;if(ice.t<=0)ice=null;}}
   SFX.setLaser(lasering);
   if(P.tk)tkTick(dt);
   const drainT=(n)=>{P.en=Math.max(0,P.en-n*dt);if(CONFIG.energy.togglesBlockRegen)P.lastSpend=time;return P.en>0;};
-  if(P.flying&&!drainT(pstat('flight','drain'))){P.flying=false;feed('Out of energy','You stopped flying');}
+  if(P.flying&&!P.alien&&!isRing()&&!drainT(pstat('flight','drain'))){P.flying=false;feed('Out of energy','You stopped flying');}
   if(P.metal&&!drainT(POWERS.metalSkin.drain)){P.metal=false;feed('Out of energy','Metal Skin wore off');}
   if(P.speeding&&!drainT(pstat('superSpeed','drain')))P.speeding=false;
   if(time-P.lastSpend>CONFIG.energy.delay)P.en=Math.min(maxEn(),P.en+enRegen()*dt);
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   P.heat=Math.max(0,P.heat-dt*0.35);
   if(P.stun>0)P.stun-=dt;
-  updateHeroAbilities(dt);
+  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);remoteStreaks();
 }

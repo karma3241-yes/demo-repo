@@ -24,10 +24,10 @@ function feed(title,sub=''){
   hud.feed.appendChild(e);while(hud.feed.children.length>5)hud.feed.firstChild.remove();
   setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),500);},3200);
 }
-const SLOT_KEYS=['1','2','3'],SLOT_ALT=['Q','E','R'];
+const SLOT_KEYS=['1','2','3','4','5'],SLOT_ALT=['Q','E','R','',''];
 let slotEls=[];
 function buildHotbar(){
-  hud.hotbar.textContent='';slotEls=[];if(!save.character)return;
+  hud.hotbar.textContent='';slotEls=[];renderHeroKeys();if(!save.character)return;
   if(P.alien){const a=ALIENS[P.alien.id];
     a.abilities.forEach((ab,i)=>{const cd=el('i',{class:'cd'});const s=el('div',{class:'slot alien'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:ab.name}),el('small',{text:a.name}));hud.hotbar.appendChild(s);slotEls.push({alien:i,s,cd});});
     const tb=el('i');const s=el('div',{class:'slot move band'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Revert'}),el('div',{class:'bar tbar'},tb));hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});
@@ -38,8 +38,8 @@ function buildHotbar(){
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd,lv});
   });
   for(const id of save.character.movement){
-    const lv=el('small');const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':POWERS[id].key}),el('span',{class:'nm',text:POWERS[id].name}),lv);
-    hud.hotbar.appendChild(s);slotEls.push({id,s,cd:null,lv});
+    const lv=el('small');const pre=PRESETS[id];const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':POWERS[id].key}),el('span',{class:'nm',text:pre?pre.name:POWERS[id].name}),lv);
+    hud.hotbar.appendChild(s);slotEls.push({id,s,cd:null,lv,trav:true});
   }
 }
 const mapCv=document.createElement('canvas');mapCv.width=mapCv.height=Math.round((EDGE+130)*2*0.5);
@@ -136,7 +136,10 @@ function renderSkills(){
   sheetBody.append(el('p',{class:'pts',text:save.sp+(save.sp===1?' skill point':' skill points')}),
     el('p',{class:'muted',text:'You get '+CONFIG.progression.spPerLevel+' skill points every level. Upgrading a power costs as many points as the level it goes up to. Passives cost 1 point per level.'}));
   sheetBody.appendChild(el('h3',{text:'Your powers'}));
-  for(const id of [...save.character.abilities,...save.character.movement]){
+  for(const id of save.character.movement){const m=masteryLevel(id);
+    sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:(PRESETS[id]?PRESETS[id].name:POWERS[id].name)+'  ·  Mastery '+m.toFixed(1)+'/'+MASTERY_MAX}),el('p',{text:'Traversal grows by using it: the more you travel this way, the higher, faster and bigger it gets. It does not cost skill points.'}),el('div',{class:'bar xp'},el('i',{style:'width:'+(m/MASTERY_MAX*100).toFixed(1)+'%'}))));}
+  for(const id of [...new Set([...save.character.abilities.map(LEVEL_OF),save.character.body])]){
+    if(!POWERS[id]||POWERS[id].cat==='body'&&POWERS[id].hidden)continue;
     const lvl=powerLevel(id),max=lvl>=CONFIG.powerMax,cost=CONFIG.powerUpgradeCost(lvl);
     const btn=el('button',{class:'plus',text:max?'Maxed':'Upgrade · '+cost+' SP',onclick:()=>{if(save.sp<cost||max)return;save.sp-=cost;save.powerLevels[id]=lvl+1;SFX.chime();persist();buildHotbar();renderSheet();syncPlayerDoc();}});
     btn.disabled=max||save.sp<cost;
@@ -259,42 +262,53 @@ const creator=$('create'),creatorBody=$('create-body');
 let creatorMode='new';
 function openCreator(mode='new'){
   creatorMode=mode;creating=true;
-  if(mode==='rechoose'&&save.character){const c=save.character;draft={name:c.name,suit:c.suit,cape:c.cape,accent:c.accent,capeOn:c.capeOn,movement:c.movement.slice(),abilities:c.abilities.slice(),confirm:false};}
-  else draft={name:'Guardian '+Math.floor(rr(100,1000)),suit:(Math.random()*SUIT_OPTS.length)|0,cape:(Math.random()*CAPE_OPTS.length)|0,accent:0,capeOn:true,movement:[],abilities:[],confirm:false};
   if(mode==='new'&&state!=='play'){const pk=parks.find(q=>Math.abs(q.cx-40)<1&&Math.abs(q.cz+360)<1)||parks[0];P.pos.set(pk.cx,1.4,pk.cz);P.vel.set(0,0,0);P.showcase=true;}
+  if(mode==='rechoose'&&save.character){const c=save.character,pre=presetOf(c);draft={name:c.name,suit:c.suit,cape:c.cape,accent:c.accent,capeOn:c.capeOn,movement:c.movement.slice(),body:pre?null:c.body,abilities:pre?[]:c.abilities.filter(id=>ABILITY_POWERS.includes(id)),confirm:false};}
+  else draft={name:'Guardian '+Math.floor(rr(100,1000)),suit:(Math.random()*SUIT_OPTS.length)|0,cape:(Math.random()*CAPE_OPTS.length)|0,accent:0,capeOn:true,movement:[],body:null,abilities:[],confirm:false};
   applyLook();creator.hidden=false;$('menu').hidden=true;$('pause').hidden=true;$('create-title').textContent=mode==='rechoose'?'Change your powers':'Create your hero';renderCreator();
 }
+function pickCard(id,on,onclick,tag,extra){const c=POWERS[id];
+  return el('button',{type:'button',class:'pick'+(on?' on':'')+(tag?' special':''),'aria-pressed':String(on),onclick},el('b',{text:PRESETS[id]?PRESETS[id].name:c.name}),
+    el('span',{class:'cat',text:tag||(c.cat==='defence'?'Defence':c.cat==='special'?'Transformation':c.cat==='utility'?'Utility':c.type==='charge'?'Attack · hold':c.cat==='body'?'Body mod':'Attack')}),
+    el('span',{text:PRESETS[id]?PRESETS[id].blurb:c.desc}),extra?el('span',{class:'cat',text:extra}):null);}
 function renderCreator(){
-  const y=creatorBody.scrollTop;creatorBody.textContent='';
-  creatorBody.appendChild(el('p',{class:'muted',text:creatorMode==='rechoose'?'Pick new powers. Points you spent upgrading powers you drop come back to you. You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':'Pick your powers. They are free, but once you lock them in they stay until you change them from the pause menu (once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes). Skill points you earn upgrade these powers and your passives.'}));
-  if(creatorMode!=='rechoose'){renderLook(creatorBody);}
-  const group=(title,ids,key,max)=>{
-    const chosen=draft[key];const wrap=el('div',{class:'picks'});
-    for(const id of ids){const on=chosen.includes(id),c=POWERS[id];
-      wrap.appendChild(el('button',{type:'button',class:'pick'+(on?' on':'')+(id==='morphBand'?' special':''),'aria-pressed':String(on),onclick:()=>{if(on)chosen.splice(chosen.indexOf(id),1);else if(chosen.length<max)chosen.push(id);else{chosen.shift();chosen.push(id);}draft.confirm=false;renderCreator();}},
-        el('b',{text:c.name}),el('span',{class:'cat',text:c.cat==='movement'?'Movement · '+c.key:c.cat==='defence'?'Defence':c.cat==='special'?'Transformation':c.cat==='utility'?'Utility':c.type==='charge'?'Attack · hold':'Attack'}),el('span',{text:c.desc})));}
-    creatorBody.append(el('h3',{text:title+' · '+chosen.length+'/'+max}),wrap);
-  };
-  group('Movement powers',MOVEMENT_POWERS,'movement',CONFIG.picks.movement);
-  group('Abilities',ABILITY_POWERS,'abilities',CONFIG.picks.abilities);
-  const ready=draft.movement.length===CONFIG.picks.movement&&draft.abilities.length===CONFIG.picks.abilities;
-  const rnd=el('button',{class:'ghost',type:'button',text:'Surprise me',onclick:()=>{draft.movement=MOVEMENT_POWERS.slice().sort(()=>Math.random()-0.5).slice(0,CONFIG.picks.movement);draft.abilities=ABILITY_POWERS.slice().sort(()=>Math.random()-0.5).slice(0,CONFIG.picks.abilities);draft.confirm=false;renderCreator();}});
-  const go=el('button',{class:'go',id:'lockin',type:'button',text:!ready?'Pick '+(CONFIG.picks.movement-draft.movement.length)+' movement and '+(CONFIG.picks.abilities-draft.abilities.length)+' abilities':draft.confirm?'Lock in':'Lock in my powers',onclick:()=>{
-    if(!ready)return;if(!draft.confirm){draft.confirm=true;renderCreator();return;}finishCreator();}});
+  const y=creatorBody.scrollTop;creatorBody.textContent='';const d=draft;
+  creatorBody.appendChild(el('p',{class:'muted',text:creatorMode==='rechoose'?'Pick new powers. Skill points you spent on powers you drop come back to you. You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':'Pick one way to get around. Three of them are full hero kits; Flight lets you build your own hero from a body mod and two abilities. Powers are free, and you can change them later from the pause menu (once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes). Traversal gets stronger the more you use it; skill points upgrade everything else.'}));
+  if(creatorMode!=='rechoose')renderLook(creatorBody);
+  const redraw=()=>{d.confirm=false;renderCreator();};
+  creatorBody.appendChild(el('h3',{text:'Traversal · pick 1'}));
+  const tw=el('div',{class:'picks'});for(const id of MOVEMENT_POWERS)tw.appendChild(pickCard(id,d.movement[0]===id,()=>{d.movement=[id];redraw();},PRESETS[id]?'Hero kit':'Build your own'));creatorBody.appendChild(tw);
+  const pre=PRESETS[d.movement[0]];
+  if(pre){
+    creatorBody.appendChild(el('h3',{text:pre.name+' kit'}));
+    const kit=el('div',{class:'picks'});kit.appendChild(pickCard(pre.body,true,()=>{},'Body'));for(const id of pre.abilities)kit.appendChild(pickCard(id,true,()=>{},'Included'));creatorBody.appendChild(kit);
+  }else if(d.movement[0]){
+    creatorBody.appendChild(el('h3',{text:'Body mod · pick 1'}));
+    const bw=el('div',{class:'picks'});for(const id of BODY_MODS)bw.appendChild(pickCard(id,d.body===id,()=>{d.body=id;redraw();},null,'Signature move: '+POWERS[POWERS[id].sig].name));creatorBody.appendChild(bw);
+    creatorBody.appendChild(el('h3',{text:'Abilities · '+d.abilities.length+'/'+CONFIG.picks.abilities+(d.body?' (plus '+POWERS[POWERS[d.body].sig].name+')':'')}));
+    const aw=el('div',{class:'picks'});
+    for(const id of ABILITY_POWERS){const on=d.abilities.includes(id);aw.appendChild(pickCard(id,on,()=>{if(on)d.abilities.splice(d.abilities.indexOf(id),1);else if(d.abilities.length<CONFIG.picks.abilities)d.abilities.push(id);else{d.abilities.shift();d.abilities.push(id);}redraw();},id==='morphBand'?'Transformation':null));}
+    creatorBody.appendChild(aw);
+  }
+  const ready=d.movement.length===1&&(pre||(d.body&&d.abilities.length===CONFIG.picks.abilities));
+  const need=!d.movement.length?'Pick a traversal':!d.body?'Pick a body mod':'Pick '+(CONFIG.picks.abilities-d.abilities.length)+' more abilit'+(CONFIG.picks.abilities-d.abilities.length===1?'y':'ies');
+  const rnd=el('button',{class:'ghost',type:'button',text:'Surprise me',onclick:()=>{d.movement=[pick(MOVEMENT_POWERS)];d.body=pick(BODY_MODS);d.abilities=ABILITY_POWERS.slice().sort(()=>Math.random()-0.5).slice(0,CONFIG.picks.abilities);redraw();}});
+  const go=el('button',{class:'go',id:'lockin',type:'button',text:!ready?need:d.confirm?'Lock in':'Lock in my powers',onclick:()=>{if(!ready)return;if(!d.confirm){d.confirm=true;renderCreator();return;}finishCreator();}});
   go.disabled=!ready;
-  creatorBody.append(el('div',{class:'cta'},go,rnd),draft.confirm?el('p',{class:'note warn',text:'Click Lock in to confirm.'}):null);
+  creatorBody.append(el('div',{class:'cta'},go,rnd),d.confirm?el('p',{class:'note warn',text:'Click Lock in to confirm.'}):null);
   creatorBody.scrollTop=y;
 }
+const ownedIds=c=>[...new Set([...c.abilities.map(LEVEL_OF),...c.movement,c.body])];
 function finishCreator(){
   const c=validCharacter(draft);if(!c)return;
   if(creatorMode==='rechoose'&&save.character){
-    const old=[...save.character.abilities,...save.character.movement],now=[...c.abilities,...c.movement];let refund=0;
+    const old=ownedIds(save.character),now=ownedIds(c);let refund=0;
     for(const id of old)if(!now.includes(id)){const l=save.powerLevels[id]|0;for(let q=1;q<l;q++)refund+=CONFIG.powerUpgradeCost(q);delete save.powerLevels[id];}
-    if(P.alien)revertAlien(true);stopAllPowers();save.character=c;save.sp+=refund;save.rechoiceAt=Date.now();persist();
+    if(P.alien)revertAlien(true);stopAllPowers();save.character=c;save.sp+=refund;save.rechoiceAt=Date.now();save.migrated=false;persist();
     creating=false;draft=null;creator.hidden=true;applyLook();buildHotbar();buildTouchButtons();setPaused(true);
     toast('Powers changed',refund?'+'+refund+' skill points refunded':'Your new powers are ready','cyan');return;
   }
-  save.character=c;save.level=1;save.xp=0;save.sp=CONFIG.progression.startSP;save.powerLevels={};save.passives=freshPassives();save.reputation=0;save.rechoiceAt=Date.now();
+  save.character=c;save.level=1;save.xp=0;save.sp=CONFIG.progression.startSP;save.powerLevels={};save.passives=freshPassives();save.reputation=0;save.rechoiceAt=Date.now();save.mastery={};save.ring=100;
   persist();creating=false;draft=null;creator.hidden=true;applyLook();startPlay(true);
 }
 function tryRechoose(){
@@ -303,22 +317,26 @@ function tryRechoose(){
   openCreator('rechoose');
 }
 // ---- Morph Band dial ----
-let dialOpen=false,dialSel=-1,dialVX=0,dialVY=0;
+let dialOpen=false,dialSel=-1,dialVX=0,dialVY=0,dialKind='alien';
 const dialEl=$('dial');
-function openDial(){
-  const list=ALIEN_IDS;dialOpen=true;dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;const ring=$('dial-ring');ring.textContent='';
-  list.forEach((id,i)=>{const a=ALIENS[id],on=aliensUnlocked().includes(id),ang=i/list.length*TAU-Math.PI/2;
-    const b=el('button',{type:'button',class:'dslot'+(on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*38).toFixed(1)}%;top:${(50+Math.sin(ang)*38).toFixed(1)}%`,
-      onclick:()=>{if(on){transformInto(id);closeDial();}},onmouseenter:()=>setDialSel(i)},el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:on?a.blurb:'Band LV '+a.unlock}));
+// the radial picker is shared by the Morph Band (aliens) and the power ring (constructs)
+function dialItems(){
+  if(dialKind==='construct')return CON_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Ring mastery '+c.unlock,glow:'#5dff86',info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
+  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),lock:'Band LV '+a.unlock,glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · '),pick:()=>transformInto(id)};});
+}
+function openDial(kind='alien'){
+  dialKind=kind;const list=dialItems();dialOpen=true;dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');const ring=$('dial-ring');ring.textContent='';
+  list.forEach((a,i)=>{const ang=i/list.length*TAU-Math.PI/2;
+    const b=el('button',{type:'button',class:'dslot'+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*38).toFixed(1)}%;top:${(50+Math.sin(ang)*38).toFixed(1)}%`,
+      onclick:()=>{if(a.on){closeDial();a.pick();}},onmouseenter:()=>setDialSel(i)},el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:a.on?a.blurb:a.lock}));
     b.style.setProperty('--g',a.glow);ring.appendChild(b);});
-  $('dial-info').textContent='Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
-  SFX.tone('sine',500,900,0.15,0.08);
+  $('dial-info').textContent=kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
 }
 function setDialSel(i){dialSel=i;for(const b of dialEl.querySelectorAll('.dslot'))b.classList.toggle('sel',+b.dataset.i===i);
-  const id=ALIEN_IDS[i];if(id)$('dial-info').textContent=ALIENS[id].name+' · '+ALIENS[id].abilities.map(x=>x.name).join(' · ');}
+  const a=dialItems()[i];if(a)$('dial-info').textContent=a.info;}
 function dialMove(dx,dy){dialVX=clamp(dialVX+dx,-120,120);dialVY=clamp(dialVY+dy,-120,120);if(Math.hypot(dialVX,dialVY)<25)return;
-  const a=Math.atan2(dialVY,dialVX)+Math.PI/2,n=ALIEN_IDS.length;setDialSel(((Math.round(a/TAU*n)%n)+n)%n);}
-function dialConfirm(){if(dialSel<0)return;const id=ALIEN_IDS[dialSel];if(aliensUnlocked().includes(id)){transformInto(id);closeDial();}else SFX.tone('square',200,150,0.1,0.06);}
+  const a=Math.atan2(dialVY,dialVX)+Math.PI/2,n=dialItems().length;setDialSel(((Math.round(a/TAU*n)%n)+n)%n);}
+function dialConfirm(){if(dialSel<0)return;const a=dialItems()[dialSel];if(a&&a.on){closeDial();a.pick();}else SFX.tone('square',200,150,0.1,0.06);}
 function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----
 const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],['punch','Throw a punch','Click to punch','Tap PUNCH'],

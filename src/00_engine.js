@@ -109,6 +109,7 @@ uniform vec4 uTint;uniform float uUnlit;uniform float uEmis;
 uniform vec3 uLDir;uniform vec3 uLCol;uniform vec3 uSky;uniform vec3 uGnd;uniform vec3 uFogC;uniform vec2 uFog;
 uniform vec3 uCam;uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uShTexel;
 uniform sampler2DShadow uShadow;uniform float uShOn;
+uniform vec4 uPL[20];uniform vec3 uPLC[20];uniform float uPLn;
 out vec4 o;
 ${GLSL_COMMON}
 float shadowF(){if(uShOn<0.5)return 1.0;vec3 p=vL.xyz/vL.w*0.5+0.5;
@@ -164,6 +165,12 @@ void main(){
   vec3 V=normalize(uCam-vW);vec3 Hh=normalize(V+uLDir);
   vec3 col=base*(amb+uLCol*diff*sh)+emis+base*uEmis*4.0;
   col+=uLCol*pow(max(dot(n,Hh),0.0),shin)*spec*sh;
+  // street lamps and headlights (nearest few, sent every frame at night)
+  vec3 pl=vec3(0.0),pls=vec3(0.0);
+  for(int i=0;i<20;i++){if(float(i)>=uPLn)break;vec3 L=uPL[i].xyz-vW;float dl=length(L);float r=uPL[i].w;if(dl>=r)continue;
+    float a=1.0-dl/r;a*=a;vec3 Ln=L/dl;float nl=max(dot(n,Ln),0.0);pl+=uPLC[i]*a*(0.25+0.75*nl);
+    pls+=uPLC[i]*a*pow(max(dot(n,normalize(Ln+V)),0.0),shin)*spec*0.5;}
+  col+=base*pl*3.2+pl*0.018+pls*0.6;
   o=vec4(outc(mix(col,uFogC,fog)),uTint.a);
 }`;
 

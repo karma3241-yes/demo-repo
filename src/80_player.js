@@ -5,7 +5,7 @@ const keys={};let mouseL=false,mmbLook=false,rmbLook=false,locked=false,lockFail
 const touchIn={x:0,y:0};let lookT=-9;
 const sensK=()=>0.0023*save.settings.sens;
 function look(dx,dy,k=1){P.yaw-=dx*sensK()*k;P.pitch=clamp(P.pitch+(save.settings.invertY?1:-1)*dy*sensK()*k,-1.3,1.25);lookT=time;}
-const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2};
+const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2,Digit4:3,Digit5:4};
 const DIAL_CODES={Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,Digit6:5};
 addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
@@ -23,10 +23,16 @@ addEventListener('keydown',e=>{
   if(paused||P.dead)return;
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
-  if(e.code==='KeyV'){bandPress();return;}
+  if(e.code==='KeyU'){suitToggle();return;}
+  if(e.code==='KeyV'){if(isRing())openDial('construct');else bandPress();return;}
+  if(e.code==='KeyO'&&isRing()){openOath();return;}
+  if(e.code==='KeyB'&&isRing()&&!P.car){summonConstruct();return;}
   if(P.car)return;
+  if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&P.web){swingBoost();return;}
+  if(e.code==='KeyC'&&hasWeb()&&!P.grounded&&!P.flying&&spiderAirTrick())return;
   if(e.code in SLOT_CODES){abilityDown(SLOT_CODES[e.code]);guideDone('ability');return;}
-  if(e.code==='KeyX'){dashPress();return;}
+  if(e.code==='KeyX'){if(P.construct&&constructX())return;dashPress();return;}
+  if(isSpeed()){if(e.code==='KeyF'){toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
   if(e.code==='KeyF')toggleFlight();else if(e.code==='Space')pressJump();
 });
 addEventListener('keyup',e=>{keys[e.code]=false;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();});
@@ -36,11 +42,12 @@ canvas.addEventListener('mousedown',e=>{
   if(paused){if(!sheetOpen&&!creating)resume();return;}
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
-  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car)return;if(chargeStart())return;mouseL=true;punch();}
-  else if(e.button===2){if(P.car)return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
+  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car)return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+  else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
-addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();}});
+addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('wheel',e=>{if(state==='play'&&!paused&&!dialOpen&&isSpeed()&&Math.abs(e.deltaY)>1)turnDial(e.deltaY<0?1:-1);},{passive:true});
 addEventListener('mousemove',e=>{if(state!=='play'||paused||touchOn())return;if(dialOpen){if(locked)dialMove(e.movementX,e.movementY);return;}if(locked||mmbLook||rmbLook)look(e.movementX,e.movementY);});
 function requestLock(){if(touchOn())return;try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
 function lockFail(){lockFailed=true;if(!lockHint){lockHint=true;toast('Mouse lock not available here','Hold the middle mouse button and drag to look','cyan');}}
@@ -55,11 +62,15 @@ function setPaused(v){
 }
 function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
-function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else webZip();}
-function releaseJump(){if(P.charging&&canAct())doJump();P.charging=false;}
+function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
+// web-slingers: tap Space in the air to web-zip, hold it to open the web wings
+function releaseJump(){if(P.charging&&canAct())doJump();P.charging=false;
+  if(P.spaceT&&!P.wings&&time-P.spaceT<0.22&&!P.grounded&&canAct())webZip();P.spaceT=0;}
 function doJump(){
-  const k=clamp(P.chargeT/1.0,0,1),jm=P.alien?alienDef().jump:1;P.charging=false;if(!P.grounded||P.flying)return;
-  P.vel.y=(CONFIG.move.jump+k*k*(CONFIG.move.superJump-CONFIG.move.jump))*jm;P.grounded=false;
+  let k=clamp(P.chargeT/1.0,0,1);const jm=P.alien?alienDef().jump:P.construct?1.25:1;P.charging=false;if(!P.grounded||P.flying)return;
+  if(isRing()&&save.ring<=0)k=0; // an empty ring leaves you an ordinary jump
+  if(hasWeb()&&k>0.35){slingLaunch(k);return;}
+  P.vel.y=(CONFIG.move.jump+k*k*(CONFIG.move.superJump*(1+0.45*mk('jump'))-CONFIG.move.jump))*jm;P.grounded=false;if(k>0.35)addMastery('jump',k*6);
   if(k<0.35&&(keys.ShiftLeft||keys.ShiftRight||P.speeding)){P.vel.x*=1.35;P.vel.z*=1.35;P.vel.y*=1.1;} // parkour leap
   if(k>0.35){SFX.boom(0.5*k,0.7);ringFx(P.pos.x,P.pos.y+0.4,P.pos.z,1,14*k,0.5,[1,.9,.6]);burst(P.pos.x,P.pos.y+0.4,P.pos.z,40,26*k,0.8,DUST,2.2,-3,2.5);addShake(0.3*k);hitProps(P.pos.x,P.pos.y,P.pos.z,3*k,P,8);}
 }
@@ -74,6 +85,7 @@ function nearestInteract(){
   return best;
 }
 function interact(){
+  if(giantGrab())return;
   const it=nearestInteract();if(!it)return;
   if(it.kind==='exit')exitCar(false);
   else if(it.kind==='car')enterCar(it.v);
@@ -109,7 +121,7 @@ tl.addEventListener('pointermove',e=>{
   else if(e.pointerId===lookId){look(e.clientX-lx,e.clientY-ly,2.2);lx=e.clientX;ly=e.clientY;}});
 const endTouch=e=>{if(e.pointerId===stickId){stickId=null;touchIn.x=touchIn.y=0;knob.style.transform='';stick.style.left='';stick.style.top='';stick.classList.remove('on');}if(e.pointerId===lookId)lookId=null;};
 tl.addEventListener('pointerup',endTouch);tl.addEventListener('pointercancel',endTouch);
-const SHORT={stormHammer:'HAMMER',repulsors:'REPULS',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
+const SHORT={bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'REPULS',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
 function bindTouchBtn(b,act){
   b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{b.setPointerCapture(e.pointerId);}catch(err){}b.classList.add('down');touchAct(act,true);});
   const up=()=>{if(!b.classList.contains('down'))return;b.classList.remove('down');touchAct(act,false);};
@@ -121,16 +133,22 @@ function buildTouchButtons(){
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
-    for(const id of save.character.movement){if(id==='flight')B('FLY','fly');else if(id==='superSpeed')B('SPEED','speed');else if(id==='webSwing')B('WEB','web');}}
+    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
+  if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
-  B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
+  B('SUIT','suit');B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
 }
 function touchAct(a,down){
   if(a==='pause'){if(down&&state==='play')setPaused(true);return;}
   if(down&&!canAct())return;
   if(dialOpen)return;
-  if(a==='punch'){if(P.car)return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
-  else if(a==='a0'||a==='a1'||a==='a2'){if(P.car)return;if(down){abilityDown(+a[1]);guideDone('ability');}else abilityUp(+a[1]);}
+  if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
+  else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){abilityDown(+a[1]);guideDone('ability');}else abilityUp(+a[1]);}
+  else if(a==='con'){if(down)summonConstruct();}
+  else if(a==='conpick'){if(down)openDial('construct');}
+  else if(a==='oath'){if(down)openOath();}
+  else if(a==='alt'){constructAlt(down);}
+  else if(a==='cx'){if(down)constructX();}
   else if(a==='jump'){keys.Space=down;if(down)pressJump();else releaseJump();}
   else if(a==='speed')keys.ShiftLeft=down;
   else if(a==='down')keys.KeyC=down;
@@ -138,6 +156,12 @@ function touchAct(a,down){
   else if(a==='web'){if(down)webPress();else webRelease();}
   else if(a==='use'){if(down)interact();}
   else if(a==='band'){if(down)bandPress();}
+  else if(a==='fast'){if(down)toggleFastMode();}
+  else if(a==='tkmore'){if(down)tkGrabMore();}
+  else if(a==='suit'){if(down)suitToggle();}
+  else if(a==='phase'){if(down)togglePhase();}
+  else if(a==='dialup'){if(down)turnDial(1);}
+  else if(a==='dialdn'){if(down)turnDial(-1);}
   else if(a==='lock'){if(down)lockToggle();}
   else if(a==='dash'){if(down)dashPress();}
 }
@@ -149,7 +173,8 @@ function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch'
 function playerLook(){
   const t=creating&&draft?draft:save.character;
   if(!t)return {suit:c4(SUIT_OPTS[0]),suit2:[...hex(SUIT_OPTS[0],0.6),1],cape:c4(CAPE_OPTS[0]),acc:c4(ACC_OPTS[0]),capeOn:true,metal:false};
-  return {suit:c4(SUIT_OPTS[t.suit]),suit2:[...hex(SUIT_OPTS[t.suit],0.6),1],cape:c4(CAPE_OPTS[t.cape]),acc:c4(ACC_OPTS[t.accent]),capeOn:t.capeOn,metal:P.metal};
+  const m={suit:c4(SUIT_OPTS[t.suit]),suit2:[...hex(SUIT_OPTS[t.suit],0.6),1],cape:c4(CAPE_OPTS[t.cape]),acc:c4(ACC_OPTS[t.accent]),capeOn:t.capeOn,metal:P.metal,armor:!creating&&t===save.character&&hasPower('armorSuit')};
+  return P.suited===false&&!creating&&sheetOpen!=='look'?civLook(m):m;
 }
 let LOOK=playerLook();
 function applyLook(){LOOK=playerLook();if(save.character)hud.hname.textContent=save.character.name;}
@@ -187,7 +212,7 @@ function driveCar(dt,inF,inR){
   SFX.setEngine(true,clamp(sp/D.maxSpeed,0,1));
 }
 function playerBodies(prevY){
-  const sp=Math.hypot(P.vel.x,P.vel.z),big=P.alien&&alienDef().scale>2;
+  const sp=Math.hypot(P.vel.x,P.vel.z),big=(P.alien&&alienDef().scale>2)||P.giantS>2;
   for(const h of humans){if(!h.alive||h.air||h.held||h.hidden)continue;const dx=h.pos.x-P.pos.x,dz=h.pos.z-P.pos.z;
     if(Math.abs(dx)>P.radius+1||Math.abs(dz)>P.radius+1||Math.abs(h.pos.y-P.pos.y)>P.height)continue;
     const d=Math.hypot(dx,dz)||0.01,min=P.radius+0.45;if(d>=min)continue;
@@ -195,7 +220,7 @@ function playerBodies(prevY){
     else{const push=min-d;h.pos.x+=dx/d*push*0.8;h.pos.z+=dz/d*push*0.8;P.pos.x-=dx/d*push*0.2;P.pos.z-=dz/d*push*0.2;}}
   for(const v of vehicles){if(v===P.car||v.state==='thrown'||v.state==='held'||v.state==='wreckAir')continue;if(Math.abs(v.pos.x-P.pos.x)>6||Math.abs(v.pos.z-P.pos.z)>6)continue;
     const c=Math.cos(v.yaw),s=Math.sin(v.yaw),dx=P.pos.x-v.pos.x,dz=P.pos.z-v.pos.z;const lx=dx*c-dz*s,lz=dx*s+dz*c;
-    const hw=v.hw+P.radius*0.6,hl=v.hl+P.radius*0.6,top=v.vtype==='truck'?3.4:v.vtype==='van'?3:(v.state==='wreck'&&Math.abs(v.rz)>1?1.4:1.75);
+    const hw=v.hw+P.radius*0.6,hl=v.hl+P.radius*0.6,top=VEH_S*(v.vtype==='truck'?3.4:v.vtype==='van'?3:(v.state==='wreck'&&Math.abs(v.rz)>1?1.4:1.75));
     if(Math.abs(lx)<hw&&Math.abs(lz)<hl&&P.pos.y<v.pos.y+top&&P.pos.y+P.height>v.pos.y){
       if(prevY>=v.pos.y+top-0.7){P.pos.y=v.pos.y+top;if(P.vel.y<0)P.vel.y=0;P.grounded=true;
         if(v.state==='road'||v.state==='chase'){P.pos.x+=Math.sin(v.yaw)*v.spd*(1/60);P.pos.z+=Math.cos(v.yaw)*v.spd*(1/60);}}
@@ -225,9 +250,10 @@ function updatePlayer(dt){
   const inF=clamp((keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)+touchIn.y,-1,1);
   const inR=clamp((keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+touchIn.x,-1,1);
   if(P.car){driveCar(dt,inF,inR);return;}
+  spiderTick(dt);
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
-  const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=P.alien&&P.alien.phase>0;
+  const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=(P.alien&&P.alien.phase>0)||P.phasing;
   P.speeding=false;
   if(P.wallRun)wallRunStep(dt,inF,inR);
   else if(P.wall){
@@ -245,21 +271,22 @@ function updatePlayer(dt){
       if(Math.random()<0.8)emit(P.pos.x,P.pos.y+1.3,P.pos.z,0,0,0,0.4,[.8,1,1],1.4,0,0);}
     else if(P.burstT>0){P.burstT-=dt;if(!P.flying&&!P.grounded)P.vel.y-=CONFIG.move.gravity*0.35*dt;}
     else if(P.zip)zipStep(dt);
-    else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.flying){
+    else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
       let tx=fwdX*cp*inF+rX*inR,ty=sp*inF+((keys.Space?1:0)-(keys.KeyC?1:0)),tz=fwdZ*cp*inF+rZ*inR;const l=Math.hypot(tx,ty,tz);if(l>1){tx/=l;ty/=l;tz/=l;}
-      const base=(AL&&AL.flies?AL.flySpeed:pstat('flight','speed'))*slowMul,spd=shift?base*POWERS.flight.boost:base,k=damp(shift?1.8:3,dt);
+      const base=(AL&&AL.flies?AL.flySpeed:flySpeed()*conSpeedMul())*slowMul,spd=shift?base*(AL&&AL.flies?1.5:POWERS.flight.boost):base,k=damp(shift?1.8:3,dt);
       P.vel.x+=(tx*spd-P.vel.x)*k;P.vel.y+=(ty*spd-P.vel.y)*k;P.vel.z+=(tz*spd-P.vel.z)*k;
     }else{
       let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
-      const am=AL?AL.speed:1;
-      const canSpeed=hasPower('superSpeed')&&shift&&P.grounded&&l>0.1&&P.en>1;P.speeding=canSpeed;
-      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*pstat('superSpeed','mult'):shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul;
+      const am=AL?AL.speed:P.construct&&!P.flying?conSpeedMul():1;
+      const canSpeed=hasPower('superSpeed')&&(shift||P.fastMode)&&P.grounded&&l>0.1&&P.en>1;P.speeding=canSpeed;
+      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*speedMult():shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul;
       const hsp=Math.hypot(P.vel.x,P.vel.z);
       if(!P.grounded&&hsp>spd+2){ // keep swing / leap momentum: steer it instead of braking
         if(l>0.1){const turn=damp(1.8,dt),nx=P.vel.x+(tx*hsp-P.vel.x)*turn,nz=P.vel.z+(tz*hsp-P.vel.z)*turn,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hsp;P.vel.z=nz/nl*hsp;}
         const drag=1-0.22*dt;P.vel.x*=drag;P.vel.z*=drag;}
       else{const k=P.grounded?damp(12,dt):damp(1.6,dt);P.vel.x+=(tx*spd-P.vel.x)*k;P.vel.z+=(tz*spd-P.vel.z)*k;}P.vel.y-=(P.slam?30:CONFIG.move.gravity)*(P.floatT>0&&P.vel.y<3?0.12:1)*dt;
+      if(hasWeb()&&!P.grounded&&P.pitch<-0.5&&inF>0){P.vel.y-=30*dt;P.vel.x+=fwdX*12*dt;P.vel.z+=fwdZ*12*dt;} // dive
       if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
     }
     const prevY=P.pos.y;P.pos.addS(P.vel,dt);
@@ -270,6 +297,7 @@ function updatePlayer(dt){
       if(col.wall&&(P.flying||P.rush||(P.alien&&P.alien.dashing))&&vpre>70&&!P.car){const w=col.wall;
         if(damageBuilding(w.b.bld,vpre*vpre*0.08*(P.rush?3:1),P.pos.x,P.pos.y+1,P.pos.z,-(w.nx||0),-(w.nz||0))){P.vel.set(pvx*0.85,pvy*0.85,pvz*0.85);addShake(0.5);}
         else if(time-(P.wallHitT||-9)>0.5){P.wallHitT=time;crater(P.pos.x,P.pos.y+1.2,P.pos.z,w.nx||0,0,w.nz||0,clamp(vpre*0.025,1.5,4),w.b.col);}}
+      if(col.wall&&P.construct&&P.construct.id==='titan'&&vpre>5){const w=col.wall;damageBuilding(w.b.bld,vpre*60*dt,P.pos.x,P.pos.y+2,P.pos.z,-(w.nx||0),-(w.nz||0));if(Math.random()<dt*4)crater(P.pos.x-(w.nx||0)*P.radius,P.pos.y+rr(2,8),P.pos.z-(w.nz||0)*P.radius,w.nx||0,0,w.nz||0,2.5,w.b.col);}
       if(P.flungT&&time-P.flungT<2&&col.wall&&Math.hypot(P.vel.x,P.vel.z)+15>COMBAT.slamMin*2){crater(P.pos.x,P.pos.y+1.2,P.pos.z,col.wall.nx||0,0,col.wall.nz||0,2.2,col.wall.b.col);P.flungT=-9;P.vel.set(0,-4,0);P.stun=Math.max(P.stun,0.6);}
       const canClimb=(hasPower('wallClimb')&&!P.alien)||(AL&&AL.climb);
       if(col.wall&&canClimb&&!shift&&!P.flying&&!P.web&&!P.zip&&P.wallCd<=0&&col.wall.b.y1>P.pos.y+2.5){
@@ -283,20 +311,23 @@ function updatePlayer(dt){
   if(!wasGrounded&&P.grounded&&!P.flying){
     const impact=-vyBefore;
     if(P.slam){P.slam=false;shockAt(P.pos.x,P.pos.y+0.6,P.pos.z,1.3);burst(P.pos.x,P.pos.y+0.3,P.pos.z,80,40,1.1,DUST,3,-2,2);crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,5,[.42,.41,.4]);}
-    else if(impact>58||(AL&&AL.scale>2&&impact>25)){ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,16,0.45,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,50,26,0.9,DUST,2.6,-3,2.4);SFX.boom(0.55,0.7);addShake(0.45);
+    else if(hasWeb()&&impact>25&&impact<130)landingRoll(impact);
+    else if(hasPower('elasticBody')&&!P.alien&&impact>40&&!keys.KeyC){P.vel.y=impact*0.5;P.grounded=false;SFX.tone('sine',180,420,0.25,0.1);burst(P.pos.x,P.pos.y+0.2,P.pos.z,14,6,0.4,DUST,1,-2,2);} // rubber body bounces
+    else if(impact>58||(AL&&AL.scale>2&&impact>25)||(P.construct&&P.construct.id==='titan'&&impact>18)){ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,16,0.45,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,50,26,0.9,DUST,2.6,-3,2.4);SFX.boom(0.55,0.7);addShake(0.45);
       areaDamage(P.pos.x,P.pos.y+0.5,P.pos.z,10,25*strengthMul(),P,{knock:14});crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,3.5,[.42,.41,.4]);}
   }
   if(P.flying&&P.grounded&&keys.KeyC&&!(AL&&AL.flies))P.flying=false;
   if(P.speeding){for(const h of humans){if(!h.alive||h.air||time-(h.bumpT||-9)<0.6)continue;if(Math.abs(h.pos.x-P.pos.x)<1.8&&Math.abs(h.pos.z-P.pos.z)<1.8&&Math.abs(h.pos.y-P.pos.y)<2){h.bumpT=time;Damage.apply(P,h,pstat('superSpeed','hitDmg'),'bump',{knock:20});}}
     if(Math.random()<0.8)emit(P.pos.x,P.pos.y+rr(0.3,2.4),P.pos.z,0,0,0,0.35,[.55,.8,1],1.3,0,0);}
   moved+=Math.hypot(P.vel.x,P.vel.z)*dt;if(moved>25)guideDone('move');
+  if(!P.alien&&save.character){const sp=P.vel.len();if(P.flying)addMastery(save.character.movement[0],sp*dt*0.015);else if(P.speeding)addMastery('superSpeed',sp*dt*0.012);}
   // facing, tilt, limbs
   const hs=Math.hypot(P.vel.x,P.vel.z),sp3=P.vel.len();
   const aiming=time-castT<0.6||beam||PS.iceCloud.holding||P.tk||(P.alien&&P.alien.channel)||(lockT&&!P.web&&!P.flying);let yawRate=0;
   if(!P.wall&&time-P.punchT>0.3){let ty=P.heroYaw;if(lockT&&!P.web&&!P.flying){const c=center(lockT);ty=Math.atan2(c.x-P.pos.x,c.z-P.pos.z);}else if(aiming)ty=Math.atan2(camF.x,camF.z);else if(hs>1.5)ty=Math.atan2(P.vel.x,P.vel.z);
     const prev=P.heroYaw;P.heroYaw=angLerp(P.heroYaw,ty,damp(P.flying?5:12,dt));yawRate=angLerp(0,P.heroYaw-prev,1)/Math.max(dt,1e-3);}
   let tilt=0,bank=0;
-  if((P.flying||P.web)&&sp3>8){tilt=clamp(Math.atan2(hs,P.vel.y),0,1.5)*clamp(sp3/40,0,1);bank=clamp(-yawRate*0.25,-0.7,0.7);}
+  if((P.flying||P.web||P.wings)&&sp3>8){tilt=clamp(Math.atan2(hs,P.vel.y),0,1.5)*clamp(sp3/40,0,1);bank=clamp(-yawRate*0.25,-0.7,0.7);}
   if(P.speeding)tilt=0.35;if(aiming)tilt=Math.min(tilt,0.5);if(P.web)tilt*=0.5;
   P.tilt=lerp(P.tilt,tilt,damp(6,dt));P.bank=lerp(P.bank,bank,damp(4,dt));
   let tl=0,tr=0,kl=0,kr=0,al=0,ar=0,el=-0.25,er=-0.25,alz=-0.12,arz=0.12,cape=0.15;
@@ -305,6 +336,7 @@ function updatePlayer(dt){
   else if(P.zip){ar=-3.0;er=0;al=-3.0;el=0;tl=0.2;tr=-0.1;kl=0.4;kr=0.2;cape=1.2;}
   else if(P.wall){const c=Math.sin(time*8)*(Math.abs(inF)+Math.abs(inR)>0.1?1:0);al=-2.6+c*0.4;ar=-2.6-c*0.4;tl=0.4+c*0.3;tr=0.4-c*0.3;kl=0.9-c*0.4;kr=0.9+c*0.4;el=er=-0.6;cape=0.1;}
   else if(P.web){ar=-3.0;er=0;al=-0.6;el=-0.9;tl=0.3;tr=-0.2;kl=0.6;kr=0.3;cape=clamp(sp3/30,0.3,1.4);}
+  else if(P.wings){al=ar=-0.1;alz=-1.45;arz=1.45;el=er=0;tl=0.12;tr=-0.12;kl=kr=0.15;cape=1.2;}
   else if(P.flying){if(sp3>20){ar=-2.95;er=0;al=-0.15;el=-0.2;tl=0.05;tr=0.22;kl=0.1;kr=0.5;cape=0.12+Math.sin(time*18)*0.06;}
     else{al=-0.3+Math.sin(time*2)*0.1;ar=-0.3-Math.sin(time*2)*0.1;alz=-0.35;arz=0.35;el=er=-0.5;tl=0.15+Math.sin(time*1.7)*0.1;tr=-0.05+Math.sin(time*1.7+1)*0.1;kl=0.3;kr=0.5;cape=0.35+Math.sin(time*3)*0.12;}}
   else if(P.grounded){P.phase+=dt*hs*(P.speeding?0.18:0.3)/(AL?Math.max(1,AL.scale*0.7):1);const k=Math.min(hs/14,1.25),sw=Math.sin(P.phase)*k*0.95;

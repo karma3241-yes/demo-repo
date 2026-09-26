@@ -5,7 +5,7 @@ const humans=[],drones=[],vehicles=[],rivals=[],props=[],crimes=[],gangs=[];
 let boss=null;
 const pick=a=>a[(Math.random()*a.length)|0];
 function removeFrom(list,x){const i=list.indexOf(x);if(i>=0)list.splice(i,1);}
-function removeActor(a){removeFrom(actors,a);removeFrom(helis,a);removeFrom(humans,a);removeFrom(drones,a);removeFrom(vehicles,a);removeFrom(rivals,a);if(P.tk&&P.tk.a===a)P.tk=null;}
+function removeActor(a){removeFrom(actors,a);removeFrom(helis,a);removeFrom(humans,a);removeFrom(drones,a);removeFrom(vehicles,a);removeFrom(rivals,a);if(P.tk){if(P.tk.a===a)P.tk.a=null;P.tk.more=P.tk.more.filter(m=>m!==a);}}
 const d2h=(a,b)=>{const dx=a.pos.x-b.pos.x,dz=a.pos.z-b.pos.z;return dx*dx+dz*dz;};
 const c4=h=>[...hex(h),1];
 const SKINS=['#f1c7a5','#d9a27a','#a8744f','#6e4a33','#e8b48f'].map(c4);
@@ -201,10 +201,11 @@ function updateDrone(d,dt){
 // ---- vehicles ----
 const CAR_COLS=['#f2c230','#e8e8ea','#9aa3ad','#c0262d','#1f5fbf','#15171c','#1f9e8e','#e86a1a','#5a6b7c','#7a1f2b'].map(c4);
 const VDIM={sedan:[0.95,2.35],compact:[0.9,1.95],suv:[1.03,2.45],taxi:[0.95,2.35],police:[0.98,2.4],van:[1.15,2.95],truck:[1.5,3.6]};
+for(const k in VDIM)VDIM[k]=VDIM[k].map(v=>v*VEH_S);
 function makeVehicle(vtype,model){
   model=model||(vtype==='car'?pick(CAR_KINDS):vtype);const hp=vtype==='police'?90:NPCS[vtype==='car'?'car':vtype].hp;
   const v={kind:'vehicle',vtype,model,faction:'object',alive:true,hp,maxHp:hp,pos:new V3(),vel:new V3(),yaw:0,ty:0,rx:0,rz:0,state:'road',axis:0,dir:1,lane:0,s:0,spd:0,maxSpd:rr(13,22),
-    flash:0,held:false,cy:1.1,radius:vtype==='truck'?3:vtype==='van'?2.8:2.3,ys:1.4,tint:[1,1,1,1],burn:0,stun:0,slow:0,slowT:0,crime:null,temp:false,driver:null,
+    flash:0,held:false,cy:1.1*VEH_S,radius:(vtype==='truck'?3:vtype==='van'?2.8:2.3)*VEH_S,ys:1.4,tint:[1,1,1,1],burn:0,stun:0,slow:0,slowT:0,crime:null,temp:false,driver:null,
     mesh:vtype==='van'?vanMesh:vtype==='truck'?truckMesh:CARS[model],hw:VDIM[model][0],hl:VDIM[model][1],burnT:0,escaped:false,sx:0,sy:0,sz:0,life:0,stalled:0,siren:false,chaseT:0,honkT:0};
   if(model==='taxi'||model==='police')v.tint=[1,1,1,1];
   v.onDefeat=src=>vehicleDestroyed(v,src);
@@ -234,8 +235,8 @@ function nodeAhead(v){const f=(v.s+HALF)/CELL;const k=v.dir>0?Math.floor(f+1e-4)
 function roadIndexOf(v){return Math.round((v.lane-laneOff(v.dir)+HALF)/CELL);}
 function obstacleAhead(v){
   const fx=v.axis===0?0:v.dir,fz=v.axis===0?v.dir:0;let best=99;
-  const test=(x,z,w)=>{const dx=x-v.pos.x,dz=z-v.pos.z,f=dx*fx+dz*fz,l=Math.abs(dx*fz-dz*fx);if(f>0.5&&f<16&&l<1.4+w&&f<best)best=f;};
-  for(const o of vehicles)if(o!==v&&o.state!=='held'&&o.state!=='thrown'&&o.state!=='wreckAir'&&Math.abs(o.pos.x-v.pos.x)<18&&Math.abs(o.pos.z-v.pos.z)<18)test(o.pos.x,o.pos.z,o.hw);
+  const test=(x,z,w)=>{const dx=x-v.pos.x,dz=z-v.pos.z,f=dx*fx+dz*fz,l=Math.abs(dx*fz-dz*fx);if(f>0.5&&f<20&&l<1.4+w&&f<best)best=f;};
+  for(const o of vehicles)if(o!==v&&o.state!=='held'&&o.state!=='thrown'&&o.state!=='wreckAir'&&Math.abs(o.pos.x-v.pos.x)<22&&Math.abs(o.pos.z-v.pos.z)<22)test(o.pos.x,o.pos.z,o.hw);
   for(const h of humans)if(h.alive&&!h.hidden&&Math.abs(h.pos.x-v.pos.x)<16&&Math.abs(h.pos.z-v.pos.z)<16&&h.pos.y<1)test(h.pos.x,h.pos.z,0.4);
   if(!P.car&&P.pos.y<3&&!P.dead){const d0=best;test(P.pos.x,P.pos.z,0.8);if(best<d0&&best<10&&time>v.honkT){v.honkT=time+rr(2,4);SFX.honk(SFX.vol(v.pos.x,1,v.pos.z));}}
   return best;
@@ -251,7 +252,7 @@ function driveTraffic(v,dt){
   const {k,ns}=nodeAhead(v),dn=(ns-v.s)*v.dir;
   if(!chasing&&k>=0&&k<=GRID){const ri=roadIndexOf(v);const L=v.axis===0?lightFor(ri,k,0):lightFor(k,ri,1);
     if(L!=='g'&&dn>CONFIG.traffic.stopLine-2)want=Math.min(want,Math.max(0,(dn-CONFIG.traffic.stopLine)*1.3));}
-  const ob=obstacleAhead(v);if(ob<16)want=Math.min(want,Math.max(0,(ob-6)*1.6));
+  const ob=obstacleAhead(v);if(ob<19)want=Math.min(want,Math.max(0,(ob-8.5)*1.6));
   v.spd+=clamp(want-v.spd,-28*dt,9*dt);
   const prev=v.s;v.s+=v.dir*v.spd*dt;
   if((ns-prev)*v.dir>0&&(ns-v.s)*v.dir<=0&&k>0&&k<GRID){
