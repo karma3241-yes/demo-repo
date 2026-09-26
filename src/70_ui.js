@@ -323,16 +323,20 @@ let dialOpen=false,dialSel=-1,dialVX=0,dialVY=0,dialKind='alien';
 const dialEl=$('dial');
 // the radial picker is shared by the Morph Band (aliens) and the power ring (constructs)
 function dialItems(){
-  if(dialKind==='construct')return CON_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Ring mastery '+c.unlock,glow:'#5dff86',info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
+  if(dialKind==='construct')return CON_PAGES[dialPage].map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Ring mastery '+c.unlock,glow:'#5dff86',info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
   return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),lock:'Band LV '+a.unlock,glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · '),pick:()=>transformInto(id)};});
 }
-function openDial(kind='alien'){
+let dialPage=0;
+function dialPageTurn(d){if(dialKind!=='construct')return;dialPage=(dialPage+d+CON_PAGES.length)%CON_PAGES.length;openDial('construct',true);SFX.tone('sine',500,700,0.06,0.04);}
+function openDial(kind='alien',keepPage){
+  if(kind==='construct'&&!keepPage)dialPage=Math.max(0,CON_PAGES.findIndex(p=>p.includes(conPick)));
   dialKind=kind;const list=dialItems();dialOpen=true;dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');const ring=$('dial-ring');ring.textContent='';
   list.forEach((a,i)=>{const ang=i/list.length*TAU-Math.PI/2;
     const b=el('button',{type:'button',class:'dslot'+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*38).toFixed(1)}%;top:${(50+Math.sin(ang)*38).toFixed(1)}%`,
       onclick:()=>{if(a.on){closeDial();a.pick();}},onmouseenter:()=>setDialSel(i)},el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:a.on?a.blurb:a.lock}));
     b.style.setProperty('--g',a.glow);ring.appendChild(b);});
-  $('dial-info').textContent=kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
+  if(kind==='construct'){const pb=el('button',{type:'button',class:'dpage',text:['Mechs & flyers','Rides & weapons'][dialPage]+' · page '+(dialPage+1)+'/'+CON_PAGES.length+' ▸',onclick:e=>{e.stopPropagation();dialPageTurn(1);}});ring.appendChild(pb);}
+  $('dial-info').textContent=kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · Q / E or the wheel for more':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
 }
 function setDialSel(i){dialSel=i;for(const b of dialEl.querySelectorAll('.dslot'))b.classList.toggle('sel',+b.dataset.i===i);
   const a=dialItems()[i];if(a)$('dial-info').textContent=a.info;}

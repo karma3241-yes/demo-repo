@@ -92,18 +92,18 @@ function updateHeroAbilities(dt){
     if(W.t>=W.dur){wells.splice(i,1);explode(W.x,W.y,W.z,1.4);if(!W.visual)areaDamage(W.x,W.y,W.z,W.R*0.6,W.dmg,P,{knock:40,type:'blast'});ringFx(W.x,W.y,W.z,1,W.R*1.4,0.5,[.7,.5,1]);flashWhite=Math.max(flashWhite,0.2);}}
   if(bigBeam){const B=bigBeam;B.t+=dt;
     if(!canAct()&&B.t<B.wind){bigBeam=null;beam=null;}
-    else if(B.t>=B.wind){faceAim();const o=B.kind==='core'?{x:P.pos.x+Math.sin(P.heroYaw)*0.5,y:P.pos.y+1.9,z:P.pos.z+Math.cos(P.heroYaw)*0.5}:handPoint();
-      const d=dirTo(o,aim.x,aim.y,aim.z),range=B.kind==='core'?160:240;let tb=rayCity(o.x,o.y,o.z,d[0],d[1],d[2],range);const hb=tb<range?RAYHIT.b:null,hn=[RAYHIT.nx,RAYHIT.ny,RAYHIT.nz];
+    else if(B.t>=B.wind){faceAim();const o=B.kind==='core'?{x:P.pos.x+Math.sin(P.heroYaw)*0.5,y:P.pos.y+1.9,z:P.pos.z+Math.cos(P.heroYaw)*0.5}:B.kind==='cannon'?conExtMuzzle('cannon',0):handPoint();
+      const d=dirTo(o,aim.x,aim.y,aim.z),range=B.kind==='core'?160:B.kind==='cannon'?320:240;let tb=rayCity(o.x,o.y,o.z,d[0],d[1],d[2],range);const hb=tb<range?RAYHIT.b:null,hn=[RAYHIT.nx,RAYHIT.ny,RAYHIT.nz];
       if(d[1]<0){const tg=(0.05-o.y)/d[1];if(tg>0&&tg<tb)tb=tg;}
       const ex=o.x+d[0]*tb,ey=o.y+d[1]*tb,ez=o.z+d[2]*tb;B.o=o;B.e={x:ex,y:ey,z:ez};beam={x:ex,y:ey,z:ez,w:B.w};
       for(const a of actors){if(!a.alive||a===P||a.kind==='prop')continue;const c=center(a),vx=c.x-o.x,vy=c.y-o.y,vz=c.z-o.z,s=vx*d[0]+vy*d[1]+vz*d[2];if(s<0||s>tb+1)continue;
         const px=vx-d[0]*s,py=vy-d[1]*s,pz=vz-d[2]*s;if(Math.hypot(px,py,pz)>B.w+(a.radius||1))continue;
         Damage.apply(P,a,B.dps*dt,'beam',{knock:0});if(a.kind==='human'&&a.alive===false&&!a.air)a.air=true;
         if(a.kind==='human'&&(!a.air)&&Math.random()<dt*3)Damage.apply(P,a,0.01,'beam',{kv:[d[0]*30,8,d[2]*30],flung:true});}
-      if(hb&&hb.bld)damageBuilding(hb.bld,B.dps*dt*(B.kind==='spirit'?9:4),ex,ey,ez,d[0],d[2]);
+      if(hb&&hb.bld)damageBuilding(hb.bld,B.dps*dt*(B.kind==='spirit'||B.kind==='cannon'?9:4),ex,ey,ez,d[0],d[2]);
       hitProps(ex,ey,ez,B.w+1,P,20);
       if(Math.random()<0.6){if(hb)addScorch(ex,ey,ez,B.w*1.2,hn[0],hn[1],hn[2]);else if(ey<0.3)addScorch(ex,0.03,ez,B.w*1.3);}
-      for(let i=0;i<3;i++)emit(ex,ey,ez,rr(-10,10),rr(2,14),rr(-10,10),rr(0.3,0.6),B.kind==='spirit'?[.6,.85,1]:[1,.95,.8],rr(1,2)*B.w*0.6,18,0.5);
+      for(let i=0;i<3;i++)emit(ex,ey,ez,rr(-10,10),rr(2,14),rr(-10,10),rr(0.3,0.6),B.kind==='spirit'?[.6,.85,1]:B.kind==='cannon'?RING_C:[1,.95,.8],rr(1,2)*B.w*0.6,18,0.5);
       if(Math.random()<dt*8)addShake(0.15);SFX.setLaser(true);
       if(B.t>=B.wind+B.dur){bigBeam=null;beam=null;SFX.setLaser(false);}}}
 }
@@ -115,7 +115,7 @@ function drawHeroAbilities(){
   for(const W of wells){const k=Math.min(1,W.t/0.6),p=1+Math.sin(time*10)*0.05,s=(1.2+W.t*0.4)*k*p;
     queue(MESH.sphere,at(W.x,W.y,W.z,0,0,0,s,s,s),[0,0,0,1],F_UN);queue(MESH.glowSphere,at(W.x,W.y,W.z,0,0,0,s*1.6,s*1.6,s*1.6),[.55,.3,1,0.35],F_ADD);
     for(let i=0;i<3;i++)queue(MESH.ring,M4.alignY(tmpM(),W.x,W.y,W.z,Math.sin(time*2+i*2),1,Math.cos(time*1.7+i),s*(2.5+i*1.2)),[.7,.45,1,0.5*k],F_ADD);}
-  const B=bigBeam;if(B&&B.o&&B.e){const w=B.w*(1+Math.sin(time*40)*0.08),col=B.kind==='spirit'?[.55,.85,1]:[1,.95,.8];
+  const B=bigBeam;if(B&&B.o&&B.e){const w=B.w*(1+Math.sin(time*40)*0.08),col=B.kind==='spirit'?[.55,.85,1]:B.kind==='cannon'?RING_C:[1,.95,.8];
     queue(MESH.glowBox,M4.beam(tmpM(),B.o.x,B.o.y,B.o.z,B.e.x,B.e.y,B.e.z,w*0.5),[1,1,1,1],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),B.o.x,B.o.y,B.o.z,B.e.x,B.e.y,B.e.z,w*1.4),[col[0],col[1],col[2],0.45],F_ADD);
     queue(MESH.glowSphere,at(B.e.x,B.e.y,B.e.z,0,0,0,w*1.6,w*1.6,w*1.6),[col[0],col[1],col[2],0.6],F_ADD);queue(MESH.glowSphere,at(B.o.x,B.o.y,B.o.z,0,0,0,w*0.9,w*0.9,w*0.9),[1,1,1,0.8],F_ADD);}
   else if(B&&B.t<B.wind){const h=B.kind==='core'?{x:P.pos.x+Math.sin(P.heroYaw)*0.4,y:P.pos.y+1.9,z:P.pos.z+Math.cos(P.heroYaw)*0.4}:handPoint(),g=0.3+B.t*1.5;queue(MESH.glowSphere,at(h.x,h.y,h.z,0,0,0,g,g,g),[1,.95,.8,0.8],F_ADD);}

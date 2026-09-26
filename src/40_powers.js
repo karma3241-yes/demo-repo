@@ -86,7 +86,7 @@ function flyChargeTick(){
 function toggleFlight(){
   if(!hasPower('flight')||!canAct()||P.car)return;
   if(P.alien)return; // alien forms fly (or not) on their own
-  if(isRing()){if(!P.flying&&save.ring<=0){ringOut();return;}if(P.construct&&CONSTRUCTS[P.construct.id].fly)return;}
+  if(isRing()){if(!P.flying&&save.ring<=0){ringOut();return;}if(P.construct&&(CONSTRUCTS[P.construct.id].fly||CONSTRUCTS[P.construct.id].drive))return;}
   else if(!P.flying&&P.en<5){noEnergy();return;}
   P.flying=!P.flying;P.charging=false;P.web=null;P.wall=null;
   if(P.flying){if(P.grounded)P.vel.y=22;P.grounded=false;SFX.whoosh();burst(P.pos.x,P.pos.y+0.3,P.pos.z,24,14,0.7,DUST,1.6,-2,2);}

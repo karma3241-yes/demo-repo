@@ -13,7 +13,7 @@ addEventListener('keydown',e=>{
   if(['Space','ArrowUp','ArrowDown','Tab'].includes(e.code))e.preventDefault();
   if(oathOpen&&!touchOn()&&state==='play'&&!paused){oathKey(e);return;}
   const was=keys[e.code];keys[e.code]=true;if(was)return;
-  if(dialOpen){if(e.code in DIAL_CODES){setDialSel(DIAL_CODES[e.code]);dialConfirm();}else if(e.code==='Escape'||e.code==='KeyV')closeDial();return;}
+  if(dialOpen){if(e.code in DIAL_CODES){setDialSel(DIAL_CODES[e.code]);dialConfirm();}else if(e.code==='KeyQ'||e.code==='KeyE'||e.code==='Tab'){e.preventDefault();dialPageTurn(e.code==='KeyQ'?-1:1);}else if(e.code==='Escape'||e.code==='KeyV')closeDial();return;}
   if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
   if(state!=='play')return;
   if(e.code==='Tab'||e.code==='KeyK'){if(sheetOpen==='skills')closeSheet();else openSheet('skills');return;}
@@ -49,7 +49,7 @@ canvas.addEventListener('mousedown',e=>{
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
-addEventListener('wheel',e=>{if(state!=='play'||paused||dialOpen||Math.abs(e.deltaY)<=1)return;if(P.construct&&P.construct.id==='titan'){titanGrow(e.deltaY<0?1:-1);return;}if(isSpeed())turnDial(e.deltaY<0?1:-1);},{passive:true});
+addEventListener('wheel',e=>{if(state!=='play'||paused||Math.abs(e.deltaY)<=1)return;if(dialOpen){dialPageTurn(e.deltaY<0?-1:1);return;}if(P.construct&&P.construct.id==='titan'){titanGrow(e.deltaY<0?1:-1);return;}if(isSpeed())turnDial(e.deltaY<0?1:-1);},{passive:true});
 addEventListener('mousemove',e=>{if(state!=='play'||paused||touchOn())return;if(dialOpen){if(locked)dialMove(e.movementX,e.movementY);return;}if(locked||mmbLook||rmbLook)look(e.movementX,e.movementY);});
 function requestLock(){if(touchOn())return;try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
 function lockFail(){lockFailed=true;if(!lockHint){lockHint=true;toast('Mouse lock not available here','Hold the middle mouse button and drag to look','cyan');}}
@@ -277,7 +277,7 @@ function updatePlayer(dt){
       if(Math.random()<0.8)emit(P.pos.x,P.pos.y+1.3,P.pos.z,0,0,0,0.4,[.8,1,1],1.4,0,0);}
     else if(P.burstT>0){P.burstT-=dt;if(!P.flying&&!P.grounded)P.vel.y-=CONFIG.move.gravity*0.35*dt;}
     else if(P.zip)zipStep(dt);
-    else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(P.flying){
+    else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(conDrive()&&!P.flying)driveConstruct(dt,inF,inR,shift);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
       let tx=fwdX*cp*inF+rX*inR,ty=sp*inF+((keys.Space?1:0)-(keys.KeyC?1:0)),tz=fwdZ*cp*inF+rZ*inR;const l=Math.hypot(tx,ty,tz);if(l>1){tx/=l;ty/=l;tz/=l;}
       const base=(AL&&AL.flies?AL.flySpeed:flySpeed()*conSpeedMul())*slowMul,spd=shift?base*(AL&&AL.flies?1.5:POWERS.flight.boost):base,k=damp(shift?1.8:3,dt);
@@ -331,7 +331,7 @@ function updatePlayer(dt){
   // facing, tilt, limbs
   const hs=Math.hypot(P.vel.x,P.vel.z),sp3=P.vel.len();
   const aiming=time-castT<0.6||beam||PS.iceCloud.holding||P.tk||(P.alien&&P.alien.channel)||(lockT&&!P.web&&!P.flying);let yawRate=0;
-  if(!P.wall&&time-P.punchT>0.3){let ty=P.heroYaw;if(lockT&&!P.web&&!P.flying){const c=center(lockT);ty=Math.atan2(c.x-P.pos.x,c.z-P.pos.z);}else if(aiming)ty=Math.atan2(camF.x,camF.z);else if(hs>1.5)ty=Math.atan2(P.vel.x,P.vel.z);
+  if(!P.wall&&time-P.punchT>0.3&&!conDrive()){let ty=P.heroYaw;if(lockT&&!P.web&&!P.flying){const c=center(lockT);ty=Math.atan2(c.x-P.pos.x,c.z-P.pos.z);}else if(aiming)ty=Math.atan2(camF.x,camF.z);else if(hs>1.5)ty=Math.atan2(P.vel.x,P.vel.z);
     const prev=P.heroYaw;P.heroYaw=angLerp(P.heroYaw,ty,damp(P.flying?5:12,dt));yawRate=angLerp(0,P.heroYaw-prev,1)/Math.max(dt,1e-3);}
   let tilt=0,bank=0;
   if((P.flying||P.web||P.wings)&&sp3>8){tilt=clamp(Math.atan2(hs,P.vel.y),0,1.5)*clamp(sp3/40,0,1);bank=clamp(-yawRate*0.25,-0.7,0.7);}

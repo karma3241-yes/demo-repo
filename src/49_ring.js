@@ -37,7 +37,7 @@ function titanGrow(dir){
   SFX.tone('sine',ng>g?220:500,ng>g?120:900,0.25,0.08);if(ng>g)addShake(0.15*ng);MP.bump();return true;
 }
 const conSpeedMul=()=>{const c=conDef();return c?c.speed:1;};
-const conCam=()=>{const c=conDef();return !c?1:P.construct.id==='dragon'?1.8:P.construct.id==='jet'?1.35:P.construct.id==='bubble'?1.2:1;};
+const conCam=()=>{const c=conDef();return !c?1:c.cam?c.cam:P.construct.id==='dragon'?1.8:P.construct.id==='jet'?1.35:P.construct.id==='bubble'?1.2:1;};
 function ringOut(){feed('Ring charge is empty','Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
 function summonConstruct(id){
   if(!isRing()||!canAct()||P.car)return;
@@ -48,7 +48,8 @@ function summonConstruct(id){
   if(save.ring<C.cost){ringOut();return;}
   if(P.construct)dismissConstruct(true);
   save.ring-=C.cost;conPick=id;P.construct={id,t:0,cd:0,cd2:0,cdx:0,gun:0,breath:false,alt:false,side:1};P.web=null;P.wall=null;P.wallRun=null;P.charging=false;P.zip=null;
-  if(C.fly){P.flying=true;P.grounded=false;if(P.vel.y<6)P.vel.y=8;}else P.flying=false;
+  if(C.fly){P.flying=true;P.grounded=false;if(P.vel.y<6)P.vel.y=8;}else if(!C.weapon)P.flying=false;
+  if(C.drive){P.heroYaw=Math.atan2(camF.x,camF.z);P.construct.spd=Math.hypot(P.vel.x,P.vel.z);}
   const sc=conScale(id);conBody();
   const c=center(P);ringFx(c.x,c.y,c.z,1,6*Math.max(1,sc),0.5,RING_C);burst(c.x,c.y,c.z,60,10*Math.max(1,sc*0.6),0.7,[RING_C,[.8,1,.85]],1.4,0,2);
   SFX.tone('sine',300,900,0.35,0.12);feed(C.name,C.attacks+(id==='titan'?' · wheel grows it':''));addMastery('powerRing',8);MP.bump();if(touchOn())buildTouchButtons();
@@ -63,7 +64,8 @@ function ringCast(){faceAim();castT=time;}
 function ringProj(o,d,sp,dmg,extra){fireProj(Object.assign({kind:'ring',owner:P,x:o.x,y:o.y,z:o.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg,knock:10,r:0.5,life:2.2},extra||{}));}
 // where construct weapons fire from
 function conMuzzle(side){
-  const K=P.construct,sc=K&&CONSTRUCTS[K.id].scale?conScale(K.id):1,s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw);
+  const K=P.construct;if(K&&CONSTRUCTS[K.id].ext)return conExtMuzzle(K.id,side);
+  const sc=K&&CONSTRUCTS[K.id].scale?conScale(K.id):1,s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw);
   if(K&&K.id==='jet')return {x:P.pos.x+s*3+c*side*1.6,y:P.pos.y+1.1,z:P.pos.z+c*3-s*side*1.6};
   if(K&&K.id==='dragon')return {x:P.pos.x+s*5.5,y:P.pos.y+1.4,z:P.pos.z+c*5.5};
   return {x:P.pos.x+s*0.9*sc+c*side*0.9*sc,y:P.pos.y+2.1*sc,z:P.pos.z+c*0.9*sc-s*side*0.9*sc};
@@ -89,6 +91,7 @@ function conSmash(range,dmg,kvF,kvU,col){
 // ---- construct controls (called from the input handlers) ----
 function constructPrimary(){
   const K=P.construct;if(!K||!canAct())return false;const id=K.id;
+  if(CONSTRUCTS[id].ext)return conExtPrimary(K);
   if(id==='jet'){K.gunning=true;return true;}
   if(K.cd>0)return true;
   if(!ringSpend(id==='bubble'?1:0.5)){ringOut();return true;}
@@ -98,9 +101,10 @@ function constructPrimary(){
   else if(id==='dragon'){K.cd=0.6;K.biteT=time;conSmash(8,90*(1+ringMk()),40,18,RING_C);}
   return true;
 }
-function constructPrimaryUp(){const K=P.construct;if(K)K.gunning=false;}
+function constructPrimaryUp(){const K=P.construct;if(K){K.gunning=false;if(CONSTRUCTS[K.id].ext)conExtPrimaryUp(K);}}
 function constructAlt(down){
   const K=P.construct;if(!K)return false;const id=K.id;
+  if(CONSTRUCTS[id].ext){if(down&&!canAct())return true;return conExtAlt(K,down);}
   if(!down){K.gunning2=false;K.breath=false;return true;}
   if(!canAct())return true;
   if(id==='jet'){if(K.cd2>0)return true;if(!ringSpend(2)){ringOut();return true;}K.cd2=1.1;ringCast();fireMissiles(2);}
@@ -111,6 +115,7 @@ function constructAlt(down){
 }
 function constructX(){
   const K=P.construct;if(!K||!canAct())return false;const id=K.id;
+  if(CONSTRUCTS[id].ext)return conExtX(K);
   if(K.cdx>0)return true;
   if(id==='mech'||id==='titan'){if(!ringSpend(3)){ringOut();return true;}K.cdx=2.5;ringCast();fireMissiles(id==='titan'?8:4);}
   else if(id==='dragon'){if(!ringSpend(2)){ringOut();return true;}K.cdx=4;K.roarT=time;const c=center(P);ringFx(c.x,c.y,c.z,1,26,0.5,RING_C);areaDamage(c.x,c.y,c.z,22,60*(1+ringMk()),P,{knock:30,type:'blast'});SFX.boom(0.7,0.6);addShake(0.4);scare(c.x,c.z,80);}
@@ -164,7 +169,8 @@ function updateRing(dt){
     if(K){const C=CONSTRUCTS[K.id];K.t+=dt;save.ring=Math.max(0,save.ring-C.drain*dt);addMastery('powerRing',dt*1.2);
       for(const k of ['cd','cd2','cdx'])if(K[k]>0)K[k]-=dt;if(K.spikeT>0)K.spikeT-=dt;
       if(C.fly&&!P.flying&&!P.dead)P.flying=true;
-      if(K.gunning||K.gunning2){K.gun-=dt;if(K.gun<=0&&canAct()){if(ringSpend(0.12)){ringCast();fireGun();}else ringOut();K.gun=K.id==='titan'?0.06:0.08;}}
+      if(K.gunning||K.gunning2){K.gun-=dt;if(K.gun<=0&&canAct()){if(ringSpend(K.id==='rifle'?0.08:0.12)){if(K.id==='rifle'){ringCast();rifleShot(false);}else{if(!C.drive)ringCast();fireGun();}}else ringOut();K.gun=K.id==='titan'?0.06:K.id==='rifle'?0.09:0.08;}}
+      if(C.ext)conExtTick(K,dt);
       if(K.breath&&canAct()){if(!ringSpend(1.6*dt)){K.breath=false;ringOut();}else{ringCast();const o=conMuzzle(0),d=dirTo(o,aim.x,aim.y,aim.z);
         for(let i=0;i<4;i++){const s=rr(30,45);emit(o.x,o.y,o.z,(d[0]+rr(-.12,.12))*s,(d[1]+rr(-.1,.1))*s,(d[2]+rr(-.12,.12))*s,0.6,[rr(.3,.6),1,rr(.4,.7)],rr(1.2,2.4),0,0.5);}
         for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||a.held)continue;const c=center(a),vx=c.x-o.x,vy=c.y-o.y,vz=c.z-o.z,s=vx*d[0]+vy*d[1]+vz*d[2];if(s<0||s>26)continue;
@@ -262,7 +268,7 @@ function renderOath(n){oathText.textContent='';const words=OATH.split(' ');let u
 // ---- drawing ----
 const glowQ=(M,a)=>{queue(MESH.glowBox,M,[RING_C[0]*0.7,RING_C[1],RING_C[2]*0.8,Math.min(0.85,a*1.5)],F_BL);};
 function drawConstruct(s,id,isPlayer){
-  const C=CONSTRUCTS[id];if(!C)return;const K=isPlayer?P.construct:null,sz=isPlayer?conSize()*conGrow(id):(s.cz||1),yaw=s.heroYaw||0,x=s.pos.x,y=s.pos.y,z=s.pos.z,pulse=0.85+Math.sin(time*6)*0.08;
+  const C=CONSTRUCTS[id];if(!C)return;if(C.ext){drawConExt(s,id,isPlayer);return;}const K=isPlayer?P.construct:null,sz=isPlayer?conSize()*conGrow(id):(s.cz||1),yaw=s.heroYaw||0,x=s.pos.x,y=s.pos.y,z=s.pos.z,pulse=0.85+Math.sin(time*6)*0.08;
   if(id==='bubble'){const r=2.3*sz;queue(MESH.glowSphere,at(x,y+1.3,z,0,0,0,r,r,r),[RING_C[0]*0.7,RING_C[1],RING_C[2]*0.8,0.25*pulse],F_BL);
     queue(MESH.ring,M4.alignY(tmpM(),x,y+1.3,z,Math.sin(time),1,Math.cos(time*0.8),r),[RING_C[0],RING_C[1],RING_C[2],0.6],F_ADD);
     if(K&&K.spikeT>0||!isPlayer&&Math.sin(time*3)>0.9)for(let i=0;i<14;i++){const a=i*2.4,b=Math.acos(1-2*(i+0.5)/14),dx=Math.sin(b)*Math.cos(a),dy=Math.cos(b),dz=Math.sin(b)*Math.sin(a);
@@ -292,7 +298,7 @@ function drawConstruct(s,id,isPlayer){
     glowQ(child(el,0,-0.68*sc,0,0,0,0,0.4*sc,0.32*sc,0.4*sc),0.5);glowQ(child(sh,sd*0.2*sc,0.1*sc,0,0,0,0,0.18*sc,0.3*sc,0.18*sc),0.5);}
 }
 // the rider sits inside the construct; mechs raise the hero into the cockpit
-function riderOffset(id,sz){const C=CONSTRUCTS[id];if(!C||!C.scale)return 0;return 1.3*C.scale*(sz||conSize()*conGrow(id))+0.2*C.scale;}
+function riderOffset(id,sz){const C=CONSTRUCTS[id];if(id==='bike')return 0.45;if(!C||!C.scale)return 0;return 1.3*C.scale*(sz||conSize()*conGrow(id))+0.2*C.scale;}
 function drawRing(){
   for(const F of ringFxList){
     if(F.kind==='hammer'){const k=Math.min(1,F.t/0.38),R=F.R,alpha=F.t>0.5?Math.max(0,1-(F.t-0.5)/0.3):1;
