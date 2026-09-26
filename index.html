@@ -1488,7 +1488,7 @@ const CRIMES={maxActive:3,spawnGap:[14,32],minDist:90,maxDist:420,clearXp:100,cl
 // ================================================================
 const Bus={h:{},on(e,f){(this.h[e]||(this.h[e]=[])).push(f);},emit(e,d){const l=this.h[e];if(l)for(const f of l)f(d);}};
 const SAVE_KEY='skyline-guardian-save',SAVE_VERSION=1;
-const DEFAULT_SETTINGS={controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
+const DEFAULT_SETTINGS={oathInput:'voice',controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
@@ -1533,6 +1533,7 @@ function loadSave(){
   const num=(v,d,a,b)=>typeof v==='number'&&isFinite(v)?clamp(v,a,b):d;
   if(s.settings&&typeof s.settings==='object'){const t=s.settings,st=f.settings;
     if(['auto','touch','kbm'].includes(t.controls))st.controls=t.controls;
+    if(['voice','type'].includes(t.oathInput))st.oathInput=t.oathInput;
     for(const k of ['autoLock','invertY','shadows'])if(typeof t[k]==='boolean')st[k]=t[k];
     st.sens=num(t.sens,1,0.3,3);st.volume=num(t.volume,0.7,0,1);}
   f.character=validCharacter(s.character);
@@ -3518,10 +3519,11 @@ function openOath(){
   $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the lantern away')
     :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the lantern away.');
   $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;P.charging=false;
-  for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);
+  for(const k in keys)keys[k]=false;mouseL=false;if(tch&&!oathVoice())setTimeout(()=>oathIn.focus(),30);
   SFX.tone('sine',200,400,0.6,0.08);
+  if(oathVoice()){oathIn.placeholder='Listening… say the oath out loud';voiceOathStart();}
 }
-function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathEl.hidden=true;P.lantern=false;oathIn.blur();}
+function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;voiceOathStop();oathEl.hidden=true;P.lantern=false;oathIn.blur();}
 // keyboard typing while the lantern is out (called from the main key handler before anything else)
 function oathKey(e){
   e.preventDefault();const k=e.key;
@@ -4326,6 +4328,52 @@ CON_PAGES.push(['cycle','chopper','skates','board','monster'],['tank','heli','gl
 for(const pg of CON_PAGES)for(const id of pg)if(!CON_IDS.includes(id))CON_IDS.push(id);
 // weapon constructs cost charge to build and for every shot they fire, but nothing to hold and nothing to swing
 for(const id in CONSTRUCTS){const C=CONSTRUCTS[id];if(C.weapon)C.drain=0;}
+// ================================================================
+// Saying the oath out loud: the browser's speech recognition listens while the lantern is up
+// ================================================================
+// Settings → Ring oath picks "Say it out loud" (the default where the browser can listen) or "Type it".
+// In voice mode the game asks for the microphone when you start playing as the Ring Bearer, and O starts listening.
+// Words are matched loosely and in order (a missed or misheard word is skipped), so the ring charges as you speak.
+// Typing still works as a fallback while listening.
+const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition||null;
+const voiceOK=()=>!!SpeechRec;
+const oathVoice=()=>save.settings.oathInput==='voice'&&voiceOK()&&!voiceBlocked;
+let voiceFails=0,voiceRec=null,voiceBlocked=false,voicePtr=0,voiceBase=0,micAsked=false,voiceHeard='';
+// letters only, then fold spellings that sound the same (light / lite, fear / fere, will / wil)
+const vNorm=w=>w.toLowerCase().replace(/[^a-z]/g,'').replace(/ight/g,'ite').replace(/ph/g,'f').replace(/ck/g,'k').replace(/(.)\1+/g,'$1').replace(/(.{3,})e$/,'$1');
+function vLev(a,b){const m=a.length,n=b.length;let prev=Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){const cur=[i];for(let j=1;j<=n;j++)cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));prev=cur;}return prev[n];}
+function vClose(a,b){if(a===b)return true;if(a.length<3||b.length<3)return false;
+  if(a.startsWith(b)||b.startsWith(a))return Math.abs(a.length-b.length)<=2;return vLev(a,b)<=(b.length>6?2:1);}
+const OATH_WORDS=()=>OATH.split(' ');
+// how many oath words the spoken text covers, carrying on from `from`
+function voiceMatch(text,from){const W=OATH_WORDS().map(vNorm);let p=from;
+  for(const s of text.split(/\s+/).map(vNorm).filter(Boolean)){if(p>=W.length)break;
+    if(vClose(s,W[p]))p++;else if(p+1<W.length&&vClose(s,W[p+1]))p+=2;else if(p+2<W.length&&vClose(s,W[p+2]))p+=3;}
+  return p;}
+function voiceApply(){if(!oathOpen)return;const want=OATH_WORDS().slice(0,voicePtr).join(' ')+(voicePtr<OATH_WORDS().length?' ':'');
+  if(oathNorm(want).length>oathNorm(oathIn.value).length){oathIn.value=want;oathIn.dispatchEvent(new Event('input'));}}
+function voiceNote(t){const n=$('oath-note');if(n&&oathOpen)n.textContent=t;}
+function voiceOathStart(){
+  if(!oathVoice())return;voicePtr=0;voiceBase=0;voiceHeard='';
+  try{voiceRec=new SpeechRec();}catch(e){voiceRec=null;return;}
+  voiceRec.lang='en-US';voiceRec.continuous=true;voiceRec.interimResults=true;voiceRec.maxAlternatives=1;
+  voiceRec.onresult=e=>{voiceFails=0;let t='';for(let i=0;i<e.results.length;i++)t+=' '+e.results[i][0].transcript;voiceHeard=t.trim();
+    voicePtr=Math.max(voicePtr,voiceMatch(voiceHeard,voiceBase));voiceApply();voiceNote('🎙 "'+voiceHeard.slice(-70)+'"');};
+  voiceRec.onerror=e=>{const er=e&&e.error;
+    if(er&&er!=='no-speech'&&er!=='aborted'&&++voiceFails>=3&&!voiceBlocked){voiceBlocked=true;voiceNote('Speech recognition is not working here right now · type the oath instead');feed('Can\'t listen right now','Type the oath instead');return;} // e.g. offline: stop retrying
+    if(er==='not-allowed'||er==='service-not-allowed'||er==='audio-capture'){voiceBlocked=true;voiceNote('The microphone is blocked here · type the oath instead ('+(touchOn()?'NEXT WORD':'Tab')+' fills words once you know it)');feed('Microphone blocked','Type the oath instead · allow the mic in your browser to speak it');}};
+  voiceRec.onend=()=>{const r=voiceRec;if(!r)return;if(oathOpen&&oathVoice()){voiceBase=voicePtr;setTimeout(()=>{if(voiceRec===r&&oathOpen)try{r.start();}catch(e){}},120);}}; // it stops after a pause: keep listening
+  try{voiceRec.start();voiceNote('🎙 Listening · say the oath out loud (you can still type it) · Enter puts the lantern away');}catch(e){voiceRec=null;}
+}
+function voiceOathStop(){const r=voiceRec;voiceRec=null;if(r)try{r.onend=null;r.abort();}catch(e){}}
+// ask for the microphone up front (once per session) so the first oath is not interrupted by the prompt
+function askMic(force){
+  if((micAsked&&!force)||save.settings.oathInput!=='voice'||!voiceOK()||!hasTrav('powerRing'))return;micAsked=true;voiceBlocked=false;
+  const md=navigator.mediaDevices;if(!md||!md.getUserMedia)return;
+  md.getUserMedia({audio:true}).then(s=>{for(const t of s.getTracks())t.stop();feed('Microphone ready','Press O and say the oath out loud');})
+    .catch(()=>{voiceBlocked=true;feed('No microphone','You can still type the oath · switch in Settings');});
+}
 // ================================================================
 // NPCs: people, drones, vehicles, rival supers, shops
 // ================================================================
@@ -5886,6 +5934,9 @@ function renderSettings(){
   sheetBody.append(
     el('div',{class:'field'},el('span',{text:'Controls · detected: '+(IS_TOUCH_DEVICE?'touch screen':'keyboard and mouse')}),
       el('div',{class:'lb-tabs'},...modes.map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.controls===k),text:l,onclick:()=>{s.controls=k;persist();applyTouchUI();buildHotbar();renderSheet();}})))),
+    el('div',{class:'field'},el('span',{text:'Ring oath · how the Ring Bearer recites it'}),
+      el('div',{class:'lb-tabs'},...[['voice','Say it out loud'],['type','Type it (Tab)']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.oathInput===k),disabled:k==='voice'&&!voiceOK(),text:l,onclick:()=>{s.oathInput=k;persist();if(k==='voice')askMic(true);renderSheet();}}))),
+      el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line; you can still type it too.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
     row('Lock the mouse when you click into the game',chk('autoLock')),
     el('p',{class:'muted',text:'Press L any time to lock or unlock the mouse. While it is unlocked, hold the middle mouse button and drag to look around.'}),
     row('Mouse sensitivity',rng('sens',0.3,3,0.05)),row('Invert vertical look',chk('invertY')),
@@ -6921,6 +6972,7 @@ function startPlay(first){
   toast(first?'Welcome to Nova Bay':'Welcome back, '+save.character.name,first?'Crimes show up on your minimap. Stop them, or join in.':'LV '+save.level+' · '+repTier(save.reputation).name,'gold');
   syncPlayerDoc(true);renderGuide();
   if(save.migrated)later(3,()=>toast('Powers updated','You now pick one traversal and one body mod. Your hero was converted; Change powers in the pause menu is free right now.','gold'));
+  askMic();
 }
 $('start').addEventListener('click',()=>{SFX.init();if(!save.character)openCreator();else startPlay(false);});
 $('m-lb').addEventListener('click',()=>openSheet('lb'));$('m-mp').addEventListener('click',()=>openSheet('mp'));$('p-mp').addEventListener('click',()=>openSheet('mp'));$('m-set').addEventListener('click',()=>openSheet('set'));
@@ -6960,7 +7012,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
-  tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
+  tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>

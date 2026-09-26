@@ -46,6 +46,7 @@ All of these are original characters inspired by famous hero styles.
 - **Suit forms:** the armor folds itself into a red and gold **Jet** (Armored Inventor mastery 1), **Bike** (2), **Sports Car** (3) or **Tank** (5). `V` opens the forms wheel (`N` if you also carry the Morph Band) and `B` turns into your last form and back. Forms run on the battery; the tank's turret follows your aim.
 
 **Ring Bearer** (Power Ring). Everything runs on **ring charge**, which never refills by itself.
+- **Say the oath out loud:** by default the game listens. When you start playing as the Ring Bearer it asks for your microphone; then press `O` and speak the oath. The ring charges line by line as you say it, and small mistakes or misheard words are forgiven. You can still type it at the same time. **Settings → Ring oath** switches between *Say it out loud* and *Type it (Tab)*. If the browser can't listen or the microphone is blocked, it falls back to typing.
 - **Recharging:** press `O` to hold up the lantern and type the oath to recharge. The game doesn't pause and the mouse stays locked: just start typing, and `Enter` or `Esc` puts the lantern away. The first time, the oath shows in the middle of the screen with an explanation. After you've typed it once, it sits as plain text in the bottom-right corner and `Tab` (NEXT WORD on touch screens) fills in each word for you. At 0 charge you can only walk.
 - **Flying:** `F` flies.
 - **Constructs:** `B` builds your default construct and `V` opens the construct wheel. The choices are a spiked Bubble, a Jet (guns and homing missiles), a Mech and a Huge Mech (punches, guns, missile salvos; the huge one tramples buildings) and a Dragon you ride (claw strike, breath, roar). Inside a construct, left click, right click and `X` are its attacks.
@@ -149,7 +150,7 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `Space` | Jump. Hold, then release for a super jump. Leap off walls |
 | `F` | Flight on/off. Hold it on the ground to charge, then let go to blast off into the sky |
 | `U` | Suit up / suit down |
-| `O` | Ring Bearer: hold up the lantern and type the oath |
+| `O` | Ring Bearer: hold up the lantern and say (or type) the oath |
 | `G` | Get in or out of a car, or help an injured person up |
 | `V` | Morph Band dial / change back (Ring Bearer: construct wheel) |
 | `Tab` or `K` | Skills and upgrades |
