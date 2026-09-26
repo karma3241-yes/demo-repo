@@ -6,7 +6,7 @@ const aim={x:0,y:0,z:0,t:0,actor:null,surface:false,hitAny:false,nx:0,ny:1,nz:0}
 let beam=null,ice=null,lastScorch=0,castT=-9;
 const camPos=new V3(),camF=new V3(0,0,-1),camR=new V3(1,0,0),camU=new V3(0,1,0);
 function computeAim(range){
-  if(lockT&&lockT.alive){const c=center(lockT),d=Math.hypot(c.x-camPos.x,c.y-camPos.y,c.z-camPos.z);if(d<range+40){
+  if(lockT&&lockT.alive){const c=center(lockT),d=Math.hypot(c.x-camPos.x,c.y-camPos.y,c.z-camPos.z);{
     aim.t=d;aim.x=c.x;aim.y=c.y;aim.z=c.z;aim.actor=lockT;aim.surface=false;aim.nx=0;aim.ny=1;aim.nz=0;aim.hitAny=true;return aim;}}
   const ox=camPos.x,oy=camPos.y,oz=camPos.z,dx=camF.x,dy=camF.y,dz=camF.z;
   const t0=Math.max(0,(P.pos.x-ox)*dx+(P.pos.y+1.5-oy)*dy+(P.pos.z-oz)*dz);
@@ -62,6 +62,27 @@ function togglePower(id){
   }
 }
 const flySpeed=()=>{const m=save.character&&save.character.movement[0];return POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?pstat(m,'speed'):pstat('flight','speed');};
+// hold F on the ground to charge, let go to blast off into the sky (a tap still just toggles flight)
+function flyChargeStart(){
+  if(!hasPower('flight')||isSpeed()||P.alien||P.car||P.flying||!P.grounded||!canAct()||P.construct)return false;
+  if(isRing()&&save.ring<=0)return false;
+  P.charging=true;P.chargeT=0;P.fCharge=true;return true;
+}
+function flyChargeRelease(){
+  if(!P.fCharge)return false;P.fCharge=false;const t=P.chargeT||0,on=P.charging&&P.grounded;P.charging=false;
+  if(!on||t<0.25){if(!P.flying)toggleFlight();return true;}
+  const k=clamp(t/1.5,0,1);toggleFlight();if(!P.flying)return true;
+  P.vel.set(camF.x*25*k,70+170*k,camF.z*25*k);P.launchT=0.5+1.3*k;P.pos.y+=0.3;
+  ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,10+22*k,0.5,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,Math.round(30+60*k),14+24*k,0.9,DUST,2.4,-3,2.5);
+  if(k>0.5)crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,2+3*k,[.42,.41,.4]);SFX.boom(0.4+0.5*k,0.8);addShake(0.2+0.5*k);hitProps(P.pos.x,P.pos.y,P.pos.z,3+4*k,P,12);
+  addMastery(save.character.movement[0],10*k);return true;
+}
+function flyChargeTick(){
+  if(!P.fCharge)return;if(!P.charging||!P.grounded){P.fCharge=false;P.charging=false;return;}
+  const k=clamp(P.chargeT/1.5,0,1);
+  if(Math.random()<0.3+k)emit(P.pos.x+rr(-1.2,1.2),P.pos.y+0.1,P.pos.z+rr(-1.2,1.2),rr(-2,2),rr(1,3+6*k),rr(-2,2),0.5,DUST[0],1+k,-1,1.5);
+  if(k>=1&&Math.random()<0.15)addShake(0.05);
+}
 function toggleFlight(){
   if(!hasPower('flight')||!canAct()||P.car)return;
   if(P.alien)return; // alien forms fly (or not) on their own
@@ -258,5 +279,5 @@ function updatePowers(dt){
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   P.heat=Math.max(0,P.heat-dt*0.35);
   if(P.stun>0)P.stun-=dt;
-  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);remoteStreaks();
+  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
 }

@@ -48,8 +48,8 @@ function renderHeroKeys(){
   const m=c.movement[0];
   if(m==='webSwing'){K('Right click','Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
-  else if(m==='powerRing'){K('F','Fly');K('B · V','Build a construct · pick one');K('O','Recite the oath to recharge the ring');K('Click · Right click · X','Construct attacks');}
-  else if(m==='flight'||m==='stormFlight'||m==='armorFlight'||m==='solarFlight'){K('F','Fly · Space climbs · C dives · Shift boosts');}
+  else if(m==='powerRing'){K('F','Fly · hold on the ground to charge a launch');K('B · V','Build a construct · pick one');K('O','Recite the oath to recharge the ring');K('Click · Right click · X','Construct attacks');}
+  else if(m==='flight'||m==='stormFlight'||m==='armorFlight'||m==='solarFlight'){K('F','Fly · hold on the ground to charge a launch');}
   if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
   if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
   K('U','Suit up or down');

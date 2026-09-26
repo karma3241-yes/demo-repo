@@ -14,13 +14,20 @@ function lockable(a){
   if(a.kind==='remote')return !(a.flags&FLAG.invis)&&!(a.flags&FLAG.dead);
   return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli';
 }
-function lockValid(a){if(!lockable(a))return false;const c=center(a);return Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z)<COMBAT.lockRange*1.3;}
+function lockValid(a){return lockable(a);} // a manual lock has no range limit
+const hostileTo=a=>a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
+// after you beat your target, the lock jumps to the nearest enemy within the normal lock range
+function nextLock(prev){
+  let best=null,bd=COMBAT.lockRange;
+  for(const a of actors){if(a===prev||!lockable(a)||a.hidden||!hostileTo(a))continue;const c=center(a),d=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);if(d<bd){bd=d;best=a;}}
+  return best;
+}
 function pickLock(){
   let best=null,bs=1e9;const ox=camPos.x,oy=camPos.y,oz=camPos.z;
   for(const a of actors){if(!lockable(a)||a.hidden)continue;const c=center(a);const dx=c.x-ox,dy=c.y-oy,dz=c.z-oz,d=Math.hypot(dx,dy,dz)||1;
-    const dot=(dx*camF.x+dy*camF.y+dz*camF.z)/d;if(dot<0.55)continue;const dp=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);if(dp>COMBAT.lockRange)continue;
+    const dot=(dx*camF.x+dy*camF.y+dz*camF.z)/d;if(dot<0.55)continue;const dp=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);
     // favour whoever is closest to the crosshair, then distance; hostile targets first
-    const hostile=a.kind==='heli'||a.kind==='remote'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='human'&&(a.role!=='civilian'||a.target===P));
+    const hostile=hostileTo(a);
     const s=(1-dot)*400+dp*0.6+(hostile?0:60);if(s<bs){bs=s;best=a;}}
   return best;
 }
@@ -28,10 +35,12 @@ function lockToggle(){
   if(state!=='play'||P.dead||P.car)return;
   if(lockT){lockT=null;SFX.tone('sine',700,400,0.08,0.05);return;}
   lockT=pickLock();if(lockT){SFX.tone('sine',500,900,0.08,0.06);if(!save.guide.lock){save.guide.lock=true;toast('Locked on','Your camera and attacks now follow this target. Z again to let go.','cyan');}}
-  else feed('Nothing to lock on to','Face a target within '+COMBAT.lockRange+' m');
+  else feed('Nothing to lock on to','Face a target');
 }
 function updateLock(dt){
-  if(lockT&&(!lockValid(lockT)||P.car||P.dead))lockT=null;
+  if(lockT&&(!lockValid(lockT)||P.car||P.dead)){const was=lockT;lockT=null;
+    const beaten=!was.alive||was.downed>0||(was.kind==='remote'&&(was.flags&FLAG.dead));
+    if(beaten&&!P.car&&!P.dead){lockT=nextLock(was);if(lockT)SFX.tone('sine',500,900,0.08,0.05);}}
   if(!lockT)return;
   const c=center(lockT),dx=c.x-P.pos.x,dy=c.y-(P.pos.y+1.8),dz=c.z-P.pos.z,h=Math.hypot(dx,dz)||1;
   const wantYaw=Math.atan2(-dx,-dz),wantPitch=clamp(Math.atan2(dy,h)-0.12,-1.1,0.9),k=damp(time-lookT<0.25?3:9,dt);
