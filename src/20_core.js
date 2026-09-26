@@ -32,6 +32,12 @@ const POWERS={
   metalSkin:{name:'Metal Skin',cat:'body',sig:'metalForms',desc:'Your body can turn to living steel. Gives you Metal Forms.',drain:3,dr:[0.3,0.7],slow:[0.3,0.1]},
   energyShield:{name:'Energy Shield',cat:'defence',type:'toggle',desc:'Raise a bubble that soaks up damage until it breaks.',energy:25,absorb:[50,400],cooldown:15},
   powerRing:{name:'Ring Bearer',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A ring of pure willpower. Fly, and build anything you can imagine out of hard light. Its charge only comes back when you recite the oath.',speed:[35,110]},
+  stormFlight:{name:'Storm God',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Spin your hammer and hurl yourself into the sky. Lightning answers when you call.',speed:[40,95]},
+  armorFlight:{name:'Armored Inventor',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A flying suit of armor with palm repulsors and a chest beam.',speed:[45,100]},
+  solarFlight:{name:'Sun Titan',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Powered by the sun: flight, heat vision, freezing breath and a thunderclap.',speed:[50,120]},
+  stormBody:{name:'Storm Blood',cat:'body',hidden:true,desc:'Lightning barely hurts you and your hammer never leaves your hand for long.'},
+  armorSuit:{name:'Power Armor',cat:'body',hidden:true,desc:'Armor plating takes 35% off every hit.'},
+  solarBody:{name:'Solar Cells',cat:'body',hidden:true,desc:'Bullets bounce off: you take 40% less damage and punch half again as hard.'},
   spiderPowers:{name:'Spider Powers',cat:'body',hidden:true,desc:'Stick to any surface, spider-sense warns you of attacks, and your strength is far beyond human.'},
   ringCore:{name:'The Ring',cat:'body',hidden:true,desc:'Everything you do runs on ring charge instead of energy.'},
   surgeSuit:{name:'Speed Surge',cat:'body',hidden:true,desc:'Your body runs on pure speed. Vibrate through walls and outrun time itself.'},
@@ -72,6 +78,9 @@ const ABILITY_POWERS=Object.keys(POWERS).filter(k=>['offence','defence','utility
 const PRESETS={
   webSwing:{name:'Web-Slinger',body:'spiderPowers',abilities:['webStrike','webBomb','webWhip'],blurb:'Swing, crawl, glide and flip through the city. Spider-sense and web gadgets.'},
   superSpeed:{name:'Speedster',body:'surgeSuit',abilities:['lightningThrow','phaseStrike','speedTornado','slowTime','timeStop'],blurb:'Faster than anything alive: phase through walls, bend and stop time.'},
+  stormFlight:{name:'Storm God',body:'stormBody',abilities:['stormHammer','lightning','shockwave','energyShield'],blurb:'Fly on a spinning hammer, call lightning and bring the thunder down.'},
+  armorFlight:{name:'Armored Inventor',body:'armorSuit',abilities:['repulsors','energyBlast','coreBeam','energyShield'],blurb:'A flying suit of armor: repulsors, a chest beam and a force shield.'},
+  solarFlight:{name:'Sun Titan',body:'solarBody',abilities:['laserVision','iceCloud','shockwave','timeDilation'],blurb:'Fly faster than jets, see through heat vision, freeze with your breath.'},
   powerRing:{name:'Ring Bearer',body:'ringCore',abilities:['ringBlast','hammerSmash','chainLasso','ringShield','blackHole'],blurb:'Build hard-light constructs, from a bubble to a dragon. Runs on ring charge.'},
 };
 const presetOf=c=>c&&PRESETS[c.movement[0]]||null;
@@ -164,7 +173,7 @@ const enRegen=()=>CONFIG.energy.regen*(1+CONFIG.energy.regenBonus*pv('energy'));
 const hpRegen=()=>CONFIG.health.baseRegen+CONFIG.health.healPerLevel*pv('healing')+(hasPower('bladeClaws')?4+powerLevel('bladeClaws')*0.6:0);
 const strengthMul=()=>1+0.02*pv('strength');
 const throwMul=()=>1+0.01*pv('strength');
-const IMPLIED={webSwing:['wallClimb'],powerRing:['flight']};
+const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'],armorFlight:['flight'],solarFlight:['flight']};
 const hasPower=id=>{const c=save.character;if(!c)return false;if(c.movement.includes(id)||c.body===id||c.abilities.includes(id))return true;const imp=IMPLIED[c.movement[0]];return !!(imp&&imp.includes(id));};
 const hasTrav=id=>!!save.character&&save.character.movement[0]===id;
 const LEVEL_OF=id=>POWERS[id]&&POWERS[id].of||id; // signature moves share their body mod's level
@@ -177,7 +186,7 @@ function addMastery(id,n){if(!save.character||!(n>0))return;const before=Math.fl
   if(after>before&&typeof feed==='function')feed((PRESETS[id]?PRESETS[id].name:POWERS[id]?POWERS[id].name:'Jumping')+' mastery '+after,MASTERY_NOTES[id]&&MASTERY_NOTES[id][after]||'You can go further, faster');}
 const MASTERY_NOTES={webSwing:{3:'Backflips and twists unlocked',5:'Web wings glide further',7:'Corner boosts and slingshot launches hit harder',9:'Faster swings than ever'},
   superSpeed:{3:'Speed dial reaches higher',6:'Phasing lasts longer',9:'Near light speed'},powerRing:{3:'Bigger constructs',5:'Mech construct unlocked',7:'Huge mech unlocked',9:'Dragon unlocked'},
-  flight:{5:'Supersonic flight',9:'Mach speed'},jump:{5:'Super jumps go much higher'}};
+  flight:{5:'Supersonic flight',9:'Mach speed'},stormFlight:{5:'Supersonic flight',9:'Mach speed'},armorFlight:{5:'Supersonic flight',9:'Mach speed'},solarFlight:{5:'Supersonic flight',9:'Faster than sound'},jump:{5:'Super jumps go much higher'}};
 // traversal stats grow with mastery (use), never below the level they were upgraded to before
 const statLevel=id=>POWERS[id].cat==='movement'?Math.max(powerLevel(id),masteryLevel(id)):powerLevel(id);
 const lvlK=id=>(powerLevel(id)-1)/(CONFIG.powerMax-1); // 0 at level 1, 1 at max: drives how strong a power looks

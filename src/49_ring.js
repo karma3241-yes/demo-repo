@@ -129,7 +129,7 @@ function onRingFx(d,n){
   else if(d.g==='b')holes.push({x:n(d.x),y:n(d.y),z:n(d.z),t:0,dur:6,R:clamp(n(d.r),10,100),next:0,hitT:0,visual:true});
 }
 // extra presence slots other players need to draw you: [ring shield, speedster phase, time stop, suit]
-function presExtra(){return [P.ringShield?1:0,P.phasing?1:0,P.giantS>1.02?Math.round(P.giantS*100)/100:0,P.suited===false?1:0];}
+function presExtra(){return [P.ringShield?1:0,P.phasing?1:0,P.giantS>1.02?Math.round(P.giantS*100)/100:0,P.suited===false?1:0,hasPower('armorSuit')?1:0];}
 // ---- per-frame ----
 function updateRing(dt){
   if(isRing()){

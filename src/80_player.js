@@ -133,7 +133,7 @@ function buildTouchButtons(){
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
-    for(const id of save.character.movement){if(id==='flight')B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
+    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
   if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
   B('SUIT','suit');B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
@@ -173,7 +173,7 @@ function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch'
 function playerLook(){
   const t=creating&&draft?draft:save.character;
   if(!t)return {suit:c4(SUIT_OPTS[0]),suit2:[...hex(SUIT_OPTS[0],0.6),1],cape:c4(CAPE_OPTS[0]),acc:c4(ACC_OPTS[0]),capeOn:true,metal:false};
-  const m={suit:c4(SUIT_OPTS[t.suit]),suit2:[...hex(SUIT_OPTS[t.suit],0.6),1],cape:c4(CAPE_OPTS[t.cape]),acc:c4(ACC_OPTS[t.accent]),capeOn:t.capeOn,metal:P.metal};
+  const m={suit:c4(SUIT_OPTS[t.suit]),suit2:[...hex(SUIT_OPTS[t.suit],0.6),1],cape:c4(CAPE_OPTS[t.cape]),acc:c4(ACC_OPTS[t.accent]),capeOn:t.capeOn,metal:P.metal,armor:!creating&&t===save.character&&hasPower('armorSuit')};
   return P.suited===false&&!creating&&sheetOpen!=='look'?civLook(m):m;
 }
 let LOOK=playerLook();

@@ -120,7 +120,7 @@ function applyPresence(r,p){
   r.beam=Array.isArray(p.b)?{x:n(p.b[0]),y:n(p.b[1]),z:n(p.b[2]),w:clamp(n(p.b[3]),0,8)}:null;r.web=Array.isArray(p.w)?{x:n(p.w[0]),y:n(p.w[1]),z:n(p.w[2])}:null;
   r.tk=Array.isArray(p.k)&&p.k.length===3?{x:n(p.k[0]),y:n(p.k[1]),z:n(p.k[2])}:null;
   r.car=Array.isArray(p.c)&&CARS[p.c[0]]?{model:p.c[0],yaw:n(p.c[1]),tint:Array.isArray(p.c[2])?[clamp(n(p.c[2][0]),0,1),clamp(n(p.c[2][1]),0,1),clamp(n(p.c[2][2]),0,1),1]:[1,1,1,1]}:null;
-  r.cn=CONSTRUCTS[p.cn]?p.cn:null;r.ex=Array.isArray(p.ex)?p.ex.map(n).slice(0,6):null;r.giantS=r.ex&&r.ex[2]>1?clamp(r.ex[2],1,4):1;if(r.ex&&r.ex[3])r.look=civLook(r.look);
+  r.cn=CONSTRUCTS[p.cn]?p.cn:null;r.ex=Array.isArray(p.ex)?p.ex.map(n).slice(0,6):null;r.giantS=r.ex&&r.ex[2]>1?clamp(r.ex[2],1,4):1;if(r.ex&&r.ex[3])r.look=civLook(r.look);else if(r.ex&&r.ex[4])r.look.armor=true;
   if(r.pos.y<-40)r.pos.copy(r.tp);
   r.alive=!(r.flags&FLAG.dead)&&!(r.flags&FLAG.invis);r.firing=!!r.beam;
   if(r.flags&FLAG.rag){if(!r.rag)startRagdoll(r,r.vel.x,r.vel.y,r.vel.z);}else if(r.rag){r.rag.land=9;}

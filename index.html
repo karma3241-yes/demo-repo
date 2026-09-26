@@ -1289,6 +1289,12 @@ const POWERS={
   metalSkin:{name:'Metal Skin',cat:'body',sig:'metalForms',desc:'Your body can turn to living steel. Gives you Metal Forms.',drain:3,dr:[0.3,0.7],slow:[0.3,0.1]},
   energyShield:{name:'Energy Shield',cat:'defence',type:'toggle',desc:'Raise a bubble that soaks up damage until it breaks.',energy:25,absorb:[50,400],cooldown:15},
   powerRing:{name:'Ring Bearer',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A ring of pure willpower. Fly, and build anything you can imagine out of hard light. Its charge only comes back when you recite the oath.',speed:[35,110]},
+  stormFlight:{name:'Storm God',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Spin your hammer and hurl yourself into the sky. Lightning answers when you call.',speed:[40,95]},
+  armorFlight:{name:'Armored Inventor',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A flying suit of armor with palm repulsors and a chest beam.',speed:[45,100]},
+  solarFlight:{name:'Sun Titan',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Powered by the sun: flight, heat vision, freezing breath and a thunderclap.',speed:[50,120]},
+  stormBody:{name:'Storm Blood',cat:'body',hidden:true,desc:'Lightning barely hurts you and your hammer never leaves your hand for long.'},
+  armorSuit:{name:'Power Armor',cat:'body',hidden:true,desc:'Armor plating takes 35% off every hit.'},
+  solarBody:{name:'Solar Cells',cat:'body',hidden:true,desc:'Bullets bounce off: you take 40% less damage and punch half again as hard.'},
   spiderPowers:{name:'Spider Powers',cat:'body',hidden:true,desc:'Stick to any surface, spider-sense warns you of attacks, and your strength is far beyond human.'},
   ringCore:{name:'The Ring',cat:'body',hidden:true,desc:'Everything you do runs on ring charge instead of energy.'},
   surgeSuit:{name:'Speed Surge',cat:'body',hidden:true,desc:'Your body runs on pure speed. Vibrate through walls and outrun time itself.'},
@@ -1329,6 +1335,9 @@ const ABILITY_POWERS=Object.keys(POWERS).filter(k=>['offence','defence','utility
 const PRESETS={
   webSwing:{name:'Web-Slinger',body:'spiderPowers',abilities:['webStrike','webBomb','webWhip'],blurb:'Swing, crawl, glide and flip through the city. Spider-sense and web gadgets.'},
   superSpeed:{name:'Speedster',body:'surgeSuit',abilities:['lightningThrow','phaseStrike','speedTornado','slowTime','timeStop'],blurb:'Faster than anything alive: phase through walls, bend and stop time.'},
+  stormFlight:{name:'Storm God',body:'stormBody',abilities:['stormHammer','lightning','shockwave','energyShield'],blurb:'Fly on a spinning hammer, call lightning and bring the thunder down.'},
+  armorFlight:{name:'Armored Inventor',body:'armorSuit',abilities:['repulsors','energyBlast','coreBeam','energyShield'],blurb:'A flying suit of armor: repulsors, a chest beam and a force shield.'},
+  solarFlight:{name:'Sun Titan',body:'solarBody',abilities:['laserVision','iceCloud','shockwave','timeDilation'],blurb:'Fly faster than jets, see through heat vision, freeze with your breath.'},
   powerRing:{name:'Ring Bearer',body:'ringCore',abilities:['ringBlast','hammerSmash','chainLasso','ringShield','blackHole'],blurb:'Build hard-light constructs, from a bubble to a dragon. Runs on ring charge.'},
 };
 const presetOf=c=>c&&PRESETS[c.movement[0]]||null;
@@ -1421,7 +1430,7 @@ const enRegen=()=>CONFIG.energy.regen*(1+CONFIG.energy.regenBonus*pv('energy'));
 const hpRegen=()=>CONFIG.health.baseRegen+CONFIG.health.healPerLevel*pv('healing')+(hasPower('bladeClaws')?4+powerLevel('bladeClaws')*0.6:0);
 const strengthMul=()=>1+0.02*pv('strength');
 const throwMul=()=>1+0.01*pv('strength');
-const IMPLIED={webSwing:['wallClimb'],powerRing:['flight']};
+const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'],armorFlight:['flight'],solarFlight:['flight']};
 const hasPower=id=>{const c=save.character;if(!c)return false;if(c.movement.includes(id)||c.body===id||c.abilities.includes(id))return true;const imp=IMPLIED[c.movement[0]];return !!(imp&&imp.includes(id));};
 const hasTrav=id=>!!save.character&&save.character.movement[0]===id;
 const LEVEL_OF=id=>POWERS[id]&&POWERS[id].of||id; // signature moves share their body mod's level
@@ -1434,7 +1443,7 @@ function addMastery(id,n){if(!save.character||!(n>0))return;const before=Math.fl
   if(after>before&&typeof feed==='function')feed((PRESETS[id]?PRESETS[id].name:POWERS[id]?POWERS[id].name:'Jumping')+' mastery '+after,MASTERY_NOTES[id]&&MASTERY_NOTES[id][after]||'You can go further, faster');}
 const MASTERY_NOTES={webSwing:{3:'Backflips and twists unlocked',5:'Web wings glide further',7:'Corner boosts and slingshot launches hit harder',9:'Faster swings than ever'},
   superSpeed:{3:'Speed dial reaches higher',6:'Phasing lasts longer',9:'Near light speed'},powerRing:{3:'Bigger constructs',5:'Mech construct unlocked',7:'Huge mech unlocked',9:'Dragon unlocked'},
-  flight:{5:'Supersonic flight',9:'Mach speed'},jump:{5:'Super jumps go much higher'}};
+  flight:{5:'Supersonic flight',9:'Mach speed'},stormFlight:{5:'Supersonic flight',9:'Mach speed'},armorFlight:{5:'Supersonic flight',9:'Mach speed'},solarFlight:{5:'Supersonic flight',9:'Faster than sound'},jump:{5:'Super jumps go much higher'}};
 // traversal stats grow with mastery (use), never below the level they were upgraded to before
 const statLevel=id=>POWERS[id].cat==='movement'?Math.max(powerLevel(id),masteryLevel(id)):powerLevel(id);
 const lvlK=id=>(powerLevel(id)-1)/(CONFIG.powerMax-1); // 0 at level 1, 1 at max: drives how strong a power looks
@@ -1493,7 +1502,7 @@ const Damage={
       if(src&&src.kind!=='remote'&&type!=='pvp')amount*=CONFIG.health.npcTaken;
       amount=ringAbsorb(amount);if(amount<=0)return 0;
       if(P.shield>0){const a=Math.min(P.shield,amount);P.shield-=a;amount-=a;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1.5,2.6,0.25,[.4,.85,1]);if(P.shield<=0)breakShield();}
-      if(P.metal)amount*=1-pstat('metalSkin','dr');amount*=bodyDamageMul();
+      if(P.metal)amount*=1-pstat('metalSkin','dr');amount*=bodyDamageMul(type);
       if(P.alien&&P.alien.armor>0)amount*=0.4;if(P.car)amount*=0.5;
       if(amount<=0)return 0;
       P.hp-=amount;P.lastHit=time;hurtFlash=Math.min(1,hurtFlash+0.2+amount/40);
@@ -1833,7 +1842,7 @@ function togglePower(id){
     P.shieldOn=true;P.shield=pstat('energyShield','absorb');ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3,0.3,[.4,.85,1]);SFX.tone('sine',400,900,0.3,0.12);
   }
 }
-const flySpeed=()=>hasTrav('powerRing')?pstat('powerRing','speed'):pstat('flight','speed');
+const flySpeed=()=>{const m=save.character&&save.character.movement[0];return POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?pstat(m,'speed'):pstat('flight','speed');};
 function toggleFlight(){
   if(!hasPower('flight')||!canAct()||P.car)return;
   if(P.alien)return; // alien forms fly (or not) on their own
@@ -2756,10 +2765,11 @@ function metalUp(){
   P.mw=(P.mw+1)%METAL_W.length;const W=METAL_W[P.mw];feed(W.name,W.note);SFX.tone('square',180,90,0.12,0.08);SFX.punch(0.6);
   if(P.hand)burst(P.hand[12],P.hand[13],P.hand[14],14,5,0.3,[[.85,.88,.92],[1,1,1]],0.7,0,2);
 }
-const bodyPunchMul=()=>{const W=metalWeapon();return (W?W.dmg:1)*(P.giantS>1.05?1+P.giantS:1);};
+const bodyPunchMul=()=>{const W=metalWeapon();return (W?W.dmg:1)*(P.giantS>1.05?1+P.giantS:1)*(hasPower('solarBody')&&!P.alien?1.5:1);};
 const bodyReach=()=>{const W=metalWeapon();return (W?W.reach:0)+(hasPower('elasticBody')&&!P.alien?pstat('elasticBody','reach')*0.45:0)+(P.giantS>1.05?(P.giantS-1)*1.6:0);};
 // shield arm: most damage bounces off while you are not swinging
-function bodyDamageMul(){const W=metalWeapon();return W&&W.block&&time-P.punchT>0.3?1-W.block:1;}
+function bodyDamageMul(type){const W=metalWeapon();let m=W&&W.block&&time-P.punchT>0.3?1-W.block:1;if(P.alien)return m;
+  if(hasPower('armorSuit'))m*=0.65;if(hasPower('solarBody'))m*=0.6;if(hasPower('stormBody')&&type==='shock')m*=0.2;return m;}
 // after a punch lands: the flail catches everyone around the target
 function bodyAfterHit(x,y,z,dmg){const W=metalWeapon();if(W&&W.area){areaDamage(x,y,z,W.area,dmg*0.5,P,{knock:12,type:'punch'});burst(x,y,z,14,8,0.3,[[.85,.88,.92]],0.8,0,2);}}
 // ---- Stretch Strike ----
@@ -2814,6 +2824,12 @@ function drawBody(){
   if(P.tk&&P.tk.slab){const S=P.tk.slab;queue(MESH.box,at(S.x,S.y,S.z,S.rx,S.ry,S.rz,S.sx,S.sy,S.sz),S.col,F_SH);const g=Math.max(S.sx,S.sz)*0.9;queue(MESH.glowSphere,at(S.x,S.y,S.z,0,0,0,g,g,g),[.6,.35,1,0.18],F_ADD);}
   for(const F of stretches){const c=center(F.a),h=P.hand?{x:P.hand[12],y:P.hand[13],z:P.hand[14]}:handPoint();queue(MESH.box,M4.beam(tmpM(),h.x,h.y,h.z,c.x,c.y,c.z,0.24),LOOK.cape,F_SH);queue(MESH.sphere,at(c.x,c.y,c.z,0,0,0,0.45,0.45,0.45),LOOK.cape,0);}
   if(state!=='play'||P.dead||P.alien||P.rag||!P.hand)return;
+  // preset gear: the storm god's hammer, the armor's thrusters
+  if(hasPower('stormBody')&&!thrown.some(t=>t.kind==='hammer')&&P.suited!==false){const H=P.hand;
+    queue(MESH.box,child(H,0,-0.35,0,0,0,0,0.1,0.75,0.1),HANDLE_C,F_SH);queue(MESH.mbox,child(H,0,-0.8,0,0,0,0,0.55,0.34,0.34),HAMMER_C,F_SH);
+    if(P.flying){const s=0.9+Math.sin(time*20)*0.1;queue(MESH.ring,M4.alignY(tmpM(),H[12],H[13],H[14],Math.sin(P.heroYaw),0,Math.cos(P.heroYaw),s),[.6,.75,1,0.6],F_ADD);if(Math.random()<0.15)tracer(H[12],H[13],H[14],H[12]+rr(-2,2),H[13]+rr(-2,2),H[14]+rr(-2,2),[.6,.75,1],0.05,0.08);}}
+  if(hasPower('armorSuit')&&P.flying&&P.suited!==false){const H=P.hand,g=0.35+Math.random()*0.15;queue(MESH.glowSphere,at(H[12],H[13],H[14],0,0,0,g,g,g),[1,.85,.55,0.8],F_ADD);
+    for(const sd of [-1,1]){const c=Math.cos(P.heroYaw),sn=Math.sin(P.heroYaw);queue(MESH.glowSphere,at(P.pos.x+c*sd*0.25,P.pos.y+0.1,P.pos.z-sn*sd*0.25,0,0,0,g*1.2,g*1.6,g*1.2),[1,.75,.45,0.8],F_ADD);}}
   // stretchy punches reach out
   if(hasPower('elasticBody')&&time-P.punchT<0.14&&!stretches.length){const h=P.hand,r=pstat('elasticBody','reach')*0.45,fx=Math.sin(P.heroYaw),fz=Math.cos(P.heroYaw);
     queue(MESH.box,M4.beam(tmpM(),h[12],h[13],h[14],h[12]+fx*r,h[13],h[14]+fz*r,0.22),LOOK.cape,0);queue(MESH.sphere,at(h[12]+fx*r,h[13],h[14]+fz*r,0,0,0,0.3,0.3,0.3),LOOK.cape,0);}
@@ -3061,7 +3077,7 @@ function onRingFx(d,n){
   else if(d.g==='b')holes.push({x:n(d.x),y:n(d.y),z:n(d.z),t:0,dur:6,R:clamp(n(d.r),10,100),next:0,hitT:0,visual:true});
 }
 // extra presence slots other players need to draw you: [ring shield, speedster phase, time stop, suit]
-function presExtra(){return [P.ringShield?1:0,P.phasing?1:0,P.giantS>1.02?Math.round(P.giantS*100)/100:0,P.suited===false?1:0];}
+function presExtra(){return [P.ringShield?1:0,P.phasing?1:0,P.giantS>1.02?Math.round(P.giantS*100)/100:0,P.suited===false?1:0,hasPower('armorSuit')?1:0];}
 // ---- per-frame ----
 function updateRing(dt){
   if(isRing()){
@@ -3308,8 +3324,8 @@ let suitAnim=null;
 const CIV={suit:[.23,.27,.34,1],suit2:[.84,.8,.72,1],cape:[.17,.23,.36,1],acc:[.3,.3,.32,1]};
 function civLook(m){return Object.assign({},m,CIV,{capeOn:false,civ:true});}
 function suitStyle(){const m=save.character&&save.character.movement[0];
-  return m==='powerRing'?'ring':m==='superSpeed'?'speed':m==='webSwing'?'spider':hasPower('metalSkin')?'metal':'spin';}
-const SUIT_DUR={ring:1.1,speed:0.6,spider:1.5,metal:0.8,spin:0.8};
+  return m==='powerRing'?'ring':m==='superSpeed'?'speed':m==='webSwing'?'spider':m==='stormFlight'?'storm':m==='armorFlight'?'armor':hasPower('metalSkin')?'metal':'spin';}
+const SUIT_DUR={ring:1.1,speed:0.6,spider:1.5,metal:0.8,spin:0.8,storm:0.7,armor:1};
 function suitToggle(){
   if(!save.character||state!=='play'||P.dead||P.alien||P.car||suitAnim)return;
   const st=suitStyle();suitAnim={t:0,to:!P.suited,st,dur:SUIT_DUR[st],swapped:false,ofs:[0,0]};
@@ -3318,6 +3334,8 @@ function suitToggle(){
 }
 function suitSwap(A){A.swapped=true;P.suited=A.to;applyLook();MP.bump();if(!A.to)P.maskK=1;else P.maskK=A.st==='spider'?0:1;
   const c=center(P);if(A.st==='ring'){burst(c.x,c.y,c.z,50,6,0.6,[RING_C,[1,1,1]],1.2,0,2);}
+  else if(A.st==='storm'){bolt(P.pos.x,P.pos.y,P.pos.z,true);}
+  else if(A.st==='armor'){burst(c.x,c.y,c.z,40,5,0.4,[[.8,.2,.15],[1,.8,.3]],1.1,0,2);SFX.tone('square',200,90,0.2,0.1);}
   else if(A.st==='metal'){burst(c.x,c.y,c.z,30,6,0.5,[[.85,.88,.92],[1,1,1]],1,0,2);ringFx(c.x,c.y,c.z,1,4,0.3,[.85,.88,.92]);}
   else if(A.st==='spin'){burst(c.x,c.y,c.z,60,10,0.6,[LOOK.acc.slice(0,3),[1,1,1]],1.4,0,2);ringFx(c.x,c.y,c.z,1,6,0.4,LOOK.acc.slice(0,3));flashWhite=Math.max(flashWhite,0.2);}}
 function updateSuit(dt){
@@ -3327,6 +3345,7 @@ function updateSuit(dt){
   else if(A.st==='speed'){const n=Math.floor(k*6);if(n!==A.n&&k<0.95){A.n=n;const p=A.ofs.slice();A.ofs=n%2?[rr(-4,4),rr(-4,4)]:[rr(-2,2),rr(-2,2)];
       streak(P.pos.x+p[0],P.pos.y+1.2,P.pos.z+p[1],P.pos.x+A.ofs[0],P.pos.y+1.2,P.pos.z+A.ofs[1]);}if(k>=0.5&&!A.swapped)suitSwap(A);}
   else if(k>=(A.st==='ring'?0.6:0.5)&&!A.swapped)suitSwap(A);
+  if(A.st==='armor'&&!A.swapped&&Math.random()<0.9){const a=rr(0,TAU),r=rr(2.5,4),y=P.pos.y+rr(0.3,2.6);emit(P.pos.x+Math.cos(a)*r,y,P.pos.z+Math.sin(a)*r,-Math.cos(a)*r*2.2,0,-Math.sin(a)*r*2.2,0.45,[.85,.3,.2],1.1,0,0);}
   if(A.st==='ring'&&Math.random()<0.8){const y=P.pos.y+k*3;for(let i=0;i<3;i++){const a=rr(0,TAU);emit(P.pos.x+Math.cos(a)*0.9,y,P.pos.z+Math.sin(a)*0.9,0,1,0,0.4,RING_C,0.7,0,0);}}
   if(k>=1){if(!A.swapped)suitSwap(A);suitAnim=null;fade.style.opacity='0';}
 }
@@ -3345,7 +3364,7 @@ function renderHeroKeys(){
   if(m==='webSwing'){K('Right click','Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
   else if(m==='powerRing'){K('F','Fly');K('B · V','Build a construct · pick one');K('O','Recite the oath to recharge the ring');K('Click · Right click · X','Construct attacks');}
-  else if(m==='flight'){K('F','Fly · Space climbs · C dives · Shift boosts');}
+  else if(m==='flight'||m==='stormFlight'||m==='armorFlight'||m==='solarFlight'){K('F','Fly · Space climbs · C dives · Shift boosts');}
   if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
   if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
   K('U','Suit up or down');
@@ -4159,7 +4178,7 @@ function applyPresence(r,p){
   r.beam=Array.isArray(p.b)?{x:n(p.b[0]),y:n(p.b[1]),z:n(p.b[2]),w:clamp(n(p.b[3]),0,8)}:null;r.web=Array.isArray(p.w)?{x:n(p.w[0]),y:n(p.w[1]),z:n(p.w[2])}:null;
   r.tk=Array.isArray(p.k)&&p.k.length===3?{x:n(p.k[0]),y:n(p.k[1]),z:n(p.k[2])}:null;
   r.car=Array.isArray(p.c)&&CARS[p.c[0]]?{model:p.c[0],yaw:n(p.c[1]),tint:Array.isArray(p.c[2])?[clamp(n(p.c[2][0]),0,1),clamp(n(p.c[2][1]),0,1),clamp(n(p.c[2][2]),0,1),1]:[1,1,1,1]}:null;
-  r.cn=CONSTRUCTS[p.cn]?p.cn:null;r.ex=Array.isArray(p.ex)?p.ex.map(n).slice(0,6):null;r.giantS=r.ex&&r.ex[2]>1?clamp(r.ex[2],1,4):1;if(r.ex&&r.ex[3])r.look=civLook(r.look);
+  r.cn=CONSTRUCTS[p.cn]?p.cn:null;r.ex=Array.isArray(p.ex)?p.ex.map(n).slice(0,6):null;r.giantS=r.ex&&r.ex[2]>1?clamp(r.ex[2],1,4):1;if(r.ex&&r.ex[3])r.look=civLook(r.look);else if(r.ex&&r.ex[4])r.look.armor=true;
   if(r.pos.y<-40)r.pos.copy(r.tp);
   r.alive=!(r.flags&FLAG.dead)&&!(r.flags&FLAG.invis);r.firing=!!r.beam;
   if(r.flags&FLAG.rag){if(!r.rag)startRagdoll(r,r.vel.x,r.vel.y,r.vel.z);}else if(r.rag){r.rag.land=9;}
@@ -4973,7 +4992,7 @@ function buildTouchButtons(){
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
-    for(const id of save.character.movement){if(id==='flight')B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
+    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
   if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
   B('SUIT','suit');B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
@@ -5013,7 +5032,7 @@ function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch'
 function playerLook(){
   const t=creating&&draft?draft:save.character;
   if(!t)return {suit:c4(SUIT_OPTS[0]),suit2:[...hex(SUIT_OPTS[0],0.6),1],cape:c4(CAPE_OPTS[0]),acc:c4(ACC_OPTS[0]),capeOn:true,metal:false};
-  const m={suit:c4(SUIT_OPTS[t.suit]),suit2:[...hex(SUIT_OPTS[t.suit],0.6),1],cape:c4(CAPE_OPTS[t.cape]),acc:c4(ACC_OPTS[t.accent]),capeOn:t.capeOn,metal:P.metal};
+  const m={suit:c4(SUIT_OPTS[t.suit]),suit2:[...hex(SUIT_OPTS[t.suit],0.6),1],cape:c4(CAPE_OPTS[t.cape]),acc:c4(ACC_OPTS[t.accent]),capeOn:t.capeOn,metal:P.metal,armor:!creating&&t===save.character&&hasPower('armorSuit')};
   return P.suited===false&&!creating&&sheetOpen!=='look'?civLook(m):m;
 }
 let LOOK=playerLook();
@@ -5291,7 +5310,7 @@ const inView=(x,z,far,near=40)=>{const dx=x-camPos.x,dz=z-camPos.z,q=dx*dx+dz*dz
 function propM(p,lx,ly,lz,sx,sy,sz){const c=Math.cos(p.yaw),s=Math.sin(p.yaw);return M4.compose(tmpM(),p.x+lx*c+lz*s,p.y+ly,p.z-lx*s+lz*c,0,p.yaw,0,sx,sy,sz);}
 
 function drawSuper(s,m,isPlayer){
-  const a=s.anim,box=m.metal?MESH.mbox:MESH.box,sph=m.metal?MESH.msphere:MESH.sphere;
+  const a=s.anim,box=m.metal||m.armor?MESH.mbox:MESH.box,sph=m.metal||m.armor?MESH.msphere:MESH.sphere;
   const suit=m.metal?SILVER:m.suit,suit2=m.metal?SILVER2:m.suit2,cape=m.cape,acc=m.acc,skin=m.metal?SILVER:SKIN_C;
   const fl=s.flash?s.flash*0.6:0,sh=F_SH;
   const GS=s.giantS||1;let root=at(s.pos.x,s.pos.y,s.pos.z,0,s.heroYaw,0,GS,GS,GS);
@@ -5700,7 +5719,7 @@ function updateHud(dt){
     const st=PS[s.id],c=POWERS[s.id];
     if(s.id==='morphBand'){s.s.classList.toggle('on',!!P.alien||dialOpen);s.s.classList.toggle('bad',st.flash>0);const f=band.cd>0?band.cd/pstat('morphBand','recharge'):0,v=Math.round(clamp(f,0,1)*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}continue;}
-    const active=st.holding||((s.id==='metalSkin'||s.id==='metalForms')&&P.metal)||(s.id==='energyShield'&&P.shieldOn)||(s.id==='telekinesis'&&!!P.tk)||(s.id==='flight'&&P.flying)||(s.id==='superSpeed'&&P.speeding)||(s.id==='webSwing'&&!!P.web)||(s.id==='wallClimb'&&!!P.wall);
+    const active=st.holding||((s.id==='metalSkin'||s.id==='metalForms')&&P.metal)||(s.id==='energyShield'&&P.shieldOn)||(s.id==='telekinesis'&&!!P.tk)||(s.id==='flight'&&P.flying)||(s.trav&&P.flying)||(s.id==='ringShield'&&P.ringShield)||(s.id==='slowTime'&&P.slowOn)||(s.id==='superSpeed'&&P.speeding)||(s.id==='webSwing'&&!!P.web)||(s.id==='wallClimb'&&!!P.wall);
     s.s.classList.toggle('on',active);s.s.classList.toggle('bad',st.flash>0);
     if(s.cd){const f=c.cooldown?st.cd/pstat(s.id,'cooldown'):0;const v=Math.round(f*100);if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}}
     const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}}

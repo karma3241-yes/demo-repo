@@ -85,7 +85,7 @@ const inView=(x,z,far,near=40)=>{const dx=x-camPos.x,dz=z-camPos.z,q=dx*dx+dz*dz
 function propM(p,lx,ly,lz,sx,sy,sz){const c=Math.cos(p.yaw),s=Math.sin(p.yaw);return M4.compose(tmpM(),p.x+lx*c+lz*s,p.y+ly,p.z-lx*s+lz*c,0,p.yaw,0,sx,sy,sz);}
 
 function drawSuper(s,m,isPlayer){
-  const a=s.anim,box=m.metal?MESH.mbox:MESH.box,sph=m.metal?MESH.msphere:MESH.sphere;
+  const a=s.anim,box=m.metal||m.armor?MESH.mbox:MESH.box,sph=m.metal||m.armor?MESH.msphere:MESH.sphere;
   const suit=m.metal?SILVER:m.suit,suit2=m.metal?SILVER2:m.suit2,cape=m.cape,acc=m.acc,skin=m.metal?SILVER:SKIN_C;
   const fl=s.flash?s.flash*0.6:0,sh=F_SH;
   const GS=s.giantS||1;let root=at(s.pos.x,s.pos.y,s.pos.z,0,s.heroYaw,0,GS,GS,GS);

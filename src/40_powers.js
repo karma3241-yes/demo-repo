@@ -61,7 +61,7 @@ function togglePower(id){
     P.shieldOn=true;P.shield=pstat('energyShield','absorb');ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3,0.3,[.4,.85,1]);SFX.tone('sine',400,900,0.3,0.12);
   }
 }
-const flySpeed=()=>hasTrav('powerRing')?pstat('powerRing','speed'):pstat('flight','speed');
+const flySpeed=()=>{const m=save.character&&save.character.movement[0];return POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?pstat(m,'speed'):pstat('flight','speed');};
 function toggleFlight(){
   if(!hasPower('flight')||!canAct()||P.car)return;
   if(P.alien)return; // alien forms fly (or not) on their own

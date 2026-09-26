@@ -21,10 +21,11 @@ function metalUp(){
   P.mw=(P.mw+1)%METAL_W.length;const W=METAL_W[P.mw];feed(W.name,W.note);SFX.tone('square',180,90,0.12,0.08);SFX.punch(0.6);
   if(P.hand)burst(P.hand[12],P.hand[13],P.hand[14],14,5,0.3,[[.85,.88,.92],[1,1,1]],0.7,0,2);
 }
-const bodyPunchMul=()=>{const W=metalWeapon();return (W?W.dmg:1)*(P.giantS>1.05?1+P.giantS:1);};
+const bodyPunchMul=()=>{const W=metalWeapon();return (W?W.dmg:1)*(P.giantS>1.05?1+P.giantS:1)*(hasPower('solarBody')&&!P.alien?1.5:1);};
 const bodyReach=()=>{const W=metalWeapon();return (W?W.reach:0)+(hasPower('elasticBody')&&!P.alien?pstat('elasticBody','reach')*0.45:0)+(P.giantS>1.05?(P.giantS-1)*1.6:0);};
 // shield arm: most damage bounces off while you are not swinging
-function bodyDamageMul(){const W=metalWeapon();return W&&W.block&&time-P.punchT>0.3?1-W.block:1;}
+function bodyDamageMul(type){const W=metalWeapon();let m=W&&W.block&&time-P.punchT>0.3?1-W.block:1;if(P.alien)return m;
+  if(hasPower('armorSuit'))m*=0.65;if(hasPower('solarBody'))m*=0.6;if(hasPower('stormBody')&&type==='shock')m*=0.2;return m;}
 // after a punch lands: the flail catches everyone around the target
 function bodyAfterHit(x,y,z,dmg){const W=metalWeapon();if(W&&W.area){areaDamage(x,y,z,W.area,dmg*0.5,P,{knock:12,type:'punch'});burst(x,y,z,14,8,0.3,[[.85,.88,.92]],0.8,0,2);}}
 // ---- Stretch Strike ----
@@ -79,6 +80,12 @@ function drawBody(){
   if(P.tk&&P.tk.slab){const S=P.tk.slab;queue(MESH.box,at(S.x,S.y,S.z,S.rx,S.ry,S.rz,S.sx,S.sy,S.sz),S.col,F_SH);const g=Math.max(S.sx,S.sz)*0.9;queue(MESH.glowSphere,at(S.x,S.y,S.z,0,0,0,g,g,g),[.6,.35,1,0.18],F_ADD);}
   for(const F of stretches){const c=center(F.a),h=P.hand?{x:P.hand[12],y:P.hand[13],z:P.hand[14]}:handPoint();queue(MESH.box,M4.beam(tmpM(),h.x,h.y,h.z,c.x,c.y,c.z,0.24),LOOK.cape,F_SH);queue(MESH.sphere,at(c.x,c.y,c.z,0,0,0,0.45,0.45,0.45),LOOK.cape,0);}
   if(state!=='play'||P.dead||P.alien||P.rag||!P.hand)return;
+  // preset gear: the storm god's hammer, the armor's thrusters
+  if(hasPower('stormBody')&&!thrown.some(t=>t.kind==='hammer')&&P.suited!==false){const H=P.hand;
+    queue(MESH.box,child(H,0,-0.35,0,0,0,0,0.1,0.75,0.1),HANDLE_C,F_SH);queue(MESH.mbox,child(H,0,-0.8,0,0,0,0,0.55,0.34,0.34),HAMMER_C,F_SH);
+    if(P.flying){const s=0.9+Math.sin(time*20)*0.1;queue(MESH.ring,M4.alignY(tmpM(),H[12],H[13],H[14],Math.sin(P.heroYaw),0,Math.cos(P.heroYaw),s),[.6,.75,1,0.6],F_ADD);if(Math.random()<0.15)tracer(H[12],H[13],H[14],H[12]+rr(-2,2),H[13]+rr(-2,2),H[14]+rr(-2,2),[.6,.75,1],0.05,0.08);}}
+  if(hasPower('armorSuit')&&P.flying&&P.suited!==false){const H=P.hand,g=0.35+Math.random()*0.15;queue(MESH.glowSphere,at(H[12],H[13],H[14],0,0,0,g,g,g),[1,.85,.55,0.8],F_ADD);
+    for(const sd of [-1,1]){const c=Math.cos(P.heroYaw),sn=Math.sin(P.heroYaw);queue(MESH.glowSphere,at(P.pos.x+c*sd*0.25,P.pos.y+0.1,P.pos.z-sn*sd*0.25,0,0,0,g*1.2,g*1.6,g*1.2),[1,.75,.45,0.8],F_ADD);}}
   // stretchy punches reach out
   if(hasPower('elasticBody')&&time-P.punchT<0.14&&!stretches.length){const h=P.hand,r=pstat('elasticBody','reach')*0.45,fx=Math.sin(P.heroYaw),fz=Math.cos(P.heroYaw);
     queue(MESH.box,M4.beam(tmpM(),h[12],h[13],h[14],h[12]+fx*r,h[13],h[14]+fz*r,0.22),LOOK.cape,0);queue(MESH.sphere,at(h[12]+fx*r,h[13],h[14]+fz*r,0,0,0,0.3,0.3,0.3),LOOK.cape,0);}

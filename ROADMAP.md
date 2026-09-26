@@ -9,6 +9,8 @@ Planned work that isn't in the game yet.
 - **Skill point reset (respec)**: **Reset skill points** on the Skills screen.
 - **Shared city in room-code games**: NPCs, traffic, crimes, destruction and time of day come from the host.
 - **Proper ragdoll physics** for launched and defeated characters.
+- **Hero presets** (Web-Slinger, Speedster, Ring Bearer), body mods, traversal mastery and suit-ups.
+- **Street lighting at night.**
 
 ## Next up
 
@@ -19,3 +21,4 @@ Planned work that isn't in the game yet.
 
 - More heist types and crime-boss storylines.
 - More Morph Band aliens.
+- More hero presets (a flying bruiser with heat vision, a thunder god, an armored inventor).
