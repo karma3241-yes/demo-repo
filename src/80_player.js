@@ -84,6 +84,7 @@ function nearestInteract(){
   for(const h of humans)if(h.alive&&h.downed>0){const d=Math.hypot(h.pos.x-P.pos.x,h.pos.z-P.pos.z);if(d<bd&&Math.abs(h.pos.y-P.pos.y)<2){bd=d;best={kind:'help',h};}}
   if(!P.alien||alienDef().scale<2)for(const v of vehicles){if(!v.alive||!['road','parked','stolen','flee','chase'].includes(v.state)||v.vtype==='truck')continue;
     const d=Math.hypot(v.pos.x-P.pos.x,v.pos.z-P.pos.z);if(d<bd+0.6&&Math.abs(v.pos.y-P.pos.y)<2.5){bd=d-0.6;best={kind:'car',v};}}
+  if(!best){const s=nearestShopToEat();if(s)best={kind:'eat',s};else if(meterPrompt())best={kind:'storm'};}
   return best;
 }
 function interact(){
@@ -91,6 +92,8 @@ function interact(){
   const it=nearestInteract();if(!it)return;
   if(it.kind==='exit')exitCar(false);
   else if(it.kind==='car')enterCar(it.v);
+  else if(it.kind==='eat')eatAt(it.s);
+  else if(it.kind==='storm')callStorm();
   else if(it.kind==='help'){const h=it.h;if(playerFaction()==='villain'){Damage.apply(P,h,5,'punch');return;}
     h.downed=0;h.hp=Math.max(h.hp,30);h.state='flee';h.fx=h.pos.x+rr(-1,1);h.fz=h.pos.z+rr(-1,1);h.st=3;h.rx=0;
     burst(h.pos.x,h.pos.y+1,h.pos.z,30,6,1,[[.5,1,.7],[1,1,1]],1.2,-3,1.5);SFX.chime();addXP(15);addRep(5);feed('+15 XP · +5 rep','You helped someone back up');}

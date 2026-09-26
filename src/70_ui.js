@@ -67,7 +67,7 @@ function drawMinimap(yaw){
   const plot=(x,z,edge)=>{const dx=x-P.pos.x,dz=z-P.pos.z;let mx=(dx*cs-dz*sn)*MS,my=(dx*sn+dz*cs)*MS;const l=Math.hypot(mx,my);if(l>R-16){if(!edge)return null;mx*=(R-16)/l;my*=(R-16)/l;}return [R+mx,R+my];};
   c.font='700 15px "Chakra Petch", sans-serif';c.textAlign='center';c.textBaseline='middle';
   const mark=(x,z,t,col)=>{const q=plot(x,z,false);if(!q)return;c.fillStyle=col;c.beginPath();c.arc(q[0],q[1],8,0,TAU);c.fill();c.fillStyle='#0b0f1a';c.fillText(t,q[0],q[1]+1);};
-  if(hospital)mark(hospital.x,hospital.z,'+','#e9f3ff');if(policeHQ)mark(policeHQ.x,policeHQ.z,'P','#5aa9ff');if(bank)mark(bank.x,bank.z,'$','#ffc93c');
+  if(hospital)mark(hospital.x,hospital.z,'+','#e9f3ff');if(policeHQ)mark(policeHQ.x,policeHQ.z,'P','#5aa9ff');if(bank)mark(bank.x,bank.z,'$','#ffc93c');if(invTower)mark(invTower.x,invTower.z,'I','#ff5a3d');
   for(const r of MP.peers.values()){if(!r.alive)continue;const q=plot(r.pos.x,r.pos.z,true);if(!q)continue;c.fillStyle=FACTION_COL[r.faction];c.beginPath();c.arc(q[0],q[1],6,0,TAU);c.fill();c.strokeStyle='#fff';c.lineWidth=2;c.stroke();}
   for(const v of vehicles)if(v.siren){const q=plot(v.pos.x,v.pos.z,false);if(q){c.fillStyle=Math.sin(time*12)>0?'#ff3d5e':'#3d7dff';c.fillRect(q[0]-4,q[1]-4,8,8);}}
   for(const r of rivals){if(!r.alive)continue;const q=plot(r.pos.x,r.pos.z,true);if(!q)continue;c.fillStyle=FACTION_COL[r.faction];c.beginPath();c.moveTo(q[0],q[1]-8);c.lineTo(q[0]+7,q[1]+6);c.lineTo(q[0]-7,q[1]+6);c.closePath();c.fill();}
@@ -124,7 +124,7 @@ function renderSheet(){
   sheetBody.scrollTop=y;
 }
 const STAT_LABELS={bounces:'Bounces',duration:'Duration',damage:'Damage',dps:'Damage per second',radius:'Radius',speed:'Speed',drain:'Energy per second',mult:'Speed multiplier',range:'Range',force:'Swing force',
-  stun:'Stun',slow:'Slow',absorb:'Absorbs',dr:'Damage reduction',throwDmg:'Throw damage',knock:'Knockback',burnDps:'Burn per second',hitDmg:'Bump damage'};
+  stun:'Stun',slow:'Slow',absorb:'Absorbs',dr:'Damage reduction',throwDmg:'Throw damage',knock:'Knockback',burnDps:'Burn per second',hitDmg:'Bump damage',capacity:'Capacity'};
 function fmtStat(k,v){if(k==='duration')return v.toFixed(1)+' s';if(k==='slow'||k==='dr')return Math.round(v*100)+'%';if(k==='stun')return v.toFixed(1)+' s';if(k==='mult'||k==='force')return '×'+v.toFixed(1);return String(Math.round(v));}
 function statLines(id,lvl,next){
   const c=POWERS[id],out=[];
@@ -138,7 +138,7 @@ function renderSkills(){
   sheetBody.appendChild(el('h3',{text:'Your powers'}));
   for(const id of save.character.movement){const m=masteryLevel(id);
     sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:(PRESETS[id]?PRESETS[id].name:POWERS[id].name)+'  ·  Mastery '+m.toFixed(1)+'/'+MASTERY_MAX}),el('p',{text:'Traversal grows by using it: the more you travel this way, the higher, faster and bigger it gets. It does not cost skill points.'}),el('div',{class:'bar xp'},el('i',{style:'width:'+(m/MASTERY_MAX*100).toFixed(1)+'%'}))));}
-  for(const id of [...new Set([...save.character.abilities.map(LEVEL_OF),save.character.body])]){
+  for(const id of [...new Set([...save.character.abilities.map(LEVEL_OF),save.character.body,...(hasTrav('armorFlight')?['suitBattery']:[])])]){
     if(!POWERS[id]||POWERS[id].cat==='body'&&POWERS[id].hidden)continue;
     const lvl=powerLevel(id),max=lvl>=CONFIG.powerMax,cost=CONFIG.powerUpgradeCost(lvl);
     const btn=el('button',{class:'plus',text:max?'Maxed':'Upgrade · '+cost+' SP',onclick:()=>{if(save.sp<cost||max)return;save.sp-=cost;save.powerLevels[id]=lvl+1;SFX.chime();persist();buildHotbar();renderSheet();syncPlayerDoc();}});
@@ -310,7 +310,7 @@ function finishCreator(){
     creating=false;draft=null;creator.hidden=true;applyLook();buildHotbar();buildTouchButtons();setPaused(true);
     toast('Powers changed',refund?'+'+refund+' skill points refunded':'Your new powers are ready','cyan');return;
   }
-  save.character=c;save.level=1;save.xp=0;save.sp=CONFIG.progression.startSP;save.powerLevels={};save.passives=freshPassives();save.reputation=0;save.rechoiceAt=Date.now();save.mastery={};save.ring=100;
+  save.character=c;save.level=1;save.xp=0;save.sp=CONFIG.progression.startSP;save.powerLevels={};save.passives=freshPassives();save.reputation=0;save.rechoiceAt=Date.now();save.mastery={};save.ring=100;save.battery=300;save.bolt=100;save.cal=100;
   persist();creating=false;draft=null;creator.hidden=true;applyLook();startPlay(true);
 }
 function tryRechoose(){

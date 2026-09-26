@@ -12,7 +12,7 @@ const P={isPlayer:true,kind:'player',alive:true,pos:new V3(0,0,20),vel:new V3(),
 P.hp=maxHp();P.en=maxEn();
 const _c={x:0,y:0,z:0};
 function center(a){if(a===P){_c.x=P.pos.x;_c.y=P.pos.y+1.3;_c.z=P.pos.z;}else{_c.x=a.pos.x;_c.y=a.pos.y+(a.cy||0);_c.z=a.pos.z;}return _c;}
-function spend(n){if(P.en<n)return false;P.en-=n;P.lastSpend=time;return true;}
+function spend(n,id){if(heroMeter())return payEn(n,id);if(P.en<n)return false;P.en-=n;P.lastSpend=time;return true;}
 function addShake(v){shake=Math.min(1.5,shake+v*(REDUCED?0.2:1));}
 
 function knock(t,src,power,up=0.45){

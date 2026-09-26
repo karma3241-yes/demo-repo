@@ -27,6 +27,11 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hi
 .bar.shield{height:4px;margin-top:3px}.bar.shield i{background:#8fe3ff}
 #enm.warn .bar.en{box-shadow:0 0 0 2px var(--health)}
 #enm.ring .bar.en i{background:linear-gradient(90deg,#128a3a,#6dff95)}#enm.ring span b{color:#8dffb0}
+#enm.bat .bar.en i{background:linear-gradient(90deg,#1b6fc4,#bff4ff)}#enm.bat span b{color:#bff4ff}
+#enm.bolt .bar.en i{background:linear-gradient(90deg,#4a3cff,#e6ecff)}#enm.bolt span b{color:#c9d2ff}
+#enm.cal .bar.en i{background:linear-gradient(90deg,#c88a12,#ffe14d)}#enm.cal span b{color:#ffe14d}
+#enm.low span b{animation:lowBlink .8s steps(2) infinite}@keyframes lowBlink{50%{opacity:.35}}
+.slot.dim{opacity:.38}
 #hud{position:fixed;inset:0;pointer-events:none;font-variant-numeric:tabular-nums}
 .hud-tl{position:absolute;top:16px;left:16px;padding:10px 12px;display:grid;gap:7px;min-width:220px}
 .who{display:flex;align-items:baseline;gap:10px;justify-content:space-between}
@@ -786,7 +791,7 @@ const SFX={ctx:null,master:null,muted:false,volume:0.7,
 const GRID=16,CELL=80,HALF=GRID*CELL/2,EDGE=HALF+80,LIMIT=EDGE+170,CEIL=520;
 const colliders=[],blockCols=[],extraCols=[],roofTops=[],mapRects=[],parks=[],shops=[],atms=[],alleys=[],curbSpots=[],orbSpots=[],lakes=[];
 const blockProps=[],tlights=[];
-let bank=null,hospital=null,policeHQ=null;
+let bank=null,hospital=null,policeHQ=null,invTower=null;
 const city=new Geo();
 const C=h=>hex(h);
 const STYLE={office:0,glass:1,brick:2,warehouse:3,house:4};
@@ -975,6 +980,26 @@ function special(i,j,cx,cz,list,bi){
     city.box(cx-6,0.25,z0-6,cx+6,4,z0-5,C('#e8e8e8'),0);city.box(cx-6,4,z0-6,cx+6,4.4,z0,C('#e8e8e8'),0);
     city.box(cx-1.5,h+0.35,cz-1.5+3,cx+1.5,h+0.45,cz+1.5+3,C('#ffc93c'),0);
     hospital={x:cx,z:z0-10};return true;
+  }
+  if(i===9&&j===9){ // Inventor Tower: the Armored Inventor's home base, where the suit recharges. It can't be knocked down.
+    const RED=C('#b3122f'),GOLD=C('#ffc93c'),GLASS=C('#2a3440'),h=290,x0=cx-15,x1=cx+15,z0=cz-15,z1=cz+15;
+    city.box(cx-24,0.25,cz-24,cx+24,12,cz+24,C('#30343c'),1,STYLE.glass*1000+411.5);addCollider({x0:cx-24,x1:cx+24,z0:cz-24,z1:cz+24,y0:0,y1:12.3,col:GLASS},list);
+    city.box(cx-24.3,12,cz-24.3,cx+24.3,12.6,cz+24.3,RED,0);city.box(cx-6,0.25,cz-24.4,cx+6,8,cz-24.2,C('#9fe8ff'),6);
+    city.box(x0,12,z0,x1,h,z1,GLASS,1,STYLE.glass*1000+412.5);addCollider({x0,x1,z0,z1,y0:12,y1:h+0.3,col:GLASS},list);rect(cx-24,cz-24,cx+24,cz+24,h);
+    for(const y of [60,120,180,240])city.box(x0-.4,y,z0-.4,x1+.4,y+1.4,z1+.4,RED,0);
+    for(const [ax,az] of [[x0,z0],[x1,z0],[x0,z1],[x1,z1]])city.box(ax-1.2,12,az-1.2,ax+1.2,h+2,az+1.2,RED,0); // red corner fins
+    const c0=x0+4,c1=x1-4,d0=z0+4,d1=z1-4,top=h+14;
+    city.box(x0,h,z0,x1,h+0.4,z1,ROOF,0);city.box(c0,h,d0,c1,top,d1,RED,0);for(const y of [h+3,h+7,top-3])city.box(c0-.3,y,d0-.3,c1+.3,y+1.4,d1+.3,GOLD,6);
+    addCollider({x0:c0,x1:c1,z0:d0,z1:d1,y0:h,y1:top+0.3,col:RED},list);city.box(c0,top,d0,c1,top+0.3,d1,C('#3a3f47'),0);
+    city.prim(PRIM.cyl,cx,top+0.35,cz,0,0,0,5.5,0.06,5.5,C('#4fd8ff'),6);city.prim(PRIM.cyl,cx,top+0.4,cz,0,0,0,4.6,0.06,4.6,C('#3a3f47'),0);
+    // the big emblem near the top, facing the street
+    city.box(cx-4,h-34,z0-0.5,cx+4,h-4,z0,RED,0);city.box(cx-1.6,h-31,z0-0.8,cx+1.6,h-7,z0-0.5,GOLD,6);
+    // the landing pad sticks out of the east face
+    const py=h-40;city.box(x1,py-1,cz-9,x1+17,py,cz+9,C('#3a3f47'),0);city.box(x1,py-3,cz-2,x1+6,py-1,cz+2,C('#2a2d33'),0);
+    city.prim(PRIM.cyl,x1+9,py+0.05,cz,0,0,0,6.5,0.06,6.5,C('#4fd8ff'),6);city.prim(PRIM.cyl,x1+9,py+0.1,cz,0,0,0,5.6,0.06,5.6,C('#3a3f47'),0);
+    addCollider({x0:x1,x1:x1+17,z0:cz-9,z1:cz+9,y0:py-1,y1:py,col:RED},list);
+    roofTops.push({x:cx,y:top+0.3,z:cz,x0:c0,x1:c1,z0:d0,z1:d1});
+    invTower={x:cx,z:cz,x0:c0,x1:c1,z0:d0,z1:d1,top:top+0.3,pad:{x:x1+9,y:py,z:cz},door:{x:cx,z:cz-27}};return true;
   }
   if(i===6&&j===8){ // police headquarters
     const x0=cx-22,x1=cx+22,z0=cz-18,z1=cz+14,h=28;tower(x0,z0,x1,z1,h,'office',list);
@@ -1327,6 +1352,7 @@ const POWERS={
   blink:{name:'Blink',cat:'utility',type:'instant',desc:'Teleport to where you aim in a puff of smoke, knocking back anyone near where you appear.',energy:15,cooldown:[4,1.5],range:[25,60],damage:[20,90]},
   gravityWell:{name:'Gravity Well',cat:'offence',type:'instant',desc:'Open a singularity that drags in people, cars and street furniture, then collapses in a blast.',energy:30,cooldown:12,radius:[18,32],damage:[60,220]},
   spiritWave:{name:'Spirit Wave',cat:'offence',type:'charge',desc:'Hold to gather energy in your palms, release to unleash a massive wave that tears through anything, buildings included.',energy:40,cooldown:8,damage:[120,420]},
+  suitBattery:{name:'Suit Battery',cat:'upgrade',hidden:true,desc:'How much charge the Armored Inventor\'s suit holds. Every power runs on it, and it only recharges at Inventor Tower.',capacity:[100,300]},
   timeDilation:{name:'Time Dilation',cat:'utility',type:'instant',desc:'Slow the world down around you while you move at full speed. In multiplayer it makes you faster instead.',energy:35,cooldown:20,duration:[3,7]},
 };
 const MOVEMENT_POWERS=Object.keys(POWERS).filter(k=>POWERS[k].cat==='movement'&&!POWERS[k].hidden);
@@ -1375,7 +1401,7 @@ const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
 function cleanName(s){return String(s).replace(/[^\p{L}\p{N} _.'-]/gu,'').replace(/\s+/g,' ').trim().slice(0,16);}
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
-function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,bounty:0,
+function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
 function validCharacter(c){
   if(!c||typeof c!=='object')return null;
@@ -1415,7 +1441,7 @@ function loadSave(){
   if(s.stats&&typeof s.stats==='object')for(const k in f.stats)f.stats[k]=Math.floor(num(s.stats[k],0,0,1e9));
   f.rechoiceAt=f.migrated?0:num(s.rechoiceAt,0,0,1e15);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
-  f.ring=num(s.ring,100,0,100);f.oathKnown=s.oathKnown===true;f.bounty=Math.round(num(s.bounty,0,0,1e6));
+  f.ring=num(s.ring,100,0,100);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
@@ -1472,7 +1498,7 @@ const P={isPlayer:true,kind:'player',alive:true,pos:new V3(0,0,20),vel:new V3(),
 P.hp=maxHp();P.en=maxEn();
 const _c={x:0,y:0,z:0};
 function center(a){if(a===P){_c.x=P.pos.x;_c.y=P.pos.y+1.3;_c.z=P.pos.z;}else{_c.x=a.pos.x;_c.y=a.pos.y+(a.cy||0);_c.z=a.pos.z;}return _c;}
-function spend(n){if(P.en<n)return false;P.en-=n;P.lastSpend=time;return true;}
+function spend(n,id){if(heroMeter())return payEn(n,id);if(P.en<n)return false;P.en-=n;P.lastSpend=time;return true;}
 function addShake(v){shake=Math.min(1.5,shake+v*(REDUCED?0.2:1));}
 
 function knock(t,src,power,up=0.45){
@@ -1820,9 +1846,9 @@ function abilityDown(slot){
   if(c.type==='hold'){if(id==='telekinesis')tkGrab();return;}
   if(c.type==='toggle'){togglePower(id);return;}
   if(s.cd>0){s.flash=0.3;return;}
-  if(c.ring!=null){if(!ringSpend(c.ring*(id==='blackHole'?1:1))){noEnergy(id);return;}}else if(!spend(c.energy||0)){noEnergy(id);return;}
+  if(c.ring!=null){if(!ringSpend(c.ring*(id==='blackHole'?1:1))){noEnergy(id);return;}}else if(!spend(c.energy||0,id)){noEnergy(id);return;}
   if(!POWER_FN[id])return;
-  s.cd=pstat(id,'cooldown')||0;POWER_FN[id]();
+  s.cd=(pstat(id,'cooldown')||0)*cdMul();POWER_FN[id]();
 }
 function abilityUp(slot){
   if(P.alien){alienAbilityUp(slot);return;}
@@ -1839,7 +1865,7 @@ function togglePower(id){
     const s=PS.energyShield;
     if(P.shieldOn){P.shieldOn=false;P.shield=0;s.cd=3;return;}
     if(s.cd>0){s.flash=0.3;return;}
-    if(!spend(POWERS.energyShield.energy)){noEnergy(id);return;}
+    if(!spend(POWERS.energyShield.energy,'energyShield')){noEnergy(id);return;}
     P.shieldOn=true;P.shield=pstat('energyShield','absorb');ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3,0.3,[.4,.85,1]);SFX.tone('sine',400,900,0.3,0.12);
   }
 }
@@ -1854,7 +1880,7 @@ function flyChargeRelease(){
   if(!P.fCharge)return false;P.fCharge=false;const t=P.chargeT||0,on=P.charging&&P.grounded;P.charging=false;
   if(!on||t<0.25){if(!P.flying)toggleFlight();return true;}
   const k=clamp(t/1.5,0,1);toggleFlight();if(!P.flying)return true;
-  P.vel.set(camF.x*25*k,70+170*k,camF.z*25*k);P.launchT=0.5+1.3*k;P.pos.y+=0.3;P.hammerUpT=time;if(hasPower('stormBody')&&k>0.4)bolt(P.pos.x,P.pos.y,P.pos.z,true);
+  P.vel.set(camF.x*25*k,70+170*k,camF.z*25*k);P.launchT=0.5+1.3*k;P.pos.y+=0.3;P.hammerUpT=time;if(hasPower('stormBody')&&k>0.4&&!boltEmpty()){bolt(P.pos.x,P.pos.y,P.pos.z,true);if(heroMeter())payEn(6,'lightning');}
   ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,10+22*k,0.5,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,Math.round(30+60*k),14+24*k,0.9,DUST,2.4,-3,2.5);
   if(k>0.5)crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,2+3*k,[.42,.41,.4]);SFX.boom(0.4+0.5*k,0.8);addShake(0.2+0.5*k);hitProps(P.pos.x,P.pos.y,P.pos.z,3+4*k,P,12);
   addMastery(save.character.movement[0],10*k);return true;
@@ -2002,7 +2028,7 @@ function tkMove(a,x,y,z,dt){
 function tkTick(dt){
   const T=P.tk,a=T.a;
   if(a&&a.kind!=='vehicle'&&!a.alive&&!a.air&&a.kind!=='human'&&a.kind!=='remote'){tkDrop();return;}
-  if(!T.giant){const cost=POWERS.telekinesis.energyPerSec*(1.3-0.1*tkLevel())*(1+T.more.length*0.5+(T.slab?1:0))*dt;if(P.en<cost){tkThrow();return;}P.en-=cost;P.lastSpend=time;}
+  if(!T.giant){const cost=POWERS.telekinesis.energyPerSec*(1.3-0.1*tkLevel())*(1+T.more.length*0.5+(T.slab?1:0))*dt;if(heroMeter()?!payEn(cost,'telekinesis',true):P.en<cost){tkThrow();return;}if(!heroMeter())P.en-=cost;P.lastSpend=time;}
   const gs=P.giantS||1,far=T.giant?2.4*gs:T.slab?10:a&&a.kind==='vehicle'?8:6.5,hx=P.pos.x+camF.x*far,hy=P.pos.y+(T.giant?3*gs:2.6)+camF.y*far,hz=P.pos.z+camF.z*far;
   T.hold=[hx,Math.max(hy,0.5),hz];
   if(a&&!tkMove(a,hx,Math.max(hy,0.5),hz,dt)){T.a=null;a.held=false;}
@@ -2046,14 +2072,15 @@ function updatePowers(dt){
   if(!canAct()){for(const k in PS)PS[k].holding=false;}
   if(save.character)for(const id of save.character.abilities){
     const c=POWERS[id],s=PS[id];if(c.type!=='channel'||!s.holding)continue;
-    const cost=c.energyPerSec*dt;if(P.en<cost){s.holding=false;noEnergy(id);continue;}
-    P.en-=cost;P.lastSpend=time;
+    const cost=c.energyPerSec*dt;
+    if(heroMeter()){if(!payEn(cost,id,true)){s.holding=false;noEnergy(id);continue;}}
+    else{if(P.en<cost){s.holding=false;noEnergy(id);continue;}P.en-=cost;P.lastSpend=time;}
     if(id==='laserVision'){laserTick(dt);lasering=true;}else if(id==='repulsors')repulsorTick(dt);else if(CHANNEL_FN[id])CHANNEL_FN[id](dt);else iceTick(dt);
   }
   if(ice){iceVisuals();if(!PS.iceCloud.holding){ice.t-=dt;if(ice.t<=0)ice=null;}}
   SFX.setLaser(lasering);
   if(P.tk)tkTick(dt);
-  const drainT=(n)=>{P.en=Math.max(0,P.en-n*dt);if(CONFIG.energy.togglesBlockRegen)P.lastSpend=time;return P.en>0;};
+  const drainT=(n)=>{if(heroMeter())return true;P.en=Math.max(0,P.en-n*dt);if(CONFIG.energy.togglesBlockRegen)P.lastSpend=time;return P.en>0;};
   if(P.flying&&!P.alien&&!isRing()&&!drainT(pstat('flight','drain'))){P.flying=false;feed('Out of energy','You stopped flying');}
   if(P.metal&&!drainT(POWERS.metalSkin.drain)){P.metal=false;feed('Out of energy','Metal Skin wore off');}
   if(P.speeding&&!drainT(pstat('superSpeed','drain')))P.speeding=false;
@@ -2061,7 +2088,7 @@ function updatePowers(dt){
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   updateWanted(dt);
   if(P.stun>0)P.stun-=dt;
-  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
+  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateMeters(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
 }
 // ================================================================
 // Melee combat: lock-on, 4-hit chains, finishers, dash, wall slams
@@ -2667,7 +2694,7 @@ function nearestFoe(x,y,z,R,skip){
 }
 Object.assign(POWER_FN,{
   stormHammer(){faceAim();const h=handPoint(),d=dirTo(h,aim.x,aim.y,aim.z),R=pstat('stormHammer','range');
-    thrown.push({kind:'hammer',x:h.x,y:h.y,z:h.z,vx:d[0]*75,vy:d[1]*75,vz:d[2]*75,t:0,back:false,max:R/75,hit:new Set(),spin:0});SFX.whoosh();},
+    thrown.push({kind:'hammer',x:h.x,y:h.y,z:h.z,vx:d[0]*75,vy:d[1]*75,vz:d[2]*75,t:0,back:false,max:R/75,hit:new Set(),spin:0,bolted:!!P.hammerDry});P.hammerDry=false;SFX.whoosh();},
   ricochetShield(){faceAim();const h=handPoint(),first=lockT&&lockT.alive?lockT:aim.actor&&aim.actor.kind!=='prop'&&aim.actor.kind!=='vehicle'?aim.actor:nearestFoe(aim.x,aim.y,aim.z,15);
     const tgt=first?center(first):{x:aim.x,y:aim.y,z:aim.z},d=dirTo(h,tgt.x,tgt.y,tgt.z);
     thrown.push({kind:'disc',x:h.x,y:h.y,z:h.z,vx:d[0]*85,vy:d[1]*85,vz:d[2]*85,t:0,back:false,max:1.2,hit:new Set(),target:first||null,left:Math.round(pstat('ricochetShield','bounces')),spin:0});SFX.whoosh();},
@@ -2707,7 +2734,7 @@ function repulsorTick(dt){repT-=dt;if(repT>0)return;repT=0.11;faceAim();repHand=
 // ---- spirit wave: hold to charge, release to fire ----
 function chargeFire(id){
   const s=PS[id],k=clamp((s.chargeT||0)/2,0.2,1);if(!canAct())return;
-  if(!spend(POWERS[id].energy*(0.5+k*0.5))){noEnergy(id);return;}s.cd=pstat(id,'cooldown');
+  if(!spend(POWERS[id].energy*(0.5+k*0.5),id)){noEnergy(id);return;}s.cd=pstat(id,'cooldown')*cdMul();
   bigBeam={kind:'spirit',t:0,wind:0.05,dur:0.9+k*0.8,w:1.5+k*3,dps:pstat(id,'damage')*strengthMul()*(0.6+k)};SFX.boom(0.8,0.6);addShake(0.3+k*0.4);
 }
 // ---- updates ----
@@ -3311,7 +3338,7 @@ function drawRing(){
 // whatever you hit in that moment lands all at once when time starts again.
 const SPD_C=[1,.82,.25],SPD_C2=[1,.45,.15];
 const isSpeed=()=>hasTrav('superSpeed')&&!P.alien;
-const dialMax=()=>Math.round(3+9*mk('superSpeed')); // x3 at the start, x12 mastered
+const dialMax=()=>hungry()?2:Math.round(3+9*mk('superSpeed')); // x3 at the start, x12 mastered; x2 when out of calories
 P.dial=2;P.fastMode=false;P.phasing=false;P.slowOn=false;
 let timeStopT=0,frozenT=0,slowK=0.3,tsQueue=[],tsPath=[],tsBy=null,lastStreak=null;
 function speedMult(){return isSpeed()?Math.max(1.5,Math.min(P.dial,dialMax())):pstat('superSpeed','mult');}
@@ -3393,7 +3420,7 @@ function updateSpeed(dt){
   if(!isSpeed()){P.phasing=false;P.slowOn=false;P.fastMode=false;return;}
   if(P.dial>dialMax())P.dial=dialMax();
   if(P.phasing){P.en=Math.max(0,P.en-6*dt);P.lastSpend=time;if(P.en<=0)endPhase(true);else if(P.phaseOff)endPhase(false);}
-  if(P.slowOn){P.en=Math.max(0,P.en-pstat('slowTime','drain')*dt);P.lastSpend=time;if(P.en<=0){P.slowOn=false;feed('Out of energy','Time runs normally again');}if(MP.online())hasteT=Math.max(hasteT,0.15);}
+  if(P.slowOn){const sd=pstat('slowTime','drain')*dt;if(heroMeter()){if(!payEn(sd,'slowTime',true))P.en=0;}else{P.en=Math.max(0,P.en-sd);P.lastSpend=time;}if(P.en<=0){P.slowOn=false;feed('Out of energy','Time runs normally again');}if(MP.online())hasteT=Math.max(hasteT,0.15);}
   if(P.vibT>0)P.vibT-=dt;
   // lightning trails behind you when you really move
   const hs=Math.hypot(P.vel.x,P.vel.z),c=center(P);
@@ -3454,7 +3481,10 @@ function renderHeroKeys(){
   if(m==='webSwing'){K('Right click','Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
   else if(m==='powerRing'){K('F','Fly · hold on the ground to charge a launch');K('B · V','Build a construct · pick one');K('O','Recite the oath to recharge the ring');K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Huge Mech: grow bigger or shrink back');}
-  else if(m==='flight'||m==='stormFlight'||m==='armorFlight'||m==='solarFlight'){K('F','Fly · hold on the ground to charge a launch');}
+  else if(m==='flight'||m==='stormFlight'||m==='armorFlight'||m==='solarFlight'){K('F','Fly · hold on the ground to charge a launch');
+    if(m==='armorFlight')K('Inventor Tower','Land on its roof or pad to recharge the battery');
+    if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');}
+  if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
   if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
   if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
   K('U','Suit up or down');
@@ -3507,6 +3537,99 @@ function onBountyFx(d,r){
   toast('Bounty collected · $'+a.toLocaleString('en-US'),'You took down '+(cleanName(String(d.n||''))||r.name)+' · +'+xp+' XP · +'+rep+' rep','gold');SFX.chime();persist();
 }
 const starText=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+// ================================================================
+// Hero meters: the Armored Inventor's suit battery, the Storm God's lightning and the Speedster's calories
+// ================================================================
+// Like the Ring Bearer's ring charge, each of these replaces the energy bar for that hero and never refills on its own.
+// - Battery: every power runs on it. Empty, the suit drops to standby: flying and plain punches only.
+//   Recharge at Inventor Tower (land on its roof or its landing pad, or walk into the lobby).
+// - Lightning: only lightning attacks use it. Empty, you still fly and fight, and the hammer still flies, without lightning.
+//   Recharge on top of a tall tower: press G to raise the hammer and call the storm down into it.
+// - Calories: running fast and using powers burn them; there is no energy limit otherwise. Empty, the speed dial
+//   tops out at x2, powers take three times as long to come back, and Time Stop is out. Press G at any shop to eat.
+const METERS={
+  armorFlight:{key:'battery',label:'BATTERY',cls:'bat',rate:0.25},
+  stormFlight:{key:'bolt',label:'LIGHTNING',cls:'bolt',rate:0.5},
+  superSpeed:{key:'cal',label:'CALORIES',cls:'cal',rate:0.12},
+};
+const LIGHTNING_IDS=new Set(['stormHammer','lightning','lightningThrow']);
+const TALL_ROOF=110; // how high a roof has to be to call the storm from
+const heroMeter=()=>{if(!save.character||P.alien)return null;return METERS[save.character.movement[0]]||null;};
+const meterCap=m=>m.key==='battery'?pstat('suitBattery','capacity'):100;
+const meterFrac=m=>clamp(save[m.key]/meterCap(m),0,1);
+const standby=()=>{const m=heroMeter();return !!m&&m.key==='battery'&&save.battery<=0;};
+const hungry=()=>{const m=heroMeter();return !!m&&m.key==='cal'&&save.cal<=0;};
+const boltEmpty=()=>{const m=heroMeter();return !!m&&m.key==='bolt'&&save.bolt<=0;};
+// pay for a power with the hero meter (tick: a per-frame cost for held powers). Returns false if it can't be paid.
+function payEn(n,id,tick){
+  const m=heroMeter();if(!m)return false;if(!(n>0))return true;
+  if(m.key==='bolt'&&!LIGHTNING_IDS.has(id))return true; // only lightning uses the storm's charge
+  const c=n*m.rate;
+  if(m.key==='cal'){if(save.cal>0){save.cal=Math.max(0,save.cal-c);if(save.cal<=0)meterEmpty(m);return true;}return !tick&&id!=='timeStop';}
+  if(m.key==='bolt'&&id==='stormHammer'&&save.bolt<=0){P.hammerDry=true;return true;} // the hammer still flies, just without lightning
+  if(save[m.key]<=0){meterOut(m);return false;}
+  save[m.key]=Math.max(0,save[m.key]-c);if(save[m.key]<=0.01){save[m.key]=0;meterEmpty(m);}return true; // the last of the charge still pays for one more
+}
+// powers that the meter blocks right now (the hotbar dims them)
+function meterBlocks(id){const m=heroMeter();if(!m)return false;
+  if(m.key==='battery')return save.battery<=0;
+  if(m.key==='bolt')return save.bolt<=0&&LIGHTNING_IDS.has(id)&&id!=='stormHammer';
+  return save.cal<=0&&id==='timeStop';}
+const cdMul=()=>hungry()?3:1;
+let meterMsgT=-9;
+function meterOut(m){if(time-meterMsgT<2)return;meterMsgT=time;
+  if(m.key==='battery')feed('Suit on standby','Fly to Inventor Tower to recharge');
+  else if(m.key==='bolt')feed('No lightning left','Call the storm from the top of a tall tower (G)');
+  SFX.tone('square',220,140,0.15,0.06);}
+function meterEmpty(m){meterMsgT=time;
+  if(m.key==='battery'){toast('Battery empty','Standby mode · flying and punches only. Recharge at Inventor Tower.','red');SFX.tone('sawtooth',400,60,0.8,0.1);}
+  else if(m.key==='bolt')toast('Out of lightning','Fly to the top of a tall tower and call the storm (G)','cyan');
+  else toast('Out of calories','You slow down. Press G at a shop to eat.','gold');}
+// ---- Inventor Tower ----
+function atInventorTower(){const T=invTower;if(!T)return false;const x=P.pos.x,y=P.pos.y,z=P.pos.z;
+  if(x>T.x0-1&&x<T.x1+1&&z>T.z0-1&&z<T.z1+1&&y>T.top-1.5&&y<T.top+14)return true; // on the roof
+  if(Math.hypot(x-T.pad.x,z-T.pad.z)<10&&y>T.pad.y-1&&y<T.pad.y+10)return true;   // on the landing pad
+  return Math.hypot(x-T.door.x,z-T.door.z)<9&&y<6;                               // in the lobby doorway
+}
+// ---- the Storm God's tower tops ----
+function tallRoofHere(){if(P.pos.y<TALL_ROOF-2)return null;
+  for(const r of roofTops){if(r.y<TALL_ROOF)continue;if(P.pos.x>r.x0-2&&P.pos.x<r.x1+2&&P.pos.z>r.z0-2&&P.pos.z<r.z1+2&&P.pos.y>r.y-1.5&&P.pos.y<r.y+16)return r;}
+  return null;}
+function callStorm(){
+  if(P.stormCall||!(heroMeter()&&heroMeter().key==='bolt'))return;
+  if(save.bolt>=99.5){feed('Your hammer is fully charged','');return;}
+  P.stormCall={t:0,next:0.15};P.flying=false;feed('Calling the storm','Hold still');SFX.tone('sawtooth',80,300,1.5,0.08);
+}
+function nearestShopToEat(){if(!(heroMeter()&&heroMeter().key==='cal')||save.cal>=99.5||P.pos.y>6)return null;let best=null,bd=7;
+  for(const s of shops){if(s.prop&&!s.prop.alive)continue;const d=Math.hypot(s.x-P.pos.x,s.z-P.pos.z);if(d<bd){bd=d;best=s;}}return best;}
+const MEALS=['a stack of 40 pancakes','twelve burritos','a bucket of noodles','every sandwich they had','a mountain of fries','nine pizzas'];
+function eatAt(s){const before=save.cal;save.cal=100;P.en=maxEn();
+  const c=center(P);burst(c.x,c.y+0.4,c.z,30,6,0.6,[[1,.85,.3],[1,1,1]],1.2,-3,1.5);SFX.chime();
+  toast('Refueled · '+s.name,'You wolfed down '+MEALS[Math.floor(Math.random()*MEALS.length)]+(before<=0?' · full speed again':''),'gold');persist();}
+function updateMeters(dt){
+  const m=heroMeter();if(!m){P.stormCall=null;return;}
+  P.en=maxEn(); // these heroes run on their meter instead of energy
+  const cap=meterCap(m);if(!(save[m.key]>=0))save[m.key]=cap;save[m.key]=Math.min(save[m.key],cap);
+  if(m.key==='battery'){
+    if(P.flying&&save.battery>0&&P.suited!==false){save.battery=Math.max(0,save.battery-0.08*dt);if(save.battery<=0)meterEmpty(m);}
+    if(atInventorTower()&&save.battery<cap&&!P.dead){const was=save.battery;save.battery=Math.min(cap,save.battery+cap*0.2*dt);
+      if(was<=0||time-(P.chgMsgT||-9)>8){P.chgMsgT=time;feed('Charging at Inventor Tower',save.battery>=cap?'Fully charged':'');}
+      if(Math.random()<dt*14){const T=invTower,c=center(P),sx=c.x+rr(-6,6),sz=c.z+rr(-6,6);tracer(sx,c.y+rr(3,8),sz,c.x,c.y,c.z,[.5,.9,1],0.12,0.15);}
+      if(save.battery>=cap&&was<cap){toast('Battery full','Suit systems online','cyan');SFX.chime();persist();}}
+  }else if(m.key==='bolt'){
+    const S=P.stormCall;
+    if(S){S.t+=dt;S.next-=dt;P.vel.x*=0.8;P.vel.z*=0.8;P.hammerUpT=time;
+      if(!tallRoofHere()||P.dead||P.stun>0){P.stormCall=null;}
+      else if(S.next<=0){S.next=0.45;const c=center(P);bolt(c.x,c.y+2.2,c.z,false,1);save.bolt=Math.min(100,save.bolt+20);addShake(0.25);
+        if(save.bolt>=100){P.stormCall=null;toast('The storm answers','Lightning fully charged','cyan');persist();}}}
+  }else if(m.key==='cal'){
+    const sp=Math.hypot(P.vel.x,P.vel.z);
+    if(sp>20&&save.cal>0){save.cal=Math.max(0,save.cal-(0.03+sp*0.0012)*dt);if(save.cal<=0)meterEmpty(m);}
+  }
+}
+function meterPrompt(){const m=heroMeter();if(!m)return '';
+  if(m.key==='bolt'&&save.bolt<99.5&&!P.stormCall&&tallRoofHere())return 'G · Raise your hammer and call the storm';
+  return '';}
 // ================================================================
 // NPCs: people, drones, vehicles, rival supers, shops
 // ================================================================
@@ -4767,7 +4890,7 @@ function drawMinimap(yaw){
   const plot=(x,z,edge)=>{const dx=x-P.pos.x,dz=z-P.pos.z;let mx=(dx*cs-dz*sn)*MS,my=(dx*sn+dz*cs)*MS;const l=Math.hypot(mx,my);if(l>R-16){if(!edge)return null;mx*=(R-16)/l;my*=(R-16)/l;}return [R+mx,R+my];};
   c.font='700 15px "Chakra Petch", sans-serif';c.textAlign='center';c.textBaseline='middle';
   const mark=(x,z,t,col)=>{const q=plot(x,z,false);if(!q)return;c.fillStyle=col;c.beginPath();c.arc(q[0],q[1],8,0,TAU);c.fill();c.fillStyle='#0b0f1a';c.fillText(t,q[0],q[1]+1);};
-  if(hospital)mark(hospital.x,hospital.z,'+','#e9f3ff');if(policeHQ)mark(policeHQ.x,policeHQ.z,'P','#5aa9ff');if(bank)mark(bank.x,bank.z,'$','#ffc93c');
+  if(hospital)mark(hospital.x,hospital.z,'+','#e9f3ff');if(policeHQ)mark(policeHQ.x,policeHQ.z,'P','#5aa9ff');if(bank)mark(bank.x,bank.z,'$','#ffc93c');if(invTower)mark(invTower.x,invTower.z,'I','#ff5a3d');
   for(const r of MP.peers.values()){if(!r.alive)continue;const q=plot(r.pos.x,r.pos.z,true);if(!q)continue;c.fillStyle=FACTION_COL[r.faction];c.beginPath();c.arc(q[0],q[1],6,0,TAU);c.fill();c.strokeStyle='#fff';c.lineWidth=2;c.stroke();}
   for(const v of vehicles)if(v.siren){const q=plot(v.pos.x,v.pos.z,false);if(q){c.fillStyle=Math.sin(time*12)>0?'#ff3d5e':'#3d7dff';c.fillRect(q[0]-4,q[1]-4,8,8);}}
   for(const r of rivals){if(!r.alive)continue;const q=plot(r.pos.x,r.pos.z,true);if(!q)continue;c.fillStyle=FACTION_COL[r.faction];c.beginPath();c.moveTo(q[0],q[1]-8);c.lineTo(q[0]+7,q[1]+6);c.lineTo(q[0]-7,q[1]+6);c.closePath();c.fill();}
@@ -4824,7 +4947,7 @@ function renderSheet(){
   sheetBody.scrollTop=y;
 }
 const STAT_LABELS={bounces:'Bounces',duration:'Duration',damage:'Damage',dps:'Damage per second',radius:'Radius',speed:'Speed',drain:'Energy per second',mult:'Speed multiplier',range:'Range',force:'Swing force',
-  stun:'Stun',slow:'Slow',absorb:'Absorbs',dr:'Damage reduction',throwDmg:'Throw damage',knock:'Knockback',burnDps:'Burn per second',hitDmg:'Bump damage'};
+  stun:'Stun',slow:'Slow',absorb:'Absorbs',dr:'Damage reduction',throwDmg:'Throw damage',knock:'Knockback',burnDps:'Burn per second',hitDmg:'Bump damage',capacity:'Capacity'};
 function fmtStat(k,v){if(k==='duration')return v.toFixed(1)+' s';if(k==='slow'||k==='dr')return Math.round(v*100)+'%';if(k==='stun')return v.toFixed(1)+' s';if(k==='mult'||k==='force')return '×'+v.toFixed(1);return String(Math.round(v));}
 function statLines(id,lvl,next){
   const c=POWERS[id],out=[];
@@ -4838,7 +4961,7 @@ function renderSkills(){
   sheetBody.appendChild(el('h3',{text:'Your powers'}));
   for(const id of save.character.movement){const m=masteryLevel(id);
     sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:(PRESETS[id]?PRESETS[id].name:POWERS[id].name)+'  ·  Mastery '+m.toFixed(1)+'/'+MASTERY_MAX}),el('p',{text:'Traversal grows by using it: the more you travel this way, the higher, faster and bigger it gets. It does not cost skill points.'}),el('div',{class:'bar xp'},el('i',{style:'width:'+(m/MASTERY_MAX*100).toFixed(1)+'%'}))));}
-  for(const id of [...new Set([...save.character.abilities.map(LEVEL_OF),save.character.body])]){
+  for(const id of [...new Set([...save.character.abilities.map(LEVEL_OF),save.character.body,...(hasTrav('armorFlight')?['suitBattery']:[])])]){
     if(!POWERS[id]||POWERS[id].cat==='body'&&POWERS[id].hidden)continue;
     const lvl=powerLevel(id),max=lvl>=CONFIG.powerMax,cost=CONFIG.powerUpgradeCost(lvl);
     const btn=el('button',{class:'plus',text:max?'Maxed':'Upgrade · '+cost+' SP',onclick:()=>{if(save.sp<cost||max)return;save.sp-=cost;save.powerLevels[id]=lvl+1;SFX.chime();persist();buildHotbar();renderSheet();syncPlayerDoc();}});
@@ -5010,7 +5133,7 @@ function finishCreator(){
     creating=false;draft=null;creator.hidden=true;applyLook();buildHotbar();buildTouchButtons();setPaused(true);
     toast('Powers changed',refund?'+'+refund+' skill points refunded':'Your new powers are ready','cyan');return;
   }
-  save.character=c;save.level=1;save.xp=0;save.sp=CONFIG.progression.startSP;save.powerLevels={};save.passives=freshPassives();save.reputation=0;save.rechoiceAt=Date.now();save.mastery={};save.ring=100;
+  save.character=c;save.level=1;save.xp=0;save.sp=CONFIG.progression.startSP;save.powerLevels={};save.passives=freshPassives();save.reputation=0;save.rechoiceAt=Date.now();save.mastery={};save.ring=100;save.battery=300;save.bolt=100;save.cal=100;
   persist();creating=false;draft=null;creator.hidden=true;applyLook();startPlay(true);
 }
 function tryRechoose(){
@@ -5133,6 +5256,7 @@ function nearestInteract(){
   for(const h of humans)if(h.alive&&h.downed>0){const d=Math.hypot(h.pos.x-P.pos.x,h.pos.z-P.pos.z);if(d<bd&&Math.abs(h.pos.y-P.pos.y)<2){bd=d;best={kind:'help',h};}}
   if(!P.alien||alienDef().scale<2)for(const v of vehicles){if(!v.alive||!['road','parked','stolen','flee','chase'].includes(v.state)||v.vtype==='truck')continue;
     const d=Math.hypot(v.pos.x-P.pos.x,v.pos.z-P.pos.z);if(d<bd+0.6&&Math.abs(v.pos.y-P.pos.y)<2.5){bd=d-0.6;best={kind:'car',v};}}
+  if(!best){const s=nearestShopToEat();if(s)best={kind:'eat',s};else if(meterPrompt())best={kind:'storm'};}
   return best;
 }
 function interact(){
@@ -5140,6 +5264,8 @@ function interact(){
   const it=nearestInteract();if(!it)return;
   if(it.kind==='exit')exitCar(false);
   else if(it.kind==='car')enterCar(it.v);
+  else if(it.kind==='eat')eatAt(it.s);
+  else if(it.kind==='storm')callStorm();
   else if(it.kind==='help'){const h=it.h;if(playerFaction()==='villain'){Damage.apply(P,h,5,'punch');return;}
     h.downed=0;h.hp=Math.max(h.hp,30);h.state='flee';h.fx=h.pos.x+rr(-1,1);h.fz=h.pos.z+rr(-1,1);h.st=3;h.rx=0;
     burst(h.pos.x,h.pos.y+1,h.pos.z,30,6,1,[[.5,1,.7],[1,1,1]],1.2,-3,1.5);SFX.chime();addXP(15);addRep(5);feed('+15 XP · +5 rep','You helped someone back up');}
@@ -5902,8 +6028,9 @@ function updateHud(dt){
   setText(hud.rep,'rep',(save.reputation>0?'+':'')+save.reputation.toLocaleString('en-US'));setText(hud.sp,'sp',String(save.sp));
   hud.spwrap.classList.toggle('glow',save.sp>0);hud.bounty.hidden=!(save.bounty>0);if(save.bounty>0)setText(hud.bounty,'bty','BOUNTY $'+save.bounty.toLocaleString('en-US'));
   hud.wanted.hidden=!P.stars;if(P.stars){setText(hud.wanted,'wstar',starText(P.stars));hud.wanted.classList.toggle('blink',unseenT>2);}
-  setW(hud.hpb,'hp',P.hp/maxHp());{const rg=isRing();if(lastHud.rg!==rg){lastHud.rg=rg;$('enm').classList.toggle('ring',rg);$('enm').firstElementChild.firstChild.nodeValue=rg?'RING ':'ENERGY ';}
-    if(rg){setW(hud.enb,'en',save.ring/100);setText(hud.ent,'ent',String(Math.floor(save.ring))+'%');}else{setW(hud.enb,'en',P.en/maxEn());setText(hud.ent,'ent',String(Math.floor(P.en)));}}setText(hud.hpt,'hpt',String(Math.ceil(P.hp)));
+  setW(hud.hpb,'hp',P.hp/maxHp());{const rg=isRing(),hm=heroMeter(),mode=rg?'ring':hm?hm.cls:'';if(lastHud.rg!==mode){lastHud.rg=mode;const e=$('enm');for(const k of ['ring','bat','bolt','cal'])e.classList.toggle(k,k===mode);e.firstElementChild.firstChild.nodeValue=rg?'RING ':hm?hm.label+' ':'ENERGY ';}
+    if(rg){setW(hud.enb,'en',save.ring/100);setText(hud.ent,'ent',String(Math.floor(save.ring))+'%');}
+    else if(hm){const f=meterFrac(hm);setW(hud.enb,'en',f);setText(hud.ent,'ent',hm.key==='battery'&&save.battery<=0?'STANDBY':String(Math.floor(f*100))+'%');$('enm').classList.toggle('low',f<0.15);}else{setW(hud.enb,'en',P.en/maxEn());setText(hud.ent,'ent',String(Math.floor(P.en)));}}setText(hud.hpt,'hpt',String(Math.ceil(P.hp)));
   hud.shbar.hidden=!P.shieldOn&&!P.ringShield;if(P.shieldOn)setW(hud.shb,'sh',P.shield/pstat('energyShield','absorb'));else if(P.ringShield)setW(hud.shb,'sh',P.rsHp/pstat('ringShield','absorb'));
   const mins=Math.floor(tod*24*60);setText(hud.clock,'clock',String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0'));
   const sp=P.vel.len();
@@ -5917,13 +6044,13 @@ function updateHud(dt){
     if(s.id==='morphBand'){s.s.classList.toggle('on',!!P.alien||dialOpen);s.s.classList.toggle('bad',st.flash>0);const f=band.cd>0?band.cd/pstat('morphBand','recharge'):0,v=Math.round(clamp(f,0,1)*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}continue;}
     const active=st.holding||((s.id==='metalSkin'||s.id==='metalForms')&&P.metal)||(s.id==='energyShield'&&P.shieldOn)||(s.id==='telekinesis'&&!!P.tk)||(s.id==='flight'&&P.flying)||(s.trav&&P.flying)||(s.id==='ringShield'&&P.ringShield)||(s.id==='slowTime'&&P.slowOn)||(s.id==='superSpeed'&&P.speeding)||(s.id==='webSwing'&&!!P.web)||(s.id==='wallClimb'&&!!P.wall);
-    s.s.classList.toggle('on',active);s.s.classList.toggle('bad',st.flash>0);
+    s.s.classList.toggle('on',active);s.s.classList.toggle('bad',st.flash>0);s.s.classList.toggle('dim',meterBlocks(s.id));
     if(s.cd){const f=c.cooldown?st.cd/pstat(s.id,'cooldown'):0;const v=Math.round(f*100);if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}}
     const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}}
   hud.cross.classList.toggle('hot',!!(aim.actor&&aim.actor.kind!=='prop'&&aim.actor.kind!=='vehicle'));
   let prompt='';
   const it=P.dead?null:nearestInteract();
-  if(!P.dead){if(it)prompt=it.kind==='exit'?'G · Get out':it.kind==='car'?'G · '+(it.v.driver?'Take this car':'Get in'):'G · Help them up';
+  if(!P.dead){if(it)prompt=it.kind==='exit'?'G · Get out':it.kind==='car'?'G · '+(it.v.driver?'Take this car':'Get in'):it.kind==='eat'?'G · Eat at the '+it.s.name:it.kind==='storm'?meterPrompt():'G · Help them up';
     else if(P.wall)prompt='W/S climb · Space to leap off';else if(aim.actor&&aim.actor.kind==='prop'&&aim.t<30)prompt=aim.actor.alive?(aim.actor.role==='shop'?'Shop':'ATM')+' · hitting it is a crime':'Closed';}
   setText(hud.prompt,'prompt',touchOn()?'':prompt);
   hud.charge.hidden=!P.charging&&!P.cp;if(P.charging||P.cp){setText(hud.charge.firstChild,'chl',P.cp?'CHARGED PUNCH':'SUPER JUMP');setW(hud.chargeb,'charge',P.cp?P.cp.t/1.2:P.chargeT/1.0);}
@@ -5989,7 +6116,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
-  tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,summonConstruct,titanGrow,dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
+  tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>
