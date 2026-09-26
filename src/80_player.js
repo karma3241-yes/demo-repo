@@ -25,9 +25,10 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
-  if(e.code==='KeyV'){if(isRing())openDial('construct');else bandPress();return;}
+  if(e.code==='KeyV'){if(isRing())openDial('construct');else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
+  if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
   if(e.code==='KeyO'&&isRing()){openOath();return;}
-  if(e.code==='KeyB'&&isRing()&&!P.car){summonConstruct();return;}
+  if(e.code==='KeyB'&&(isRing()||armorForms())&&!P.car){summonConstruct();return;}
   if(P.car)return;
   if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&P.web){swingBoost();return;}
   if(e.code==='KeyC'&&hasWeb()&&!P.grounded&&!P.flying&&spiderAirTrick())return;
@@ -139,6 +140,7 @@ function buildTouchButtons(){
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
     for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');if(P.construct&&P.construct.id==='titan'){B('GROW','grow');B('SHRINK','shrink');}}}}
+  if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
   if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
   B('SUIT','suit');B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
@@ -150,7 +152,7 @@ function touchAct(a,down){
   if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
   else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){abilityDown(+a[1]);guideDone('ability');}else abilityUp(+a[1]);}
   else if(a==='con'){if(down)summonConstruct();}
-  else if(a==='conpick'){if(down)openDial('construct');}
+  else if(a==='conpick'){if(down)openDial(isRing()?'construct':'armor');}
   else if(a==='oath'){if(down)openOath();}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}

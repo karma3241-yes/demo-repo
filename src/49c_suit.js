@@ -50,7 +50,7 @@ function renderHeroKeys(){
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
   else if(m==='powerRing'){K('F','Fly · hold on the ground to charge a launch');K('B · V','Build a construct · pick one');K('O','Recite the oath to recharge the ring');K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Huge Mech: grow bigger or shrink back');}
   else if(m==='flight'||m==='stormFlight'||m==='armorFlight'||m==='solarFlight'){K('F','Fly · hold on the ground to charge a launch');
-    if(m==='armorFlight')K('Inventor Tower','Land on its roof or pad to recharge the battery');
+    if(m==='armorFlight'){K('Inventor Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
     if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');}
   if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
   if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');

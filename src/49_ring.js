@@ -15,11 +15,11 @@ const CONSTRUCTS={
 };
 const CON_IDS=Object.keys(CONSTRUCTS);
 const OATH='Through fear and doubt my will holds fast. What I imagine, I make last. Let every foe who stands to fight be humbled by my ring of light.';
-let conPick='bubble',oathOpen=false,oathStart=0;
+let conPick='bubble',armorPick='aJet',oathOpen=false,oathStart=0;
 const isRing=()=>hasTrav('powerRing')&&!P.alien;
 const ringMk=()=>mk('powerRing');
 const conSize=()=>0.8+0.45*ringMk(); // constructs grow with ring mastery
-const conUnlocked=()=>{const l=masteryLevel('powerRing');return CON_IDS.filter(id=>CONSTRUCTS[id].unlock<=l);};
+const conUnlocked=()=>{const arm=armorForms(),l=masteryLevel(arm?'armorFlight':'powerRing');return CON_IDS.filter(id=>!!CONSTRUCTS[id].armor===arm&&CONSTRUCTS[id].unlock<=l);};
 const conDef=()=>P.construct?CONSTRUCTS[P.construct.id]:null;
 const conScale=id=>(CONSTRUCTS[id].scale||1)*(CONSTRUCTS[id].scale?conSize()*conGrow(id):1);
 // the Huge Mech keeps growing: scroll up (or ] / =) to grow it, down to shrink it back.
@@ -38,27 +38,32 @@ function titanGrow(dir){
 }
 const conSpeedMul=()=>{const c=conDef();return c?c.speed:1;};
 const conCam=()=>{const c=conDef();return !c?1:c.cam?c.cam:P.construct.id==='dragon'?1.8:P.construct.id==='jet'?1.35:P.construct.id==='bubble'?1.2:1;};
-function ringOut(){feed('Ring charge is empty','Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
+// constructs run on ring charge, or on the suit battery for the Armored Inventor's suit forms (4 ring points = 1 battery point)
+const armorForms=()=>hasTrav('armorFlight')&&!P.alien;
+const conFuel=()=>armorForms()?save.battery*4:save.ring;
+function conBurn(n){if(armorForms())save.battery=Math.max(0,save.battery-n*0.25);else save.ring=Math.max(0,save.ring-n);}
+const conOwner=id=>CONSTRUCTS[id]&&CONSTRUCTS[id].armor?'armorFlight':'powerRing';
+function ringOut(){if(armorForms()){meterOut(METERS.armorFlight);return;}feed('Ring charge is empty','Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
 function summonConstruct(id){
-  if(!isRing()||!canAct()||P.car)return;
+  if(!(isRing()||armorForms())||!canAct()||P.car)return;
   if(!id&&P.construct){dismissConstruct();return;}
-  id=id||conPick;const C=CONSTRUCTS[id];if(!C)return;
+  id=id||(armorForms()?armorPick:conPick);const C=CONSTRUCTS[id];if(!C)return;
   if(P.construct&&P.construct.id===id){dismissConstruct();return;}
-  if(!conUnlocked().includes(id)){feed(C.name+' is locked','Ring mastery '+C.unlock+' builds it · you are '+Math.floor(masteryLevel('powerRing')));return;}
-  if(save.ring<C.cost){ringOut();return;}
+  if(!conUnlocked().includes(id)){if(!!C.armor!==armorForms())return;feed(C.name+' is locked',(C.armor?'Armored Inventor':'Ring')+' mastery '+C.unlock+' unlocks it · you are '+Math.floor(masteryLevel(conOwner(id))));return;}
+  if(conFuel()<C.cost){ringOut();return;}
   if(P.construct)dismissConstruct(true);
-  save.ring-=C.cost;conPick=id;P.construct={id,t:0,cd:0,cd2:0,cdx:0,gun:0,breath:false,alt:false,side:1};P.web=null;P.wall=null;P.wallRun=null;P.charging=false;P.zip=null;
+  conBurn(C.cost);if(C.armor)armorPick=id;else conPick=id;P.construct={id,t:0,cd:0,cd2:0,cdx:0,gun:0,breath:false,alt:false,side:1};P.web=null;P.wall=null;P.wallRun=null;P.charging=false;P.zip=null;
   if(C.fly){P.flying=true;P.grounded=false;if(P.vel.y<6)P.vel.y=8;}else if(!C.weapon)P.flying=false;
   if(C.drive){P.heroYaw=Math.atan2(camF.x,camF.z);P.construct.spd=Math.hypot(P.vel.x,P.vel.z);}
   const sc=conScale(id);conBody();
-  const c=center(P);ringFx(c.x,c.y,c.z,1,6*Math.max(1,sc),0.5,RING_C);burst(c.x,c.y,c.z,60,10*Math.max(1,sc*0.6),0.7,[RING_C,[.8,1,.85]],1.4,0,2);
-  SFX.tone('sine',300,900,0.35,0.12);feed(C.name,C.attacks+(id==='titan'?' · wheel grows it':''));addMastery('powerRing',8);MP.bump();if(touchOn())buildTouchButtons();
+  const c=center(P),fc=C.armor?ARMOR_FX:RING_C;ringFx(c.x,c.y,c.z,1,6*Math.max(1,sc),0.5,fc);burst(c.x,c.y,c.z,60,10*Math.max(1,sc*0.6),0.7,[fc,C.armor?[1,.85,.4]:[.8,1,.85]],1.4,0,2);
+  if(C.armor)SFX.tone('sawtooth',200,600,0.3,0.1);else SFX.tone('sine',300,900,0.35,0.12);feed(C.name,C.attacks+(id==='titan'?' · wheel grows it':''));addMastery(conOwner(id),8);MP.bump();if(touchOn())buildTouchButtons();
 }
 function dismissConstruct(quiet){
   const K=P.construct;if(!K)return;const C=CONSTRUCTS[K.id];P.construct=null;
   if(C.scale){P.radius=0.8;P.height=2.7;const b=inBuilding(P.pos.x,P.pos.y+1,P.pos.z,0.5);if(b)P.pos.y=b.y1+0.1;}
-  if(!quiet){const c=center(P);burst(c.x,c.y,c.z,40,8,0.6,[RING_C],1.2,-2,2);SFX.tone('sine',800,300,0.25,0.08);}
-  if(C.fly&&save.ring<=0)P.flying=false;MP.bump();if(touchOn())buildTouchButtons();
+  if(!quiet){const c=center(P);burst(c.x,c.y,c.z,40,8,0.6,[C.armor?ARMOR_FX:RING_C],1.2,-2,2);SFX.tone('sine',800,300,0.25,0.08);}
+  if(C.fly&&conFuel()<=0&&!C.armor)P.flying=false;MP.bump();if(touchOn())buildTouchButtons();
 }
 function ringCast(){faceAim();castT=time;}
 function ringProj(o,d,sp,dmg,extra){fireProj(Object.assign({kind:'ring',owner:P,x:o.x,y:o.y,z:o.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg,knock:10,r:0.5,life:2.2},extra||{}));}
@@ -75,7 +80,7 @@ function fireMissiles(n){const K=P.construct,t=conTarget();for(let i=0;i<n;i++){
     fireProj({kind:'rocket',owner:P,x:o.x,y:o.y+0.4,z:o.z,vx:d[0]*50+side*8,vy:d[1]*50+10,vz:d[2]*50,dmg:70*(0.8+ringMk()),r:0.6,life:4,seek:t,col:1});}
   SFX.whoosh();void K;}
 function fireGun(){const K=P.construct;K.side=-K.side;const o=conMuzzle(K.side),d=dirTo(o,aim.x,aim.y,aim.z),j=0.02;
-  fireProj({kind:'ring',owner:P,x:o.x,y:o.y,z:o.z,vx:(d[0]+rr(-j,j))*170,vy:(d[1]+rr(-j,j))*170,vz:(d[2]+rr(-j,j))*170,dmg:9*(1+ringMk()),knock:2,r:0.35,life:1.2,small:true});
+  fireProj({kind:CONSTRUCTS[K.id].armor?'shot':'ring',owner:P,x:o.x,y:o.y,z:o.z,vx:(d[0]+rr(-j,j))*170,vy:(d[1]+rr(-j,j))*170,vz:(d[2]+rr(-j,j))*170,dmg:9*(1+ringMk()),knock:2,r:0.35,life:1.2,small:true});
   SFX.tone('square',900,500,0.04,0.035);}
 // a construct fist / claw: hits everything in a cone in front
 function conSmash(range,dmg,kvF,kvU,col){
@@ -163,10 +168,11 @@ function onRingFx(d,n){
 function presExtra(){return [P.ringShield?1:0,P.phasing?1:0,P.giantS>1.02?Math.round(P.giantS*100)/100:0,P.suited===false?1:0,hasPower('armorSuit')?1:0];}
 // ---- per-frame ----
 function updateRing(dt){
-  if(isRing()){
+  if(P.construct&&!!CONSTRUCTS[P.construct.id].armor!==armorForms())dismissConstruct(true);
+  if(isRing()||armorForms()){
     const K=P.construct;
-    if(P.flying&&!K)save.ring=Math.max(0,save.ring-0.08*dt);
-    if(K){const C=CONSTRUCTS[K.id];K.t+=dt;save.ring=Math.max(0,save.ring-C.drain*dt);addMastery('powerRing',dt*1.2);
+    if(isRing()&&P.flying&&!K)save.ring=Math.max(0,save.ring-0.08*dt);
+    if(K){const C=CONSTRUCTS[K.id];K.t+=dt;conBurn(C.drain*dt);addMastery(conOwner(K.id),dt*1.2);
       for(const k of ['cd','cd2','cdx'])if(K[k]>0)K[k]-=dt;if(K.spikeT>0)K.spikeT-=dt;
       if(C.fly&&!P.flying&&!P.dead)P.flying=true;
       if(K.gunning||K.gunning2){K.gun-=dt;if(K.gun<=0&&canAct()){if(ringSpend(K.id==='rifle'?0.08:0.12)){if(K.id==='rifle'){ringCast();rifleShot(false);}else{if(!C.drive)ringCast();fireGun();}}else ringOut();K.gun=K.id==='titan'?0.06:K.id==='rifle'?0.09:0.08;}}
@@ -178,10 +184,10 @@ function updateRing(dt){
         hitProps(o.x+d[0]*12,o.y+d[1]*12,o.z+d[2]*12,4,P,10);if(Math.random()<dt*4)addScorch(aim.x,aim.y,aim.z,2,aim.nx,aim.ny,aim.nz);}}
       if(K.ramT>0){K.ramT-=dt;for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||time-(a.ramHit||-9)<0.5)continue;const c=center(a);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1.3,c.z-P.pos.z)<3.2*conSize()){a.ramHit=time;Damage.apply(P,a,60*(1+ringMk()),'punch',{kv:[P.vel.x*0.6,14,P.vel.z*0.6],flung:true});}}}
       if(K.id==='titan'&&(K.grow||1)>1.5)titanTrample(K,dt);
-      if(save.ring<=0){dismissConstruct();ringOut();}}
-    if(P.ringShield){save.ring=Math.max(0,save.ring-pstat('ringShield','ringDrain')*dt);if(save.ring<=0){P.ringShield=false;ringOut();}}
+      if(conFuel()<=0){dismissConstruct();ringOut();}}
+    if(isRing()){if(P.ringShield){save.ring=Math.max(0,save.ring-pstat('ringShield','ringDrain')*dt);if(save.ring<=0){P.ringShield=false;ringOut();}}
     {const mx=pstat('ringShield','absorb');if(P.rsHp==null)P.rsHp=mx;if(time-(P.rsHitT||-9)>2.5)P.rsHp=Math.min(mx,P.rsHp+mx*0.12*dt);}
-    if(save.ring<=0&&P.flying&&!P.alien){P.flying=false;}
+    if(save.ring<=0&&P.flying&&!P.alien){P.flying=false;}}
   }else{if(P.construct)dismissConstruct(true);P.ringShield=false;}
   for(let i=ringFxList.length-1;i>=0;i--){const F=ringFxList[i];F.t+=dt;
     if(F.kind==='hammer'){if(!F.hit&&F.t>=0.38){F.hit=true;const R=F.R;

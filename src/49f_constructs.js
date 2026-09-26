@@ -5,7 +5,7 @@
 // The construct wheel has two pages of five (Q / E, the mouse wheel or the page button switch pages).
 const CON_PAGES=[['bubble','jet','mech','titan','dragon'],['bike','racer','rifle','bazooka','cannon']];
 Object.assign(CONSTRUCTS,{
-  bike:{name:'Bike',unlock:2,cost:4,drain:0.35,speed:1,drive:{top:72,accel:42,steer:2.7},cam:1.25,attacks:'WASD ride · Shift boost · LMB guns · RMB ram · Space hop',blurb:'A hard-light motorbike',ext:true},
+  bike:{name:'Bike',bike:true,unlock:2,cost:4,drain:0.35,speed:1,drive:{top:72,accel:42,steer:2.7},cam:1.25,attacks:'WASD ride · Shift boost · LMB guns · RMB ram · Space hop',blurb:'A hard-light motorbike',ext:true},
   racer:{name:'Race Car',unlock:4,cost:6,drain:0.45,speed:1,drive:{top:92,accel:34,steer:2.1},cam:1.45,attacks:'WASD drive · Shift nitro · LMB guns · RMB missiles',blurb:'A hard-light race car',ext:true},
   rifle:{name:'Rifle',unlock:1,cost:2,drain:0.12,speed:1,weapon:true,attacks:'LMB fire · RMB heavy burst · X grenade',blurb:'A hard-light assault rifle',ext:true},
   bazooka:{name:'Bazooka',unlock:3,cost:4,drain:0.18,speed:1,weapon:true,attacks:'LMB rocket · RMB homing salvo',blurb:'A shoulder rocket launcher',ext:true},
@@ -16,8 +16,8 @@ const conDrive=()=>{const c=conDef();return c&&c.drive?c:null;};
 // ---- driving the bike and the race car ----
 function driveConstruct(dt,inF,inR,shift){
   const K=P.construct,C=CONSTRUCTS[K.id],D=C.drive;K.spd=K.spd||0;
-  const boost=shift&&save.ring>0.5&&K.spd>5;if(boost){save.ring=Math.max(0,save.ring-0.8*dt);if(Math.random()<dt*30){const b=-2.2;emit(P.pos.x+Math.sin(P.heroYaw)*b,P.pos.y+0.6,P.pos.z+Math.cos(P.heroYaw)*b,rr(-2,2),rr(0,2),rr(-2,2),0.35,RING_C,1.6,0,0);}}
-  const top=D.top*(boost?1.5:1)*(K.ramT>0?1.4:1);
+  const boost=shift&&conFuel()>0.5&&K.spd>5;if(boost){conBurn(0.8*dt);if(Math.random()<dt*30){const b=-2.2;emit(P.pos.x+Math.sin(P.heroYaw)*b,P.pos.y+0.6,P.pos.z+Math.cos(P.heroYaw)*b,rr(-2,2),rr(0,2),rr(-2,2),0.35,C.armor?FIRE[1]:RING_C,1.6,0,0);}}
+  const top=D.top*(boost?1.5:1)*(K.rideRam>0?1.4:1);
   if(inF>0.1)K.spd+=(K.spd<-0.5?D.accel*2:D.accel*(boost?1.8:1))*inF*dt;
   else if(inF<-0.1)K.spd-=(K.spd>0.5?D.accel*2.2:D.accel*0.6)*(-inF)*dt;
   else K.spd*=1-0.5*dt;
@@ -25,16 +25,16 @@ function driveConstruct(dt,inF,inR,shift){
   const turn=inR*D.steer*clamp(K.spd/10,-1,1)*(P.grounded?1:0.4);P.heroYaw-=turn*dt; // D steers right
   const fx=Math.sin(P.heroYaw),fz=Math.cos(P.heroYaw);
   P.vel.x=fx*K.spd;P.vel.z=fz*K.spd;P.vel.y-=CONFIG.move.gravity*dt;
-  if(keys.Space&&P.grounded&&time-(K.hopT||-9)>0.6){K.hopT=time;P.vel.y=K.id==='bike'?16:11;P.grounded=false;SFX.whoosh();}
-  K.lean=lerp(K.lean||0,-inR*clamp(K.spd/30,0,1)*(K.id==='bike'?0.55:0.12),damp(6,dt));
-  if(K.ramT>0)K.ramT-=dt;
+  if(keys.Space&&P.grounded&&time-(K.hopT||-9)>0.6){K.hopT=time;P.vel.y=C.bike?16:C.heavy?6:11;P.grounded=false;SFX.whoosh();}
+  K.lean=lerp(K.lean||0,-inR*clamp(K.spd/30,0,1)*(C.bike?0.55:0.12),damp(6,dt));
+  if(K.rideRam>0)K.rideRam-=dt;
   // run into people, cars and street furniture
   const sp=Math.abs(K.spd);if(sp<5)return;
   for(const h of humans){if(!h.alive||h.air||h.hidden)continue;const dx=h.pos.x-P.pos.x,dz=h.pos.z-P.pos.z;if(Math.abs(dx)>3||Math.abs(dz)>3||Math.abs(h.pos.y-P.pos.y)>2.5)continue;
-    if(Math.hypot(dx,dz)<2.4&&time-(h.bumpT||-9)>0.6){h.bumpT=time;Damage.apply(P,h,sp*(K.ramT>0?3:1.4)*(1+ringMk()),'crash',{kv:[fx*sp*0.7,8+sp*0.15,fz*sp*0.7],flung:sp>25});}}
+    if(Math.hypot(dx,dz)<2.4&&time-(h.bumpT||-9)>0.6){h.bumpT=time;Damage.apply(P,h,sp*(K.rideRam>0?3:1.4)*(1+ringMk()),'crash',{kv:[fx*sp*0.7,8+sp*0.15,fz*sp*0.7],flung:sp>25});}}
   for(const v of vehicles){if(!v.alive||v.state==='held'||v.state==='thrown'||v.state==='wreckAir')continue;const dx=v.pos.x-P.pos.x,dz=v.pos.z-P.pos.z;if(Math.abs(dx)>5||Math.abs(dz)>5)continue;
-    if(Math.hypot(dx,dz)<v.hl*0.75+1.4&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,sp*(K.ramT>0?4:1.5),'crash');SFX.crash(clamp(sp/40,0.3,1));addShake(0.25);
-      if(K.ramT>0&&!v.net&&v!==P.car){if(v.driver)ejectDriver(v);v.state='thrown';v.vel.set(fx*sp*0.8,12+sp*0.2,fz*sp*0.8);v.sx=rr(-3,3);v.sy=rr(-2,2);v.sz=rr(-3,3);v.life=5;v.thrower=P;v.throwDmg=60;}
+    if(Math.hypot(dx,dz)<v.hl*0.75+1.4&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,sp*(K.rideRam>0?4:1.5),'crash');SFX.crash(clamp(sp/40,0.3,1));addShake(0.25);
+      if(K.rideRam>0&&!v.net&&v!==P.car){if(v.driver)ejectDriver(v);v.state='thrown';v.vel.set(fx*sp*0.8,12+sp*0.2,fz*sp*0.8);v.sx=rr(-3,3);v.sy=rr(-2,2);v.sz=rr(-3,3);v.life=5;v.thrower=P;v.throwDmg=60;}
       else K.spd*=0.5;}}
   hitProps(P.pos.x+fx*1.8,0.6,P.pos.z+fz*1.8,1.4,P,sp);
 }
@@ -46,6 +46,7 @@ function conRocket(o,d,dmg,blast){fireProj({kind:'rocket',owner:P,x:o.x,y:o.y,z:
 function conExtPrimary(K){
   const id=K.id;
   if(id==='bike'||id==='racer'||id==='rifle'){K.gunning=true;return true;}
+  if(CONSTRUCTS[id].armor)return armorPrimary(K);
   if(K.cd>0)return true;
   if(id==='bazooka'){if(!ringSpend(1.5)){ringOut();return true;}ringCast();K.cd=0.9;K.kick=time;const o=conMuzzle(0);conRocket(o,dirTo(o,aim.x,aim.y,aim.z),140*(1+ringMk())*strengthMul(),8);addShake(0.15);return true;}
   if(id==='cannon'){if(bigBeam||save.ring<3){if(save.ring<3)ringOut();return true;}K.chargeT=0;K.charging=true;SFX.tone('sawtooth',80,700,1.5,0.08);return true;}
@@ -58,8 +59,8 @@ function conExtPrimaryUp(K){K.gunning=false;
     addMastery('powerRing',3+6*k);}
 }
 function conExtAlt(K,down){
-  const id=K.id;if(!down)return true;if(K.cd2>0)return true;
-  if(id==='bike'){if(!ringSpend(1.5)){ringOut();return true;}K.cd2=1.5;K.ramT=1.1;K.spd=Math.max(K.spd||0,CONSTRUCTS.bike.drive.top*1.2);SFX.whoosh();ringFx(P.pos.x,P.pos.y+0.8,P.pos.z,1,4,0.3,RING_C);}
+  const id=K.id;if(CONSTRUCTS[id].armor)return armorAlt(K,down);if(!down)return true;if(K.cd2>0)return true;
+  if(id==='bike'){if(!ringSpend(1.5)){ringOut();return true;}K.cd2=1.5;K.rideRam=1.1;K.spd=Math.max(K.spd||0,CONSTRUCTS[id].drive.top*1.2);SFX.whoosh();ringFx(P.pos.x,P.pos.y+0.8,P.pos.z,1,4,0.3,RING_C);}
   else if(id==='racer'){if(!ringSpend(2)){ringOut();return true;}K.cd2=1.1;fireMissiles(2);}
   else if(id==='rifle'){if(!ringSpend(1)){ringOut();return true;}ringCast();K.cd2=0.6;for(let i=0;i<3;i++)later(i*0.07,()=>{if(P.construct===K)rifleShot(true);});}
   else if(id==='bazooka'){if(!ringSpend(3)){ringOut();return true;}ringCast();K.cd2=2.5;K.kick=time;fireMissiles(4);}
@@ -67,6 +68,7 @@ function conExtAlt(K,down){
   return true;
 }
 function conExtX(K){
+  if(CONSTRUCTS[K.id].armor)return true;
   if(K.id!=='rifle'||K.cdx>0)return K.id==='rifle'||!!conDrive();
   if(!ringSpend(2)){ringOut();return true;}ringCast();K.cdx=2;const o=conMuzzle(0),d=dirTo(o,aim.x,aim.y,aim.z);
   fireProj({kind:'rocket',owner:P,x:o.x,y:o.y,z:o.z,vx:d[0]*45,vy:d[1]*45+12,vz:d[2]*45,dmg:90*(1+ringMk()),r:0.6,life:3,grav:30,col:1,blast:7});return true;
@@ -78,6 +80,7 @@ function conExtTick(K,dt){
 }
 // ---- drawing ----
 function drawConExt(s,id,isPlayer){
+  if(CONSTRUCTS[id].armor){drawArmorForm(s,id,isPlayer);return;}
   const K=isPlayer?P.construct:null,x=s.pos.x,y=s.pos.y,z=s.pos.z,yaw=s.heroYaw||0,G=RING_C;
   if(id==='bike'||id==='racer'){
     const lean=K?K.lean||0:s.bank||0,R=at(x,y,z,0,yaw,lean),spin=time*(K?(K.spd||0)*0.6:12),rx=Math.cos(yaw),rz=-Math.sin(yaw);
@@ -105,6 +108,7 @@ function drawConExt(s,id,isPlayer){
 }
 // where each of these fires from
 function conExtMuzzle(id,side){const s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw),cp=Math.cos(P.pitch),sp=Math.sin(-P.pitch);
+  if(CONSTRUCTS[id].armor)return armorMuzzle(id,side,s,c);
   if(id==='bike')return {x:P.pos.x+s*1.8+c*side*0.35,y:P.pos.y+1.1,z:P.pos.z+c*1.8-s*side*0.35};
   if(id==='racer')return {x:P.pos.x+s*2.6+c*side*0.9,y:P.pos.y+0.9,z:P.pos.z+c*2.6-s*side*0.9};
   if(id==='rifle')return {x:P.pos.x+c*0.45+s*(0.55+1.5*cp),y:P.pos.y+1.57-1.5*sp,z:P.pos.z-s*0.45+c*(0.55+1.5*cp)};

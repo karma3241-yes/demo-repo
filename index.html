@@ -212,7 +212,8 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
 .dslot small{font-size:10px;line-height:1.35;color:var(--ink-dim)}
 .dslot.sel,.dslot:hover{border-color:var(--g,#fff);box-shadow:0 0 18px var(--g,#fff);transform:translate(-50%,-50%) scale(1.06)}
 .dslot.locked{opacity:.4;filter:grayscale(1)}
-#dial.green{background:radial-gradient(circle at center,rgba(10,60,26,.55),rgba(3,8,6,.75) 70%)}#dial.green #dial-ring{border-color:rgba(93,255,134,.35);box-shadow:0 0 60px rgba(93,255,134,.22) inset}#dial.green #dial-ring::after{border-color:#5dff86;box-shadow:0 0 30px #5dff86,0 0 12px #5dff86 inset;background:rgba(6,26,12,.8)}#dial.green #dial-ring .dpage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;max-width:20%;padding:6px 8px;border-radius:8px;border:1px solid rgba(93,255,134,.5);background:rgba(6,26,12,.85);color:#c9ffd8;font:700 10px var(--hud);letter-spacing:.08em}
+#dial.green{background:radial-gradient(circle at center,rgba(10,60,26,.55),rgba(3,8,6,.75) 70%)}#dial.green #dial-ring{border-color:rgba(93,255,134,.35);box-shadow:0 0 60px rgba(93,255,134,.22) inset}#dial.green #dial-ring::after{border-color:#5dff86;box-shadow:0 0 30px #5dff86,0 0 12px #5dff86 inset;background:rgba(6,26,12,.8)}#dial.green #dial.red{background:radial-gradient(circle at center,rgba(70,10,8,.55),rgba(8,3,3,.75) 70%)}#dial.red #dial-ring{border-color:rgba(255,106,61,.4);box-shadow:0 0 60px rgba(255,106,61,.22) inset}#dial.red #dial-ring::after{border-color:#ff6a3d;box-shadow:0 0 30px #ff6a3d,0 0 12px #ff6a3d inset;background:rgba(30,8,4,.8)}#dial.red #dial-info{color:#ffd2c2}
+#dial-ring .dpage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;max-width:20%;padding:6px 8px;border-radius:8px;border:1px solid rgba(93,255,134,.5);background:rgba(6,26,12,.85);color:#c9ffd8;font:700 10px var(--hud);letter-spacing:.08em}
 #dial-info{color:#c9ffd8}
 #oath{position:fixed;left:50%;bottom:max(120px,16vh);transform:translateX(-50%);z-index:6;width:min(640px,calc(100% - 32px));padding:16px 18px;box-sizing:border-box;text-align:center;border:1px solid rgba(93,255,134,.45);box-shadow:0 0 40px rgba(93,255,134,.25)}
 #oath.mini{left:auto;right:16px;bottom:max(140px,19vh);transform:none;width:min(320px,calc(100% - 32px));padding:0;text-align:right;background:none;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}#oath.mini h3{display:none}#oath.mini p{font-size:13px;margin:0 0 4px;color:rgba(233,243,255,.55);text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.7)}body:not(.touch) #oath.mini input{display:none}#oath.mini input{padding:6px 8px;font-size:13px}#oath.mini small{margin-top:2px;text-shadow:0 1px 3px #000}#oath.mini button{padding:4px 10px;font-size:11px}
@@ -3033,11 +3034,11 @@ const CONSTRUCTS={
 };
 const CON_IDS=Object.keys(CONSTRUCTS);
 const OATH='Through fear and doubt my will holds fast. What I imagine, I make last. Let every foe who stands to fight be humbled by my ring of light.';
-let conPick='bubble',oathOpen=false,oathStart=0;
+let conPick='bubble',armorPick='aJet',oathOpen=false,oathStart=0;
 const isRing=()=>hasTrav('powerRing')&&!P.alien;
 const ringMk=()=>mk('powerRing');
 const conSize=()=>0.8+0.45*ringMk(); // constructs grow with ring mastery
-const conUnlocked=()=>{const l=masteryLevel('powerRing');return CON_IDS.filter(id=>CONSTRUCTS[id].unlock<=l);};
+const conUnlocked=()=>{const arm=armorForms(),l=masteryLevel(arm?'armorFlight':'powerRing');return CON_IDS.filter(id=>!!CONSTRUCTS[id].armor===arm&&CONSTRUCTS[id].unlock<=l);};
 const conDef=()=>P.construct?CONSTRUCTS[P.construct.id]:null;
 const conScale=id=>(CONSTRUCTS[id].scale||1)*(CONSTRUCTS[id].scale?conSize()*conGrow(id):1);
 // the Huge Mech keeps growing: scroll up (or ] / =) to grow it, down to shrink it back.
@@ -3056,27 +3057,32 @@ function titanGrow(dir){
 }
 const conSpeedMul=()=>{const c=conDef();return c?c.speed:1;};
 const conCam=()=>{const c=conDef();return !c?1:c.cam?c.cam:P.construct.id==='dragon'?1.8:P.construct.id==='jet'?1.35:P.construct.id==='bubble'?1.2:1;};
-function ringOut(){feed('Ring charge is empty','Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
+// constructs run on ring charge, or on the suit battery for the Armored Inventor's suit forms (4 ring points = 1 battery point)
+const armorForms=()=>hasTrav('armorFlight')&&!P.alien;
+const conFuel=()=>armorForms()?save.battery*4:save.ring;
+function conBurn(n){if(armorForms())save.battery=Math.max(0,save.battery-n*0.25);else save.ring=Math.max(0,save.ring-n);}
+const conOwner=id=>CONSTRUCTS[id]&&CONSTRUCTS[id].armor?'armorFlight':'powerRing';
+function ringOut(){if(armorForms()){meterOut(METERS.armorFlight);return;}feed('Ring charge is empty','Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
 function summonConstruct(id){
-  if(!isRing()||!canAct()||P.car)return;
+  if(!(isRing()||armorForms())||!canAct()||P.car)return;
   if(!id&&P.construct){dismissConstruct();return;}
-  id=id||conPick;const C=CONSTRUCTS[id];if(!C)return;
+  id=id||(armorForms()?armorPick:conPick);const C=CONSTRUCTS[id];if(!C)return;
   if(P.construct&&P.construct.id===id){dismissConstruct();return;}
-  if(!conUnlocked().includes(id)){feed(C.name+' is locked','Ring mastery '+C.unlock+' builds it · you are '+Math.floor(masteryLevel('powerRing')));return;}
-  if(save.ring<C.cost){ringOut();return;}
+  if(!conUnlocked().includes(id)){if(!!C.armor!==armorForms())return;feed(C.name+' is locked',(C.armor?'Armored Inventor':'Ring')+' mastery '+C.unlock+' unlocks it · you are '+Math.floor(masteryLevel(conOwner(id))));return;}
+  if(conFuel()<C.cost){ringOut();return;}
   if(P.construct)dismissConstruct(true);
-  save.ring-=C.cost;conPick=id;P.construct={id,t:0,cd:0,cd2:0,cdx:0,gun:0,breath:false,alt:false,side:1};P.web=null;P.wall=null;P.wallRun=null;P.charging=false;P.zip=null;
+  conBurn(C.cost);if(C.armor)armorPick=id;else conPick=id;P.construct={id,t:0,cd:0,cd2:0,cdx:0,gun:0,breath:false,alt:false,side:1};P.web=null;P.wall=null;P.wallRun=null;P.charging=false;P.zip=null;
   if(C.fly){P.flying=true;P.grounded=false;if(P.vel.y<6)P.vel.y=8;}else if(!C.weapon)P.flying=false;
   if(C.drive){P.heroYaw=Math.atan2(camF.x,camF.z);P.construct.spd=Math.hypot(P.vel.x,P.vel.z);}
   const sc=conScale(id);conBody();
-  const c=center(P);ringFx(c.x,c.y,c.z,1,6*Math.max(1,sc),0.5,RING_C);burst(c.x,c.y,c.z,60,10*Math.max(1,sc*0.6),0.7,[RING_C,[.8,1,.85]],1.4,0,2);
-  SFX.tone('sine',300,900,0.35,0.12);feed(C.name,C.attacks+(id==='titan'?' · wheel grows it':''));addMastery('powerRing',8);MP.bump();if(touchOn())buildTouchButtons();
+  const c=center(P),fc=C.armor?ARMOR_FX:RING_C;ringFx(c.x,c.y,c.z,1,6*Math.max(1,sc),0.5,fc);burst(c.x,c.y,c.z,60,10*Math.max(1,sc*0.6),0.7,[fc,C.armor?[1,.85,.4]:[.8,1,.85]],1.4,0,2);
+  if(C.armor)SFX.tone('sawtooth',200,600,0.3,0.1);else SFX.tone('sine',300,900,0.35,0.12);feed(C.name,C.attacks+(id==='titan'?' · wheel grows it':''));addMastery(conOwner(id),8);MP.bump();if(touchOn())buildTouchButtons();
 }
 function dismissConstruct(quiet){
   const K=P.construct;if(!K)return;const C=CONSTRUCTS[K.id];P.construct=null;
   if(C.scale){P.radius=0.8;P.height=2.7;const b=inBuilding(P.pos.x,P.pos.y+1,P.pos.z,0.5);if(b)P.pos.y=b.y1+0.1;}
-  if(!quiet){const c=center(P);burst(c.x,c.y,c.z,40,8,0.6,[RING_C],1.2,-2,2);SFX.tone('sine',800,300,0.25,0.08);}
-  if(C.fly&&save.ring<=0)P.flying=false;MP.bump();if(touchOn())buildTouchButtons();
+  if(!quiet){const c=center(P);burst(c.x,c.y,c.z,40,8,0.6,[C.armor?ARMOR_FX:RING_C],1.2,-2,2);SFX.tone('sine',800,300,0.25,0.08);}
+  if(C.fly&&conFuel()<=0&&!C.armor)P.flying=false;MP.bump();if(touchOn())buildTouchButtons();
 }
 function ringCast(){faceAim();castT=time;}
 function ringProj(o,d,sp,dmg,extra){fireProj(Object.assign({kind:'ring',owner:P,x:o.x,y:o.y,z:o.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg,knock:10,r:0.5,life:2.2},extra||{}));}
@@ -3093,7 +3099,7 @@ function fireMissiles(n){const K=P.construct,t=conTarget();for(let i=0;i<n;i++){
     fireProj({kind:'rocket',owner:P,x:o.x,y:o.y+0.4,z:o.z,vx:d[0]*50+side*8,vy:d[1]*50+10,vz:d[2]*50,dmg:70*(0.8+ringMk()),r:0.6,life:4,seek:t,col:1});}
   SFX.whoosh();void K;}
 function fireGun(){const K=P.construct;K.side=-K.side;const o=conMuzzle(K.side),d=dirTo(o,aim.x,aim.y,aim.z),j=0.02;
-  fireProj({kind:'ring',owner:P,x:o.x,y:o.y,z:o.z,vx:(d[0]+rr(-j,j))*170,vy:(d[1]+rr(-j,j))*170,vz:(d[2]+rr(-j,j))*170,dmg:9*(1+ringMk()),knock:2,r:0.35,life:1.2,small:true});
+  fireProj({kind:CONSTRUCTS[K.id].armor?'shot':'ring',owner:P,x:o.x,y:o.y,z:o.z,vx:(d[0]+rr(-j,j))*170,vy:(d[1]+rr(-j,j))*170,vz:(d[2]+rr(-j,j))*170,dmg:9*(1+ringMk()),knock:2,r:0.35,life:1.2,small:true});
   SFX.tone('square',900,500,0.04,0.035);}
 // a construct fist / claw: hits everything in a cone in front
 function conSmash(range,dmg,kvF,kvU,col){
@@ -3181,10 +3187,11 @@ function onRingFx(d,n){
 function presExtra(){return [P.ringShield?1:0,P.phasing?1:0,P.giantS>1.02?Math.round(P.giantS*100)/100:0,P.suited===false?1:0,hasPower('armorSuit')?1:0];}
 // ---- per-frame ----
 function updateRing(dt){
-  if(isRing()){
+  if(P.construct&&!!CONSTRUCTS[P.construct.id].armor!==armorForms())dismissConstruct(true);
+  if(isRing()||armorForms()){
     const K=P.construct;
-    if(P.flying&&!K)save.ring=Math.max(0,save.ring-0.08*dt);
-    if(K){const C=CONSTRUCTS[K.id];K.t+=dt;save.ring=Math.max(0,save.ring-C.drain*dt);addMastery('powerRing',dt*1.2);
+    if(isRing()&&P.flying&&!K)save.ring=Math.max(0,save.ring-0.08*dt);
+    if(K){const C=CONSTRUCTS[K.id];K.t+=dt;conBurn(C.drain*dt);addMastery(conOwner(K.id),dt*1.2);
       for(const k of ['cd','cd2','cdx'])if(K[k]>0)K[k]-=dt;if(K.spikeT>0)K.spikeT-=dt;
       if(C.fly&&!P.flying&&!P.dead)P.flying=true;
       if(K.gunning||K.gunning2){K.gun-=dt;if(K.gun<=0&&canAct()){if(ringSpend(K.id==='rifle'?0.08:0.12)){if(K.id==='rifle'){ringCast();rifleShot(false);}else{if(!C.drive)ringCast();fireGun();}}else ringOut();K.gun=K.id==='titan'?0.06:K.id==='rifle'?0.09:0.08;}}
@@ -3196,10 +3203,10 @@ function updateRing(dt){
         hitProps(o.x+d[0]*12,o.y+d[1]*12,o.z+d[2]*12,4,P,10);if(Math.random()<dt*4)addScorch(aim.x,aim.y,aim.z,2,aim.nx,aim.ny,aim.nz);}}
       if(K.ramT>0){K.ramT-=dt;for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||time-(a.ramHit||-9)<0.5)continue;const c=center(a);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1.3,c.z-P.pos.z)<3.2*conSize()){a.ramHit=time;Damage.apply(P,a,60*(1+ringMk()),'punch',{kv:[P.vel.x*0.6,14,P.vel.z*0.6],flung:true});}}}
       if(K.id==='titan'&&(K.grow||1)>1.5)titanTrample(K,dt);
-      if(save.ring<=0){dismissConstruct();ringOut();}}
-    if(P.ringShield){save.ring=Math.max(0,save.ring-pstat('ringShield','ringDrain')*dt);if(save.ring<=0){P.ringShield=false;ringOut();}}
+      if(conFuel()<=0){dismissConstruct();ringOut();}}
+    if(isRing()){if(P.ringShield){save.ring=Math.max(0,save.ring-pstat('ringShield','ringDrain')*dt);if(save.ring<=0){P.ringShield=false;ringOut();}}
     {const mx=pstat('ringShield','absorb');if(P.rsHp==null)P.rsHp=mx;if(time-(P.rsHitT||-9)>2.5)P.rsHp=Math.min(mx,P.rsHp+mx*0.12*dt);}
-    if(save.ring<=0&&P.flying&&!P.alien){P.flying=false;}
+    if(save.ring<=0&&P.flying&&!P.alien){P.flying=false;}}
   }else{if(P.construct)dismissConstruct(true);P.ringShield=false;}
   for(let i=ringFxList.length-1;i>=0;i--){const F=ringFxList[i];F.t+=dt;
     if(F.kind==='hammer'){if(!F.hit&&F.t>=0.38){F.hit=true;const R=F.R;
@@ -3490,7 +3497,7 @@ function renderHeroKeys(){
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
   else if(m==='powerRing'){K('F','Fly · hold on the ground to charge a launch');K('B · V','Build a construct · pick one');K('O','Recite the oath to recharge the ring');K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Huge Mech: grow bigger or shrink back');}
   else if(m==='flight'||m==='stormFlight'||m==='armorFlight'||m==='solarFlight'){K('F','Fly · hold on the ground to charge a launch');
-    if(m==='armorFlight')K('Inventor Tower','Land on its roof or pad to recharge the battery');
+    if(m==='armorFlight'){K('Inventor Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
     if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');}
   if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
   if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
@@ -3645,7 +3652,7 @@ function meterPrompt(){const m=heroMeter();if(!m)return '';
 // The construct wheel has two pages of five (Q / E, the mouse wheel or the page button switch pages).
 const CON_PAGES=[['bubble','jet','mech','titan','dragon'],['bike','racer','rifle','bazooka','cannon']];
 Object.assign(CONSTRUCTS,{
-  bike:{name:'Bike',unlock:2,cost:4,drain:0.35,speed:1,drive:{top:72,accel:42,steer:2.7},cam:1.25,attacks:'WASD ride · Shift boost · LMB guns · RMB ram · Space hop',blurb:'A hard-light motorbike',ext:true},
+  bike:{name:'Bike',bike:true,unlock:2,cost:4,drain:0.35,speed:1,drive:{top:72,accel:42,steer:2.7},cam:1.25,attacks:'WASD ride · Shift boost · LMB guns · RMB ram · Space hop',blurb:'A hard-light motorbike',ext:true},
   racer:{name:'Race Car',unlock:4,cost:6,drain:0.45,speed:1,drive:{top:92,accel:34,steer:2.1},cam:1.45,attacks:'WASD drive · Shift nitro · LMB guns · RMB missiles',blurb:'A hard-light race car',ext:true},
   rifle:{name:'Rifle',unlock:1,cost:2,drain:0.12,speed:1,weapon:true,attacks:'LMB fire · RMB heavy burst · X grenade',blurb:'A hard-light assault rifle',ext:true},
   bazooka:{name:'Bazooka',unlock:3,cost:4,drain:0.18,speed:1,weapon:true,attacks:'LMB rocket · RMB homing salvo',blurb:'A shoulder rocket launcher',ext:true},
@@ -3656,8 +3663,8 @@ const conDrive=()=>{const c=conDef();return c&&c.drive?c:null;};
 // ---- driving the bike and the race car ----
 function driveConstruct(dt,inF,inR,shift){
   const K=P.construct,C=CONSTRUCTS[K.id],D=C.drive;K.spd=K.spd||0;
-  const boost=shift&&save.ring>0.5&&K.spd>5;if(boost){save.ring=Math.max(0,save.ring-0.8*dt);if(Math.random()<dt*30){const b=-2.2;emit(P.pos.x+Math.sin(P.heroYaw)*b,P.pos.y+0.6,P.pos.z+Math.cos(P.heroYaw)*b,rr(-2,2),rr(0,2),rr(-2,2),0.35,RING_C,1.6,0,0);}}
-  const top=D.top*(boost?1.5:1)*(K.ramT>0?1.4:1);
+  const boost=shift&&conFuel()>0.5&&K.spd>5;if(boost){conBurn(0.8*dt);if(Math.random()<dt*30){const b=-2.2;emit(P.pos.x+Math.sin(P.heroYaw)*b,P.pos.y+0.6,P.pos.z+Math.cos(P.heroYaw)*b,rr(-2,2),rr(0,2),rr(-2,2),0.35,C.armor?FIRE[1]:RING_C,1.6,0,0);}}
+  const top=D.top*(boost?1.5:1)*(K.rideRam>0?1.4:1);
   if(inF>0.1)K.spd+=(K.spd<-0.5?D.accel*2:D.accel*(boost?1.8:1))*inF*dt;
   else if(inF<-0.1)K.spd-=(K.spd>0.5?D.accel*2.2:D.accel*0.6)*(-inF)*dt;
   else K.spd*=1-0.5*dt;
@@ -3665,16 +3672,16 @@ function driveConstruct(dt,inF,inR,shift){
   const turn=inR*D.steer*clamp(K.spd/10,-1,1)*(P.grounded?1:0.4);P.heroYaw-=turn*dt; // D steers right
   const fx=Math.sin(P.heroYaw),fz=Math.cos(P.heroYaw);
   P.vel.x=fx*K.spd;P.vel.z=fz*K.spd;P.vel.y-=CONFIG.move.gravity*dt;
-  if(keys.Space&&P.grounded&&time-(K.hopT||-9)>0.6){K.hopT=time;P.vel.y=K.id==='bike'?16:11;P.grounded=false;SFX.whoosh();}
-  K.lean=lerp(K.lean||0,-inR*clamp(K.spd/30,0,1)*(K.id==='bike'?0.55:0.12),damp(6,dt));
-  if(K.ramT>0)K.ramT-=dt;
+  if(keys.Space&&P.grounded&&time-(K.hopT||-9)>0.6){K.hopT=time;P.vel.y=C.bike?16:C.heavy?6:11;P.grounded=false;SFX.whoosh();}
+  K.lean=lerp(K.lean||0,-inR*clamp(K.spd/30,0,1)*(C.bike?0.55:0.12),damp(6,dt));
+  if(K.rideRam>0)K.rideRam-=dt;
   // run into people, cars and street furniture
   const sp=Math.abs(K.spd);if(sp<5)return;
   for(const h of humans){if(!h.alive||h.air||h.hidden)continue;const dx=h.pos.x-P.pos.x,dz=h.pos.z-P.pos.z;if(Math.abs(dx)>3||Math.abs(dz)>3||Math.abs(h.pos.y-P.pos.y)>2.5)continue;
-    if(Math.hypot(dx,dz)<2.4&&time-(h.bumpT||-9)>0.6){h.bumpT=time;Damage.apply(P,h,sp*(K.ramT>0?3:1.4)*(1+ringMk()),'crash',{kv:[fx*sp*0.7,8+sp*0.15,fz*sp*0.7],flung:sp>25});}}
+    if(Math.hypot(dx,dz)<2.4&&time-(h.bumpT||-9)>0.6){h.bumpT=time;Damage.apply(P,h,sp*(K.rideRam>0?3:1.4)*(1+ringMk()),'crash',{kv:[fx*sp*0.7,8+sp*0.15,fz*sp*0.7],flung:sp>25});}}
   for(const v of vehicles){if(!v.alive||v.state==='held'||v.state==='thrown'||v.state==='wreckAir')continue;const dx=v.pos.x-P.pos.x,dz=v.pos.z-P.pos.z;if(Math.abs(dx)>5||Math.abs(dz)>5)continue;
-    if(Math.hypot(dx,dz)<v.hl*0.75+1.4&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,sp*(K.ramT>0?4:1.5),'crash');SFX.crash(clamp(sp/40,0.3,1));addShake(0.25);
-      if(K.ramT>0&&!v.net&&v!==P.car){if(v.driver)ejectDriver(v);v.state='thrown';v.vel.set(fx*sp*0.8,12+sp*0.2,fz*sp*0.8);v.sx=rr(-3,3);v.sy=rr(-2,2);v.sz=rr(-3,3);v.life=5;v.thrower=P;v.throwDmg=60;}
+    if(Math.hypot(dx,dz)<v.hl*0.75+1.4&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,sp*(K.rideRam>0?4:1.5),'crash');SFX.crash(clamp(sp/40,0.3,1));addShake(0.25);
+      if(K.rideRam>0&&!v.net&&v!==P.car){if(v.driver)ejectDriver(v);v.state='thrown';v.vel.set(fx*sp*0.8,12+sp*0.2,fz*sp*0.8);v.sx=rr(-3,3);v.sy=rr(-2,2);v.sz=rr(-3,3);v.life=5;v.thrower=P;v.throwDmg=60;}
       else K.spd*=0.5;}}
   hitProps(P.pos.x+fx*1.8,0.6,P.pos.z+fz*1.8,1.4,P,sp);
 }
@@ -3686,6 +3693,7 @@ function conRocket(o,d,dmg,blast){fireProj({kind:'rocket',owner:P,x:o.x,y:o.y,z:
 function conExtPrimary(K){
   const id=K.id;
   if(id==='bike'||id==='racer'||id==='rifle'){K.gunning=true;return true;}
+  if(CONSTRUCTS[id].armor)return armorPrimary(K);
   if(K.cd>0)return true;
   if(id==='bazooka'){if(!ringSpend(1.5)){ringOut();return true;}ringCast();K.cd=0.9;K.kick=time;const o=conMuzzle(0);conRocket(o,dirTo(o,aim.x,aim.y,aim.z),140*(1+ringMk())*strengthMul(),8);addShake(0.15);return true;}
   if(id==='cannon'){if(bigBeam||save.ring<3){if(save.ring<3)ringOut();return true;}K.chargeT=0;K.charging=true;SFX.tone('sawtooth',80,700,1.5,0.08);return true;}
@@ -3698,8 +3706,8 @@ function conExtPrimaryUp(K){K.gunning=false;
     addMastery('powerRing',3+6*k);}
 }
 function conExtAlt(K,down){
-  const id=K.id;if(!down)return true;if(K.cd2>0)return true;
-  if(id==='bike'){if(!ringSpend(1.5)){ringOut();return true;}K.cd2=1.5;K.ramT=1.1;K.spd=Math.max(K.spd||0,CONSTRUCTS.bike.drive.top*1.2);SFX.whoosh();ringFx(P.pos.x,P.pos.y+0.8,P.pos.z,1,4,0.3,RING_C);}
+  const id=K.id;if(CONSTRUCTS[id].armor)return armorAlt(K,down);if(!down)return true;if(K.cd2>0)return true;
+  if(id==='bike'){if(!ringSpend(1.5)){ringOut();return true;}K.cd2=1.5;K.rideRam=1.1;K.spd=Math.max(K.spd||0,CONSTRUCTS[id].drive.top*1.2);SFX.whoosh();ringFx(P.pos.x,P.pos.y+0.8,P.pos.z,1,4,0.3,RING_C);}
   else if(id==='racer'){if(!ringSpend(2)){ringOut();return true;}K.cd2=1.1;fireMissiles(2);}
   else if(id==='rifle'){if(!ringSpend(1)){ringOut();return true;}ringCast();K.cd2=0.6;for(let i=0;i<3;i++)later(i*0.07,()=>{if(P.construct===K)rifleShot(true);});}
   else if(id==='bazooka'){if(!ringSpend(3)){ringOut();return true;}ringCast();K.cd2=2.5;K.kick=time;fireMissiles(4);}
@@ -3707,6 +3715,7 @@ function conExtAlt(K,down){
   return true;
 }
 function conExtX(K){
+  if(CONSTRUCTS[K.id].armor)return true;
   if(K.id!=='rifle'||K.cdx>0)return K.id==='rifle'||!!conDrive();
   if(!ringSpend(2)){ringOut();return true;}ringCast();K.cdx=2;const o=conMuzzle(0),d=dirTo(o,aim.x,aim.y,aim.z);
   fireProj({kind:'rocket',owner:P,x:o.x,y:o.y,z:o.z,vx:d[0]*45,vy:d[1]*45+12,vz:d[2]*45,dmg:90*(1+ringMk()),r:0.6,life:3,grav:30,col:1,blast:7});return true;
@@ -3718,16 +3727,17 @@ function conExtTick(K,dt){
 }
 // ---- drawing ----
 function drawConExt(s,id,isPlayer){
+  if(CONSTRUCTS[id].armor){drawArmorForm(s,id,isPlayer);return;}
   const K=isPlayer?P.construct:null,x=s.pos.x,y=s.pos.y,z=s.pos.z,yaw=s.heroYaw||0,G=RING_C;
   if(id==='bike'||id==='racer'){
     const lean=K?K.lean||0:s.bank||0,R=at(x,y,z,0,yaw,lean),spin=time*(K?(K.spd||0)*0.6:12),rx=Math.cos(yaw),rz=-Math.sin(yaw);
     const wheel=(lx,ly,lz,r)=>{const p=child(R,lx,ly,lz),wx=p[12],wy=p[13],wz=p[14];
       queue(MESH.ring,M4.alignY(tmpM(),wx,wy,wz,rx,0,rz,r),[G[0],G[1],G[2],0.85],F_ADD);queue(MESH.glowSphere,at(wx,wy,wz,spin,yaw,0,r*0.35,r*0.35,r*0.35),[G[0],G[1],G[2],0.35],F_BL);};
     if(id==='bike'){wheel(0,0.55,1.25,0.55);wheel(0,0.55,-1.15,0.55);
-      glowQ(child(R,0,0.95,0.05,-0.15,0,0,0.35,0.35,2.1),0.4);glowQ(child(R,0,1.2,-0.4,0,0,0,0.42,0.18,1.0),0.45);glowQ(child(R,0,1.25,0.95,-0.5,0,0,0.12,0.9,0.12),0.5);
+      glowQ(child(R,0,0.95,0.05,-0.15,0,0,0.35,0.35,2.1),0.6);glowQ(child(R,0,1.2,-0.4,0,0,0,0.42,0.18,1.0),0.65);glowQ(child(R,0,1.25,0.95,-0.5,0,0,0.12,0.9,0.12),0.5);
       glowQ(child(R,0,1.65,1.1,0,0,0,1.1,0.1,0.1),0.55);queue(MESH.glowSphere,child(R,0,1.1,1.55,0,0,0,0.22,0.18,0.12),[1,1,1,0.9],F_ADD);}
     else{for(const sd of [-1,1]){wheel(sd*1.05,0.5,1.55,0.5);wheel(sd*1.05,0.5,-1.45,0.5);}
-      glowQ(child(R,0,0.7,0,0,0,0,2.1,0.45,4.6),0.35);glowQ(child(R,0,1.05,-0.3,0,0,0,1.2,0.45,1.6),0.3);glowQ(child(R,0,0.65,2.4,0,0,0,2.3,0.12,0.5),0.5);
+      glowQ(child(R,0,0.7,0,0,0,0,2.1,0.45,4.6),0.55);glowQ(child(R,0,1.05,-0.3,0,0,0,1.2,0.45,1.6),0.5);glowQ(child(R,0,0.65,2.4,0,0,0,2.3,0.12,0.5),0.5);
       glowQ(child(R,0,1.35,-2.1,0,0,0,2.2,0.1,0.55),0.5);for(const sd of [-1,1]){glowQ(child(R,sd*0.8,1.05,-2.1,0,0,0,0.1,0.6,0.3),0.5);queue(MESH.glowSphere,child(R,sd*0.75,0.75,2.35,0,0,0,0.25,0.15,0.1),[1,1,1,0.9],F_ADD);}}
     return;}
   // weapons: held at your right side or on your right shoulder, aimed where you look
@@ -3745,11 +3755,74 @@ function drawConExt(s,id,isPlayer){
 }
 // where each of these fires from
 function conExtMuzzle(id,side){const s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw),cp=Math.cos(P.pitch),sp=Math.sin(-P.pitch);
+  if(CONSTRUCTS[id].armor)return armorMuzzle(id,side,s,c);
   if(id==='bike')return {x:P.pos.x+s*1.8+c*side*0.35,y:P.pos.y+1.1,z:P.pos.z+c*1.8-s*side*0.35};
   if(id==='racer')return {x:P.pos.x+s*2.6+c*side*0.9,y:P.pos.y+0.9,z:P.pos.z+c*2.6-s*side*0.9};
   if(id==='rifle')return {x:P.pos.x+c*0.45+s*(0.55+1.5*cp),y:P.pos.y+1.57-1.5*sp,z:P.pos.z-s*0.45+c*(0.55+1.5*cp)};
   if(id==='bazooka')return {x:P.pos.x+c*0.4+s*1.8*cp,y:P.pos.y+2.15-1.8*sp,z:P.pos.z-s*0.4+c*1.8*cp};
   return {x:P.pos.x+c*0.55+s*4*cp,y:P.pos.y+2.55-4*sp,z:P.pos.z-s*0.55+c*4*cp};}
+// ================================================================
+// Armored Inventor suit forms: the armor folds itself into a jet, a bike, a sports car or a tank
+// ================================================================
+// Same machinery as the Ring Bearer's constructs, but built from red and gold metal plates and powered by the suit battery.
+// V opens the forms wheel (N if you also carry the Morph Band), B turns into your last form and back.
+const ARMOR_FX=[1,.45,.2],ARMOR_RED=[.55,.02,.03,1],ARMOR_GOLD=[.95,.7,.22,1],ARMOR_DARK=[.12,.12,.14,1];
+const ARMOR_IDS=['aJet','aBike','aCar','aTank'];
+Object.assign(CONSTRUCTS,{
+  aJet:{name:'Jet Form',armor:true,ext:true,unlock:1,cost:5,drain:0.5,fly:true,speed:2.1,cam:1.35,attacks:'LMB guns · RMB missiles',blurb:'The suit folds into a fighter jet'},
+  aBike:{name:'Bike Form',armor:true,ext:true,bike:true,unlock:2,cost:4,drain:0.35,speed:1,drive:{top:76,accel:44,steer:2.7},cam:1.25,attacks:'WASD ride · Shift boost · LMB guns · RMB ram',blurb:'A red superbike'},
+  aCar:{name:'Car Form',armor:true,ext:true,unlock:3,cost:6,drain:0.45,speed:1,drive:{top:96,accel:36,steer:2.1},cam:1.45,attacks:'WASD drive · Shift boost · LMB guns · RMB missiles',blurb:'A red and gold sports car'},
+  aTank:{name:'Tank Form',armor:true,ext:true,heavy:true,unlock:5,cost:10,drain:0.6,speed:1,drive:{top:34,accel:18,steer:1.4},cam:1.6,attacks:'WASD drive · LMB cannon · RMB machine gun',blurb:'A walking fortress on treads'},
+});
+for(const id of ARMOR_IDS)if(!CON_IDS.includes(id))CON_IDS.push(id);
+function armorPrimary(K){
+  const id=K.id;
+  if(id==='aTank'){if(K.cd>0)return true;if(!ringSpend(3)){ringOut();return true;}K.cd=1.3;K.kick=time;const o=conMuzzle(0),d=dirTo(o,aim.x,aim.y,aim.z);
+    conRocket(o,d,200*(1+mk('armorFlight'))*strengthMul(),10);explode(o.x,o.y,o.z,0.3);addShake(0.35);SFX.boom(0.7,0.9);return true;}
+  K.gunning=true;return true;
+}
+function armorAlt(K,down){
+  const id=K.id;
+  if(id==='aTank'){K.gunning2=down;return true;}
+  if(!down)return true;if(K.cd2>0)return true;
+  if(id==='aBike'){if(!ringSpend(1.5)){ringOut();return true;}K.cd2=1.5;K.rideRam=1.1;K.spd=Math.max(K.spd||0,CONSTRUCTS.aBike.drive.top*1.2);SFX.whoosh();ringFx(P.pos.x,P.pos.y+0.8,P.pos.z,1,4,0.3,ARMOR_FX);}
+  else{if(!ringSpend(2)){ringOut();return true;}K.cd2=1.1;fireMissiles(id==='aJet'?2:2);}
+  return true;
+}
+function armorMuzzle(id,side,s,c){
+  if(id==='aJet')return {x:P.pos.x+s*3+c*side*1.6,y:P.pos.y+1.1,z:P.pos.z+c*3-s*side*1.6};
+  if(id==='aBike')return {x:P.pos.x+s*1.8+c*side*0.35,y:P.pos.y+1.1,z:P.pos.z+c*1.8-s*side*0.35};
+  if(id==='aCar')return {x:P.pos.x+s*2.6+c*side*0.9,y:P.pos.y+0.9,z:P.pos.z+c*2.6-s*side*0.9};
+  // tank: the big gun turns to where you aim; the machine gun sits beside it
+  const ty=Math.atan2(camF.x,camF.z),ts=Math.sin(ty),tc=Math.cos(ty);
+  return side?{x:P.pos.x+ts*2.2+tc*side*0.9,y:P.pos.y+2.6,z:P.pos.z+tc*2.2-ts*side*0.9}:{x:P.pos.x+ts*5.2,y:P.pos.y+2.4+camF.y*3,z:P.pos.z+tc*5.2};
+}
+const conHidesRider=id=>id==='racer'||!!(CONSTRUCTS[id]&&CONSTRUCTS[id].armor);
+function drawArmorForm(s,id,isPlayer){
+  const K=isPlayer?P.construct:null,x=s.pos.x,y=s.pos.y,z=s.pos.z,yaw=s.heroYaw||0,R0=ARMOR_RED,G0=ARMOR_GOLD,D0=ARMOR_DARK;
+  const M=(m,c)=>queue(c===R0?MESH.box:MESH.mbox,m,c,F_SH),glow=(m,a)=>queue(MESH.glowSphere,m,[1,.85,.5,a],F_ADD);
+  if(id==='aJet'){const pitch=isPlayer&&P.flying?-P.pitch*0.6:0,R=at(x,y+1.1,z,pitch,yaw,s.bank||0);
+    M(child(R,0,0,0.6,0,0,0,1.3,1.0,6.8),R0);M(child(R,0,0.45,1.6,0,0,0,0.8,0.5,2.2),G0);M(child(R,0,0,3.9,0.1,0,0,0.7,0.6,1.4),R0);
+    M(child(R,0,-0.1,-0.6,0,0,0,8.6,0.14,2.4),R0);M(child(R,0,-0.05,-0.6,0,0,0,8.8,0.08,0.6),G0);M(child(R,0,0.1,-3.1,0,0,0,3.4,0.12,1.2),R0);
+    for(const sd of [-1,1]){M(child(R,sd*0.7,0.9,-3,0,0,sd*0.35,0.12,1.6,1.2),R0);glow(child(R,sd*0.45,0,-3.4,0,0,0,0.45,0.45,0.8),0.8);}return;}
+  if(id==='aBike'||id==='aCar'||id==='aTank'){
+    const lean=K?K.lean||0:s.bank||0,R=at(x,y,z,0,yaw,lean),spin=time*(K?(K.spd||0)*0.6:12);
+    const wheel=(lx,ly,lz,r,w)=>{M(child(R,lx,ly,lz,spin,0,0,w,r*2,r*2),D0);M(child(R,lx*1.02,ly,lz,spin,0,0,w*1.05,r*0.9,r*0.9),G0);};
+    if(id==='aBike'){wheel(0,0.55,1.3,0.55,0.35);wheel(0,0.55,-1.2,0.55,0.4);
+      M(child(R,0,0.95,0.05,-0.12,0,0,0.45,0.5,2.1),R0);M(child(R,0,1.25,-0.45,0,0,0,0.5,0.2,1.0),D0);M(child(R,0,1.35,0.85,-0.5,0,0,0.5,0.55,0.5),R0);
+      M(child(R,0,1.6,1.05,0,0,0,1.0,0.08,0.08),D0);glow(child(R,0,1.2,1.5,0,0,0,0.2,0.16,0.1),0.95);glow(child(R,0,0.9,-1.7,0,0,0,0.25,0.2,0.1),0.6);}
+    else if(id==='aCar'){for(const sd of [-1,1]){wheel(sd*1.05,0.5,1.55,0.5,0.4);wheel(sd*1.05,0.5,-1.45,0.5,0.4);}
+      M(child(R,0,0.7,0,0,0,0,2.1,0.55,4.7),R0);M(child(R,0,1.1,-0.35,0,0,0,1.5,0.5,1.8),[.08,.1,.14,1]);M(child(R,0,0.98,0.9,-0.15,0,0,1.8,0.1,1.4),R0);
+      M(child(R,0,0.72,0,0,0,0,2.14,0.12,3.6),G0);M(child(R,0,1.35,-2.2,0,0,0,2.2,0.1,0.5),D0);
+      for(const sd of [-1,1]){glow(child(R,sd*0.75,0.8,2.36,0,0,0,0.25,0.15,0.1),0.95);queue(MESH.glowSphere,child(R,sd*0.75,0.8,-2.36,0,0,0,0.22,0.12,0.08),[1,.15,.1,0.9],F_ADD);}}
+    else{ // tank: treads, hull and a turret that turns toward your aim
+      for(const sd of [-1,1]){M(child(R,sd*1.6,0.7,0,0,0,0,0.9,1.3,5.6),D0);for(let i=0;i<5;i++)M(child(R,sd*1.62,0.55,-2.2+i*1.1,spin*0.3,0,0,0.95,0.7,0.7),[.3,.3,.32,1]);}
+      M(child(R,0,1.55,0,0,0,0,2.9,0.9,5.2),R0);M(child(R,0,1.56,0,0,0,0,3.0,0.14,4.4),G0);
+      const ty=isPlayer?Math.atan2(camF.x,camF.z)-yaw:0,T=child(R,0,2.25,-0.3,0,ty,0);M(child(T,0,0.25,0,0,0,0,2.2,0.8,2.4),R0);
+      const recoil=K&&time-(K.kick||-9)<0.2?-0.6:0,pt=isPlayer?-P.pitch*0.5:0;M(child(T,0,0.25,2.3+recoil,pt,0,0,0.35,0.35,3.4),D0);M(child(T,0,0.25,4.0+recoil,pt,0,0,0.5,0.5,0.35),G0);
+      M(child(T,0.9,0.6,0.9,0,0,0,0.2,0.2,1.2),D0);glow(child(T,0,0.35,-1.0,0,0,0,0.3,0.3,0.1),0.7);}
+    return;}
+}
 // ================================================================
 // NPCs: people, drones, vehicles, rival supers, shops
 // ================================================================
@@ -5266,6 +5339,7 @@ let dialOpen=false,dialSel=-1,dialVX=0,dialVY=0,dialKind='alien';
 const dialEl=$('dial');
 // the radial picker is shared by the Morph Band (aliens) and the power ring (constructs)
 function dialItems(){
+  if(dialKind==='armor')return ARMOR_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Armored Inventor mastery '+c.unlock,glow:'#ff6a3d',info:c.name+' · '+c.attacks,pick:()=>summonConstruct(id)};});
   if(dialKind==='construct')return CON_PAGES[dialPage].map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Ring mastery '+c.unlock,glow:'#5dff86',info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
   return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),lock:'Band LV '+a.unlock,glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · '),pick:()=>transformInto(id)};});
 }
@@ -5273,13 +5347,13 @@ let dialPage=0;
 function dialPageTurn(d){if(dialKind!=='construct')return;dialPage=(dialPage+d+CON_PAGES.length)%CON_PAGES.length;openDial('construct',true);SFX.tone('sine',500,700,0.06,0.04);}
 function openDial(kind='alien',keepPage){
   if(kind==='construct'&&!keepPage)dialPage=Math.max(0,CON_PAGES.findIndex(p=>p.includes(conPick)));
-  dialKind=kind;const list=dialItems();dialOpen=true;dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');const ring=$('dial-ring');ring.textContent='';
+  dialKind=kind;const list=dialItems();dialOpen=true;dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');dialEl.classList.toggle('red',kind==='armor');const ring=$('dial-ring');ring.textContent='';
   list.forEach((a,i)=>{const ang=i/list.length*TAU-Math.PI/2;
     const b=el('button',{type:'button',class:'dslot'+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*38).toFixed(1)}%;top:${(50+Math.sin(ang)*38).toFixed(1)}%`,
       onclick:()=>{if(a.on){closeDial();a.pick();}},onmouseenter:()=>setDialSel(i)},el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:a.on?a.blurb:a.lock}));
     b.style.setProperty('--g',a.glow);ring.appendChild(b);});
   if(kind==='construct'){const pb=el('button',{type:'button',class:'dpage',text:['Mechs & flyers','Rides & weapons'][dialPage]+' · page '+(dialPage+1)+'/'+CON_PAGES.length+' ▸',onclick:e=>{e.stopPropagation();dialPageTurn(1);}});ring.appendChild(pb);}
-  $('dial-info').textContent=kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · Q / E or the wheel for more':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
+  $('dial-info').textContent=kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · Q / E or the wheel for more':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
 }
 function setDialSel(i){dialSel=i;for(const b of dialEl.querySelectorAll('.dslot'))b.classList.toggle('sel',+b.dataset.i===i);
   const a=dialItems()[i];if(a)$('dial-info').textContent=a.info;}
@@ -5321,9 +5395,10 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
-  if(e.code==='KeyV'){if(isRing())openDial('construct');else bandPress();return;}
+  if(e.code==='KeyV'){if(isRing())openDial('construct');else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
+  if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
   if(e.code==='KeyO'&&isRing()){openOath();return;}
-  if(e.code==='KeyB'&&isRing()&&!P.car){summonConstruct();return;}
+  if(e.code==='KeyB'&&(isRing()||armorForms())&&!P.car){summonConstruct();return;}
   if(P.car)return;
   if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&P.web){swingBoost();return;}
   if(e.code==='KeyC'&&hasWeb()&&!P.grounded&&!P.flying&&spiderAirTrick())return;
@@ -5435,6 +5510,7 @@ function buildTouchButtons(){
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
     for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');if(P.construct&&P.construct.id==='titan'){B('GROW','grow');B('SHRINK','shrink');}}}}
+  if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
   if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
   B('SUIT','suit');B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
@@ -5446,7 +5522,7 @@ function touchAct(a,down){
   if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
   else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){abilityDown(+a[1]);guideDone('ability');}else abilityUp(+a[1]);}
   else if(a==='con'){if(down)summonConstruct();}
-  else if(a==='conpick'){if(down)openDial('construct');}
+  else if(a==='conpick'){if(down)openDial(isRing()?'construct':'armor');}
   else if(a==='oath'){if(down)openOath();}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
@@ -6002,7 +6078,7 @@ function drawRemote(r){
   if(!r.look||r.pos.y<-40||(r.flags&FLAG.invis))return;const q=inView(r.pos.x,r.pos.z,700,30);if(q<0)return;
   if(r.car){const mesh=CARS[r.car.model];drawVehicle(r,mesh,r.pos.x,r.pos.y,r.pos.z,0,r.car.yaw,0,r.car.tint,r.flash,r.car.model==='police',VDIM[r.car.model][0],VDIM[r.car.model][1],false);return;}
   if(r.flags&FLAG.dead){const root=at(r.pos.x,r.pos.y,r.pos.z,0,r.heroYaw,0);queue(MESH.box,child(root,0,0.25,0,0,0,0,0.8,0.4,2.2),r.look.suit,F_SH);return;}
-  if(r.rag)drawRagdoll(r,ragColorsSuper(r.look));else if(r.alien)drawAlien(r,r.alien,false);else if(r.cn==='racer'){}else{const ro=r.cn?riderOffset(r.cn,r.cz):0;r.pos.y+=ro;drawSuper(r,r.look,false);r.pos.y-=ro;}
+  if(r.rag)drawRagdoll(r,ragColorsSuper(r.look));else if(r.alien)drawAlien(r,r.alien,false);else if(r.cn&&conHidesRider(r.cn)){}else{const ro=r.cn?riderOffset(r.cn,r.cz):0;r.pos.y+=ro;drawSuper(r,r.look,false);r.pos.y-=ro;}
   if(r.cn&&!r.rag)drawConstruct(r,r.cn,false);if(r.ex&&r.ex[0])queue(MESH.glowSphere,at(r.pos.x,r.pos.y+1.3,r.pos.z,0,0,0,3.2,3.2,3.2),[RING_C[0],RING_C[1],RING_C[2],0.14],F_ADD);
   if(r.beam){const w=r.beam.w||0;if(w>0.5){queue(MESH.glowBox,M4.beam(tmpM(),r.pos.x,r.pos.y+1.8,r.pos.z,r.beam.x,r.beam.y,r.beam.z,w*0.5),[1,1,1,1],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),r.pos.x,r.pos.y+1.8,r.pos.z,r.beam.x,r.beam.y,r.beam.z,w*1.4),[.6,.85,1,0.45],F_ADD);}
     else{queue(MESH.glowBox,M4.beam(tmpM(),r.eye.x,r.eye.y,r.eye.z,r.beam.x,r.beam.y,r.beam.z,0.1),[1,.55,.35,1],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),r.eye.x,r.eye.y,r.eye.z,r.beam.x,r.beam.y,r.beam.z,0.35),[.9,.08,.03,0.45],F_BL);}}
@@ -6014,7 +6090,7 @@ function buildDrawList(){
   dlN=0;
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
     const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.phasing?0.45:0;
-    if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else if(P.construct&&P.construct.id==='racer'){/* sitting inside the race car */}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;}
+    if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else if(P.construct&&conHidesRider(P.construct.id)){/* inside the race car, or the suit has become the vehicle */}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;}
     if(P.cp&&P.hand){const h=P.hand,k=Math.min(1,P.cp.t/1.2),s=0.3+k*0.6+Math.sin(time*30)*0.05;queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s,s,s),[1,.85,.5,0.9],F_ADD);queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s*2.5,s*2.5,s*2.5),[1,.6,.3,0.25*k],F_ADD);}
     GHOST=0;
     if(P.shieldOn){const s=1.9+Math.sin(time*6)*0.05;queue(MESH.glowSphere,at(P.pos.x,P.pos.y+1.35,P.pos.z,0,time,0,s,s*1.1,s),[.3,.75,1,0.16+0.2*clamp(P.shield/pstat('energyShield','absorb'),0,1)],F_ADD);}
