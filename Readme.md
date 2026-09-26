@@ -31,6 +31,7 @@ All of these are original characters inspired by famous hero styles.
 - **Tricks:** dive by looking down and pressing forward. `C` in the air does a trick; flips unlock as mastery grows. You roll out of hard landings.
 - **Crawl** on any wall.
 - **Spider-sense** sometimes dodges attacks for you.
+- **Web tether:** right click on someone yanks them toward you. Keep holding it and you stay webbed on: if they run, drive or fly off, you get dragged along on the rope (it slowly reels you in). It works on people, rival supers, cars and other players. Any shield (Energy Shield, Ring Shield, the Metal Forms shield arm) cuts the web.
 - **Abilities:** Web Strike (yank someone, or swing-kick them from the air), Web Bomb (pins everyone nearby) and Web Whip (knocks back everyone around you).
 
 **Speedster** (Super Speed). No energy limit: a yellow **calorie** bar instead. Running fast and using powers burn calories. Run out and the speed dial tops out at ×2, your powers take three times as long to come back, and Time Stop is locked. Press `G` at any shop to eat and fill right back up.
@@ -42,11 +43,16 @@ All of these are original characters inspired by famous hero styles.
 **Storm God** (Storm Flight). Instead of energy he has a **lightning** meter. Only lightning costs charge: Lightning Bolt, the Storm Hammer's lightning strike and the bolt when you blast off. When it runs out he can still fly and fight, and the hammer still flies, just without the lightning. To recharge, land on top of a tall tower and press `G` to raise the hammer and call the storm down into it.
 
 **Armored Inventor** (Armor Flight). The suit runs on a **battery** instead of energy. Every power uses it, and flying drains it slowly. When it's empty the suit drops into **standby**: you can still fly and punch, but no repulsors, energy blasts, core beam or shield. Recharge at **Inventor Tower** (the red and gold skyscraper marked **I** on the minimap): land on its roof or its landing pad, or walk into the lobby. Upgrade the battery's capacity (100 up to 300) with skill points in the Skills screen.
+- **Suit forms:** the armor folds itself into a red and gold **Jet** (Armored Inventor mastery 1), **Bike** (2), **Sports Car** (3) or **Tank** (5). `V` opens the forms wheel (`N` if you also carry the Morph Band) and `B` turns into your last form and back. Forms run on the battery; the tank's turret follows your aim.
 
 **Ring Bearer** (Power Ring). Everything runs on **ring charge**, which never refills by itself.
 - **Recharging:** press `O` to hold up the lantern and type the oath to recharge. The game doesn't pause and the mouse stays locked: just start typing, and `Enter` or `Esc` puts the lantern away. The first time, the oath shows in the middle of the screen with an explanation. After you've typed it once, it sits as plain text in the bottom-right corner and `Tab` (NEXT WORD on touch screens) fills in each word for you. At 0 charge you can only walk.
 - **Flying:** `F` flies.
 - **Constructs:** `B` builds your default construct and `V` opens the construct wheel. The choices are a spiked Bubble, a Jet (guns and homing missiles), a Mech and a Huge Mech (punches, guns, missile salvos; the huge one tramples buildings) and a Dragon you ride (claw strike, breath, roar). Inside a construct, left click, right click and `X` are its attacks.
+- **More constructs** on the wheel's second page (`Q`/`E`, the mouse wheel or the page button switch pages):
+  - a **Bike** (ring mastery 2) and a **Race Car** (4) that you drive with `WASD`, `Shift` to boost and `Space` to hop, with guns on left click (and a ram or missiles on right click);
+  - a hard-light **Rifle** (1: rapid fire, a heavy burst and a grenade on `X`), a **Bazooka** (3: rockets and a homing salvo) and the **Shoulder Cannon** (8): hold left click to charge it and let go to fire a beam that cuts through buildings.
+  The weapons work on foot or in the air.
 - **The Huge Mech keeps growing:** scroll up (or `]`) to make it bigger, up to 8 times its size (well over 100 m tall), and scroll down (or `[`) to shrink it back. Growing costs ring charge: going all the way costs half a full ring. The bigger it is, the harder it hits, and buildings under its feet get crushed as it walks. On touch screens use GROW and SHRINK.
 - **Abilities:** Ring Blast, Hammer Smash, Chain Lasso and Ring Shield.
 - **Ring Shield** has its own health (shown on the HUD shield bar) that grows as you upgrade it. Holding it up barely costs charge, and each hit it takes costs a little more. If it breaks, it takes 4 seconds to rebuild.
@@ -92,6 +98,7 @@ You start tough: 220 health, and ordinary people and police do half damage to yo
 
 ### Getting around
 
+- **Space:** anything that flies can keep climbing. Past the clouds the sky turns black, Earth curves away below, and you stay in zero-g flight. The higher you are, the faster you fly (it slows down again near any surface), so the Moon, Mercury, Venus, Mars, Jupiter, Saturn (with its rings), Uranus, Neptune and a few of their moons are all a short trip away. The planets are solid, so you can land on them. The Sun burns. Fly back down and you re-enter over the city.
 - **Wall running** is for everyone: sprint (hold `Shift`) into a wall to run up it, or hit it at an angle to run along it. `Space` leaps off. The Speedster's wall running gets faster with the speed dial.
 - **Parkour leap:** a quick jump while sprinting carries you much further.
 - **At night** the street lamps and car headlights light up the streets around you.
@@ -146,6 +153,7 @@ Nova Bay is a 16 × 16 block island with a downtown of glass towers, a brick old
 - **Crimes** play out on their own and only show up as icons on your minimap. There are no pop-ups. Drones rob shops and float the loot to a getaway van, drones hack ATMs, thugs mug people, and thieves break into cars and drive off. If you step in and stop one, you get a bonus.
 - **Heists** are rare and big. The mothership tries to lift the bank vault into the sky, or a Titan mech rips open an armored truck.
 - **People react.** Civilians flee from fights and from villains. Criminals can leave people injured on the ground; heroes can help them up with `G`. Thug gangs hang around alleys and attack heroes on sight. Police go after villains and wanted criminals, and patrol cars chase them with sirens. When you're wanted, **police helicopters** join in at 4 stars; they circle overhead, sweep a searchlight at night and fire at you; shoot one down and it spins out of the sky. Rival heroes and villains with their own powers roam the city too.
+- **Hunter squads.** Stay at 5 stars for a while as a villain and the city sends an armada of hero robots after you. Rack up a long win streak as a hero (25 takedowns without going down) and the villains send robots after you. Each robot has its own kit: fliers strafe you, speedsters rush you on foot, brawlers smash the ground, beamers hold a laser on you and bombers drop rockets from above. More arrive every wave. They pull out when you go down, or when your stars drop. In a room-code game the host's city sends squads after any player who earns one.
 - **Wanted level.** Crimes against civilians and police earn you wanted stars (1–5), shown at the top of the HUD. 1 star sends officers on foot, 2 brings police cars, 3 sends more of everything, 4 calls in helicopters and 5 is everything at once. Stay out of the police's sight and you lose a star at a time; the stars blink while they can't see you. Getting knocked out clears them.
 - **Bounty.** As a villain, your crimes also build a bounty (bigger the more stars you have). It stays on your head until a hero takes you down: a hero player collects it as XP and reputation, and a rival hero can claim it too. Other players can see your stars and bounty on your name tag.
 
