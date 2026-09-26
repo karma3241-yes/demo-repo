@@ -22,35 +22,50 @@ function knock(t,src,power,up=0.45){
   if(t.kind==='human'){t.air=true;t.vel.set(dx*power,power*up+3,dz*power);t.tumble=rr(4,9)*(Math.random()<0.5?-1:1);}
   else if(t.kind==='drone'||t.kind==='rival'){t.vel.x+=dx*power;t.vel.z+=dz*power;t.vel.y+=power*up;}
 }
+// combo hits: explicit launch velocity, a small nudge, air-juggle float, and 'flung' so impacts crater
+function hitMotion(t,src,opt){
+  if(opt.nudge&&!opt.kv){if(t.kind==='human'&&!t.air&&!t.hidden){t.pos.x+=opt.nudge[0];t.pos.z+=opt.nudge[1];}else if(t.kind==='rival'){t.pos.x+=opt.nudge[0];t.pos.z+=opt.nudge[1];}return;}
+  const k=opt.kv;if(!k)return;
+  if(t.kind==='human'){if(t.hidden||t.held)return;t.air=true;t.vel.set(k[0],k[1],k[2]);t.tumble=(opt.flung?rr(6,11):rr(1,3))*(Math.random()<0.5?-1:1);}
+  else if(t.kind==='drone'||t.kind==='rival'){t.vel.set(k[0],k[1],k[2]);}
+  else return;
+  if(opt.float)t.floatT=opt.float;if(opt.apex)t.apexT=time;
+  if(opt.flung){t.flungT=time;t.flungBy=src;t.heavy=opt.heavy||0;if(t.kind!=='drone')startRagdoll(t,k[0],k[1],k[2]);}
+}
 const Damage={
   apply(src,t,amount,type='hit',opt={}){
     if(!t||!(amount>0))return 0;
     if(t===P){
       if(P.dead||state!=='play')return 0;
+      if(P.iframeT>0){if(time-(P.dodgeT||-9)>0.4){P.dodgeT=time;feed('Dodged','');}return 0;}
+      if(src&&src.kind!=='remote'&&type!=='pvp')amount*=CONFIG.health.npcTaken;
       if(P.shield>0){const a=Math.min(P.shield,amount);P.shield-=a;amount-=a;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1.5,2.6,0.25,[.4,.85,1]);if(P.shield<=0)breakShield();}
       if(P.metal)amount*=1-pstat('metalSkin','dr');
       if(P.alien&&P.alien.armor>0)amount*=0.4;if(P.car)amount*=0.5;
       if(amount<=0)return 0;
       P.hp-=amount;P.lastHit=time;hurtFlash=Math.min(1,hurtFlash+0.2+amount/40);
       if(time-lastHurtSfx>0.15){lastHurtSfx=time;SFX.hit();}
-      if(opt.knock)knock(P,src,opt.knock*0.6);
+      if(opt.kv){P.vel.set(opt.kv[0]*0.85,opt.kv[1]*0.85,opt.kv[2]*0.85);P.grounded=false;P.web=null;P.wall=null;P.wallRun=null;if(Math.hypot(...opt.kv)>20){P.flying=false;P.flungT=time;if(!P.alien)startRagdoll(P,P.vel.x,P.vel.y,P.vel.z);}}
+      else if(opt.knock)knock(P,src,opt.knock*0.6);
+      if(type==='pvp'&&opt.stun)P.stun=Math.max(P.stun,Math.min(1.4,opt.stun));
       Bus.emit('damaged',{source:src,target:P,amount,type});
       if(P.hp<=0){P.hp=0;playerDown(src);}
       return amount;
     }
+    if(t.net&&WS.mirror){if(src!==P||!t.alive)return 0;WS.sendHit(t,amount,type,opt);dmgNum(t,amount);hitMarkT=time;t.flash=1;t.lastHit=time;Bus.emit('damaged',{source:P,target:t,amount,type});return amount;}
     if(!t.alive)return 0;
-    if(t.kind==='prop'&&src!==P)return 0;
-    if(t.kind==='remote')return src===P?MP.hit(t,amount,type,opt):0;
+    if(t.kind==='prop'&&src!==P&&!(src&&src.kind==='remote'))return 0;
+    if(t.kind==='remote')return src===P?MP.hit(t,amount,type,opt):(WS.host&&src?WS.npcHit(t,src,amount,type,opt):0);
     if(src===P){dmgNum(t,amount);hitMarkT=time;}
     if(t.kind==='human'&&t.role==='civilian'&&t.hp-amount<=0&&src!==P&&!t.downed){t.hp=1;t.downed=25;t.flash=1;t.state='downed';if(opt.knock)knock(t,src,opt.knock);Bus.emit('damaged',{source:src,target:t,amount,type});return amount;}
     t.hp-=amount;t.flash=1;t.lastHit=time;
     if(opt.stun)t.stun=Math.max(t.stun||0,opt.stun);
     if(opt.burn){t.burn=opt.burn.time;t.burnDps=opt.burn.dps;t.burnSrc=src;}
     if(src&&src!==t){t.grudge=src;t.grudgeT=time;}
-    if(opt.knock&&t.hp>0)knock(t,src,opt.knock);
+    if(opt.kv||opt.nudge)hitMotion(t,src,opt);else if(opt.knock&&t.hp>0)knock(t,src,opt.knock);
     if(t.onHit)t.onHit(src,amount);
     Bus.emit('damaged',{source:src,target:t,amount,type});
-    if(t.hp<=0){t.hp=0;t.alive=false;if(opt.knock)knock(t,src,opt.knock);if(t.onDefeat)t.onDefeat(src);Bus.emit('defeated',{target:t,killer:src});}
+    if(t.hp<=0){t.hp=0;t.alive=false;if(opt.kv)hitMotion(t,src,opt);else if(opt.knock)knock(t,src,opt.knock);if(t.onDefeat)t.onDefeat(src);Bus.emit('defeated',{target:t,killer:src});}
     return amount;
   }
 };
@@ -102,6 +117,7 @@ Bus.on('defeated',({target,killer})=>{
   if(target.kind==='human'){const c=NPCS[target.role];xp=c.xp;rep=c.rep;label={civilian:'Civilian down',thug:'Thug defeated',boss:'Crime boss defeated',police:'Police officer down'}[target.role];
     if(target.role==='police')P.heat=10;}
   else if(target.kind==='drone'){xp=NPCS.drone.xp;rep=NPCS.drone.rep;label='Drone destroyed';}
+  else if(target.kind==='heli'){xp=150;rep=-40;label='Police helicopter down';P.heat=10;}
   else if(target.kind==='rival'){xp=NPCS.rival.xp+NPCS.rival.xpPerLvl*target.level;rep=target.faction==='villain'?NPCS.rival.rep:-NPCS.rival.rep;if(target.bounty){xp*=2;rep*=2;}label=target.name+' defeated'+(target.bounty?' · bounty claimed':'');}
   else if(target.kind==='boss'){const c=NPCS[target.type];xp=c.xp;rep=c.rep;label=(target.type==='ship'?'Mothership':'Titan mech')+' destroyed';}
   else return;
@@ -159,12 +175,13 @@ function breakWindowAt(b,x,y,z){
   const gx=Math.round(y/4)*4+2;if(gx>b.y1-1)return;
   const fx=n[0]>0?b.x1:n[0]<0?b.x0:x,fz=n[2]>0?b.z1:n[2]<0?b.z0:z;
   for(const w of windows)if(Math.abs(w.x-fx)<1.5&&Math.abs(w.y-gx)<1&&Math.abs(w.z-fz)<1.5){return;}
+  WS.destroyed('wb',{ci:colliders.indexOf(b),x,y,z});
   if(windows.length>=90)windows.shift();windows.push({x:fx+n[0]*0.03,y:gx,z:fz+n[2]*0.03,nx:n[0],nz:n[2],life:CONFIG.destruction.windowLife});
   shatter(fx+n[0]*0.5,gx,fz+n[2]*0.5,n[0],n[2]);
 }
 // street furniture destruction
 function breakProp(p,src,ix=0,iz=0){
-  if(!p.alive)return;p.alive=false;p.respawn=CONFIG.destruction.propRespawn;propDirty.add(p.bi);
+  if(!p.alive)return;WS.destroyed('pb',{bi:p.bi,i:blockProps[p.bi].indexOf(p)});p.alive=false;p.respawn=CONFIG.destruction.propRespawn;propDirty.add(p.bi);
   const d=PROP_DEF[p.type],spd=Math.hypot(ix,iz);
   for(const part of d.parts){const M=propPartM(p,part);const mesh=part[0]==='cyl'?MESH.cyl:part[0]==='sphere'?MESH.sphere:MESH.box;
     const col=part[0]==='sphere'&&p.tint?p.tint:part[7];
@@ -184,7 +201,7 @@ function updateStreetProps(dt){
   let n=0;for(const bi of propDirty){buildBlockProps(bi);propDirty.delete(bi);if(++n>3)break;}
   for(const list of blockProps)for(const p of list)if(!p.alive){p.respawn-=dt;if(p.respawn<=0&&Math.hypot(p.x-P.pos.x,p.z-P.pos.z)>110){p.alive=true;p.hp=p.maxHp;propDirty.add(p.bi);}}
 }
-function addScorch(x,y,z,r,nx=0,ny=1,nz=0){if(scorches.length>=60)scorches.shift();scorches.push({x:x+nx*0.07,y:y+ny*0.07,z:z+nz*0.07,r,nx,ny,nz,life:60});}
+function addScorch(x,y,z,r,nx=0,ny=1,nz=0,cr=false){if(scorches.length>=110)scorches.shift();scorches.push({x:x+nx*0.07,y:y+ny*0.07,z:z+nz*0.07,r,nx,ny,nz,life:cr?150:60,cr});}
 function addFire(x,y,z,t,r,big=false){if(fires.length>=24)fires.shift();const f={x,y,z,t,r,big};fires.push(f);return f;}
 function explode(x,y,z,s=1){
   burst(x,y,z,Math.round(55*s),26*s,1.0,FIRE,3.2*s,-4,1.8);
@@ -194,7 +211,7 @@ function explode(x,y,z,s=1){
   const v=SFX.vol(x,y,z);SFX.boom(v*Math.min(1,0.6*s),0.9+s*0.3);addShake(0.5*s*v);
   scare(x,z,45*s);
   spawnDebris(x,y,z,Math.max(1,Math.round(3*s)),METAL,16*s);
-  const b=inBuilding(x,y,z,4);if(b&&b.y1>3){spawnDebris(x,y,z,Math.round(7*s),b.col||WALK,13*s);breakWindowAt(b,x,y,z);if(s>0.9)breakWindowAt(b,x,y+4,z);}
+  const b=inBuilding(x,y,z,4);if(b&&b.bld)damageBuilding(b.bld,120*s,x,y,z,0,0);if(b&&b.y1>3){spawnDebris(x,y,z,Math.round(7*s),b.col||WALK,13*s);breakWindowAt(b,x,y,z);if(s>0.9)breakWindowAt(b,x,y+4,z);if(s>=0.7){const n=faceNormal(b,x,y,z);if(n[1]===0)addScorch(x,y,z,2.2*s,n[0],0,n[2],true);}}
   hitProps(x,y,z,4*s,null,14*s);
 }
 function areaDamage(x,y,z,R,dmg,src,opt={}){
@@ -257,7 +274,10 @@ function updateProjs(dt){
         if(p.owner!==P&&a.kind==='prop')continue;
         if(p.owner&&p.owner!==P&&p.owner.faction&&a.faction===p.owner.faction)continue;
         const c=center(a);const R=(a.radius||1)+p.r;
-        if(Math.abs(c.x-p.x)<R&&Math.abs(c.z-p.z)<R&&Math.hypot(c.x-p.x,(c.y-p.y)*(a.ys||1),c.z-p.z)<R){hit=a;break;}
+        // swept test along this frame's movement so fast shots can't skip past a target
+        const sx=p.vx*dt,sy=p.vy*dt,sz=p.vz*dt,ox=p.x-sx,oy=p.y-sy,oz=p.z-sz,L2=sx*sx+sy*sy+sz*sz;
+        const k=L2>1e-6?clamp(((c.x-ox)*sx+(c.y-oy)*sy+(c.z-oz)*sz)/L2,0,1):1,qx=ox+sx*k,qy=oy+sy*k,qz=oz+sz*k;
+        if(Math.abs(c.x-qx)<R&&Math.abs(c.z-qz)<R&&Math.hypot(c.x-qx,(c.y-qy)*(a.ys||1),c.z-qz)<R){hit=a;break;}
       }
       if(!hit&&p.owner!==P&&!P.dead&&Math.hypot(P.pos.x-p.x,P.pos.y+1.3-p.y,P.pos.z-p.z)<1.2+p.r)hit=P;
     }

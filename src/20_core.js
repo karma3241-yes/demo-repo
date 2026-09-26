@@ -7,9 +7,9 @@ const CONFIG={
   picks:{movement:2,abilities:3},
   powerMax:10,powerUpgradeCost:lvl=>lvl+1,passiveMax:50,passiveCost:1,
   energy:{base:100,perLevel:5,regen:8,regenBonus:0.02,delay:1.5,togglesBlockRegen:false},
-  health:{base:100,perLevel:10,baseRegen:0,healPerLevel:0.4,healDelay:4,respawn:5},
+  health:{base:220,perLevel:14,baseRegen:2,healPerLevel:0.5,healDelay:3,respawn:5,npcTaken:0.5},
   move:{run:14,sprint:21,gravity:68,jump:30,superJump:95},
-  punch:{damage:10,range:3.4,cooldown:0.3,knock:11,comboMul:1.6},
+  punch:{damage:16,range:3.4,cooldown:0.3,knock:11,comboMul:1.6},
   autosave:30,
   drive:{maxSpeed:42,accel:16,brake:34,reverse:12,steer:1.7,grip:6},
   traffic:{cars:95,police:4,follow:9,stopLine:13},
@@ -21,7 +21,7 @@ const POWERS={
   flight:{name:'Flight',cat:'movement',type:'toggle',key:'F',desc:'Fly anywhere. Space climbs, C dives, Shift boosts.',speed:[40,90],drain:[4,2],boost:2.6},
   superSpeed:{name:'Super Speed',cat:'movement',type:'hold',key:'Shift',desc:'Hold Shift to run at blinding speed and bowl people over.',mult:[2,5],drain:[5,2],hitDmg:[6,20]},
   wallClimb:{name:'Wall-Climb',cat:'movement',type:'passive',key:'Auto',desc:'Run into a wall to grab it. W and S climb, A and D move sideways, Space leaps off.',speed:[8,20]},
-  webSwing:{name:'Web-Swinging',cat:'movement',type:'hold',key:'Right click',desc:'Hold right click to shoot a web at a building and swing. Hit a person to snare them.',range:[40,100],force:[1,2],energy:5,stun:[1.2,3]},
+  webSwing:{name:'Web-Swinging',cat:'movement',type:'hold',key:'Right click',desc:'Hold right click to swing: webs find buildings ahead for you and chain while you hold. Let go at the top of a swing for a boost, Space mid-air to web-zip. Aim at a person to yank them.',range:[90,170],force:[1,2],energy:3,stun:[1.2,3]},
   fireball:{name:'Fireball',cat:'offence',type:'projectile',desc:'Hurl a fireball that explodes and sets targets on fire.',energy:15,cooldown:2,damage:[25,120],radius:[3,7],speed:45,burnDps:[5,14],burnTime:3},
   iceCloud:{name:'Ice Cloud',cat:'offence',type:'channel',desc:'Hold to summon a freezing cloud where you aim. Slows and hurts everything inside.',energyPerSec:10,slow:[0.3,0.7],dps:[8,40],radius:[6,9],range:45},
   lightning:{name:'Lightning Bolt',cat:'offence',type:'instant',desc:'Call a bolt from the sky onto your target. Huge burst damage and a stun.',energy:20,cooldown:4,damage:[40,180],stun:[0.3,1],radius:[3,5],range:140},
@@ -32,6 +32,15 @@ const POWERS={
   metalSkin:{name:'Metal Skin',cat:'defence',type:'toggle',desc:'Turn your skin to steel. You take far less damage but move slower.',drain:3,dr:[0.3,0.7],slow:[0.3,0.1]},
   energyShield:{name:'Energy Shield',cat:'defence',type:'toggle',desc:'Raise a bubble that soaks up damage until it breaks.',energy:25,absorb:[50,400],cooldown:15},
   morphBand:{name:'Morph Band',cat:'special',type:'special',key:'V',desc:'An alien wrist device. Transform into one of six alien forms, each with its own body and powers. Upgrades unlock more aliens and longer transformations.',duration:[45,150],recharge:[40,12],power:[1,2]},
+  stormHammer:{name:'Storm Hammer',cat:'offence',type:'instant',desc:'Hurl an enchanted hammer. It calls lightning down on whatever it hits, smashes everything in its path and flies back to your hand.',energy:18,cooldown:3,damage:[40,170],stun:[0.5,1.2],range:[45,90]},
+  repulsors:{name:'Repulsor Barrage',cat:'offence',type:'channel',desc:'Hold to fire rapid palm blasts from alternating hands. Great for keeping crowds and drones at bay.',energyPerSec:14,damage:[8,30],knock:[5,14]},
+  coreBeam:{name:'Core Beam',cat:'offence',type:'instant',desc:'Wind up a blinding beam from your chest. It burns through people, cars and even buildings for a second and a half.',energy:35,cooldown:10,dps:[60,220]},
+  ricochetShield:{name:'Ricochet Shield',cat:'offence',type:'instant',desc:'Throw a disc that bounces from target to target before flying back to you.',energy:12,cooldown:2.5,damage:[30,110],bounces:[3,6],stun:[0.5,1]},
+  bladeClaws:{name:'Blade Claws',cat:'offence',type:'instant',desc:'Retractable claws. Lunge through enemies with a flurry of slashes. While you have them, your body heals itself much faster.',energy:10,cooldown:1.5,damage:[35,140],range:[10,18]},
+  blink:{name:'Blink',cat:'utility',type:'instant',desc:'Teleport to where you aim in a puff of smoke, knocking back anyone near where you appear.',energy:15,cooldown:[4,1.5],range:[25,60],damage:[20,90]},
+  gravityWell:{name:'Gravity Well',cat:'offence',type:'instant',desc:'Open a singularity that drags in people, cars and street furniture, then collapses in a blast.',energy:30,cooldown:12,radius:[18,32],damage:[60,220]},
+  spiritWave:{name:'Spirit Wave',cat:'offence',type:'charge',desc:'Hold to gather energy in your palms, release to unleash a massive wave that tears through anything, buildings included.',energy:40,cooldown:8,damage:[120,420]},
+  timeDilation:{name:'Time Dilation',cat:'utility',type:'instant',desc:'Slow the world down around you while you move at full speed. In multiplayer it makes you faster instead.',energy:35,cooldown:20,duration:[3,7]},
 };
 const MOVEMENT_POWERS=Object.keys(POWERS).filter(k=>POWERS[k].cat==='movement');
 const ABILITY_POWERS=Object.keys(POWERS).filter(k=>POWERS[k].cat!=='movement');
@@ -105,7 +114,7 @@ const pv=k=>save.passives[k]|0;
 const maxHp=()=>(CONFIG.health.base+CONFIG.health.perLevel*pv('vitality'))*(P.alien?ALIENS[P.alien.id].hp:1);
 const maxEn=()=>CONFIG.energy.base+CONFIG.energy.perLevel*pv('energy');
 const enRegen=()=>CONFIG.energy.regen*(1+CONFIG.energy.regenBonus*pv('energy'));
-const hpRegen=()=>CONFIG.health.baseRegen+CONFIG.health.healPerLevel*pv('healing');
+const hpRegen=()=>CONFIG.health.baseRegen+CONFIG.health.healPerLevel*pv('healing')+(hasPower('bladeClaws')?4+powerLevel('bladeClaws')*0.6:0);
 const strengthMul=()=>1+0.02*pv('strength');
 const throwMul=()=>1+0.01*pv('strength');
 const hasPower=id=>!!save.character&&(save.character.movement.includes(id)||save.character.abilities.includes(id));

@@ -6,6 +6,8 @@ const aim={x:0,y:0,z:0,t:0,actor:null,surface:false,hitAny:false,nx:0,ny:1,nz:0}
 let beam=null,ice=null,lastScorch=0,castT=-9;
 const camPos=new V3(),camF=new V3(0,0,-1),camR=new V3(1,0,0),camU=new V3(0,1,0);
 function computeAim(range){
+  if(lockT&&lockT.alive){const c=center(lockT),d=Math.hypot(c.x-camPos.x,c.y-camPos.y,c.z-camPos.z);if(d<range+40){
+    aim.t=d;aim.x=c.x;aim.y=c.y;aim.z=c.z;aim.actor=lockT;aim.surface=false;aim.nx=0;aim.ny=1;aim.nz=0;aim.hitAny=true;return aim;}}
   const ox=camPos.x,oy=camPos.y,oz=camPos.z,dx=camF.x,dy=camF.y,dz=camF.z;
   const t0=Math.max(0,(P.pos.x-ox)*dx+(P.pos.y+1.5-oy)*dy+(P.pos.z-oz)*dz);
   let best=range+t0,actor=null,surface=false,nx=0,ny=1,nz=0;
@@ -31,16 +33,18 @@ function abilityDown(slot){
   if(id==='morphBand'){bandPress();return;}
   const c=POWERS[id],s=PS[id];
   if(c.type==='channel'){s.holding=true;return;}
+  if(c.type==='charge'){if(s.cd>0){s.flash=0.3;return;}s.holding=true;s.chargeT=0;SFX.tone('sawtooth',90,420,1.5,0.05);return;}
   if(c.type==='hold'){if(id==='telekinesis')tkGrab();return;}
   if(c.type==='toggle'){togglePower(id);return;}
   if(s.cd>0){s.flash=0.3;return;}
   if(!spend(c.energy)){noEnergy(id);return;}
-  s.cd=c.cooldown;POWER_FN[id]();
+  s.cd=pstat(id,'cooldown');POWER_FN[id]();
 }
 function abilityUp(slot){
   if(P.alien){alienAbilityUp(slot);return;}
   const id=save.character&&save.character.abilities[slot];if(!id)return;
   if(POWERS[id].type==='channel')PS[id].holding=false;
+  if(POWERS[id].type==='charge'&&PS[id].holding){PS[id].holding=false;chargeFire(id);}
   if(id==='telekinesis')tkThrow();
 }
 function togglePower(id){
@@ -126,9 +130,13 @@ function iceVisuals(){
 function tkGrab(){
   if(P.tk)return;const a=aim.actor;const R=pstat('telekinesis','range');
   if(!a||a.kind==='boss'||a.kind==='prop'||(a.kind==='vehicle'&&a.state!=='road'&&a.state!=='parked')){PS.telekinesis.flash=0.3;return;}
+  if(a.kind==='heli'||(a.kind==='remote'&&!MP.net())){PS.telekinesis.flash=0.3;return;}
   if(Math.hypot(a.pos.x-P.pos.x,a.pos.y-P.pos.y,a.pos.z-P.pos.z)>R){PS.telekinesis.flash=0.3;feed('Too far','Telekinesis reaches '+Math.round(R)+' m');return;}
   if(!spend(POWERS.telekinesis.energy)){noEnergy('telekinesis');return;}
-  P.tk={a};a.held=true;if(a.kind==='vehicle'){a.state='held';if(a.driver)ejectDriver(a);}if(a.kind==='human')a.air=false;
+  P.tk={a,sendT:0};a.held=true;
+  if(a.kind==='remote'){feed('Holding '+a.name,'Let go to throw them');}
+  else if(a.net)P2P.emit('tg',{id:a.nid});
+  else{if(a.kind==='vehicle'){a.state='held';if(a.driver)ejectDriver(a);}if(a.kind==='human')a.air=false;}
   faceAim();SFX.tone('sine',200,520,0.4,0.1);ringFx(a.pos.x,a.pos.y+1,a.pos.z,0.5,4,0.3,[.75,.5,1]);
 }
 function tkTick(dt){
@@ -136,6 +144,8 @@ function tkTick(dt){
   if(a.kind!=='vehicle'&&!a.alive&&!a.air&&a.kind!=='human'){tkDrop();return;}
   const cost=POWERS.telekinesis.energyPerSec*dt;if(P.en<cost){tkThrow();return;}P.en-=cost;P.lastSpend=time;
   const far=a.kind==='vehicle'?8:6.5;const hx=P.pos.x+camF.x*far,hy=P.pos.y+2.6+camF.y*far,hz=P.pos.z+camF.z*far;
+  P.tk.hold=[hx,Math.max(hy,0.5),hz];
+  if(a.kind==='remote'){if(!a.alive||!MP.peers.has(a.peer)){P.tk=null;a.held=false;return;}P.tk.sendT-=dt;if(P.tk.sendT<=0){P.tk.sendT=0.1;MP.fx('hold',{to:a.peer,x:Math.round(hx*10)/10,y:Math.round(Math.max(hy,0.5)*10)/10,z:Math.round(hz*10)/10});}return;}
   const k=damp(9,dt);a.pos.x+=(hx-a.pos.x)*k;a.pos.y+=(Math.max(hy,0.5)-a.pos.y)*k;a.pos.z+=(hz-a.pos.z)*k;
   if(a.vel)a.vel.set(0,0,0);a.stun=Math.max(a.stun||0,0.3);
   if(Math.random()<0.6)emit(a.pos.x+rr(-1.5,1.5),a.pos.y+rr(0,2),a.pos.z+rr(-1.5,1.5),0,rr(0,2),0,0.5,[.7,.45,1],1.1,0,0);
@@ -143,52 +153,18 @@ function tkTick(dt){
 function tkThrow(){
   if(!P.tk)return;const a=P.tk.a;P.tk=null;a.held=false;faceAim();
   const sp=55,vx=camF.x*sp+P.vel.x*0.5,vy=camF.y*sp+6,vz=camF.z*sp+P.vel.z*0.5,dmg=pstat('telekinesis','throwDmg')*throwMul();
+  if(a.kind==='remote'){MP.hit(a,dmg,'throw',{kv:[vx,vy,vz],stun:1});SFX.whoosh();return;}
+  if(a.net){P2P.emit('tt',{id:a.nid,v:[vx,vy,vz].map(Math.round),d:Math.round(dmg)});SFX.whoosh();return;}
   if(a.kind==='vehicle'){a.state='thrown';a.vel.set(vx,vy,vz);a.sx=rr(-3,3);a.sy=rr(-2,2);a.sz=rr(-3,3);a.life=6;a.thrower=P;a.throwDmg=dmg;}
   else if(a.kind==='human'){a.air=true;a.vel.set(vx,vy,vz);a.tumble=rr(6,10);a.thrown={by:P,dmg};}
   else{a.vel.set(vx,vy,vz);a.thrown={by:P,dmg};a.stun=1;}
   SFX.whoosh();
 }
-function tkDrop(){if(!P.tk)return;const a=P.tk.a;P.tk=null;a.held=false;if(a.kind==='vehicle'){a.state='thrown';a.vel.set(0,0,0);a.sx=a.sy=a.sz=0;a.life=6;a.thrower=P;a.throwDmg=10;}else if(a.kind==='human'){a.air=true;a.vel.set(0,0,0);}}
-function webPress(){
-  if(!hasPower('webSwing')||!canAct())return;
-  const R=pstat('webSwing','range'),h=handPoint();
-  if(aim.actor&&aim.actor.kind!=='boss'&&aim.actor.kind!=='prop'){
-    const a=aim.actor,c=center(a);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z)>R)return;
-    if(!spend(POWERS.webSwing.energy)){noEnergy();return;}
-    tracer(h.x,h.y,h.z,c.x,c.y,c.z,[.95,.95,1],0.08,0.2);Damage.apply(P,a,5,'web',{stun:pstat('webSwing','stun')});
-    if(a.kind==='human'&&a.alive){const dx=P.pos.x-a.pos.x,dz=P.pos.z-a.pos.z,l=Math.hypot(dx,dz)||1;a.air=true;a.vel.set(dx/l*Math.min(l,18),7,dz/l*Math.min(l,18));a.tumble=2;}
-    SFX.tone('triangle',1300,500,0.12,0.08);return;
-  }
-  if(!aim.hitAny||!aim.surface)return;
-  if(aim.ny>0.5&&aim.y<2)return;
-  const d=Math.hypot(aim.x-h.x,aim.y-h.y,aim.z-h.z);if(d>R){PS.webSwing.flash=0.3;return;}
-  if(!spend(POWERS.webSwing.energy)){noEnergy();return;}
-  P.web={x:aim.x,y:aim.y,z:aim.z,L:d*0.9};P.flying=false;P.wall=null;P.charging=false;
-  SFX.tone('triangle',1200,500,0.12,0.08);
-}
-function webRelease(){if(!P.web)return;P.web=null;if(!P.grounded){P.vel.mul(1.08);P.vel.y+=6;}}
-function punch(){
-  if(!canAct()||P.punchCd>0||P.tk)return;
-  P.punchCd=CONFIG.punch.cooldown;if(time-P.punchT>0.8)P.punchN=0;P.punchN=P.punchN%3+1;P.punchT=time;P.punchArm=P.punchN===2?-1:1;
-  let fx=camF.x,fy=P.flying?camF.y:0,fz=camF.z;const fl=Math.hypot(fx,fy,fz)||1;fx/=fl;fy/=fl;fz/=fl;
-  P.heroYaw=Math.atan2(fx,fz);
-  const am=P.alien?(ALIENS[P.alien.id].scale>2?3.5:1.6):1;
-  const combo=P.punchN===3,dmg=CONFIG.punch.damage*strengthMul()*am*(combo?CONFIG.punch.comboMul:1);
-  const cx=P.pos.x,cy=P.pos.y+1.3,cz=P.pos.z;let hits=0,hx=0,hy=0,hz=0;
-  for(const a of actors){
-    if(!a.alive||a.held)continue;const c=center(a);const dx=c.x-cx,dy=c.y-cy,dz=c.z-cz,d=Math.hypot(dx,dy*(a.ys||1),dz);
-    if(d>CONFIG.punch.range+(a.radius||1)*0.7)continue;
-    if((dx*fx+dy*fy+dz*fz)/(d||1)<0.3&&d>1.3)continue;
-    Damage.apply(P,a,dmg,'punch',{knock:CONFIG.punch.knock*(combo?1.8:1)*Math.sqrt(strengthMul()),stun:0.3});hits++;hx=c.x;hy=c.y;hz=c.z;
-  }
-  hitProps(cx+fx*1.8,cy,cz+fz*1.8,1.4*am,P,10*am);
-  if(hits){SFX.punch(1);addShake(combo?0.25:0.1);burst(hx,hy,hz,14,10,0.3,SPARK,0.9,0,3);ringFx(hx,hy,hz,0.3,combo?5:2.5,0.2,[1,.95,.8]);}
-  else SFX.swish();
-}
+function tkDrop(){if(!P.tk)return;const a=P.tk.a;P.tk=null;a.held=false;if(a.kind==='remote')return;if(a.net){P2P.emit('tt',{id:a.nid,v:[0,0,0],d:0});return;}if(a.kind==='vehicle'){a.state='thrown';a.vel.set(0,0,0);a.sx=a.sy=a.sz=0;a.life=6;a.thrower=P;a.throwDmg=10;}else if(a.kind==='human'){a.air=true;a.vel.set(0,0,0);}}
 function stopAllPowers(){
   for(const k in PS)PS[k].holding=false;
   if(P.alien)P.alien.channel=false;
-  P.flying=false;P.metal=false;P.shieldOn=false;P.shield=0;P.web=null;P.wall=null;P.charging=false;P.slam=false;P.speeding=false;
+  P.flying=false;P.metal=false;P.shieldOn=false;P.shield=0;P.web=null;P.wall=null;P.charging=false;P.slam=false;P.speeding=false;P.wallRun=null;P.zip=null;
   if(P.tk)tkDrop();beam=null;SFX.setLaser(false);SFX.setWind(0);
 }
 function updatePowers(dt){
@@ -200,7 +176,7 @@ function updatePowers(dt){
     const c=POWERS[id],s=PS[id];if(c.type!=='channel'||!s.holding)continue;
     const cost=c.energyPerSec*dt;if(P.en<cost){s.holding=false;noEnergy(id);continue;}
     P.en-=cost;P.lastSpend=time;
-    if(id==='laserVision'){laserTick(dt);lasering=true;}else iceTick(dt);
+    if(id==='laserVision'){laserTick(dt);lasering=true;}else if(id==='repulsors')repulsorTick(dt);else iceTick(dt);
   }
   if(ice){iceVisuals();if(!PS.iceCloud.holding){ice.t-=dt;if(ice.t<=0)ice=null;}}
   SFX.setLaser(lasering);
@@ -213,4 +189,5 @@ function updatePowers(dt){
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   P.heat=Math.max(0,P.heat-dt*0.35);
   if(P.stun>0)P.stun-=dt;
+  updateHeroAbilities(dt);
 }

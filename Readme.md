@@ -4,7 +4,7 @@ An open-world superhero sandbox that runs in the browser. You create a hero, pic
 
 ## Play
 
-Open `index.html` in a recent browser (Chrome, Edge, Firefox or Safari). You don't need a server or an install. The game ships as one file with no dependencies, written in raw WebGL 2.
+Play it online at **https://demo-repo-dusky.vercel.app**, or open `index.html` in a recent browser (Chrome, Edge, Firefox or Safari). You don't need a server or an install. The game ships as one file with no dependencies, written in raw WebGL 2.
 
 It works on laptops and phones. The game detects your device and switches between keyboard-and-mouse and touch controls automatically. You can override this in Settings.
 
@@ -19,12 +19,41 @@ It works on laptops and phones. The game detects your device and switches betwee
 
 | Movement (pick 2) | Abilities (pick 3) |
 | --- | --- |
-| Flight | Fireball · Ice Cloud · Lightning Bolt · Energy Blast |
-| Super Speed | Laser Vision · Telekinesis · Shockwave |
-| Wall-Climb | Metal Skin · Energy Shield |
-| Web-Swinging | Morph Band |
+| Flight | Fireball · Ice Cloud · Lightning Bolt · Energy Blast · Laser Vision |
+| Super Speed | Telekinesis · Shockwave · Metal Skin · Energy Shield · Morph Band |
+| Wall-Climb | Storm Hammer · Repulsor Barrage · Core Beam · Ricochet Shield |
+| Web-Swinging | Blade Claws · Blink · Gravity Well · Spirit Wave · Time Dilation |
 
-Everyone can also punch (a 3-hit combo) and do a charged super jump.
+The newer abilities are original takes on famous hero styles:
+
+| Ability | What it does |
+| --- | --- |
+| Storm Hammer | Throw a hammer that calls lightning where it hits, smashes everything in its path and flies back to your hand |
+| Repulsor Barrage | Hold to fire rapid palm blasts from alternating hands |
+| Core Beam | Wind up, then a chest beam burns through people, cars and buildings for 1.5 s |
+| Ricochet Shield | A disc that bounces between up to 6 targets and comes back |
+| Blade Claws | A slashing lunge through enemies; while you have them you heal much faster |
+| Blink | Teleport to where you aim, knocking back anyone near where you appear |
+| Gravity Well | A singularity that drags in people, cars and street furniture, then detonates |
+| Spirit Wave | Hold to charge, release a huge wave that can bring down a building |
+| Time Dilation | The world slows to a quarter speed while you move normally (a speed boost in multiplayer, where time can't bend) |
+
+### Fighting
+
+- **Punch chains.** Click up to four times for a chain. Hits 1–3 stun and keep the target close; hit 4 is a finisher. It launches them, or it's an **uppercut** if you hold `Space`, or a **spike** into the ground if you're in the air. Juggle airborne targets by hitting them again.
+- **Lock on** with `Z` to keep your camera, punches and powers on one target (people, drones, rival heroes, helicopters, bosses or other players). Press `Z` again to let go. When you're locked on, your punches lunge to close the gap.
+- **Dash** with `X` in any direction you're holding, once in mid-air too. You can't be hurt for a moment at the start of a dash.
+- **Charged punch.** While flying and locked on, hold the left mouse button to charge, then let go: you rocket into the target and send them flying hundreds of meters.
+- **Ragdolls.** Anyone launched by a finisher or a charged punch goes limp and tumbles, then gets up if they can.
+- **Everything breaks.** Launched bodies crater walls, smash cars and flatten street furniture. Hit a building hard enough (a charged punch, flying into it at speed, Spirit Wave or Core Beam, big explosions) and **the whole building collapses** into dust and rubble. It grows back a couple of minutes later. The bank, hospital and police headquarters are landmarks and never fall.
+
+You start tough: 220 health, and ordinary people and police do half damage to you.
+
+### Getting around
+
+- **Web-Swinging** reaches 90–170 m. Hold right click and the web finds a building ahead of you; keep holding to chain swing to swing. Let go on the upswing for a boost, press `Space` while swinging to leap, and press `Space` in mid-air to **web-zip** to a point and launch off it.
+- **Wall running** is for everyone: sprint (hold `Shift`) into a wall to run up it, or hit it at an angle to run along it. `Space` leaps off. Web-swingers, wall-climbers and speedsters can run up walls as far as they like.
+- **Parkour leap:** a quick jump while sprinting carries you much further.
 
 ### Morph Band
 
@@ -47,9 +76,11 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | --- | --- |
 | `W` `A` `S` `D` | Move |
 | Mouse | Look and aim |
-| Left click | Punch (hold to keep swinging) |
+| Left click | Punch chain (hold to keep swinging). While flying and locked on: hold to charge a punch |
+| `Z` | Lock on to a target / let go |
+| `X` | Dash |
 | `1` `2` `3` (or `Q` `E` `R`) | Your abilities. Hold for beams, clouds and telekinesis |
-| `Space` | Jump. Hold, then release for a super jump |
+| `Space` | Jump. Hold, then release for a super jump. Leap off walls, web-zip in mid-air |
 | `F` | Flight on/off (Space climbs, `C` dives, `Shift` boosts) |
 | `Shift` | Super Speed (if you picked it) or sprint |
 | Right click (hold) | Web-Swinging (if you picked it) |
@@ -57,11 +88,11 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `V` | Morph Band dial / change back |
 | `Tab` or `K` | Skills and upgrades |
 | `L` | Lock or unlock the mouse. When it's unlocked, drag with the middle mouse button to look |
-| `Esc` / `P` | Pause (Appearance, Leaderboard and Settings are here) |
+| `Esc` / `P` | Pause (Appearance, Multiplayer, Leaderboard and Settings are here). In a multiplayer room the menu opens but the game keeps running |
 
 **Driving:** `W` accelerates, `S` brakes and reverses, `A` and `D` steer, `Space` is the handbrake, and `G` gets you out.
 
-On touch screens: drag on the left side to move (or drive), drag on the right side to look, and use the on-screen buttons for everything else. The USE button gets you into cars and helps people up.
+On touch screens: drag on the left side to move (or drive), drag on the right side to look, and use the on-screen buttons for everything else. The USE button gets you into cars and helps people up, LOCK locks on, DASH dashes, and holding PUNCH while flying and locked on charges a punch.
 
 ## The city
 
@@ -71,15 +102,19 @@ Nova Bay is a 16 × 16 block island with a downtown of glass towers, a brick old
 - **Almost everything breaks.** Street lamps, traffic lights, benches, trees, bus stops, mailboxes and hydrants shatter into pieces (and hydrants spray water). Windows break from explosions, lasers and crashes. Cars can be wrecked, and debris bounces off buildings. Broken street furniture comes back after a couple of minutes.
 - **Crimes** play out on their own and only show up as icons on your minimap. There are no pop-ups. Drones rob shops and float the loot to a getaway van, drones hack ATMs, thugs mug people, and thieves break into cars and drive off. If you step in and stop one, you get a bonus.
 - **Heists** are rare and big. The mothership tries to lift the bank vault into the sky, or a Titan mech rips open an armored truck.
-- **People react.** Civilians flee from fights and from villains. Criminals can leave people injured on the ground; heroes can help them up with `G`. Thug gangs hang around alleys and attack heroes on sight. Police go after villains and wanted criminals, and patrol cars chase them with sirens. Rival heroes and villains with their own powers roam the city too.
+- **People react.** Civilians flee from fights and from villains. Criminals can leave people injured on the ground; heroes can help them up with `G`. Thug gangs hang around alleys and attack heroes on sight. Police go after villains and wanted criminals, and patrol cars chase them with sirens. When your heat is high, **police helicopters** circle overhead, sweep a searchlight at night and fire at you; shoot one down and it spins out of the sky. Rival heroes and villains with their own powers roam the city too.
 
 ## Multiplayer
 
-**Room codes (public site).** Open **Multiplayer** from the main menu or the pause menu. One player clicks **Create a room** and shares the 5-letter code or the invite link; friends join with the code (or just open the link). Up to 8 players share the city. No accounts are needed. Players connect directly to each other over WebRTC; the free PeerJS server only introduces them, and the host's game relays positions and attacks, so the room stays open while the host is playing. Most home networks work; some strict school or office networks block these connections.
+**Room codes (public site, https://demo-repo-dusky.vercel.app).** Open **Multiplayer** from the main menu or the pause menu. One player clicks **Create a room** and shares the 5-letter code or the invite link; friends join with the code (or just open the link). Up to 8 players share the city. No accounts are needed. Players connect directly to each other over WebRTC; the free PeerJS server only introduces them, and the host's game relays positions and attacks, so the room stays open while the host is playing. Most home networks work; some strict school or office networks block these connections.
 
 **claude.ai version.** Everyone in the page owner's organization who has it open plays together automatically, with no code. claude.ai doesn't let people invited from outside the organization into the live room, so play with them on the public site instead. The status line in the top-right corner (top of the screen on phones) shows whether you're connected.
 
-In both, heroes can't hurt other heroes and villains can't hurt other villains; neutral players can fight anyone. Knocking out another player gives you XP and moves your reputation (towards Hero if you beat a villain, towards Villain if you beat a hero). Each player's crimes, traffic and pedestrians run on their own device, so only players and their attacks are shared.
+**In a room-code game everyone shares the host's city.** The host's game runs the people, police, gangs, traffic, drones, helicopters, rival heroes, heists and crimes, and everyone else sees the same ones. Your hits on them count, you get XP for your kills and for crimes you help stop, and police and criminals come after whichever player they have a problem with. Time of day, broken street furniture, windows, craters and collapsed buildings are shared too. Telekinesis works on the host's people and cars and on other players: lift a friend and throw them.
+
+In the claude.ai version, players are shared but each player's city runs on their own device.
+
+In both, heroes can't hurt other heroes and villains can't hurt other villains; neutral players can fight anyone. Knocking out another player gives you XP and moves your reputation (towards Hero if you beat a villain, towards Villain if you beat a hero). Opening the menu doesn't pause you in multiplayer.
 
 ## Saving and the leaderboard
 
@@ -96,9 +131,13 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 | `15_meshes.js` | Cars, drones, bosses |
 | `20_core.js` | Config, powers, saving |
 | `30_systems.js` | Damage, XP, reputation, effects, destruction, projectiles |
-| `40_powers.js`, `45_aliens.js` | Hero powers and Morph Band aliens |
-| `50_npcs.js` | People, traffic, police, crimes, heists, rivals |
-| `60_multiplayer.js` | Shared players over the claude.ai room |
+| `40_powers.js`, `47_abilities.js` | Hero powers, including the hero-inspired abilities |
+| `42_combat.js`, `43_ragdoll.js` | Lock-on, punch chains, dash, charged punch, impacts, ragdolls |
+| `44_movement.js` | Web swinging, web zip, wall running |
+| `45_aliens.js` | Morph Band aliens |
+| `46_buildings.js` | Building damage, collapse and regrowth |
+| `50_npcs.js`, `52_heli.js` | People, traffic, police, helicopters, crimes, heists, rivals |
+| `60_multiplayer.js`, `62_worldsync.js` | Players over the claude.ai room or room codes, and the shared host city |
 | `70_ui.js`, `80_player.js` | HUD, menus, input, driving, player movement |
 | `90_render.js`, `99_main.js` | Camera, models, draw list, main loop |
 

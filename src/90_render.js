@@ -250,6 +250,7 @@ function drawHuman(h){
   if(h.hidden)return;const q=inView(h.pos.x,h.pos.z,190);if(q<0)return;
   const L=h.look,e=h.flash*0.8,sh=q<55*55?F_SH:0;
   if(L.hair===undefined){L.hair=Math.random()<0.1?null:pick(HAIRS);L.long=Math.random()<0.35;L.shoe=pick(SHOES);}
+  if(h.rag){drawRagdoll(h,ragColorsHuman(h));return;}
   const root=at(h.pos.x,h.pos.y,h.pos.z,h.rx,h.yaw,0);
   if(q>80*80){queue(MESH.box,child(root,0,1.0,0,0,0,0,0.5,1.9,0.32),L.shirt,0,e);queue(MESH.sphere,child(root,0,2.0,0,0,0,0,0.2,0.23,0.21),L.skin,0,e);return;}
   const mv=Math.min(h.moving/4,1),sw=Math.sin(h.phase)*mv*0.7,run=h.moving>5?1:0;
@@ -328,27 +329,30 @@ function drawRemote(r){
   if(!r.look||r.pos.y<-40||(r.flags&FLAG.invis))return;const q=inView(r.pos.x,r.pos.z,700,30);if(q<0)return;
   if(r.car){const mesh=CARS[r.car.model];drawVehicle(r,mesh,r.pos.x,r.pos.y,r.pos.z,0,r.car.yaw,0,r.car.tint,r.flash,r.car.model==='police',VDIM[r.car.model][0],VDIM[r.car.model][1],false);return;}
   if(r.flags&FLAG.dead){const root=at(r.pos.x,r.pos.y,r.pos.z,0,r.heroYaw,0);queue(MESH.box,child(root,0,0.25,0,0,0,0,0.8,0.4,2.2),r.look.suit,F_SH);return;}
-  if(r.alien)drawAlien(r,r.alien,false);else drawSuper(r,r.look,false);
-  if(r.beam){queue(MESH.glowBox,M4.beam(tmpM(),r.eye.x,r.eye.y,r.eye.z,r.beam.x,r.beam.y,r.beam.z,0.1),[1,.55,.35,1],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),r.eye.x,r.eye.y,r.eye.z,r.beam.x,r.beam.y,r.beam.z,0.35),[.9,.08,.03,0.45],F_BL);}
+  if(r.rag)drawRagdoll(r,ragColorsSuper(r.look));else if(r.alien)drawAlien(r,r.alien,false);else drawSuper(r,r.look,false);
+  if(r.beam){const w=r.beam.w||0;if(w>0.5){queue(MESH.glowBox,M4.beam(tmpM(),r.pos.x,r.pos.y+1.8,r.pos.z,r.beam.x,r.beam.y,r.beam.z,w*0.5),[1,1,1,1],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),r.pos.x,r.pos.y+1.8,r.pos.z,r.beam.x,r.beam.y,r.beam.z,w*1.4),[.6,.85,1,0.45],F_ADD);}
+    else{queue(MESH.glowBox,M4.beam(tmpM(),r.eye.x,r.eye.y,r.eye.z,r.beam.x,r.beam.y,r.beam.z,0.1),[1,.55,.35,1],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),r.eye.x,r.eye.y,r.eye.z,r.beam.x,r.beam.y,r.beam.z,0.35),[.9,.08,.03,0.45],F_BL);}}
   if(r.web)queue(MESH.box,M4.beam(tmpM(),r.pos.x,r.pos.y+2.1,r.pos.z,r.web.x,r.web.y,r.web.z,0.06),[.95,.95,1,1],0);
+  if(r.tk){const g=1.6+Math.sin(time*6)*0.15;queue(MESH.glowSphere,at(r.tk.x,r.tk.y+1,r.tk.z,0,time,0,g,g,g),[.6,.35,1,0.22],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),r.pos.x,r.pos.y+1.9,r.pos.z,r.tk.x,r.tk.y+1,r.tk.z,0.12),[.7,.45,1,0.35],F_ADD);}
   if(r.flags&FLAG.shield)queue(MESH.glowSphere,at(r.pos.x,r.pos.y+1.35,r.pos.z,0,time,0,1.9,2.1,1.9),[.3,.75,1,0.25],F_ADD);
 }
 function buildDrawList(){
   dlN=0;
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
     const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):0;
-    if(A)drawAlien(P,A.id,true);else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;drawSuper(P,m,true);}
+    if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;drawSuper(P,m,true);}
+    if(P.cp&&P.hand){const h=P.hand,k=Math.min(1,P.cp.t/1.2),s=0.3+k*0.6+Math.sin(time*30)*0.05;queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s,s,s),[1,.85,.5,0.9],F_ADD);queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s*2.5,s*2.5,s*2.5),[1,.6,.3,0.25*k],F_ADD);}
     GHOST=0;
     if(P.shieldOn){const s=1.9+Math.sin(time*6)*0.05;queue(MESH.glowSphere,at(P.pos.x,P.pos.y+1.35,P.pos.z,0,time,0,s,s*1.1,s),[.3,.75,1,0.16+0.2*clamp(P.shield/pstat('energyShield','absorb'),0,1)],F_ADD);}
-    if(beam){for(const sd of [-0.1,0.1]){const ex=P.eye.x+Math.cos(P.heroYaw)*sd,ez=P.eye.z-Math.sin(P.heroYaw)*sd;
+    if(beam&&!bigBeam){for(const sd of [-0.1,0.1]){const ex=P.eye.x+Math.cos(P.heroYaw)*sd,ez=P.eye.z-Math.sin(P.heroYaw)*sd;
       queue(MESH.glowBox,M4.beam(tmpM(),ex,P.eye.y,ez,beam.x,beam.y,beam.z,0.07),[1,.55,.35,1],F_ADD);
       queue(MESH.glowBox,M4.beam(tmpM(),ex,P.eye.y,ez,beam.x,beam.y,beam.z,0.3),[.9,.08,.03,0.5],F_BL);}
       const g=1.2+Math.random()*0.4;queue(MESH.glowSphere,at(beam.x,beam.y,beam.z,0,0,0,g,g,g),[1,.5,.2,0.8],F_ADD);}
-    if(P.web&&P.hand){const h=P.hand;queue(MESH.box,M4.beam(tmpM(),h[12],h[13],h[14],P.web.x,P.web.y,P.web.z,0.06),[.95,.95,1,1],0);}
+    const wp=P.web||P.zip;if(wp&&P.hand){const h=P.hand;queue(MESH.box,M4.beam(tmpM(),h[12],h[13],h[14],wp.x,wp.y,wp.z,0.06),[.95,.95,1,1],0);}
     if(P.tk){const a=P.tk.a,c=center(a),s=(a.radius||1)*1.6;queue(MESH.glowSphere,at(c.x,c.y,c.z,0,0,0,s,s,s),[.6,.35,1,0.22],F_ADD);}
   }
   for(const r of MP.peers.values())drawRemote(r);
-  for(const r of rivals){if(inView(r.pos.x,r.pos.z,500)<0)continue;r.firing=time-(r.castT||-9)<0.3;drawSuper(r,r.look,false);}
+  for(const r of rivals){if(inView(r.pos.x,r.pos.z,500)<0)continue;r.firing=time-(r.castT||-9)<0.3;if(r.rag)drawRagdoll(r,ragColorsSuper(r.look));else drawSuper(r,r.look,false);}
   for(const h of humans)drawHuman(h);
   for(const v of vehicles)drawVehicle(v,v.mesh,v.pos.x,v.pos.y,v.pos.z,v.rx,v.yaw,v.rz,v.tint,v.flash,v.siren,v.hw,v.hl,v.state==='wreck');
   for(const d of drones){const q=inView(d.pos.x,d.pos.z,500);if(q<0)continue;const bob=Math.sin(time*3+d.seed)*0.3;
@@ -365,7 +369,7 @@ function buildDrawList(){
     const hc=crimes.find(c=>c.type==='vault');if(hc&&hc.boss&&hc.boss.alive){const b=hc.boss,mid=(vaultY+b.pos.y)/2,len=b.pos.y-vaultY;const p=0.5+Math.sin(time*5)*0.2;
       queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,time,0,8,len,8),[.4,1,.7,0.18*p],F_ADD);queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,0,0,4,len,4),[.6,1,.8,0.25*p],F_ADD);}}
   for(const c of crimes)if(c.type==='shop'&&c.shop&&Math.sin(time*10)>0)queue(MESH.glowBox,at(c.shop.fx,5.8,c.shop.fz,0,0,0,0.5,0.5,0.5),[1,.1,.1,1],0);
-  drawProps();
+  drawProps();drawRubble();drawHelis();drawHeroAbilities();
   for(const w of windows){if(inView(w.x,w.z,320)<0)continue;const ax=w.nx!==0;
     queue(MESH.box,at(w.x,w.y,w.z,0,0,0,ax?0.06:2.1,2.3,ax?2.1:0.06),[.02,.02,.025,1],F_UN);
     for(const [u,v,s] of [[-0.8,0.9,0.5],[0.85,-0.8,0.4],[0.7,0.95,0.3]])queue(MESH.box,at(w.x+(ax?w.nx*0.02:u),w.y+v,w.z+(ax?u:w.nz*0.02),0,0,u*0.8,ax?0.04:s,s*0.8,ax?s:0.04),[.55,.7,.8,1],0);}
@@ -386,7 +390,8 @@ function buildDrawList(){
   for(const t of tracers){const k=t.life/t.max;queue(MESH.glowBox,M4.beam(tmpM(),t.ax,t.ay,t.az,t.bx,t.by,t.bz,t.w),[t.col[0],t.col[1],t.col[2],k],F_ADD);}
   for(const r of rings){const k=r.t/r.dur,e=1-Math.pow(1-k,3),rad=lerp(r.r0,r.r1,e);
     const M=r.dir?M4.alignY(tmpM(),r.x,r.y,r.z,r.dir[0],r.dir[1],r.dir[2],rad):at(r.x,r.y,r.z,0,0,0,rad,1,rad);queue(MESH.ring,M,[r.col[0],r.col[1],r.col[2],1-k],F_ADD);}
-  for(const s of scorches){const f=Math.min(1,s.life/10);queue(MESH.disc,M4.alignY(tmpM(),s.x,s.y,s.z,s.nx,s.ny,s.nz,s.r),[.015,.013,.012,0.8*f],F_BL);}
+  for(const s of scorches){const f=Math.min(1,s.life/10);queue(MESH.disc,M4.alignY(tmpM(),s.x,s.y,s.z,s.nx,s.ny,s.nz,s.r),[.015,.013,.012,0.8*f],F_BL);
+    if(s.cr){queue(MESH.ring,M4.alignY(tmpM(),s.x+s.nx*0.03,s.y+s.ny*0.03,s.z+s.nz*0.03,s.nx,s.ny,s.nz,s.r*1.25),[.33,.31,.29,0.9*f],F_BL);queue(MESH.disc,M4.alignY(tmpM(),s.x+s.nx*0.02,s.y+s.ny*0.02,s.z+s.nz*0.02,s.nx,s.ny,s.nz,s.r*0.55),[0,0,0,0.9*f],F_BL);}}
   for(const d of debris){const q=inView(d.x,d.z,260);if(q<0)continue;queue(d.mesh||MESH.box,at(d.x,d.y,d.z,d.rx,d.ry,d.rz,d.dx||d.s,d.dy||d.s*0.7,d.dz||d.s*1.1),d.tint,q<60*60?F_SH:0);}
 }
 

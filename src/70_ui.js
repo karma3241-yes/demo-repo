@@ -123,13 +123,13 @@ function renderSheet(){
   ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings,mp:renderMP})[sheetOpen]();
   sheetBody.scrollTop=y;
 }
-const STAT_LABELS={damage:'Damage',dps:'Damage per second',radius:'Radius',speed:'Speed',drain:'Energy per second',mult:'Speed multiplier',range:'Range',force:'Swing force',
+const STAT_LABELS={bounces:'Bounces',duration:'Duration',damage:'Damage',dps:'Damage per second',radius:'Radius',speed:'Speed',drain:'Energy per second',mult:'Speed multiplier',range:'Range',force:'Swing force',
   stun:'Stun',slow:'Slow',absorb:'Absorbs',dr:'Damage reduction',throwDmg:'Throw damage',knock:'Knockback',burnDps:'Burn per second',hitDmg:'Bump damage'};
-function fmtStat(k,v){if(k==='slow'||k==='dr')return Math.round(v*100)+'%';if(k==='stun')return v.toFixed(1)+' s';if(k==='mult'||k==='force')return '×'+v.toFixed(1);return String(Math.round(v));}
+function fmtStat(k,v){if(k==='duration')return v.toFixed(1)+' s';if(k==='slow'||k==='dr')return Math.round(v*100)+'%';if(k==='stun')return v.toFixed(1)+' s';if(k==='mult'||k==='force')return '×'+v.toFixed(1);return String(Math.round(v));}
 function statLines(id,lvl,next){
   const c=POWERS[id],out=[];
   for(const k in c)if(Array.isArray(c[k])&&STAT_LABELS[k]){const a=pstat(id,k,lvl);out.push(STAT_LABELS[k]+' '+fmtStat(k,a)+(next?' → '+fmtStat(k,pstat(id,k,next)):''));}
-  if(c.cooldown)out.push('Cooldown '+c.cooldown+' s');if(c.energy)out.push('Energy '+c.energy);if(c.energyPerSec)out.push(c.energyPerSec+' energy per second');
+  if(c.cooldown)out.push('Cooldown '+(Array.isArray(c.cooldown)?pstat(id,'cooldown',lvl).toFixed(1):c.cooldown)+' s');if(c.energy)out.push('Energy '+c.energy);if(c.energyPerSec)out.push(c.energyPerSec+' energy per second');
   return out.join(' · ');
 }
 function renderSkills(){
@@ -216,13 +216,13 @@ function renderLB(){
   sheetBody.appendChild(el('table',{class:'lb'},tb));
 }
 // ---- multiplayer (room codes on the public site, automatic on claude.ai) ----
-const SITE_URL='';
+const SITE_URL='https://demo-repo-dusky.vercel.app';
 function renderMP(){
   const B=sheetBody,st=MP.status();
   if(window.claude){
     B.append(el('p',{class:'muted',text:'Everyone in your organization who has this page open plays in the same city automatically. People invited from outside your organization can\'t join here.'}),
       st?el('p',{class:'pts',text:st}):null);
-    if(SITE_URL)B.append(el('p',{class:'muted',text:'To play with anyone, open the public site and use a room code: '+SITE_URL}));
+    if(SITE_URL)B.append(el('p',{class:'muted',text:'To play with friends outside your organization, open the public site and use a room code: '}),el('p',{},el('a',{href:SITE_URL,target:'_blank',rel:'noopener',class:'sitelink',text:SITE_URL.replace('https://','')})));
     return;}
   if(!P2P.available()){B.append(el('p',{class:'muted',text:'This browser can\'t do peer-to-peer connections, so multiplayer is off.'}));return;}
   B.append(el('p',{class:'muted',text:'Play with friends in the same city. One of you creates a room and shares the code or invite link; everyone else joins with it. The room stays open while its host is playing. Each player\'s crimes and traffic are their own; players and their attacks are shared.'}));
@@ -272,7 +272,7 @@ function renderCreator(){
     const chosen=draft[key];const wrap=el('div',{class:'picks'});
     for(const id of ids){const on=chosen.includes(id),c=POWERS[id];
       wrap.appendChild(el('button',{type:'button',class:'pick'+(on?' on':'')+(id==='morphBand'?' special':''),'aria-pressed':String(on),onclick:()=>{if(on)chosen.splice(chosen.indexOf(id),1);else if(chosen.length<max)chosen.push(id);else{chosen.shift();chosen.push(id);}draft.confirm=false;renderCreator();}},
-        el('b',{text:c.name}),el('span',{class:'cat',text:c.cat==='movement'?'Movement · '+c.key:c.cat==='defence'?'Defence':c.cat==='special'?'Transformation':'Attack'}),el('span',{text:c.desc})));}
+        el('b',{text:c.name}),el('span',{class:'cat',text:c.cat==='movement'?'Movement · '+c.key:c.cat==='defence'?'Defence':c.cat==='special'?'Transformation':c.cat==='utility'?'Utility':c.type==='charge'?'Attack · hold':'Attack'}),el('span',{text:c.desc})));}
     creatorBody.append(el('h3',{text:title+' · '+chosen.length+'/'+max}),wrap);
   };
   group('Movement powers',MOVEMENT_POWERS,'movement',CONFIG.picks.movement);

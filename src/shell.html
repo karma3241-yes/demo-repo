@@ -223,8 +223,14 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   #create,#sheet.side{align-items:end;justify-items:stretch;padding:0;background:linear-gradient(0deg,rgba(3,5,12,.92) 45%,rgba(3,5,12,.2) 70%,transparent)}
   #create .sheet-card,#sheet.side .sheet-card{width:100%;max-height:58vh;border-radius:14px 14px 0 0;padding:14px 16px}
 }
+ #gl.slowmo{filter:saturate(.55) contrast(1.08) hue-rotate(-8deg)}
+#lockmark{position:absolute;left:0;top:0;width:46px;height:46px;border:2px solid #ff5a3d;border-radius:8px;box-shadow:0 0 10px rgba(255,90,61,.7);clip-path:polygon(0 0,35% 0,35% 12%,12% 12%,12% 35%,0 35%,0 65%,12% 65%,12% 88%,35% 88%,35% 100%,65% 100%,65% 88%,88% 88%,88% 65%,100% 65%,100% 35%,88% 35%,88% 12%,65% 12%,65% 0,100% 0,100% 100%,0 100%);pointer-events:none}
+#combo{position:absolute;left:50%;top:calc(50% - 64px);transform:translateX(-50%);font-family:var(--display);font-size:22px;color:#fff1b8;text-shadow:0 2px 0 #7a3a00,0 0 12px rgba(255,160,40,.7);pointer-events:none}
+#combo.pop{animation:comboPop .18s ease-out}@keyframes comboPop{from{transform:translateX(-50%) scale(1.35)}to{transform:translateX(-50%) scale(1)}}
+.tb.lk{background:rgba(255,90,61,.3)}.tb.ds{background:rgba(125,220,255,.25)}
 .roomcode{margin:0;font-family:var(--display);font-size:40px;letter-spacing:.18em;color:var(--gold)}
 .joinrow{display:flex;gap:8px}.joinrow input{text-transform:uppercase;letter-spacing:.12em}
+.sitelink{color:var(--gold);font-weight:700;font-size:16px}
 .plist{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
 @media (prefers-reduced-motion: reduce){.toast,.fline{animation:none}}
 </style>
@@ -261,6 +267,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
     <kbd>1 2 3</kbd><span>Your abilities (also Q E R)</span>
     <kbd>Space</kbd><span>Jump · hold for a super jump</span>
     <kbd>F · Shift · Right click</kbd><span>Movement powers</span>
+    <kbd>Z · X</kbd><span>Lock on · dash</span>
     <kbd>G</kbd><span>Enter a car · help someone up</span>
     <kbd>V</kbd><span>Morph Band (if you have it)</span>
     <kbd>Tab</kbd><span>Skills and upgrades</span>
@@ -282,7 +289,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
       <div><kbd>WASD</kbd> Move</div><div><kbd>Mouse</kbd> Look</div>
       <div><kbd>Click</kbd> Punch</div><div><kbd>1 2 3</kbd> Abilities</div>
       <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Skills</div>
-      <div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
+      <div><kbd>Z</kbd> Lock on · <kbd>X</kbd> Dash</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
     </div>
     <p class="muted" id="menu-touch" hidden>Touch controls: drag on the left side to move, drag on the right side to look, and use the buttons for punches, abilities and movement.</p>
     <div class="cta"><button class="go" id="start" type="button">Create your hero</button><span id="menu-sub"></span></div>
@@ -293,7 +300,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 <div id="create" hidden>
   <div class="sheet-card panel"><div class="sheet-head"><h2 id="create-title">Create your hero</h2><button class="x" id="create-x" type="button">Back</button></div><div class="sheet-body" id="create-body"></div></div>
 </div>
-<div id="pause" class="overlay" hidden><div class="box"><p class="big">Paused</p>
+<div id="pause" class="overlay" hidden><div class="box"><p class="big" id="pause-title">Paused</p><p class="sub" id="pause-note" hidden>You're in a multiplayer room, so the game keeps going while this menu is open.</p>
   <div class="pause-btns"><button class="go" id="resume" type="button">Resume</button></div>
   <div class="pause-btns"><button class="ghost" id="p-skills" type="button">Skills</button><button class="ghost" id="p-look" type="button">Appearance</button><button class="ghost" id="p-powers" type="button">Change powers</button><button class="ghost" id="p-mp" type="button">Multiplayer</button><button class="ghost" id="p-lb" type="button">Leaderboard</button><button class="ghost" id="p-set" type="button">Settings</button></div>
 </div></div>

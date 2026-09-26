@@ -5,7 +5,7 @@ const humans=[],drones=[],vehicles=[],rivals=[],props=[],crimes=[],gangs=[];
 let boss=null;
 const pick=a=>a[(Math.random()*a.length)|0];
 function removeFrom(list,x){const i=list.indexOf(x);if(i>=0)list.splice(i,1);}
-function removeActor(a){removeFrom(actors,a);removeFrom(humans,a);removeFrom(drones,a);removeFrom(vehicles,a);removeFrom(rivals,a);if(P.tk&&P.tk.a===a)P.tk=null;}
+function removeActor(a){removeFrom(actors,a);removeFrom(helis,a);removeFrom(humans,a);removeFrom(drones,a);removeFrom(vehicles,a);removeFrom(rivals,a);if(P.tk&&P.tk.a===a)P.tk=null;}
 const d2h=(a,b)=>{const dx=a.pos.x-b.pos.x,dz=a.pos.z-b.pos.z;return dx*dx+dz*dz;};
 const c4=h=>[...hex(h),1];
 const SKINS=['#f1c7a5','#d9a27a','#a8744f','#6e4a33','#e8b48f'].map(c4);
@@ -26,18 +26,19 @@ function spawnHuman(role,x,z,opt={}){
     gun:role==='police'||role==='boss'||(role==='thug'&&Math.random()<0.5),fireCd:rr(0.5,1.5),meleeCd:0,blastCd:3,
     crime:opt.crime||null,home:opt.home||null,gang:opt.gang||null,scanT:rr(0,0.5),radius:0.55,cy:1.1,ys:0.6,armsUp:0,punchT:-9,goal:null,wanted:0,fx:0,fz:0};
   if(role==='boss')h.name='Boss '+pick(['Vince','Marla','Knuckles','Silk','Duke','Ruby']);
-  h.onDefeat=()=>{h.deadT=6;if(!h.air){h.air=true;h.vel.set(0,3,0);h.tumble=rr(3,5);}scare(h.pos.x,h.pos.z,18);};
+  h.onDefeat=()=>{h.deadT=6;if(!h.air){h.air=true;h.vel.set(0,3,0);h.tumble=rr(3,5);}startRagdoll(h,h.vel.x,h.vel.y,h.vel.z);scare(h.pos.x,h.pos.z,18);};
   h.onHit=src=>{if(h.role==='civilian'){if(src)npcFlee(h,src.pos.x,src.pos.z);}else if(src&&src!==h)h.target=src;};
   humans.push(h);actors.push(h);return h;
 }
 function npcFlee(h,x,z){if(h.role!=='civilian'||!h.alive||h.state==='victim'&&h.crime)return;h.state='flee';h.fx=x;h.fz=z;h.st=rr(4,7);}
 function scare(x,z,r){for(const h of humans)if(h.alive&&h.role==='civilian'&&Math.abs(h.pos.x-x)<r&&Math.abs(h.pos.z-z)<r)npcFlee(h,x,z);}
-function validTarget(t){if(t===P)return !P.dead&&state==='play';return !!t&&t.alive&&!t.held;}
+function validTarget(t){if(t===P)return !P.dead&&state==='play';if(t&&t.kind==='remote')return WS.host&&t.alive&&MP.peers.has(t.peer);return !!t&&t.alive&&!t.held;}
 function wantsToFight(h,t){
   if(t===P&&P.invisible>0)return false;
   if(t===P){if(P.dead||state!=='play')return false;const f=playerFaction();
     if(h.role==='police')return f==='villain'||P.heat>0;
     if(h.faction==='criminal')return f==='hero';return false;}
+  if(t.kind==='remote'){if(!WS.host||!t.alive)return false;if(h.role==='police')return t.faction==='villain'||!!(t.flags&FLAG.wanted);return h.faction==='criminal'&&t.faction==='hero';}
   if(t.kind==='rival')return h.role==='police'?t.faction==='villain':h.faction==='criminal'?t.faction==='hero':false;
   if(h.role==='police'&&t.kind==='human')return t.faction==='criminal'&&t.wanted>0;
   if(h.role==='police'&&t.kind==='drone')return !!t.crime;
@@ -54,6 +55,7 @@ function npcScan(h){
   const sight=NPCS[h.role].sight||30;let best=null,bd=sight*sight;
   if(wantsToFight(h,P)){const d=d2h(h,P);if(d<bd){bd=d;best=P;}}
   for(const r of rivals)if(r.alive&&wantsToFight(h,r)){const d=d2h(h,r);if(d<bd){bd=d;best=r;}}
+  if(WS.host)for(const r of MP.peers.values())if(wantsToFight(h,r)){const d=d2h(h,r);if(d<bd){bd=d;best=r;}}
   if(h.role==='police'){
     for(const o of humans)if(o.alive&&!o.held&&wantsToFight(h,o)){const d=d2h(h,o);if(d<bd){bd=d;best=o;}}
     for(const o of drones)if(o.alive&&wantsToFight(h,o)){const d=d2h(h,o);if(d<bd){bd=d;best=o;}}
@@ -77,7 +79,7 @@ function npcShoot(h,t,dmg){
   const dx=ex-ox,dy=ey-oy,dz=ez-oz,L=Math.hypot(dx,dy,dz)||1;const tb=rayCity(ox,oy,oz,dx/L,dy/L,dz/L,L),end=Math.min(tb,L);
   tracer(ox,oy,oz,ox+dx/L*end,oy+dy/L*end,oz+dz/L*end,[1,.85,.5],0.05,0.06);
   emit(ox,oy,oz,0,0,0,0.06,[1,.85,.4],1.2,0,0);SFX.gun(SFX.vol(ox,oy,oz));scare(ox,oz,22);
-  if(hit&&tb>=L)Damage.apply(h,t,dmg,'bullet');
+  h.shotN=(h.shotN||0)+1;if(hit&&tb>=L)Damage.apply(h,t,dmg,'bullet');
 }
 function npcCombat(h,dt){
   const t=h.target;
@@ -101,13 +103,20 @@ function npcCombat(h,dt){
     if(d<2.4&&h.meleeCd<=0){h.meleeCd=rr(0.8,1.2);h.punchT=time;Damage.apply(h,t,c.melee,'punch',{knock:5});SFX.punch(SFX.vol(h.pos.x,h.pos.y,h.pos.z)*0.5);}
   }
 }
+function airGrav(a,g,dt){
+  if(a.apexT&&time-a.apexT<2&&a.vel.y<0){a.apexT=0;a.floatT=0.9;}
+  if(a.floatT>0){a.floatT-=dt;a.vel.y-=g*0.1*dt;a.vel.x*=1-3*dt;a.vel.z*=1-3*dt;if(a.vel.y<-3)a.vel.y=-3;}else a.vel.y-=g*dt;
+}
 function humanAir(h,dt){
-  const prevY=h.pos.y;h.vel.y-=40*dt;h.pos.addS(h.vel,dt);h.rx+=h.tumble*dt;
+  const prevY=h.pos.y;airGrav(h,40,dt);h.pos.addS(h.vel,dt);h.rx+=h.tumble*dt;
+  const flung=h.flungT&&time-h.flungT<2.5,spd=flung?Math.hypot(h.vel.x,h.vel.y,h.vel.z):0;if(flung)flungSweep(h,spd);
   if(h.thrown){
     for(const a of actors){if(a===h||!a.alive||a.kind==='prop'||a.kind==='vehicle'||a.held)continue;const c=center(a);
       if(Math.hypot(c.x-h.pos.x,c.y-(h.pos.y+1),c.z-h.pos.z)<(a.radius||1)+0.8){Damage.apply(h.thrown.by,a,h.thrown.dmg,'throw',{knock:14});Damage.apply(h.thrown.by,h,h.thrown.dmg,'throw');h.thrown=null;break;}}
   }
-  const vyb=h.vel.y;const col=collideBody(h.pos,h.vel,prevY,0.45,1.9);
+  const vyb=h.vel.y,pv=[h.vel.x,h.vel.y,h.vel.z];const col=collideBody(h.pos,h.vel,prevY,0.45,1.9);
+  if(flung&&col.wall&&spd>COMBAT.slamMin)slamWall(h,col.wall,spd,pv);
+  else if(flung&&col.grounded&&vyb<-COMBAT.slamMin){slamGround(h,-vyb);h.air=false;h.vel.set(0,0,0);if(h.alive)h.stun=1.2;return;}
   if(col.wall&&h.thrown){Damage.apply(h.thrown.by,h,h.thrown.dmg,'throw');h.thrown=null;burst(h.pos.x,h.pos.y+1,h.pos.z,12,8,0.5,DUST,1.6,-2,2);}
   if(col.grounded){
     if(h.alive&&vyb<-24)Damage.apply(h.thrown?h.thrown.by:null,h,(-vyb-22)*1.5,'fall');
@@ -186,7 +195,7 @@ function updateDrone(d,dt){
   else if(Math.hypot(d.vel.x,d.vel.z)>1)d.yaw=angLerp(d.yaw,Math.atan2(d.vel.x,d.vel.z),damp(4,dt));
   if(d.target&&!d.leave){d.shootT-=dt;if(d.shootT<=0){d.shootT=rr(1.3,2.4);const t=center(d.target);const dist=Math.hypot(t.x-d.pos.x,t.y-d.pos.y,t.z-d.pos.z);
     if(dist<110){const tv=d.target.vel||{x:0,y:0,z:0},lead=dist/80*0.5;const o={x:d.pos.x,y:d.pos.y-0.3,z:d.pos.z};const v=dirTo(o,t.x+tv.x*lead+rr(-1.5,1.5),t.y+tv.y*lead+rr(-1,1),t.z+tv.z*lead+rr(-1.5,1.5));
-      fireProj({kind:'shot',owner:d,x:o.x,y:o.y,z:o.z,vx:v[0]*80,vy:v[1]*80,vz:v[2]*80,dmg:NPCS.drone.shot,r:0.45,life:3});SFX.zap(SFX.vol(d.pos.x,d.pos.y,d.pos.z));}}}
+      d.shotN=(d.shotN||0)+1;fireProj({kind:'shot',owner:d,x:o.x,y:o.y,z:o.z,vx:v[0]*80,vy:v[1]*80,vz:v[2]*80,dmg:NPCS.drone.shot,r:0.45,life:3});SFX.zap(SFX.vol(d.pos.x,d.pos.y,d.pos.z));}}}
   if(d.hp<d.maxHp*0.5&&Math.random()<0.25)smoke(d.pos.x,d.pos.y,d.pos.z,1,0.3,2,1.2,0.15);
 }
 // ---- vehicles ----
@@ -272,7 +281,7 @@ function updateVehicle(v,dt){
         if(Math.hypot(c.x-v.pos.x,c.y-(v.pos.y+1),c.z-v.pos.z)<(a.radius||1)+2.2){a.hitBy=v;Damage.apply(v.thrower,a,v.throwDmg*1.4,'throw',{knock:18});}}
       hitProps(v.pos.x,v.pos.y,v.pos.z,2.5,v.thrower,Math.hypot(v.vel.x,v.vel.z));
       const b=inBuilding(v.pos.x,v.pos.y+1,v.pos.z,0.5);const g=groundY(v.pos.x,v.pos.z,v.pos.y+1);
-      if(b||v.pos.y<=g+0.4||v.life<=0){if(b){v.pos.x-=v.vel.x*0.06;v.pos.z-=v.vel.z*0.06;breakWindowAt(b,v.pos.x+v.vel.x*0.06,v.pos.y+1,v.pos.z+v.vel.z*0.06);}
+      if(b||v.pos.y<=g+0.4||v.life<=0){if(b){v.pos.x-=v.vel.x*0.06;v.pos.z-=v.vel.z*0.06;breakWindowAt(b,v.pos.x+v.vel.x*0.06,v.pos.y+1,v.pos.z+v.vel.z*0.06);const n=faceNormal(b,v.pos.x,v.pos.y+1,v.pos.z);crater(v.pos.x,v.pos.y+1,v.pos.z,n[0],n[1],n[2],3,b.col);}
         areaDamage(v.pos.x,v.pos.y+1,v.pos.z,6,v.throwDmg,v.thrower,{knock:14});v.hp=0;vehicleDestroyed(v);}
       break;}
     case 'wreckAir':{v.vel.y-=32*dt;v.pos.addS(v.vel,dt);v.rx+=v.sx*dt;v.rz+=v.sz*dt;v.yaw+=v.sy*dt;const g=groundY(v.pos.x,v.pos.z,v.pos.y+1);
@@ -313,6 +322,7 @@ function rivalScan(r){
   if(r.grudge&&time-r.grudgeT<30&&validTarget(r.grudge)){r.target=r.grudge;return;}
   const pf=playerFaction();
   if(!P.dead&&state==='play'){if(r.faction==='hero'&&(pf==='villain'||hasBounty())){r.target=P;return;}if(r.faction==='villain'&&pf==='hero'){r.target=P;return;}}
+  if(WS.host)for(const q of MP.peers.values())if(q.alive&&((r.faction==='hero'&&q.faction==='villain')||(r.faction==='villain'&&q.faction==='hero'))&&d2h(r,q)<150*150){r.target=q;return;}
   let best=null,bd=150*150;
   if(r.faction==='hero'){for(const d of drones)if(d.alive){const q=d2h(r,d);if(q<bd){bd=q;best=d;}}for(const h of humans)if(h.alive&&h.faction==='criminal'&&h.wanted>0){const q=d2h(r,h);if(q<bd){bd=q;best=h;}}}
   else{bd=90*90;for(const h of humans)if(h.alive&&(h.role==='civilian'||h.role==='police')&&!h.held){const q=d2h(r,h);if(q<bd&&Math.random()<0.5){bd=q;best=h;}}}
@@ -323,7 +333,9 @@ function updateRival(r,dt){
   if(r.burn>0&&r.alive){r.burn-=dt;Damage.apply(r.burnSrc,r,r.burnDps*dt,'burn');}
   if(r.held)return;
   if(!r.alive||r.thrown||r.stun>0){
-    const prevY=r.pos.y;r.vel.y-=35*dt;r.pos.addS(r.vel,dt);const col=collideBody(r.pos,r.vel,prevY,0.6,2.4);
+    const prevY=r.pos.y,vyb=r.vel.y;airGrav(r,35,dt);r.pos.addS(r.vel,dt);const pv=[r.vel.x,r.vel.y,r.vel.z];const col=collideBody(r.pos,r.vel,prevY,0.6,2.4);
+    const flung=r.flungT&&time-r.flungT<2.5,spd=flung?Math.hypot(r.vel.x,vyb,r.vel.z):0;
+    if(flung){flungSweep(r,spd);if(col.wall&&spd>COMBAT.slamMin)slamWall(r,col.wall,spd,pv);else if(col.grounded&&vyb<-COMBAT.slamMin)slamGround(r,-vyb);}
     if(r.thrown&&(col.grounded||col.wall)){const t=r.thrown;r.thrown=null;Damage.apply(t.by,r,t.dmg,'throw');}
     if(col.grounded){r.vel.x*=0.8;r.vel.z*=0.8;}
     if(!r.alive){r.tilt=lerp(r.tilt,1.5,damp(3,dt));r.deadT-=dt;if(r.deadT<=0)removeActor(r);}
@@ -429,7 +441,7 @@ let crimeT=6,heistT=CRIMES.heistFirst,rivalT=CRIMES.rivalGap[0],popT=0;
 let vaultY=bank?bank.vault.y:0,vaultGoneT=0;
 function newCrime(type,x,z,label,icon){const c={type,x,z,label,icon,helped:false,age:0,actors:[],heist:false,stage:'start'};crimes.push(c);return c;}
 function pickNear(list,minD,maxD){
-  const ok=list.filter(o=>{const d=Math.hypot(o.x-P.pos.x,o.z-P.pos.z);return d>=minD&&d<=maxD;});
+  const C=pick(WS.centers());const ok=list.filter(o=>{const d=Math.hypot(o.x-C.x,o.z-C.z);return d>=minD&&d<=maxD;});
   if(!ok.length)return null;return pick(ok);
 }
 function curbPlace(v,x,z,nx,nz){const [cx,cz]=blockCenter(x,z);if(nx!==0){v.axis=0;v.lane=cx+nx*33.5;v.s=z;}else{v.axis=1;v.lane=cz+nz*33.5;v.s=x;}v.dir=Math.random()<0.5?1:-1;setVehiclePos(v);}
@@ -540,7 +552,8 @@ function updateCrimes(dt){
     if(r==='cleared'||r==='escaped'){crimes.splice(i,1);c.cleanup&&c.cleanup(r==='escaped');
       for(const a of c.actors)if(a.crime===c&&a.kind!=='boss'){a.crime=null;if(a.kind==='drone'&&a.alive)a.leave=true;}
       if(r==='cleared'&&c.helped){const xp=c.heist?CRIMES.clearXp*3:CRIMES.clearXp;addXP(xp);addRep(c.heist?CRIMES.clearRep*3:CRIMES.clearRep);save.stats.crimesStopped++;guideDone('crime');
-        if(c.heist)toast('Heist stopped','+'+xp+' XP · '+c.label.replace(/^The /,'the '),'gold');else feed('+'+xp+' XP','Crime stopped: '+c.label);persist();}}}
+        if(c.heist)toast('Heist stopped','+'+xp+' XP · '+c.label.replace(/^The /,'the '),'gold');else feed('+'+xp+' XP','Crime stopped: '+c.label);persist();}
+      if(r==='cleared'&&WS.host)WS.crimeReward(c);}}
   if(state!=='play')return;
   const small=crimes.filter(c=>!c.heist).length;
   if(small<CRIMES.maxActive){crimeT-=dt;if(crimeT<=0){crimeT=rr(CRIMES.spawnGap[0],CRIMES.spawnGap[1]);startRandomCrime();}}
@@ -561,15 +574,17 @@ function manageGangs(){
 }
 function managePopulation(dt){
   popT-=dt;if(popT>0)return;popT=1;
-  const k=touchOn()?0.6:1,px=P.pos.x,pz=P.pos.z,D=CRIMES.despawn;
-  for(const h of humans.slice())if(!h.crime&&!h.gang&&!h.held&&(Math.abs(h.pos.x-px)>D||Math.abs(h.pos.z-pz)>D))removeActor(h);
-  const count=r=>{let n=0;for(const h of humans)if(h.alive&&h.role===r&&!h.crime&&!h.gang)n++;return n;};
-  let civ=count('civilian');for(let i=0;civ<CRIMES.population.civilians*k&&i<3;i++,civ++){const p=sidewalkPointNear(px,pz,45,150);spawnHuman('civilian',p.x,p.z,{path:p.path});}
-  const wantPolice=Math.round(CRIMES.population.police*k)+(P.heat>0?3:0);
-  let pol=count('police');for(let i=0;pol<wantPolice&&i<2;i++,pol++){const p=sidewalkPointNear(px,pz,P.heat>0?55:60,P.heat>0?90:150);const h=spawnHuman('police',p.x,p.z,{path:p.path});if(P.heat>0&&!P.dead&&state==='play')h.target=P;}
+  const k=touchOn()?0.6:1,D=CRIMES.despawn,PL=WS.players(),C=PL.map(a=>a.pos);
+  const far=(p,d)=>C.every(c=>Math.abs(p.x-c.x)>d||Math.abs(p.z-c.z)>d);
+  for(const h of humans.slice())if(!h.crime&&!h.gang&&!h.held&&far(h.pos,D))removeActor(h);
+  const countNear=(r,c)=>{let n=0;for(const h of humans)if(h.alive&&h.role===r&&!h.crime&&!h.gang&&Math.abs(h.pos.x-c.x)<150&&Math.abs(h.pos.z-c.z)<150)n++;return n;};
+  C.forEach((c,ci)=>{const me=ci===0,who=PL[ci],heat=me?P.heat>0:!!(who.flags&FLAG.wanted);
+    let civ=countNear('civilian',c);for(let i=0;civ<CRIMES.population.civilians*k*(me?1:0.7)&&i<3;i++,civ++){const p=sidewalkPointNear(c.x,c.z,45,150);spawnHuman('civilian',p.x,p.z,{path:p.path});}
+    const wantPolice=Math.round(CRIMES.population.police*k*(me?1:0.7))+(heat?3:0);
+    let pol=countNear('police',c);for(let i=0;pol<wantPolice&&i<2;i++,pol++){const p=sidewalkPointNear(c.x,c.z,heat?55:60,heat?90:150);const h=spawnHuman('police',p.x,p.z,{path:p.path});if(heat&&(me?!P.dead&&state==='play':who.alive))h.target=who;}});
   manageGangs();
-  for(const r of rivals.slice())if(r.alive&&Math.hypot(r.pos.x-px,r.pos.z-pz)>450)removeActor(r);
-  for(const v of vehicles.slice())if(v.temp&&!v.crime&&(v.state==='flee'||v.state==='parked')&&(v.escaped||Math.hypot(v.pos.x-px,v.pos.z-pz)>250))removeActor(v);
+  for(const r of rivals.slice())if(r.alive&&far(r.pos,450))removeActor(r);
+  for(const v of vehicles.slice())if(v.temp&&!v.crime&&(v.state==='flee'||v.state==='parked')&&(v.escaped||far(v.pos,250)))removeActor(v);
 }
 function manageRivals(dt){
   if(state!=='play'||P.dead)return;
@@ -577,14 +592,19 @@ function manageRivals(dt){
   if(live<want){rivalT-=dt*(hasBounty()?2:1);if(rivalT<=0){rivalT=rr(CRIMES.rivalGap[0],CRIMES.rivalGap[1]);const pf=playerFaction();spawnRival(pf==='villain'?'hero':pf==='hero'?'villain':(Math.random()<0.5?'hero':'villain'));}}
 }
 function updateWorld(dt){
+  if(WS.mirror){WS.updateMirrors(dt);for(const h of humans.slice())if(!h.net)updateHuman(h,dt);for(const v of vehicles.slice())if(!v.net)updateVehicle(v,dt);
+    updateProps(dt);updateStreetProps(dt);updateAliens(dt);SFX.setSiren(Math.max(0,...vehicles.filter(v=>v.siren).map(v=>SFX.vol(v.pos.x,1,v.pos.z)),0));return;}
   for(const h of humans.slice())updateHuman(h,dt);
   for(const d of drones.slice())updateDrone(d,dt);
   for(const v of vehicles.slice())updateVehicle(v,dt);
   for(const r of rivals.slice())updateRival(r,dt);
   if(boss){if(boss.type==='ship')updateShip(boss,dt);else updateMech(boss,dt);}
-  updateProps(dt);updateStreetProps(dt);updateCrimes(dt);managePopulation(dt);manageRivals(dt);updatePolice(dt);updateAliens(dt);
+  updateProps(dt);updateStreetProps(dt);updateCrimes(dt);managePopulation(dt);manageRivals(dt);updatePolice(dt);updateHelis(dt);updateAliens(dt);
   SFX.setSiren(Math.max(0,...vehicles.filter(v=>v.siren).map(v=>SFX.vol(v.pos.x,1,v.pos.z)),0));
 }
+function seedTraffic(){
 for(let i=0;i<CONFIG.traffic.cars;i++)placeTraffic(makeVehicle('car'));
 for(let i=0;i<CONFIG.traffic.police;i++)placeTraffic(makeVehicle('police','police'));
 for(const sp of curbSpots.filter((_,i)=>i%5===0)){const v=makeVehicle('car');v.state='parked';v.axis=sp.axis;v.lane=sp.axis===0?sp.x:sp.z;v.s=sp.axis===0?sp.z:sp.x;v.dir=Math.random()<0.5?1:-1;v.tint=pick(CAR_COLS).slice();setVehiclePos(v);v.yaw=v.ty;}
+}
+seedTraffic();
