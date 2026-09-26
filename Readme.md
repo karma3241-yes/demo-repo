@@ -10,7 +10,7 @@ It works on laptops and phones. The game detects your device and switches betwee
 
 ## Your hero
 
-- **Build your hero.** When you create a hero you pick **one traversal power**. Six of them are complete hero kits (**presets**: Web-Slinger, Speedster, Storm God, Armored Inventor, Sun Titan and Ring Bearer) that come with their own body and abilities. The last, **Flight**, lets you build your own: pick **one body mod** (its signature move goes in slot 1) and **2 abilities**. You can swap later with **Change powers** in the pause menu whenever you like. Skill points you spent on powers you drop come back to you.
+- **Build your hero.** When you create a hero you pick **one traversal power**. Six of them are complete hero kits (**presets**: Web-Slinger, Speedster, Storm God, Armored Inventor, Sun Titan and Ring Bearer) that come with their own body and moves. You have **five power keys** (`1`–`5`): a hero kit puts **3 of its own moves on keys 1–3** (you choose which) and you pick **2 more for keys 4–5**, either the rest of your kit or any power from the shared pool (so the Ring Bearer and the Speedster can still carry all five of theirs). The last, **Flight**, lets you build your own: pick **one body mod** (its signature move goes on key 1) and **4 abilities**. Saves from before five keys keep their powers and get the new keys filled in; change them any time. You can swap later with **Change powers** in the pause menu whenever you like. Skill points you spent on powers you drop come back to you.
 - **Level up by fighting.** You earn XP from fights, from damage you deal, and from glowing orbs around the city (yellow 25 XP, blue 50, red 100; red orbs only appear on rooftops). Each level gives you **3 skill points**.
 - **Spend skill points** to upgrade your abilities and body mod (up to level 10) and four passives: Strength, Vitality, Healing and Energy (up to level 50 each). Upgraded powers look stronger too. For example, Laser Vision starts as a thin orange line and ends as a thick red beam, and Telekinesis lifts more, and heavier things, as it levels up. **Reset skill points** at the bottom of the Skills screen refunds everything you spent.
 - **Traversal grows with use.** Your traversal power has no skill points. It gets better the more you use it (mastery 1–10): flight gets faster, jumps go higher, web swings get faster and unlock new tricks, the speed dial goes higher, and ring constructs get bigger and unlock new shapes.
@@ -60,7 +60,7 @@ All of these are original characters inspired by famous hero styles.
 
 ### Build your own (Flight)
 
-| Body mod (pick 1, its move goes in slot 1) | Abilities (pick 2) |
+| Body mod (pick 1, its move goes on key 1) | Abilities (pick 4) |
 | --- | --- |
 | **Metal Skin → Metal Forms**: turn to steel. Tap again to turn your hand into a hammer, a spiked flail, a blade or a shield; hold to turn back | Fireball · Ice Cloud · Lightning Bolt · Energy Blast · Laser Vision |
 | **Blade Claws → Blade Leap**: a slashing lunge, and you heal much faster | Telekinesis · Shockwave · Energy Shield · Morph Band |
@@ -84,6 +84,16 @@ The other abilities:
 | Gravity Well | A singularity that drags in people, cars and street furniture, then detonates |
 | Spirit Wave | Hold to charge, release a huge wave that can bring down a building |
 | Time Dilation | The world slows to a quarter speed while you move normally (a speed boost in multiplayer, where time can't bend) |
+| Sonic Scream | A deafening cone that stuns and hurts everyone in front of you and shatters windows |
+| Quake Stomp | A line of erupting rock races along the ground and throws everyone in its path into the air |
+| Meteor Strike | A meteor lands where you aim a moment later, with a huge blast that even hurts buildings |
+| Force Push | A wall of force that sends people, cars and debris in front of you flying |
+| Chain Lightning | A bolt that jumps from enemy to enemy (counts as a lightning attack for the Storm God) |
+| Healing Pulse | Heals you and gets injured people around you back on their feet |
+| Invisibility | Toggle: enemies and the police lose track of you while it drains energy |
+| Vine Snare | Thorny vines burst out where you aim and hold everyone there in place |
+| Shadow Step | Vanish and reappear behind your target, striking as you arrive |
+| Plasma Whip | A fast sweeping whip that hits everything in a wide arc around you |
 
 ### Fighting
 

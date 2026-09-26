@@ -4,7 +4,7 @@
 const CONFIG={
   progression:{spPerLevel:3,startSP:3,levelCap:100,xpToNext:l=>Math.floor(100*Math.pow(l,1.5)),dmgXp:0.2,
     orbs:{yellow:25,blue:50,red:100},orbRespawn:[30,60],orbRadius:1.5},
-  picks:{movement:1,abilities:2,body:1},
+  picks:{movement:1,abilities:4,body:1,kit:3,free:2}, // custom builds: signature move + 4 picks; hero kits: 3 kit moves + 2 more
   powerMax:10,powerUpgradeCost:lvl=>lvl+1,passiveMax:50,passiveCost:1,
   energy:{base:100,perLevel:5,regen:8,regenBonus:0.02,delay:1.5,togglesBlockRegen:false},
   health:{base:220,perLevel:14,baseRegen:2,healPerLevel:0.5,healDelay:3,respawn:5,npcTaken:0.5},
@@ -68,6 +68,16 @@ const POWERS={
   giantForm:{name:'Giant Form',cat:'signature',of:'titanGrowth',type:'instant',desc:'Grow into a giant. Your punches shake the street and you can pick up cars with your hands.',energy:30,cooldown:30},
   blink:{name:'Blink',cat:'utility',type:'instant',desc:'Teleport to where you aim in a puff of smoke, knocking back anyone near where you appear.',energy:15,cooldown:[4,1.5],range:[25,60],damage:[20,90]},
   gravityWell:{name:'Gravity Well',cat:'offence',type:'instant',desc:'Open a singularity that drags in people, cars and street furniture, then collapses in a blast.',energy:30,cooldown:12,radius:[18,32],damage:[60,220]},
+  sonicScream:{name:'Sonic Scream',cat:'offence',type:'instant',desc:'A deafening scream in a cone in front of you. Stuns and hurts everyone it reaches and shatters windows.',energy:22,cooldown:6,damage:[20,90],stun:[0.6,1.6],range:[26,40]},
+  quakeStomp:{name:'Quake Stomp',cat:'offence',type:'instant',desc:'Stomp and send a line of erupting rock racing along the ground, throwing everyone in its path into the air.',energy:28,cooldown:7,damage:[30,130],range:[30,55]},
+  meteorStrike:{name:'Meteor Strike',cat:'offence',type:'instant',desc:'Call a meteor down on where you aim. It lands a moment later with a huge blast that even hurts buildings.',energy:45,cooldown:[18,10],damage:[90,320],radius:[9,15]},
+  forcePush:{name:'Force Push',cat:'offence',type:'instant',desc:'An invisible wall of force that sends people, cars and anything else in front of you flying.',energy:15,cooldown:[3,1.5],damage:[10,50],range:[22,36]},
+  chainLightning:{name:'Chain Lightning',cat:'offence',type:'instant',desc:'A bolt from your hand that jumps from enemy to enemy.',energy:25,cooldown:5,damage:[25,110],bounces:[3,7]},
+  healingPulse:{name:'Healing Pulse',cat:'utility',type:'instant',desc:'A warm pulse that heals you and gets injured people around you back on their feet.',energy:30,cooldown:[20,10],damage:[40,180]},
+  invisibility:{name:'Invisibility',cat:'defence',type:'toggle',desc:'Turn invisible. Enemies and the police lose track of you while it lasts. Drains energy.',drain:[9,3]},
+  vineSnare:{name:'Vine Snare',cat:'utility',type:'instant',desc:'Thorny vines burst out of the ground where you aim and hold everyone there in place.',energy:20,cooldown:10,radius:[6,11],stun:[2,4],damage:[10,50]},
+  shadowStep:{name:'Shadow Step',cat:'utility',type:'instant',desc:'Vanish and reappear right behind your target (or where you aim), striking as you arrive.',energy:20,cooldown:[6,3],range:[30,60],damage:[40,160]},
+  plasmaWhip:{name:'Plasma Whip',cat:'offence',type:'instant',desc:'A crackling whip that sweeps a wide arc around you. Fast and good against crowds.',energy:12,cooldown:[1.6,0.8],damage:[25,100],radius:[6,9]},
   spiritWave:{name:'Spirit Wave',cat:'offence',type:'charge',desc:'Hold to gather energy in your palms, release to unleash a massive wave that tears through anything, buildings included.',energy:40,cooldown:8,damage:[120,420]},
   suitBattery:{name:'Suit Battery',cat:'upgrade',hidden:true,desc:'How much charge the Armored Inventor\'s suit holds. Every power runs on it, and it only recharges at Inventor Tower.',capacity:[100,300]},
   timeDilation:{name:'Time Dilation',cat:'utility',type:'instant',desc:'Slow the world down around you while you move at full speed. In multiplayer it makes you faster instead.',energy:35,cooldown:20,duration:[3,7]},
@@ -120,14 +130,25 @@ function cleanName(s){return String(s).replace(/[^\p{L}\p{N} _.'-]/gu,'').replac
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
 function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
+// five hotkeys: a hero kit puts 3 of its own moves on keys 1-3 and 2 more (the rest of the kit or any pool power) on 4-5
+const PRESET_FILL={webSwing:['vineSnare','shadowStep'],stormFlight:['chainLightning'],armorFlight:['forcePush'],solarFlight:['sonicScream'],superSpeed:[],powerRing:[]};
+const CUSTOM_FILL=['energyBlast','shockwave','fireball','blink','forcePush','plasmaWhip'];
+function presetAbilities(m,want){
+  const kit=PRESETS[m].abilities,w=Array.isArray(want)?want.filter(id=>typeof id==='string'):[],K=CONFIG.picks.kit,F=CONFIG.picks.free;
+  const keys=[...new Set(w.slice(0,K).filter(id=>kit.includes(id)))];for(const id of kit){if(keys.length>=K)break;if(!keys.includes(id))keys.push(id);}
+  const free=[];for(const id of w.slice(K)){if(free.length>=F)break;if(!keys.includes(id)&&!free.includes(id)&&(kit.includes(id)||ABILITY_POWERS.includes(id)))free.push(id);}
+  for(const id of [...kit,...(PRESET_FILL[m]||[]),...CUSTOM_FILL]){if(free.length>=F)break;if(!keys.includes(id)&&!free.includes(id))free.push(id);}
+  return [...keys,...free];
+}
 function validCharacter(c){
   if(!c||typeof c!=='object')return null;
   const mv=Array.isArray(c.movement)?[...new Set(c.movement.filter(id=>MOVEMENT_POWERS.includes(id)))]:[];
   if(mv.length!==1)return null;
   const n=(v,max)=>Number.isInteger(v)&&v>=0&&v<max?v:0,pre=PRESETS[mv[0]];let body,ab;
-  if(pre){body=pre.body;ab=pre.abilities.slice();}
+  if(pre){body=pre.body;ab=presetAbilities(mv[0],c.abilities);}
   else{body=BODY_MODS.includes(c.body)?c.body:null;if(!body)return null;
-    const free=Array.isArray(c.abilities)?[...new Set(c.abilities.filter(id=>ABILITY_POWERS.includes(id)))]:[];if(free.length!==CONFIG.picks.abilities)return null;
+    const free=Array.isArray(c.abilities)?[...new Set(c.abilities.filter(id=>ABILITY_POWERS.includes(id)))].slice(0,CONFIG.picks.abilities):[];
+    for(const id of CUSTOM_FILL){if(free.length>=CONFIG.picks.abilities)break;if(!free.includes(id))free.push(id);} // builds from before five hotkeys get the rest filled in
     ab=[POWERS[body].sig,...free];}
   return {name:(typeof c.name==='string'&&cleanName(c.name))||'Guardian',suit:n(c.suit,SUIT_OPTS.length),cape:n(c.cape,CAPE_OPTS.length),accent:n(c.accent,ACC_OPTS.length),capeOn:c.capeOn!==false,movement:mv,body,abilities:ab};
 }
