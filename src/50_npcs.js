@@ -5,7 +5,7 @@ const humans=[],drones=[],vehicles=[],rivals=[],props=[],crimes=[],gangs=[];
 let boss=null;
 const pick=a=>a[(Math.random()*a.length)|0];
 function removeFrom(list,x){const i=list.indexOf(x);if(i>=0)list.splice(i,1);}
-function removeActor(a){removeFrom(actors,a);removeFrom(helis,a);removeFrom(humans,a);removeFrom(drones,a);removeFrom(vehicles,a);removeFrom(rivals,a);if(P.tk&&P.tk.a===a)P.tk=null;}
+function removeActor(a){removeFrom(actors,a);removeFrom(helis,a);removeFrom(humans,a);removeFrom(drones,a);removeFrom(vehicles,a);removeFrom(rivals,a);if(P.tk){if(P.tk.a===a)P.tk.a=null;P.tk.more=P.tk.more.filter(m=>m!==a);}}
 const d2h=(a,b)=>{const dx=a.pos.x-b.pos.x,dz=a.pos.z-b.pos.z;return dx*dx+dz*dz;};
 const c4=h=>[...hex(h),1];
 const SKINS=['#f1c7a5','#d9a27a','#a8744f','#6e4a33','#e8b48f'].map(c4);

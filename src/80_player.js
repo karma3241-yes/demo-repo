@@ -41,8 +41,8 @@ canvas.addEventListener('mousedown',e=>{
   if(paused){if(!sheetOpen&&!creating)resume();return;}
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
-  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car)return;if(P.construct){constructPrimary();return;}if(chargeStart())return;mouseL=true;punch();}
-  else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
+  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car)return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+  else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
@@ -84,6 +84,7 @@ function nearestInteract(){
   return best;
 }
 function interact(){
+  if(giantGrab())return;
   const it=nearestInteract();if(!it)return;
   if(it.kind==='exit')exitCar(false);
   else if(it.kind==='car')enterCar(it.v);
@@ -132,6 +133,7 @@ function buildTouchButtons(){
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
     for(const id of save.character.movement){if(id==='flight')B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
+  if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
   B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
 }
@@ -139,7 +141,7 @@ function touchAct(a,down){
   if(a==='pause'){if(down&&state==='play')setPaused(true);return;}
   if(down&&!canAct())return;
   if(dialOpen)return;
-  if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
+  if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
   else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){abilityDown(+a[1]);guideDone('ability');}else abilityUp(+a[1]);}
   else if(a==='con'){if(down)summonConstruct();}
   else if(a==='conpick'){if(down)openDial('construct');}
@@ -154,6 +156,7 @@ function touchAct(a,down){
   else if(a==='use'){if(down)interact();}
   else if(a==='band'){if(down)bandPress();}
   else if(a==='fast'){if(down)toggleFastMode();}
+  else if(a==='tkmore'){if(down)tkGrabMore();}
   else if(a==='phase'){if(down)togglePhase();}
   else if(a==='dialup'){if(down)turnDial(1);}
   else if(a==='dialdn'){if(down)turnDial(-1);}
@@ -206,7 +209,7 @@ function driveCar(dt,inF,inR){
   SFX.setEngine(true,clamp(sp/D.maxSpeed,0,1));
 }
 function playerBodies(prevY){
-  const sp=Math.hypot(P.vel.x,P.vel.z),big=P.alien&&alienDef().scale>2;
+  const sp=Math.hypot(P.vel.x,P.vel.z),big=(P.alien&&alienDef().scale>2)||P.giantS>2;
   for(const h of humans){if(!h.alive||h.air||h.held||h.hidden)continue;const dx=h.pos.x-P.pos.x,dz=h.pos.z-P.pos.z;
     if(Math.abs(dx)>P.radius+1||Math.abs(dz)>P.radius+1||Math.abs(h.pos.y-P.pos.y)>P.height)continue;
     const d=Math.hypot(dx,dz)||0.01,min=P.radius+0.45;if(d>=min)continue;
@@ -306,6 +309,7 @@ function updatePlayer(dt){
     const impact=-vyBefore;
     if(P.slam){P.slam=false;shockAt(P.pos.x,P.pos.y+0.6,P.pos.z,1.3);burst(P.pos.x,P.pos.y+0.3,P.pos.z,80,40,1.1,DUST,3,-2,2);crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,5,[.42,.41,.4]);}
     else if(hasWeb()&&impact>25&&impact<130)landingRoll(impact);
+    else if(hasPower('elasticBody')&&!P.alien&&impact>40&&!keys.KeyC){P.vel.y=impact*0.5;P.grounded=false;SFX.tone('sine',180,420,0.25,0.1);burst(P.pos.x,P.pos.y+0.2,P.pos.z,14,6,0.4,DUST,1,-2,2);} // rubber body bounces
     else if(impact>58||(AL&&AL.scale>2&&impact>25)||(P.construct&&P.construct.id==='titan'&&impact>18)){ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,16,0.45,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,50,26,0.9,DUST,2.6,-3,2.4);SFX.boom(0.55,0.7);addShake(0.45);
       areaDamage(P.pos.x,P.pos.y+0.5,P.pos.z,10,25*strengthMul(),P,{knock:14});crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,3.5,[.42,.41,.4]);}
   }

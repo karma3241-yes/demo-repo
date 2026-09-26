@@ -56,7 +56,7 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
     Damage.apply(src,t,clamp(n(d.a),0,600),String(d.ty||'hit').slice(0,12),opt);
     const fv=v3(d.fv);if(fv&&t.kind==='vehicle'&&t.alive&&t.vtype!=='truck'&&t!==P.car){if(t.driver)ejectDriver(t);t.state='thrown';t.vel.set(fv[0]*0.7,Math.max(6,fv[1]*0.6),fv[2]*0.7);t.sx=rr(-3,3);t.sy=rr(-2,2);t.sz=rr(-3,3);t.life=4;t.thrower=src;t.throwDmg=40;}
   },
-  onTake(peer,d){if(!this.host||!d)return;const v=this.find(+d.id);if(v&&v.kind==='vehicle'&&v!==P.car){if(v.driver)ejectDriver(v);if(P.tk&&P.tk.a===v)P.tk=null;removeActor(v);}},
+  onTake(peer,d){if(!this.host||!d)return;const v=this.find(+d.id);if(v&&v.kind==='vehicle'&&v!==P.car){if(v.driver)ejectDriver(v);removeActor(v);}},
   find(n){if(!n)return null;for(const a of actors)if(a.nid===n)return a;return boss&&boss.nid===n?boss:null;},
   // NPC hits on another player: batched and sent to that player
   npcHit(t,src,amount,type,opt){
@@ -114,7 +114,7 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
     const k=damp(12,dt);
     for(const m of this.byId.values()){
       const age=Math.min(time-m.stamp,0.3),tx=m.tp.x+m.nv.x*age,ty=m.tp.y+m.nv.y*age,tz=m.tp.z+m.nv.z*age;
-      if(P.tk&&P.tk.a===m)continue; // I'm holding it: my telekinesis moves it here
+      if(P.tk&&(P.tk.a===m||P.tk.more.includes(m)))continue; // I'm holding it: my telekinesis moves it here
       if(Math.hypot(tx-m.pos.x,tz-m.pos.z)>40)m.pos.set(tx,ty,tz);else{m.pos.x+=(tx-m.pos.x)*k;m.pos.y+=(ty-m.pos.y)*k;m.pos.z+=(tz-m.pos.z)*k;}
       if(m.flash>0)m.flash=Math.max(0,m.flash-dt*5);
       if(m.kind==='human'){m.rx=lerp(m.rx,m.trx||0,damp(10,dt));m.phase+=m.moving*dt*2.2;m.target=m.aiming?P:null;}

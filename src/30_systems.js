@@ -43,7 +43,7 @@ const Damage={
       if(src&&src.kind!=='remote'&&type!=='pvp')amount*=CONFIG.health.npcTaken;
       amount=ringAbsorb(amount);if(amount<=0)return 0;
       if(P.shield>0){const a=Math.min(P.shield,amount);P.shield-=a;amount-=a;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1.5,2.6,0.25,[.4,.85,1]);if(P.shield<=0)breakShield();}
-      if(P.metal)amount*=1-pstat('metalSkin','dr');
+      if(P.metal)amount*=1-pstat('metalSkin','dr');amount*=bodyDamageMul();
       if(P.alien&&P.alien.armor>0)amount*=0.4;if(P.car)amount*=0.5;
       if(amount<=0)return 0;
       P.hp-=amount;P.lastHit=time;hurtFlash=Math.min(1,hurtFlash+0.2+amount/40);
