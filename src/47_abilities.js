@@ -13,7 +13,7 @@ function nearestFoe(x,y,z,R,skip){
 }
 Object.assign(POWER_FN,{
   stormHammer(){faceAim();const h=handPoint(),d=dirTo(h,aim.x,aim.y,aim.z),R=pstat('stormHammer','range');
-    thrown.push({kind:'hammer',x:h.x,y:h.y,z:h.z,vx:d[0]*75,vy:d[1]*75,vz:d[2]*75,t:0,back:false,max:R/75,hit:new Set(),spin:0});SFX.whoosh();},
+    thrown.push({kind:'hammer',x:h.x,y:h.y,z:h.z,vx:d[0]*75,vy:d[1]*75,vz:d[2]*75,t:0,back:false,max:R/75,hit:new Set(),spin:0,bolted:!!P.hammerDry});P.hammerDry=false;SFX.whoosh();},
   ricochetShield(){faceAim();const h=handPoint(),first=lockT&&lockT.alive?lockT:aim.actor&&aim.actor.kind!=='prop'&&aim.actor.kind!=='vehicle'?aim.actor:nearestFoe(aim.x,aim.y,aim.z,15);
     const tgt=first?center(first):{x:aim.x,y:aim.y,z:aim.z},d=dirTo(h,tgt.x,tgt.y,tgt.z);
     thrown.push({kind:'disc',x:h.x,y:h.y,z:h.z,vx:d[0]*85,vy:d[1]*85,vz:d[2]*85,t:0,back:false,max:1.2,hit:new Set(),target:first||null,left:Math.round(pstat('ricochetShield','bounces')),spin:0});SFX.whoosh();},
@@ -53,7 +53,7 @@ function repulsorTick(dt){repT-=dt;if(repT>0)return;repT=0.11;faceAim();repHand=
 // ---- spirit wave: hold to charge, release to fire ----
 function chargeFire(id){
   const s=PS[id],k=clamp((s.chargeT||0)/2,0.2,1);if(!canAct())return;
-  if(!spend(POWERS[id].energy*(0.5+k*0.5))){noEnergy(id);return;}s.cd=pstat(id,'cooldown');
+  if(!spend(POWERS[id].energy*(0.5+k*0.5),id)){noEnergy(id);return;}s.cd=pstat(id,'cooldown')*cdMul();
   bigBeam={kind:'spirit',t:0,wind:0.05,dur:0.9+k*0.8,w:1.5+k*3,dps:pstat(id,'damage')*strengthMul()*(0.6+k)};SFX.boom(0.8,0.6);addShake(0.3+k*0.4);
 }
 // ---- updates ----

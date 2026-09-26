@@ -21,7 +21,21 @@ const ringMk=()=>mk('powerRing');
 const conSize=()=>0.8+0.45*ringMk(); // constructs grow with ring mastery
 const conUnlocked=()=>{const l=masteryLevel('powerRing');return CON_IDS.filter(id=>CONSTRUCTS[id].unlock<=l);};
 const conDef=()=>P.construct?CONSTRUCTS[P.construct.id]:null;
-const conScale=id=>(CONSTRUCTS[id].scale||1)*(CONSTRUCTS[id].scale?conSize():1);
+const conScale=id=>(CONSTRUCTS[id].scale||1)*(CONSTRUCTS[id].scale?conSize()*conGrow(id):1);
+// the Huge Mech keeps growing: scroll up (or ] / =) to grow it, down to shrink it back.
+// Growing costs ring charge in proportion to how much it grows: all the way to max costs half a full ring.
+const TITAN_GROW={max:8,step:0.5,cost:50};
+const conGrow=id=>id==='titan'&&P.construct&&P.construct.id==='titan'?P.construct.grow||1:1;
+function conBody(){const K=P.construct;if(!K)return;const C=CONSTRUCTS[K.id];if(!C.scale)return;const sc=conScale(K.id);
+  // the body stays narrow enough to walk down a street; anything inside the mech's feet gets trampled instead
+  P.radius=0.8*Math.max(1,Math.min(sc*0.7,9));P.height=2.7*sc;}
+function titanGrow(dir){
+  const K=P.construct;if(!K||K.id!=='titan'||!canAct())return false;
+  const g=K.grow||1,ng=clamp(g+dir*TITAN_GROW.step,1,TITAN_GROW.max);if(ng===g){if(dir>0&&time-(K.maxMsg||-9)>3){K.maxMsg=time;feed('The Huge Mech is as big as it gets','');}return true;}
+  if(ng>g){const cost=(ng-g)/(TITAN_GROW.max-1)*TITAN_GROW.cost;if(save.ring<cost+1){ringOut();return true;}save.ring-=cost;}
+  K.grow=ng;conBody();const c=center(P);ringFx(c.x,P.pos.y+0.3,c.z,1,4*conScale('titan'),0.4,RING_C);
+  SFX.tone('sine',ng>g?220:500,ng>g?120:900,0.25,0.08);if(ng>g)addShake(0.15*ng);MP.bump();return true;
+}
 const conSpeedMul=()=>{const c=conDef();return c?c.speed:1;};
 const conCam=()=>{const c=conDef();return !c?1:P.construct.id==='dragon'?1.8:P.construct.id==='jet'?1.35:P.construct.id==='bubble'?1.2:1;};
 function ringOut(){feed('Ring charge is empty','Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
@@ -35,15 +49,15 @@ function summonConstruct(id){
   if(P.construct)dismissConstruct(true);
   save.ring-=C.cost;conPick=id;P.construct={id,t:0,cd:0,cd2:0,cdx:0,gun:0,breath:false,alt:false,side:1};P.web=null;P.wall=null;P.wallRun=null;P.charging=false;P.zip=null;
   if(C.fly){P.flying=true;P.grounded=false;if(P.vel.y<6)P.vel.y=8;}else P.flying=false;
-  const sc=conScale(id);if(C.scale){P.radius=0.8*Math.max(1,sc*0.7);P.height=2.7*sc;}
+  const sc=conScale(id);conBody();
   const c=center(P);ringFx(c.x,c.y,c.z,1,6*Math.max(1,sc),0.5,RING_C);burst(c.x,c.y,c.z,60,10*Math.max(1,sc*0.6),0.7,[RING_C,[.8,1,.85]],1.4,0,2);
-  SFX.tone('sine',300,900,0.35,0.12);feed(C.name,C.attacks);addMastery('powerRing',8);MP.bump();
+  SFX.tone('sine',300,900,0.35,0.12);feed(C.name,C.attacks+(id==='titan'?' · wheel grows it':''));addMastery('powerRing',8);MP.bump();if(touchOn())buildTouchButtons();
 }
 function dismissConstruct(quiet){
   const K=P.construct;if(!K)return;const C=CONSTRUCTS[K.id];P.construct=null;
   if(C.scale){P.radius=0.8;P.height=2.7;const b=inBuilding(P.pos.x,P.pos.y+1,P.pos.z,0.5);if(b)P.pos.y=b.y1+0.1;}
   if(!quiet){const c=center(P);burst(c.x,c.y,c.z,40,8,0.6,[RING_C],1.2,-2,2);SFX.tone('sine',800,300,0.25,0.08);}
-  if(C.fly&&save.ring<=0)P.flying=false;MP.bump();
+  if(C.fly&&save.ring<=0)P.flying=false;MP.bump();if(touchOn())buildTouchButtons();
 }
 function ringCast(){faceAim();castT=time;}
 function ringProj(o,d,sp,dmg,extra){fireProj(Object.assign({kind:'ring',owner:P,x:o.x,y:o.y,z:o.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg,knock:10,r:0.5,life:2.2},extra||{}));}
@@ -80,7 +94,7 @@ function constructPrimary(){
   if(!ringSpend(id==='bubble'?1:0.5)){ringOut();return true;}
   ringCast();const sc=CONSTRUCTS[id].scale?conScale(id):1;
   if(id==='bubble'){K.cd=0.7;K.spikeT=0.35;const R=6*conSize();areaDamage(P.pos.x,P.pos.y+1.3,P.pos.z,R,45*(1+ringMk()),P,{knock:24,type:'blast'});ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,1,R,0.3,RING_C);SFX.tone('square',500,1200,0.12,0.08);hitProps(P.pos.x,P.pos.y,P.pos.z,R*0.6,P,18);}
-  else if(id==='mech'||id==='titan'){K.cd=id==='titan'?0.9:0.55;K.punchT=time;K.arm=-(K.arm||1);conSmash(3.2*sc,(id==='titan'?160:80)*(1+ringMk()),id==='titan'?60:36,14,RING_C);}
+  else if(id==='mech'||id==='titan'){const g=conGrow(id);K.cd=id==='titan'?0.9:0.55;K.punchT=time;K.arm=-(K.arm||1);conSmash(3.2*sc,(id==='titan'?160:80)*(1+ringMk())*g,(id==='titan'?60:36)*Math.sqrt(g),14*Math.sqrt(g),RING_C);if(g>2){addShake(0.1*g);SFX.boom(0.4,0.5);}}
   else if(id==='dragon'){K.cd=0.6;K.biteT=time;conSmash(8,90*(1+ringMk()),40,18,RING_C);}
   return true;
 }
@@ -130,6 +144,12 @@ function ringAbsorb(amount){if(!P.ringShield||!isRing())return amount;
   P.rsHp-=amount;P.rsHitT=time;save.ring=Math.max(0,save.ring-amount*0.01);ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,2.5,3.6,0.2,RING_C);
   if(P.rsHp<=0){P.rsHp=0;P.ringShield=false;PS.ringShield.cd=pstat('ringShield','cooldown');SFX.tone('square',600,120,0.3,0.1);burst(P.pos.x,P.pos.y+1.3,P.pos.z,40,10,0.5,[RING_C],1.2,0,2);feed('Shield broken','It rebuilds in '+Math.round(PS.ringShield.cd)+' s');}
   else if(save.ring<=0){P.ringShield=false;ringOut();}return 0;}
+// a grown Huge Mech is wider than the street: buildings under its feet and legs get crushed as it walks
+function titanTrample(K,dt){
+  K.tr=(K.tr||0)-dt;if(K.tr>0)return;K.tr=0.25;const sc=conScale('titan'),foot=0.8*sc*0.7,sp=Math.hypot(P.vel.x,P.vel.z);if(sp<2&&P.grounded)return;
+  for(const b of bldgs){if(b.state!=='up')continue;const d=Math.hypot(Math.max(b.x0-P.pos.x,0,P.pos.x-b.x1),Math.max(b.z0-P.pos.z,0,P.pos.z-b.z1));if(d>foot)continue;
+    const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,l=Math.hypot(cx-P.pos.x,cz-P.pos.z)||1;damageBuilding(b,(40+sp*8)*K.grow*K.grow,cx,P.pos.y+2,cz,(cx-P.pos.x)/l,(cz-P.pos.z)/l);}
+}
 function onRingFx(d,n){
   if(d.g==='h')ringFxList.push({kind:'hammer',x:n(d.x),y:n(d.y),z:n(d.z),t:0,R:clamp(n(d.r),2,30),dmg:0,yaw:0,visual:true,hit:false});
   else if(d.g==='b')holes.push({x:n(d.x),y:n(d.y),z:n(d.z),t:0,dur:6,R:clamp(n(d.r),10,100),next:0,hitT:0,visual:true});
@@ -151,6 +171,7 @@ function updateRing(dt){
           if(Math.hypot(vx-d[0]*s,vy-d[1]*s,vz-d[2]*s)>2+s*0.25)continue;Damage.apply(P,a,70*(1+ringMk())*dt,'fire',{burn:{dps:10,time:2}});}
         hitProps(o.x+d[0]*12,o.y+d[1]*12,o.z+d[2]*12,4,P,10);if(Math.random()<dt*4)addScorch(aim.x,aim.y,aim.z,2,aim.nx,aim.ny,aim.nz);}}
       if(K.ramT>0){K.ramT-=dt;for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||time-(a.ramHit||-9)<0.5)continue;const c=center(a);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1.3,c.z-P.pos.z)<3.2*conSize()){a.ramHit=time;Damage.apply(P,a,60*(1+ringMk()),'punch',{kv:[P.vel.x*0.6,14,P.vel.z*0.6],flung:true});}}}
+      if(K.id==='titan'&&(K.grow||1)>1.5)titanTrample(K,dt);
       if(save.ring<=0){dismissConstruct();ringOut();}}
     if(P.ringShield){save.ring=Math.max(0,save.ring-pstat('ringShield','ringDrain')*dt);if(save.ring<=0){P.ringShield=false;ringOut();}}
     {const mx=pstat('ringShield','absorb');if(P.rsHp==null)P.rsHp=mx;if(time-(P.rsHitT||-9)>2.5)P.rsHp=Math.min(mx,P.rsHp+mx*0.12*dt);}
@@ -241,7 +262,7 @@ function renderOath(n){oathText.textContent='';const words=OATH.split(' ');let u
 // ---- drawing ----
 const glowQ=(M,a)=>{queue(MESH.glowBox,M,[RING_C[0]*0.7,RING_C[1],RING_C[2]*0.8,Math.min(0.85,a*1.5)],F_BL);};
 function drawConstruct(s,id,isPlayer){
-  const C=CONSTRUCTS[id];if(!C)return;const K=isPlayer?P.construct:null,sz=isPlayer?conSize():1,yaw=s.heroYaw||0,x=s.pos.x,y=s.pos.y,z=s.pos.z,pulse=0.85+Math.sin(time*6)*0.08;
+  const C=CONSTRUCTS[id];if(!C)return;const K=isPlayer?P.construct:null,sz=isPlayer?conSize()*conGrow(id):(s.cz||1),yaw=s.heroYaw||0,x=s.pos.x,y=s.pos.y,z=s.pos.z,pulse=0.85+Math.sin(time*6)*0.08;
   if(id==='bubble'){const r=2.3*sz;queue(MESH.glowSphere,at(x,y+1.3,z,0,0,0,r,r,r),[RING_C[0]*0.7,RING_C[1],RING_C[2]*0.8,0.25*pulse],F_BL);
     queue(MESH.ring,M4.alignY(tmpM(),x,y+1.3,z,Math.sin(time),1,Math.cos(time*0.8),r),[RING_C[0],RING_C[1],RING_C[2],0.6],F_ADD);
     if(K&&K.spikeT>0||!isPlayer&&Math.sin(time*3)>0.9)for(let i=0;i<14;i++){const a=i*2.4,b=Math.acos(1-2*(i+0.5)/14),dx=Math.sin(b)*Math.cos(a),dy=Math.cos(b),dz=Math.sin(b)*Math.sin(a);
@@ -271,7 +292,7 @@ function drawConstruct(s,id,isPlayer){
     glowQ(child(el,0,-0.68*sc,0,0,0,0,0.4*sc,0.32*sc,0.4*sc),0.5);glowQ(child(sh,sd*0.2*sc,0.1*sc,0,0,0,0,0.18*sc,0.3*sc,0.18*sc),0.5);}
 }
 // the rider sits inside the construct; mechs raise the hero into the cockpit
-function riderOffset(id){const C=CONSTRUCTS[id];if(!C||!C.scale)return 0;return 1.3*C.scale*conSize()+0.2*C.scale;}
+function riderOffset(id,sz){const C=CONSTRUCTS[id];if(!C||!C.scale)return 0;return 1.3*C.scale*(sz||conSize()*conGrow(id))+0.2*C.scale;}
 function drawRing(){
   for(const F of ringFxList){
     if(F.kind==='hammer'){const k=Math.min(1,F.t/0.38),R=F.R,alpha=F.t>0.5?Math.max(0,1-(F.t-0.5)/0.3):1;

@@ -33,16 +33,21 @@ All of these are original characters inspired by famous hero styles.
 - **Spider-sense** sometimes dodges attacks for you.
 - **Abilities:** Web Strike (yank someone, or swing-kick them from the air), Web Bomb (pins everyone nearby) and Web Whip (knocks back everyone around you).
 
-**Speedster** (Super Speed).
+**Speedster** (Super Speed). No energy limit: a yellow **calorie** bar instead. Running fast and using powers burn calories. Run out and the speed dial tops out at ×2, your powers take three times as long to come back, and Time Stop is locked. Press `G` at any shop to eat and fill right back up.
 - **Running:** `Shift` runs, and `F` turns on fast mode so you always run. The **speed dial** (`[` `]` or the mouse wheel) sets how fast. It goes up to ×3 at first and ×12 when mastered, and your punches hit harder the higher it is.
 - **Phasing:** `C` vibrates you through buildings.
 - **Abilities:** Lightning Throw, Phase Strike (vibrates your hand through a target), Speed Tornado and Slow Time. Slow Time slows the world while you move normally, and the dial sets how slow. In multiplayer it speeds you up instead and doesn't touch other players.
 - **Time Stop** freezes everyone for 3 seconds, other players included. Everything you hit in that moment lands at once when time starts again, and your path shows as lightning streaks.
 
+**Storm God** (Storm Flight). Instead of energy he has a **lightning** meter. Only lightning costs charge: Lightning Bolt, the Storm Hammer's lightning strike and the bolt when you blast off. When it runs out he can still fly and fight, and the hammer still flies, just without the lightning. To recharge, land on top of a tall tower and press `G` to raise the hammer and call the storm down into it.
+
+**Armored Inventor** (Armor Flight). The suit runs on a **battery** instead of energy. Every power uses it, and flying drains it slowly. When it's empty the suit drops into **standby**: you can still fly and punch, but no repulsors, energy blasts, core beam or shield. Recharge at **Inventor Tower** (the red and gold skyscraper marked **I** on the minimap): land on its roof or its landing pad, or walk into the lobby. Upgrade the battery's capacity (100 up to 300) with skill points in the Skills screen.
+
 **Ring Bearer** (Power Ring). Everything runs on **ring charge**, which never refills by itself.
 - **Recharging:** press `O` to hold up the lantern and type the oath to recharge. The game doesn't pause and the mouse stays locked: just start typing, and `Enter` or `Esc` puts the lantern away. The first time, the oath shows in the middle of the screen with an explanation. After you've typed it once, it sits as plain text in the bottom-right corner and `Tab` (NEXT WORD on touch screens) fills in each word for you. At 0 charge you can only walk.
 - **Flying:** `F` flies.
 - **Constructs:** `B` builds your default construct and `V` opens the construct wheel. The choices are a spiked Bubble, a Jet (guns and homing missiles), a Mech and a Huge Mech (punches, guns, missile salvos; the huge one tramples buildings) and a Dragon you ride (claw strike, breath, roar). Inside a construct, left click, right click and `X` are its attacks.
+- **The Huge Mech keeps growing:** scroll up (or `]`) to make it bigger, up to 8 times its size (well over 100 m tall), and scroll down (or `[`) to shrink it back. Growing costs ring charge: going all the way costs half a full ring. The bigger it is, the harder it hits, and buildings under its feet get crushed as it walks. On touch screens use GROW and SHRINK.
 - **Abilities:** Ring Blast, Hammer Smash, Chain Lasso and Ring Shield.
 - **Ring Shield** has its own health (shown on the HUD shield bar) that grows as you upgrade it. Holding it up barely costs charge, and each hit it takes costs a little more. If it breaks, it takes 4 seconds to rebuild.
 - **Black Hole** costs 95% of your charge. It drags in people, cars, rubble and whole buildings; only the strong or the very fast get away.

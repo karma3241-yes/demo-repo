@@ -38,9 +38,9 @@ function abilityDown(slot){
   if(c.type==='hold'){if(id==='telekinesis')tkGrab();return;}
   if(c.type==='toggle'){togglePower(id);return;}
   if(s.cd>0){s.flash=0.3;return;}
-  if(c.ring!=null){if(!ringSpend(c.ring*(id==='blackHole'?1:1))){noEnergy(id);return;}}else if(!spend(c.energy||0)){noEnergy(id);return;}
+  if(c.ring!=null){if(!ringSpend(c.ring*(id==='blackHole'?1:1))){noEnergy(id);return;}}else if(!spend(c.energy||0,id)){noEnergy(id);return;}
   if(!POWER_FN[id])return;
-  s.cd=pstat(id,'cooldown')||0;POWER_FN[id]();
+  s.cd=(pstat(id,'cooldown')||0)*cdMul();POWER_FN[id]();
 }
 function abilityUp(slot){
   if(P.alien){alienAbilityUp(slot);return;}
@@ -57,7 +57,7 @@ function togglePower(id){
     const s=PS.energyShield;
     if(P.shieldOn){P.shieldOn=false;P.shield=0;s.cd=3;return;}
     if(s.cd>0){s.flash=0.3;return;}
-    if(!spend(POWERS.energyShield.energy)){noEnergy(id);return;}
+    if(!spend(POWERS.energyShield.energy,'energyShield')){noEnergy(id);return;}
     P.shieldOn=true;P.shield=pstat('energyShield','absorb');ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3,0.3,[.4,.85,1]);SFX.tone('sine',400,900,0.3,0.12);
   }
 }
@@ -72,7 +72,7 @@ function flyChargeRelease(){
   if(!P.fCharge)return false;P.fCharge=false;const t=P.chargeT||0,on=P.charging&&P.grounded;P.charging=false;
   if(!on||t<0.25){if(!P.flying)toggleFlight();return true;}
   const k=clamp(t/1.5,0,1);toggleFlight();if(!P.flying)return true;
-  P.vel.set(camF.x*25*k,70+170*k,camF.z*25*k);P.launchT=0.5+1.3*k;P.pos.y+=0.3;P.hammerUpT=time;if(hasPower('stormBody')&&k>0.4)bolt(P.pos.x,P.pos.y,P.pos.z,true);
+  P.vel.set(camF.x*25*k,70+170*k,camF.z*25*k);P.launchT=0.5+1.3*k;P.pos.y+=0.3;P.hammerUpT=time;if(hasPower('stormBody')&&k>0.4&&!boltEmpty()){bolt(P.pos.x,P.pos.y,P.pos.z,true);if(heroMeter())payEn(6,'lightning');}
   ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,10+22*k,0.5,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,Math.round(30+60*k),14+24*k,0.9,DUST,2.4,-3,2.5);
   if(k>0.5)crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,2+3*k,[.42,.41,.4]);SFX.boom(0.4+0.5*k,0.8);addShake(0.2+0.5*k);hitProps(P.pos.x,P.pos.y,P.pos.z,3+4*k,P,12);
   addMastery(save.character.movement[0],10*k);return true;
@@ -220,7 +220,7 @@ function tkMove(a,x,y,z,dt){
 function tkTick(dt){
   const T=P.tk,a=T.a;
   if(a&&a.kind!=='vehicle'&&!a.alive&&!a.air&&a.kind!=='human'&&a.kind!=='remote'){tkDrop();return;}
-  if(!T.giant){const cost=POWERS.telekinesis.energyPerSec*(1.3-0.1*tkLevel())*(1+T.more.length*0.5+(T.slab?1:0))*dt;if(P.en<cost){tkThrow();return;}P.en-=cost;P.lastSpend=time;}
+  if(!T.giant){const cost=POWERS.telekinesis.energyPerSec*(1.3-0.1*tkLevel())*(1+T.more.length*0.5+(T.slab?1:0))*dt;if(heroMeter()?!payEn(cost,'telekinesis',true):P.en<cost){tkThrow();return;}if(!heroMeter())P.en-=cost;P.lastSpend=time;}
   const gs=P.giantS||1,far=T.giant?2.4*gs:T.slab?10:a&&a.kind==='vehicle'?8:6.5,hx=P.pos.x+camF.x*far,hy=P.pos.y+(T.giant?3*gs:2.6)+camF.y*far,hz=P.pos.z+camF.z*far;
   T.hold=[hx,Math.max(hy,0.5),hz];
   if(a&&!tkMove(a,hx,Math.max(hy,0.5),hz,dt)){T.a=null;a.held=false;}
@@ -264,14 +264,15 @@ function updatePowers(dt){
   if(!canAct()){for(const k in PS)PS[k].holding=false;}
   if(save.character)for(const id of save.character.abilities){
     const c=POWERS[id],s=PS[id];if(c.type!=='channel'||!s.holding)continue;
-    const cost=c.energyPerSec*dt;if(P.en<cost){s.holding=false;noEnergy(id);continue;}
-    P.en-=cost;P.lastSpend=time;
+    const cost=c.energyPerSec*dt;
+    if(heroMeter()){if(!payEn(cost,id,true)){s.holding=false;noEnergy(id);continue;}}
+    else{if(P.en<cost){s.holding=false;noEnergy(id);continue;}P.en-=cost;P.lastSpend=time;}
     if(id==='laserVision'){laserTick(dt);lasering=true;}else if(id==='repulsors')repulsorTick(dt);else if(CHANNEL_FN[id])CHANNEL_FN[id](dt);else iceTick(dt);
   }
   if(ice){iceVisuals();if(!PS.iceCloud.holding){ice.t-=dt;if(ice.t<=0)ice=null;}}
   SFX.setLaser(lasering);
   if(P.tk)tkTick(dt);
-  const drainT=(n)=>{P.en=Math.max(0,P.en-n*dt);if(CONFIG.energy.togglesBlockRegen)P.lastSpend=time;return P.en>0;};
+  const drainT=(n)=>{if(heroMeter())return true;P.en=Math.max(0,P.en-n*dt);if(CONFIG.energy.togglesBlockRegen)P.lastSpend=time;return P.en>0;};
   if(P.flying&&!P.alien&&!isRing()&&!drainT(pstat('flight','drain'))){P.flying=false;feed('Out of energy','You stopped flying');}
   if(P.metal&&!drainT(POWERS.metalSkin.drain)){P.metal=false;feed('Out of energy','Metal Skin wore off');}
   if(P.speeding&&!drainT(pstat('superSpeed','drain')))P.speeding=false;
@@ -279,5 +280,5 @@ function updatePowers(dt){
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   updateWanted(dt);
   if(P.stun>0)P.stun-=dt;
-  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
+  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateMeters(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
 }

@@ -33,6 +33,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyC'&&hasWeb()&&!P.grounded&&!P.flying&&spiderAirTrick())return;
   if(e.code in SLOT_CODES){abilityDown(SLOT_CODES[e.code]);guideDone('ability');return;}
   if(e.code==='KeyX'){if(P.construct&&constructX())return;dashPress();return;}
+  if(P.construct&&P.construct.id==='titan'&&!e.repeat&&(e.code==='BracketRight'||e.code==='Equal'||e.code==='BracketLeft'||e.code==='Minus')){titanGrow(e.code==='BracketRight'||e.code==='Equal'?1:-1);return;}
   if(isSpeed()){if(e.code==='KeyF'){toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
   if(e.code==='KeyF'){if(!flyChargeStart())toggleFlight();}else if(e.code==='Space')pressJump();
 });
@@ -48,7 +49,7 @@ canvas.addEventListener('mousedown',e=>{
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
-addEventListener('wheel',e=>{if(state==='play'&&!paused&&!dialOpen&&isSpeed()&&Math.abs(e.deltaY)>1)turnDial(e.deltaY<0?1:-1);},{passive:true});
+addEventListener('wheel',e=>{if(state!=='play'||paused||dialOpen||Math.abs(e.deltaY)<=1)return;if(P.construct&&P.construct.id==='titan'){titanGrow(e.deltaY<0?1:-1);return;}if(isSpeed())turnDial(e.deltaY<0?1:-1);},{passive:true});
 addEventListener('mousemove',e=>{if(state!=='play'||paused||touchOn())return;if(dialOpen){if(locked)dialMove(e.movementX,e.movementY);return;}if(locked||mmbLook||rmbLook)look(e.movementX,e.movementY);});
 function requestLock(){if(touchOn())return;try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
 function lockFail(){lockFailed=true;if(!lockHint){lockHint=true;toast('Mouse lock not available here','Hold the middle mouse button and drag to look','cyan');}}
@@ -83,6 +84,7 @@ function nearestInteract(){
   for(const h of humans)if(h.alive&&h.downed>0){const d=Math.hypot(h.pos.x-P.pos.x,h.pos.z-P.pos.z);if(d<bd&&Math.abs(h.pos.y-P.pos.y)<2){bd=d;best={kind:'help',h};}}
   if(!P.alien||alienDef().scale<2)for(const v of vehicles){if(!v.alive||!['road','parked','stolen','flee','chase'].includes(v.state)||v.vtype==='truck')continue;
     const d=Math.hypot(v.pos.x-P.pos.x,v.pos.z-P.pos.z);if(d<bd+0.6&&Math.abs(v.pos.y-P.pos.y)<2.5){bd=d-0.6;best={kind:'car',v};}}
+  if(!best){const s=nearestShopToEat();if(s)best={kind:'eat',s};else if(meterPrompt())best={kind:'storm'};}
   return best;
 }
 function interact(){
@@ -90,6 +92,8 @@ function interact(){
   const it=nearestInteract();if(!it)return;
   if(it.kind==='exit')exitCar(false);
   else if(it.kind==='car')enterCar(it.v);
+  else if(it.kind==='eat')eatAt(it.s);
+  else if(it.kind==='storm')callStorm();
   else if(it.kind==='help'){const h=it.h;if(playerFaction()==='villain'){Damage.apply(P,h,5,'punch');return;}
     h.downed=0;h.hp=Math.max(h.hp,30);h.state='flee';h.fx=h.pos.x+rr(-1,1);h.fz=h.pos.z+rr(-1,1);h.st=3;h.rx=0;
     burst(h.pos.x,h.pos.y+1,h.pos.z,30,6,1,[[.5,1,.7],[1,1,1]],1.2,-3,1.5);SFX.chime();addXP(15);addRep(5);feed('+15 XP · +5 rep','You helped someone back up');}
@@ -134,7 +138,7 @@ function buildTouchButtons(){
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
-    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');}}}
+    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');if(P.construct&&P.construct.id==='titan'){B('GROW','grow');B('SHRINK','shrink');}}}}
   if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
   if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
   B('SUIT','suit');B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
@@ -150,6 +154,7 @@ function touchAct(a,down){
   else if(a==='oath'){if(down)openOath();}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
+  else if(a==='grow'||a==='shrink'){if(down)titanGrow(a==='grow'?1:-1);}
   else if(a==='jump'){keys.Space=down;if(down)pressJump();else releaseJump();}
   else if(a==='speed')keys.ShiftLeft=down;
   else if(a==='down')keys.KeyC=down;
@@ -299,7 +304,7 @@ function updatePlayer(dt){
       if(col.wall&&(P.flying||P.rush||(P.alien&&P.alien.dashing))&&vpre>70&&!P.car){const w=col.wall;
         if(damageBuilding(w.b.bld,vpre*vpre*0.08*(P.rush?3:1),P.pos.x,P.pos.y+1,P.pos.z,-(w.nx||0),-(w.nz||0))){P.vel.set(pvx*0.85,pvy*0.85,pvz*0.85);addShake(0.5);}
         else if(time-(P.wallHitT||-9)>0.5){P.wallHitT=time;crater(P.pos.x,P.pos.y+1.2,P.pos.z,w.nx||0,0,w.nz||0,clamp(vpre*0.025,1.5,4),w.b.col);}}
-      if(col.wall&&P.construct&&P.construct.id==='titan'&&vpre>5){const w=col.wall;damageBuilding(w.b.bld,vpre*60*dt,P.pos.x,P.pos.y+2,P.pos.z,-(w.nx||0),-(w.nz||0));if(Math.random()<dt*4)crater(P.pos.x-(w.nx||0)*P.radius,P.pos.y+rr(2,8),P.pos.z-(w.nz||0)*P.radius,w.nx||0,0,w.nz||0,2.5,w.b.col);}
+      if(col.wall&&P.construct&&P.construct.id==='titan'&&vpre>5){const w=col.wall;damageBuilding(w.b.bld,vpre*60*dt*conGrow('titan'),P.pos.x,P.pos.y+2,P.pos.z,-(w.nx||0),-(w.nz||0));if(Math.random()<dt*4)crater(P.pos.x-(w.nx||0)*P.radius,P.pos.y+rr(2,8),P.pos.z-(w.nz||0)*P.radius,w.nx||0,0,w.nz||0,2.5,w.b.col);}
       if(P.flungT&&time-P.flungT<2&&col.wall&&Math.hypot(P.vel.x,P.vel.z)+15>COMBAT.slamMin*2){crater(P.pos.x,P.pos.y+1.2,P.pos.z,col.wall.nx||0,0,col.wall.nz||0,2.2,col.wall.b.col);P.flungT=-9;P.vel.set(0,-4,0);P.stun=Math.max(P.stun,0.6);}
       const canClimb=(hasPower('wallClimb')&&!P.alien)||(AL&&AL.climb);
       if(col.wall&&canClimb&&!shift&&!P.flying&&!P.web&&!P.zip&&P.wallCd<=0&&col.wall.b.y1>P.pos.y+2.5){

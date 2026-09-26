@@ -7,7 +7,7 @@
 // whatever you hit in that moment lands all at once when time starts again.
 const SPD_C=[1,.82,.25],SPD_C2=[1,.45,.15];
 const isSpeed=()=>hasTrav('superSpeed')&&!P.alien;
-const dialMax=()=>Math.round(3+9*mk('superSpeed')); // x3 at the start, x12 mastered
+const dialMax=()=>hungry()?2:Math.round(3+9*mk('superSpeed')); // x3 at the start, x12 mastered; x2 when out of calories
 P.dial=2;P.fastMode=false;P.phasing=false;P.slowOn=false;
 let timeStopT=0,frozenT=0,slowK=0.3,tsQueue=[],tsPath=[],tsBy=null,lastStreak=null;
 function speedMult(){return isSpeed()?Math.max(1.5,Math.min(P.dial,dialMax())):pstat('superSpeed','mult');}
@@ -89,7 +89,7 @@ function updateSpeed(dt){
   if(!isSpeed()){P.phasing=false;P.slowOn=false;P.fastMode=false;return;}
   if(P.dial>dialMax())P.dial=dialMax();
   if(P.phasing){P.en=Math.max(0,P.en-6*dt);P.lastSpend=time;if(P.en<=0)endPhase(true);else if(P.phaseOff)endPhase(false);}
-  if(P.slowOn){P.en=Math.max(0,P.en-pstat('slowTime','drain')*dt);P.lastSpend=time;if(P.en<=0){P.slowOn=false;feed('Out of energy','Time runs normally again');}if(MP.online())hasteT=Math.max(hasteT,0.15);}
+  if(P.slowOn){const sd=pstat('slowTime','drain')*dt;if(heroMeter()){if(!payEn(sd,'slowTime',true))P.en=0;}else{P.en=Math.max(0,P.en-sd);P.lastSpend=time;}if(P.en<=0){P.slowOn=false;feed('Out of energy','Time runs normally again');}if(MP.online())hasteT=Math.max(hasteT,0.15);}
   if(P.vibT>0)P.vibT-=dt;
   // lightning trails behind you when you really move
   const hs=Math.hypot(P.vel.x,P.vel.z),c=center(P);

@@ -27,6 +27,11 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hi
 .bar.shield{height:4px;margin-top:3px}.bar.shield i{background:#8fe3ff}
 #enm.warn .bar.en{box-shadow:0 0 0 2px var(--health)}
 #enm.ring .bar.en i{background:linear-gradient(90deg,#128a3a,#6dff95)}#enm.ring span b{color:#8dffb0}
+#enm.bat .bar.en i{background:linear-gradient(90deg,#1b6fc4,#bff4ff)}#enm.bat span b{color:#bff4ff}
+#enm.bolt .bar.en i{background:linear-gradient(90deg,#4a3cff,#e6ecff)}#enm.bolt span b{color:#c9d2ff}
+#enm.cal .bar.en i{background:linear-gradient(90deg,#c88a12,#ffe14d)}#enm.cal span b{color:#ffe14d}
+#enm.low span b{animation:lowBlink .8s steps(2) infinite}@keyframes lowBlink{50%{opacity:.35}}
+.slot.dim{opacity:.38}
 #hud{position:fixed;inset:0;pointer-events:none;font-variant-numeric:tabular-nums}
 .hud-tl{position:absolute;top:16px;left:16px;padding:10px 12px;display:grid;gap:7px;min-width:220px}
 .who{display:flex;align-items:baseline;gap:10px;justify-content:space-between}

@@ -7,7 +7,7 @@
 const GRID=16,CELL=80,HALF=GRID*CELL/2,EDGE=HALF+80,LIMIT=EDGE+170,CEIL=520;
 const colliders=[],blockCols=[],extraCols=[],roofTops=[],mapRects=[],parks=[],shops=[],atms=[],alleys=[],curbSpots=[],orbSpots=[],lakes=[];
 const blockProps=[],tlights=[];
-let bank=null,hospital=null,policeHQ=null;
+let bank=null,hospital=null,policeHQ=null,invTower=null;
 const city=new Geo();
 const C=h=>hex(h);
 const STYLE={office:0,glass:1,brick:2,warehouse:3,house:4};
@@ -196,6 +196,26 @@ function special(i,j,cx,cz,list,bi){
     city.box(cx-6,0.25,z0-6,cx+6,4,z0-5,C('#e8e8e8'),0);city.box(cx-6,4,z0-6,cx+6,4.4,z0,C('#e8e8e8'),0);
     city.box(cx-1.5,h+0.35,cz-1.5+3,cx+1.5,h+0.45,cz+1.5+3,C('#ffc93c'),0);
     hospital={x:cx,z:z0-10};return true;
+  }
+  if(i===9&&j===9){ // Inventor Tower: the Armored Inventor's home base, where the suit recharges. It can't be knocked down.
+    const RED=C('#b3122f'),GOLD=C('#ffc93c'),GLASS=C('#2a3440'),h=290,x0=cx-15,x1=cx+15,z0=cz-15,z1=cz+15;
+    city.box(cx-24,0.25,cz-24,cx+24,12,cz+24,C('#30343c'),1,STYLE.glass*1000+411.5);addCollider({x0:cx-24,x1:cx+24,z0:cz-24,z1:cz+24,y0:0,y1:12.3,col:GLASS},list);
+    city.box(cx-24.3,12,cz-24.3,cx+24.3,12.6,cz+24.3,RED,0);city.box(cx-6,0.25,cz-24.4,cx+6,8,cz-24.2,C('#9fe8ff'),6);
+    city.box(x0,12,z0,x1,h,z1,GLASS,1,STYLE.glass*1000+412.5);addCollider({x0,x1,z0,z1,y0:12,y1:h+0.3,col:GLASS},list);rect(cx-24,cz-24,cx+24,cz+24,h);
+    for(const y of [60,120,180,240])city.box(x0-.4,y,z0-.4,x1+.4,y+1.4,z1+.4,RED,0);
+    for(const [ax,az] of [[x0,z0],[x1,z0],[x0,z1],[x1,z1]])city.box(ax-1.2,12,az-1.2,ax+1.2,h+2,az+1.2,RED,0); // red corner fins
+    const c0=x0+4,c1=x1-4,d0=z0+4,d1=z1-4,top=h+14;
+    city.box(x0,h,z0,x1,h+0.4,z1,ROOF,0);city.box(c0,h,d0,c1,top,d1,RED,0);for(const y of [h+3,h+7,top-3])city.box(c0-.3,y,d0-.3,c1+.3,y+1.4,d1+.3,GOLD,6);
+    addCollider({x0:c0,x1:c1,z0:d0,z1:d1,y0:h,y1:top+0.3,col:RED},list);city.box(c0,top,d0,c1,top+0.3,d1,C('#3a3f47'),0);
+    city.prim(PRIM.cyl,cx,top+0.35,cz,0,0,0,5.5,0.06,5.5,C('#4fd8ff'),6);city.prim(PRIM.cyl,cx,top+0.4,cz,0,0,0,4.6,0.06,4.6,C('#3a3f47'),0);
+    // the big emblem near the top, facing the street
+    city.box(cx-4,h-34,z0-0.5,cx+4,h-4,z0,RED,0);city.box(cx-1.6,h-31,z0-0.8,cx+1.6,h-7,z0-0.5,GOLD,6);
+    // the landing pad sticks out of the east face
+    const py=h-40;city.box(x1,py-1,cz-9,x1+17,py,cz+9,C('#3a3f47'),0);city.box(x1,py-3,cz-2,x1+6,py-1,cz+2,C('#2a2d33'),0);
+    city.prim(PRIM.cyl,x1+9,py+0.05,cz,0,0,0,6.5,0.06,6.5,C('#4fd8ff'),6);city.prim(PRIM.cyl,x1+9,py+0.1,cz,0,0,0,5.6,0.06,5.6,C('#3a3f47'),0);
+    addCollider({x0:x1,x1:x1+17,z0:cz-9,z1:cz+9,y0:py-1,y1:py,col:RED},list);
+    roofTops.push({x:cx,y:top+0.3,z:cz,x0:c0,x1:c1,z0:d0,z1:d1});
+    invTower={x:cx,z:cz,x0:c0,x1:c1,z0:d0,z1:d1,top:top+0.3,pad:{x:x1+9,y:py,z:cz},door:{x:cx,z:cz-27}};return true;
   }
   if(i===6&&j===8){ // police headquarters
     const x0=cx-22,x1=cx+22,z0=cz-18,z1=cz+14,h=28;tower(x0,z0,x1,z1,h,'office',list);
