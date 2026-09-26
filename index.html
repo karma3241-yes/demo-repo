@@ -4651,7 +4651,7 @@ function renderSkills(){
   for(const id of save.character.movement){const m=masteryLevel(id);
     sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:(PRESETS[id]?PRESETS[id].name:POWERS[id].name)+'  ·  Mastery '+m.toFixed(1)+'/'+MASTERY_MAX}),el('p',{text:'Traversal grows by using it: the more you travel this way, the higher, faster and bigger it gets. It does not cost skill points.'}),el('div',{class:'bar xp'},el('i',{style:'width:'+(m/MASTERY_MAX*100).toFixed(1)+'%'}))));}
   for(const id of [...new Set([...save.character.abilities.map(LEVEL_OF),save.character.body])]){
-    if(POWERS[id].cat==='body'&&POWERS[id].hidden)continue;
+    if(!POWERS[id]||POWERS[id].cat==='body'&&POWERS[id].hidden)continue;
     const lvl=powerLevel(id),max=lvl>=CONFIG.powerMax,cost=CONFIG.powerUpgradeCost(lvl);
     const btn=el('button',{class:'plus',text:max?'Maxed':'Upgrade · '+cost+' SP',onclick:()=>{if(save.sp<cost||max)return;save.sp-=cost;save.powerLevels[id]=lvl+1;SFX.chime();persist();buildHotbar();renderSheet();syncPlayerDoc();}});
     btn.disabled=max||save.sp<cost;
