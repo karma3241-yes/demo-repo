@@ -253,10 +253,11 @@ function openOath(){
   $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the lantern away')
     :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the lantern away.');
   $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;P.charging=false;
-  for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);
+  for(const k in keys)keys[k]=false;mouseL=false;if(tch&&!oathVoice())setTimeout(()=>oathIn.focus(),30);
   SFX.tone('sine',200,400,0.6,0.08);
+  if(oathVoice()){oathIn.placeholder='Listening… say the oath out loud';voiceOathStart();}
 }
-function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathEl.hidden=true;P.lantern=false;oathIn.blur();}
+function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;voiceOathStop();oathEl.hidden=true;P.lantern=false;oathIn.blur();}
 // keyboard typing while the lantern is out (called from the main key handler before anything else)
 function oathKey(e){
   e.preventDefault();const k=e.key;
