@@ -14,7 +14,7 @@ const CONSTRUCTS={
   dragon:{name:'Dragon',unlock:7,cost:18,drain:1,fly:true,speed:1.5,attacks:'LMB strike · RMB breath · X roar',blurb:'Ride a hard-light dragon'},
 };
 const CON_IDS=Object.keys(CONSTRUCTS);
-const OATH='Through fear and doubt my will holds fast. What I imagine, I make last. Let every foe who stands to fight be humbled by my ring of light.';
+const OATH='My will holds fast. What I imagine, I make last. Let every foe be humbled by my ring of light.';
 let conPick='bubble',oathOpen=false,oathStart=0;
 const isRing=()=>hasTrav('powerRing')&&!P.alien;
 const ringMk=()=>mk('powerRing');
@@ -194,7 +194,8 @@ function openOath(){
   if(!isRing()||P.dead||state!=='play'||oathOpen)return;
   if(save.ring>=99.5){feed('Your ring is fully charged','');return;}
   if(P.construct)dismissConstruct(true);
-  oathOpen=true;oathStart=save.ring;oathIn.value='';oathEl.hidden=false;renderOath(0);P.lantern=true;P.flying=false;
+  oathOpen=true;oathStart=save.ring;oathIn.value='';oathEl.hidden=false;renderOath(0);
+  $('oath-note').textContent=save.oathKnown?'Tab fills in the next word · Esc to put the lantern away':'Type it once and after that Tab fills in each word · Esc to put the lantern away';$('oath-next').hidden=!save.oathKnown;P.lantern=true;P.flying=false;
   for(const k in keys)keys[k]=false;mouseL=false;if(locked)document.exitPointerLock();setTimeout(()=>oathIn.focus(),30);
   SFX.tone('sine',200,400,0.6,0.08);
 }
@@ -205,9 +206,17 @@ oathIn.addEventListener('input',()=>{
   renderOath(n);const k=n/want.length;save.ring=Math.max(save.ring,oathStart+(100-oathStart)*k);
   if(n<got.length){oathIn.style.borderColor='#ff4d5e';}else oathIn.style.borderColor='';
   if(n>=want.length){save.ring=100;closeOath();const c=center(P);flashWhite=0.5;ringFx(c.x,c.y,c.z,1,24,0.7,RING_C);ringFx(c.x,c.y,c.z,1,12,0.5,[1,1,1]);
-    burst(c.x,c.y,c.z,120,24,1,[RING_C,[1,1,1]],1.8,0,2);SFX.transform();addShake(0.4);toast('Ring fully charged','Your will is the only limit','cyan');MP.fx('rg',{g:'o'});persist();}
+    burst(c.x,c.y,c.z,120,24,1,[RING_C,[1,1,1]],1.8,0,2);SFX.transform();addShake(0.4);toast('Ring fully charged','Your will is the only limit','cyan');MP.fx('rg',{g:'o'});save.oathKnown=true;persist();}
 });
-oathIn.addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();closeOath();}e.stopPropagation();});}
+oathIn.addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();closeOath();}else if(e.code==='Tab'){e.preventDefault();oathNextWord();}e.stopPropagation();});
+$('oath-next').addEventListener('pointerdown',e=>{e.preventDefault();oathNextWord();});}
+// once you have said the oath in full, Tab (or NEXT WORD) fills in the next word for you
+function oathNextWord(){
+  if(!save.oathKnown||!oathOpen)return;
+  const want=oathNorm(OATH),got=oathNorm(oathIn.value);let n=0;while(n<got.length&&got[n]===want[n])n++;
+  const words=OATH.split(' ');let acc=0,i=0;for(;i<words.length;i++){const wn=oathNorm(words[i]).length;if(acc+wn>n)break;acc+=wn+1;}
+  oathIn.value=words.slice(0,i+1).join(' ')+(i+1<words.length?' ':'');oathIn.dispatchEvent(new Event('input'));
+}
 function renderOath(n){oathText.textContent='';const words=OATH.split(' ');let used=0;
   for(const w of words){const wn=oathNorm(w).length;const on=used+wn<=n;oathText.appendChild(on?el('b',{text:w+' '}):document.createTextNode(w+' '));used+=wn+(wn?1:0);}}
 // ---- drawing ----

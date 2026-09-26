@@ -39,7 +39,7 @@ All of these are original characters inspired by famous hero styles.
 - **Time Stop** freezes everyone for 3 seconds, other players included. Everything you hit in that moment lands at once when time starts again, and your path shows as lightning streaks.
 
 **Ring Bearer** (Power Ring). Everything runs on **ring charge**, which never refills by itself.
-- **Recharging:** press `O` to hold up the lantern and type the oath to recharge. At 0 charge you can only walk.
+- **Recharging:** press `O` to hold up the lantern and type the oath to recharge. At 0 charge you can only walk. After you've typed it once, `Tab` (or NEXT WORD) fills in each word for you.
 - **Flying:** `F` flies.
 - **Constructs:** `B` builds your default construct and `V` opens the construct wheel. The choices are a spiked Bubble, a Jet (guns and homing missiles), a Mech and a Huge Mech (punches, guns, missile salvos; the huge one tramples buildings) and a Dragon you ride (claw strike, breath, roar). Inside a construct, left click, right click and `X` are its attacks.
 - **Abilities:** Ring Blast, Hammer Smash, Chain Lasso and Ring Shield.
@@ -75,7 +75,7 @@ The other abilities:
 ### Fighting
 
 - **Punch chains.** Click up to four times for a chain. Hits 1–3 stun and keep the target close; hit 4 is a finisher. It launches them, or it's an **uppercut** if you hold `Space`, or a **spike** into the ground if you're in the air. Juggle airborne targets by hitting them again.
-- **Lock on** with `Z` to keep your camera, punches and powers on one target (people, drones, rival heroes, helicopters, bosses or other players). Press `Z` again to let go. When you're locked on, your punches lunge to close the gap.
+- **Lock on** with `Z` to keep your camera, punches and powers on one target (people, drones, rival heroes, helicopters, bosses or other players), at any distance. Press `Z` again to let go. When you're locked on, your punches lunge to close the gap. When you beat your target, the lock jumps to the nearest enemy within 110 m.
 - **Dash** with `X` in any direction you're holding, once in mid-air too. You can't be hurt for a moment at the start of a dash.
 - **Charged punch.** While flying and locked on, hold the left mouse button to charge, then let go: you rocket into the target and send them flying hundreds of meters.
 - **Ragdolls.** Anyone launched by a finisher or a charged punch goes limp and tumbles, then gets up if they can.
@@ -115,6 +115,7 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `X` | Dash |
 | `1`–`5` (or `Q` `E` `R`) | Your abilities. Hold for beams, clouds and telekinesis |
 | `Space` | Jump. Hold, then release for a super jump. Leap off walls |
+| `F` | Flight on/off. Hold it on the ground to charge, then let go to blast off into the sky |
 | `U` | Suit up / suit down |
 | `G` | Get in or out of a car, or help an injured person up |
 | `V` | Morph Band dial / change back (Ring Bearer: construct wheel) |
