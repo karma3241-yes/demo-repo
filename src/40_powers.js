@@ -255,7 +255,7 @@ function stopAllPowers(){
   for(const k in PS)PS[k].holding=false;
   if(P.alien)P.alien.channel=false;
   P.flying=false;P.metal=false;P.shieldOn=false;P.shield=0;P.web=null;P.wall=null;P.charging=false;P.slam=false;P.speeding=false;P.wallRun=null;P.zip=null;
-  if(P.tk)tkDrop();beam=null;SFX.setLaser(false);SFX.setWind(0);if(P.construct)dismissConstruct(true);P.ringShield=false;closeOath();endGiant();
+  if(P.tk)tkDrop();beam=null;SFX.setLaser(false);SFX.setWind(0);if(P.construct)dismissConstruct(true);P.ringShield=false;P.cloak=false;closeOath();endGiant();
 }
 function updatePowers(dt){
   for(const k in PS){const s=PS[k];if(s.cd>0)s.cd=Math.max(0,s.cd-dt);if(s.flash>0)s.flash-=dt;}
@@ -280,5 +280,5 @@ function updatePowers(dt){
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   updateWanted(dt);
   if(P.stun>0)P.stun-=dt;
-  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateMeters(dt);updateSpace(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
+  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateMeters(dt);updateSpace(dt);updatePool(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
 }

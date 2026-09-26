@@ -265,7 +265,7 @@ let creatorMode='new';
 function openCreator(mode='new'){
   creatorMode=mode;creating=true;
   if(mode==='new'&&state!=='play'){const pk=parks.find(q=>Math.abs(q.cx-40)<1&&Math.abs(q.cz+360)<1)||parks[0];P.pos.set(pk.cx,1.4,pk.cz);P.vel.set(0,0,0);P.showcase=true;}
-  if(mode==='rechoose'&&save.character){const c=save.character,pre=presetOf(c);draft={name:c.name,suit:c.suit,cape:c.cape,accent:c.accent,capeOn:c.capeOn,movement:c.movement.slice(),body:pre?null:c.body,abilities:pre?[]:c.abilities.filter(id=>ABILITY_POWERS.includes(id)),confirm:false};}
+  if(mode==='rechoose'&&save.character){const c=save.character,pre=presetOf(c);draft={name:c.name,suit:c.suit,cape:c.cape,accent:c.accent,capeOn:c.capeOn,movement:c.movement.slice(),body:pre?null:c.body,abilities:pre?[]:c.abilities.filter(id=>ABILITY_POWERS.includes(id)),kit:pre?c.abilities.slice(0,CONFIG.picks.kit):[],free:pre?c.abilities.slice(CONFIG.picks.kit):[],confirm:false};}
   else draft={name:'Guardian '+Math.floor(rr(100,1000)),suit:(Math.random()*SUIT_OPTS.length)|0,cape:(Math.random()*CAPE_OPTS.length)|0,accent:0,capeOn:true,movement:[],body:null,abilities:[],confirm:false};
   applyLook();creator.hidden=false;$('menu').hidden=true;$('pause').hidden=true;$('create-title').textContent=mode==='rechoose'?'Change your powers':'Create your hero';renderCreator();
 }
@@ -275,15 +275,23 @@ function pickCard(id,on,onclick,tag,extra){const c=POWERS[id];
     el('span',{text:PRESETS[id]?PRESETS[id].blurb:c.desc}),extra?el('span',{class:'cat',text:extra}):null);}
 function renderCreator(){
   const y=creatorBody.scrollTop;creatorBody.textContent='';const d=draft;
-  creatorBody.appendChild(el('p',{class:'muted',text:creatorMode==='rechoose'?'Pick new powers. Skill points you spent on powers you drop come back to you.'+(CONFIG.rechoiceCooldown>0?' You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':''):'Pick one way to get around. Three of them are full hero kits; Flight lets you build your own hero from a body mod and two abilities. Powers are free, and you can change them later from the pause menu (once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes). Traversal gets stronger the more you use it; skill points upgrade everything else.'}));
+  creatorBody.appendChild(el('p',{class:'muted',text:creatorMode==='rechoose'?'Pick new powers. Skill points you spent on powers you drop come back to you.'+(CONFIG.rechoiceCooldown>0?' You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':''):'Pick one way to get around. Six of them are full hero kits: pick 3 of the kit\'s moves for keys 1–3 and 2 more for keys 4–5. Flight lets you build your own hero from a body mod (its move goes on key 1) and 4 abilities. Powers are free, and you can change them any time from the pause menu. Traversal gets stronger the more you use it; skill points upgrade everything else.'}));
   if(creatorMode!=='rechoose')renderLook(creatorBody);
   const redraw=()=>{d.confirm=false;renderCreator();};
   creatorBody.appendChild(el('h3',{text:'Traversal · pick 1'}));
-  const tw=el('div',{class:'picks'});for(const id of MOVEMENT_POWERS)tw.appendChild(pickCard(id,d.movement[0]===id,()=>{d.movement=[id];redraw();},PRESETS[id]?'Hero kit':'Build your own'));creatorBody.appendChild(tw);
+  const tw=el('div',{class:'picks'});for(const id of MOVEMENT_POWERS)tw.appendChild(pickCard(id,d.movement[0]===id,()=>{d.movement=[id];if(PRESETS[id]){const ab=presetAbilities(id,[]);d.kit=ab.slice(0,CONFIG.picks.kit);d.free=ab.slice(CONFIG.picks.kit);}redraw();},PRESETS[id]?'Hero kit':'Build your own'));creatorBody.appendChild(tw);
   const pre=PRESETS[d.movement[0]];
   if(pre){
-    creatorBody.appendChild(el('h3',{text:pre.name+' kit'}));
-    const kit=el('div',{class:'picks'});kit.appendChild(pickCard(pre.body,true,()=>{},'Body'));for(const id of pre.abilities)kit.appendChild(pickCard(id,true,()=>{},'Included'));creatorBody.appendChild(kit);
+    if(!d.kit||!d.free){const ab=presetAbilities(d.movement[0],[]);d.kit=ab.slice(0,CONFIG.picks.kit);d.free=ab.slice(CONFIG.picks.kit);}
+    const K=CONFIG.picks.kit,F=CONFIG.picks.free,toggle=(arr,other,max,id)=>{const i=arr.indexOf(id);if(i>=0)arr.splice(i,1);else{const j=other.indexOf(id);if(j>=0)other.splice(j,1);if(arr.length>=max)arr.shift();arr.push(id);}redraw();};
+    creatorBody.appendChild(el('h3',{text:pre.name+' · body'}));
+    const bodyRow=el('div',{class:'picks'});bodyRow.appendChild(pickCard(pre.body,true,()=>{},'Body'));creatorBody.appendChild(bodyRow);
+    creatorBody.appendChild(el('h3',{text:'Keys 1–3 · '+d.kit.length+'/'+K+' from the '+pre.name+' kit'}));
+    const kit=el('div',{class:'picks'});for(const id of pre.abilities)kit.appendChild(pickCard(id,d.kit.includes(id),()=>toggle(d.kit,d.free,K,id),d.kit.includes(id)?'Key '+(d.kit.indexOf(id)+1):'Kit move'));creatorBody.appendChild(kit);
+    creatorBody.appendChild(el('h3',{text:'Keys 4–5 · '+d.free.length+'/'+F+' more: the rest of your kit, or any power'}));
+    const fr=el('div',{class:'picks'});for(const id of [...pre.abilities.filter(x=>!d.kit.includes(x)),...ABILITY_POWERS.filter(x=>!pre.abilities.includes(x))])
+      fr.appendChild(pickCard(id,d.free.includes(id),()=>toggle(d.free,d.kit,F,id),d.free.includes(id)?'Key '+(K+d.free.indexOf(id)+1):pre.abilities.includes(id)?'Kit move':id==='morphBand'?'Transformation':null));
+    creatorBody.appendChild(fr);d.abilities=[...d.kit,...d.free];
   }else if(d.movement[0]){
     creatorBody.appendChild(el('h3',{text:'Body mod · pick 1'}));
     const bw=el('div',{class:'picks'});for(const id of BODY_MODS)bw.appendChild(pickCard(id,d.body===id,()=>{d.body=id;redraw();},null,'Signature move: '+POWERS[POWERS[id].sig].name));creatorBody.appendChild(bw);
@@ -292,9 +300,9 @@ function renderCreator(){
     for(const id of ABILITY_POWERS){const on=d.abilities.includes(id);aw.appendChild(pickCard(id,on,()=>{if(on)d.abilities.splice(d.abilities.indexOf(id),1);else if(d.abilities.length<CONFIG.picks.abilities)d.abilities.push(id);else{d.abilities.shift();d.abilities.push(id);}redraw();},id==='morphBand'?'Transformation':null));}
     creatorBody.appendChild(aw);
   }
-  const ready=d.movement.length===1&&(pre||(d.body&&d.abilities.length===CONFIG.picks.abilities));
-  const need=!d.movement.length?'Pick a traversal':!d.body?'Pick a body mod':'Pick '+(CONFIG.picks.abilities-d.abilities.length)+' more abilit'+(CONFIG.picks.abilities-d.abilities.length===1?'y':'ies');
-  const rnd=el('button',{class:'ghost',type:'button',text:'Surprise me',onclick:()=>{d.movement=[pick(MOVEMENT_POWERS)];d.body=pick(BODY_MODS);d.abilities=ABILITY_POWERS.slice().sort(()=>Math.random()-0.5).slice(0,CONFIG.picks.abilities);redraw();}});
+  const ready=d.movement.length===1&&(pre?d.kit.length===CONFIG.picks.kit&&d.free.length===CONFIG.picks.free:(d.body&&d.abilities.length===CONFIG.picks.abilities));
+  const need=!d.movement.length?'Pick a traversal':pre?(d.kit.length<CONFIG.picks.kit?'Pick '+(CONFIG.picks.kit-d.kit.length)+' more kit move'+(CONFIG.picks.kit-d.kit.length>1?'s':''):'Pick '+(CONFIG.picks.free-d.free.length)+' more for keys 4–5'):!d.body?'Pick a body mod':'Pick '+(CONFIG.picks.abilities-d.abilities.length)+' more abilit'+(CONFIG.picks.abilities-d.abilities.length===1?'y':'ies');
+  const rnd=el('button',{class:'ghost',type:'button',text:'Surprise me',onclick:()=>{d.movement=[pick(MOVEMENT_POWERS)];d.body=pick(BODY_MODS);d.abilities=ABILITY_POWERS.slice().sort(()=>Math.random()-0.5).slice(0,CONFIG.picks.abilities);const pr=PRESETS[d.movement[0]];if(pr){const k=pr.abilities.slice().sort(()=>Math.random()-0.5);d.kit=k.slice(0,CONFIG.picks.kit);d.free=[...k.slice(CONFIG.picks.kit),...ABILITY_POWERS.filter(x=>!pr.abilities.includes(x)).sort(()=>Math.random()-0.5)].slice(0,CONFIG.picks.free);}redraw();}});
   const go=el('button',{class:'go',id:'lockin',type:'button',text:!ready?need:d.confirm?'Lock in':'Lock in my powers',onclick:()=>{if(!ready)return;if(!d.confirm){d.confirm=true;renderCreator();return;}finishCreator();}});
   go.disabled=!ready;
   creatorBody.append(el('div',{class:'cta'},go,rnd),d.confirm?el('p',{class:'note warn',text:'Click Lock in to confirm.'}):null);
@@ -347,7 +355,7 @@ function dialConfirm(){if(dialSel<0)return;const a=dialItems()[dialSel];if(a&&a.
 function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----
 const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],['punch','Throw a punch','Click to punch','Tap PUNCH'],
-  ['ability','Use a power','Press 1, 2 or 3','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Head for an icon on your minimap','Head for an icon on your minimap']];
+  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Head for an icon on your minimap','Head for an icon on your minimap']];
 function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(GUIDE.every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
   for(const [k,t,kb,tc] of GUIDE)list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:touchOn()?tc:kb})));}

@@ -12,8 +12,9 @@ const METERS={
   armorFlight:{key:'battery',label:'BATTERY',cls:'bat',rate:0.25},
   stormFlight:{key:'bolt',label:'LIGHTNING',cls:'bolt',rate:0.5},
   superSpeed:{key:'cal',label:'CALORIES',cls:'cal',rate:0.12},
+  powerRing:{key:'ring',label:'RING',cls:'ring',rate:0.25}, // pool powers on keys 4-5 run on ring charge too
 };
-const LIGHTNING_IDS=new Set(['stormHammer','lightning','lightningThrow']);
+const LIGHTNING_IDS=new Set(['stormHammer','lightning','lightningThrow','chainLightning']);
 const TALL_ROOF=110; // how high a roof has to be to call the storm from
 const heroMeter=()=>{if(!save.character||P.alien)return null;return METERS[save.character.movement[0]]||null;};
 const meterCap=m=>m.key==='battery'?pstat('suitBattery','capacity'):100;
@@ -34,15 +35,16 @@ function payEn(n,id,tick){
 // powers that the meter blocks right now (the hotbar dims them)
 function meterBlocks(id){const m=heroMeter();if(!m)return false;
   if(m.key==='battery')return save.battery<=0;
+  if(m.key==='ring')return save.ring<=0;
   if(m.key==='bolt')return save.bolt<=0&&LIGHTNING_IDS.has(id)&&id!=='stormHammer';
   return save.cal<=0&&id==='timeStop';}
 const cdMul=()=>hungry()?3:1;
 let meterMsgT=-9;
-function meterOut(m){if(time-meterMsgT<2)return;meterMsgT=time;
+function meterOut(m){if(m.key==='ring'){ringOut();return;}if(time-meterMsgT<2)return;meterMsgT=time;
   if(m.key==='battery')feed('Suit on standby','Fly to Inventor Tower to recharge');
   else if(m.key==='bolt')feed('No lightning left','Call the storm from the top of a tall tower (G)');
   SFX.tone('square',220,140,0.15,0.06);}
-function meterEmpty(m){meterMsgT=time;
+function meterEmpty(m){meterMsgT=time;if(m.key==='ring'){ringOut();return;}
   if(m.key==='battery'){toast('Battery empty','Standby mode · flying and punches only. Recharge at Inventor Tower.','red');SFX.tone('sawtooth',400,60,0.8,0.1);}
   else if(m.key==='bolt')toast('Out of lightning','Fly to the top of a tall tower and call the storm (G)','cyan');
   else toast('Out of calories','You slow down. Press G at a shop to eat.','gold');}

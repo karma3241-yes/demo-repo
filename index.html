@@ -302,7 +302,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
     <p class="pitch">Pick your powers and take to the streets. Stop the robberies, muggings and heists happening all over Nova Bay, or become the reason people lock their doors. Every fight earns XP and skill points, and the city remembers which side you chose.</p>
     <div class="controls" id="menu-controls">
       <div><kbd>WASD</kbd> Move</div><div><kbd>Mouse</kbd> Look</div>
-      <div><kbd>Click</kbd> Punch</div><div><kbd>1 2 3</kbd> Abilities</div>
+      <div><kbd>Click</kbd> Punch</div><div><kbd>1–5</kbd> Abilities</div>
       <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Skills</div>
       <div><kbd>Z</kbd> Lock on · <kbd>X</kbd> Dash</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
     </div>
@@ -1293,7 +1293,7 @@ const heliMesh=(()=>{const g=new Geo();const W=C('#e9ecef'),K=C('#15171c'),B=C('
 const CONFIG={
   progression:{spPerLevel:3,startSP:3,levelCap:100,xpToNext:l=>Math.floor(100*Math.pow(l,1.5)),dmgXp:0.2,
     orbs:{yellow:25,blue:50,red:100},orbRespawn:[30,60],orbRadius:1.5},
-  picks:{movement:1,abilities:2,body:1},
+  picks:{movement:1,abilities:4,body:1,kit:3,free:2}, // custom builds: signature move + 4 picks; hero kits: 3 kit moves + 2 more
   powerMax:10,powerUpgradeCost:lvl=>lvl+1,passiveMax:50,passiveCost:1,
   energy:{base:100,perLevel:5,regen:8,regenBonus:0.02,delay:1.5,togglesBlockRegen:false},
   health:{base:220,perLevel:14,baseRegen:2,healPerLevel:0.5,healDelay:3,respawn:5,npcTaken:0.5},
@@ -1357,6 +1357,16 @@ const POWERS={
   giantForm:{name:'Giant Form',cat:'signature',of:'titanGrowth',type:'instant',desc:'Grow into a giant. Your punches shake the street and you can pick up cars with your hands.',energy:30,cooldown:30},
   blink:{name:'Blink',cat:'utility',type:'instant',desc:'Teleport to where you aim in a puff of smoke, knocking back anyone near where you appear.',energy:15,cooldown:[4,1.5],range:[25,60],damage:[20,90]},
   gravityWell:{name:'Gravity Well',cat:'offence',type:'instant',desc:'Open a singularity that drags in people, cars and street furniture, then collapses in a blast.',energy:30,cooldown:12,radius:[18,32],damage:[60,220]},
+  sonicScream:{name:'Sonic Scream',cat:'offence',type:'instant',desc:'A deafening scream in a cone in front of you. Stuns and hurts everyone it reaches and shatters windows.',energy:22,cooldown:6,damage:[20,90],stun:[0.6,1.6],range:[26,40]},
+  quakeStomp:{name:'Quake Stomp',cat:'offence',type:'instant',desc:'Stomp and send a line of erupting rock racing along the ground, throwing everyone in its path into the air.',energy:28,cooldown:7,damage:[30,130],range:[30,55]},
+  meteorStrike:{name:'Meteor Strike',cat:'offence',type:'instant',desc:'Call a meteor down on where you aim. It lands a moment later with a huge blast that even hurts buildings.',energy:45,cooldown:[18,10],damage:[90,320],radius:[9,15]},
+  forcePush:{name:'Force Push',cat:'offence',type:'instant',desc:'An invisible wall of force that sends people, cars and anything else in front of you flying.',energy:15,cooldown:[3,1.5],damage:[10,50],range:[22,36]},
+  chainLightning:{name:'Chain Lightning',cat:'offence',type:'instant',desc:'A bolt from your hand that jumps from enemy to enemy.',energy:25,cooldown:5,damage:[25,110],bounces:[3,7]},
+  healingPulse:{name:'Healing Pulse',cat:'utility',type:'instant',desc:'A warm pulse that heals you and gets injured people around you back on their feet.',energy:30,cooldown:[20,10],damage:[40,180]},
+  invisibility:{name:'Invisibility',cat:'defence',type:'toggle',desc:'Turn invisible. Enemies and the police lose track of you while it lasts. Drains energy.',drain:[9,3]},
+  vineSnare:{name:'Vine Snare',cat:'utility',type:'instant',desc:'Thorny vines burst out of the ground where you aim and hold everyone there in place.',energy:20,cooldown:10,radius:[6,11],stun:[2,4],damage:[10,50]},
+  shadowStep:{name:'Shadow Step',cat:'utility',type:'instant',desc:'Vanish and reappear right behind your target (or where you aim), striking as you arrive.',energy:20,cooldown:[6,3],range:[30,60],damage:[40,160]},
+  plasmaWhip:{name:'Plasma Whip',cat:'offence',type:'instant',desc:'A crackling whip that sweeps a wide arc around you. Fast and good against crowds.',energy:12,cooldown:[1.6,0.8],damage:[25,100],radius:[6,9]},
   spiritWave:{name:'Spirit Wave',cat:'offence',type:'charge',desc:'Hold to gather energy in your palms, release to unleash a massive wave that tears through anything, buildings included.',energy:40,cooldown:8,damage:[120,420]},
   suitBattery:{name:'Suit Battery',cat:'upgrade',hidden:true,desc:'How much charge the Armored Inventor\'s suit holds. Every power runs on it, and it only recharges at Inventor Tower.',capacity:[100,300]},
   timeDilation:{name:'Time Dilation',cat:'utility',type:'instant',desc:'Slow the world down around you while you move at full speed. In multiplayer it makes you faster instead.',energy:35,cooldown:20,duration:[3,7]},
@@ -1409,14 +1419,25 @@ function cleanName(s){return String(s).replace(/[^\p{L}\p{N} _.'-]/gu,'').replac
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
 function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
+// five hotkeys: a hero kit puts 3 of its own moves on keys 1-3 and 2 more (the rest of the kit or any pool power) on 4-5
+const PRESET_FILL={webSwing:['vineSnare','shadowStep'],stormFlight:['chainLightning'],armorFlight:['forcePush'],solarFlight:['sonicScream'],superSpeed:[],powerRing:[]};
+const CUSTOM_FILL=['energyBlast','shockwave','fireball','blink','forcePush','plasmaWhip'];
+function presetAbilities(m,want){
+  const kit=PRESETS[m].abilities,w=Array.isArray(want)?want.filter(id=>typeof id==='string'):[],K=CONFIG.picks.kit,F=CONFIG.picks.free;
+  const keys=[...new Set(w.slice(0,K).filter(id=>kit.includes(id)))];for(const id of kit){if(keys.length>=K)break;if(!keys.includes(id))keys.push(id);}
+  const free=[];for(const id of w.slice(K)){if(free.length>=F)break;if(!keys.includes(id)&&!free.includes(id)&&(kit.includes(id)||ABILITY_POWERS.includes(id)))free.push(id);}
+  for(const id of [...kit,...(PRESET_FILL[m]||[]),...CUSTOM_FILL]){if(free.length>=F)break;if(!keys.includes(id)&&!free.includes(id))free.push(id);}
+  return [...keys,...free];
+}
 function validCharacter(c){
   if(!c||typeof c!=='object')return null;
   const mv=Array.isArray(c.movement)?[...new Set(c.movement.filter(id=>MOVEMENT_POWERS.includes(id)))]:[];
   if(mv.length!==1)return null;
   const n=(v,max)=>Number.isInteger(v)&&v>=0&&v<max?v:0,pre=PRESETS[mv[0]];let body,ab;
-  if(pre){body=pre.body;ab=pre.abilities.slice();}
+  if(pre){body=pre.body;ab=presetAbilities(mv[0],c.abilities);}
   else{body=BODY_MODS.includes(c.body)?c.body:null;if(!body)return null;
-    const free=Array.isArray(c.abilities)?[...new Set(c.abilities.filter(id=>ABILITY_POWERS.includes(id)))]:[];if(free.length!==CONFIG.picks.abilities)return null;
+    const free=Array.isArray(c.abilities)?[...new Set(c.abilities.filter(id=>ABILITY_POWERS.includes(id)))].slice(0,CONFIG.picks.abilities):[];
+    for(const id of CUSTOM_FILL){if(free.length>=CONFIG.picks.abilities)break;if(!free.includes(id))free.push(id);} // builds from before five hotkeys get the rest filled in
     ab=[POWERS[body].sig,...free];}
   return {name:(typeof c.name==='string'&&cleanName(c.name))||'Guardian',suit:n(c.suit,SUIT_OPTS.length),cape:n(c.cape,CAPE_OPTS.length),accent:n(c.accent,ACC_OPTS.length),capeOn:c.capeOn!==false,movement:mv,body,abilities:ab};
 }
@@ -2070,7 +2091,7 @@ function stopAllPowers(){
   for(const k in PS)PS[k].holding=false;
   if(P.alien)P.alien.channel=false;
   P.flying=false;P.metal=false;P.shieldOn=false;P.shield=0;P.web=null;P.wall=null;P.charging=false;P.slam=false;P.speeding=false;P.wallRun=null;P.zip=null;
-  if(P.tk)tkDrop();beam=null;SFX.setLaser(false);SFX.setWind(0);if(P.construct)dismissConstruct(true);P.ringShield=false;closeOath();endGiant();
+  if(P.tk)tkDrop();beam=null;SFX.setLaser(false);SFX.setWind(0);if(P.construct)dismissConstruct(true);P.ringShield=false;P.cloak=false;closeOath();endGiant();
 }
 function updatePowers(dt){
   for(const k in PS){const s=PS[k];if(s.cd>0)s.cd=Math.max(0,s.cd-dt);if(s.flash>0)s.flash-=dt;}
@@ -2095,7 +2116,7 @@ function updatePowers(dt){
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   updateWanted(dt);
   if(P.stun>0)P.stun-=dt;
-  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateMeters(dt);updateSpace(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
+  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateMeters(dt);updateSpace(dt);updatePool(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
 }
 // ================================================================
 // Melee combat: lock-on, 4-hit chains, finishers, dash, wall slams
@@ -2935,6 +2956,73 @@ function drawBody(){
   else if(W.id==='shield'){queue(MESH.mcyl,child(H,0,0.25,0.25,Math.PI/2,0,0,0.85,0.07,0.85),STEEL,F_SH);queue(MESH.mcyl,child(H,0,0.25,0.3,Math.PI/2,0,0,0.3,0.08,0.3),STEEL2,0);}
 }
 // ================================================================
+// More powers for the shared ability pool (anyone can put these on keys 4 and 5, or pick them for a custom build)
+// ================================================================
+// helpers: everyone in a cone in front of you, everyone near a point
+function inCone(range,cosMin){const o={...center(P)},fx=camF.x,fz=camF.z,fl=Math.hypot(fx,fz)||1,out=[];
+  for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||a.held)continue;const c={...center(a)},dx=c.x-o.x,dy=c.y-o.y,dz=c.z-o.z,d=Math.hypot(dx,dy,dz);
+    if(d>range+(a.radius||1)||d<0.1)continue;if((dx*fx+dz*fz)/fl/Math.max(0.1,Math.hypot(dx,dz))<cosMin&&d>2)continue;out.push({a,c,d,dx:dx/d,dy:dy/d,dz:dz/d});}
+  return out;}
+function flingVehicle(v,vx,vy,vz,dmg){if(v.net||v===P.car||v.state==='held')return;if(v.driver)ejectDriver(v);v.state='thrown';v.vel.set(vx,vy,vz);v.sx=rr(-3,3);v.sy=rr(-2,2);v.sz=rr(-3,3);v.life=5;v.thrower=P;v.throwDmg=dmg;}
+const HEAL_C=[[.5,1,.6],[1,1,.85]];
+Object.assign(POWER_FN,{
+  sonicScream(){faceAim();const R=pstat('sonicScream','range'),dmg=pstat('sonicScream','damage')*strengthMul(),stun=pstat('sonicScream','stun');
+    for(const h of inCone(R,0.55)){if(h.a.kind==='vehicle'){Damage.apply(P,h.a,dmg*0.5,'blast');continue;}Damage.apply(P,h.a,dmg,'blast',{stun,kv:[h.dx*12,4,h.dz*12]});}
+    const e=P.eye||center(P);for(let i=1;i<=5;i++)later(i*0.05,()=>ringFx(e.x+camF.x*i*R/5,e.y+camF.y*i*R/5,e.z+camF.z*i*R/5,0.5,1+i*R/10,0.25,[.8,.85,1],[camF.x,camF.y,camF.z]));
+    const t=rayCity(e.x,e.y,e.z,camF.x,camF.y,camF.z,R);if(t<R&&RAYHIT.b)breakWindowAt(RAYHIT.b,e.x+camF.x*t,e.y+camF.y*t,e.z+camF.z*t);
+    hitProps(e.x+camF.x*R*0.5,e.y,e.z+camF.z*R*0.5,R*0.4,P,12);SFX.tone('sawtooth',900,300,0.5,0.14);SFX.tone('square',1400,700,0.4,0.06);addShake(0.3);scare(P.pos.x,P.pos.z,R*1.5);},
+  quakeStomp(){const R=pstat('quakeStomp','range'),dmg=pstat('quakeStomp','damage')*strengthMul(),fl=Math.hypot(camF.x,camF.z)||1,ux=camF.x/fl,uz=camF.z/fl,hit=new Set();
+    P.punchT=time;P.punchKind='down';SFX.boom(0.7,0.6);addShake(0.45);
+    for(let s=3;s<=R;s+=3){const x=P.pos.x+ux*s,z=P.pos.z+uz*s;later(s/60,()=>{const y=groundY(x,z,P.pos.y+4);
+      burst(x,y+0.4,z,14,10,0.5,DUST,2,-3,1.6);for(let k=0;k<2;k++)spawnPiece(x+rr(-1.5,1.5),y+0.5,z+rr(-1.5,1.5),MESH.box,rr(0.6,1.4),rr(0.6,1.4),rr(0.6,1.4),[.42,.4,.38],rr(-3,3),rr(10,18),rr(-3,3),1.2);
+      for(const a of actors){if(!a.alive||a===P||hit.has(a)||a.kind==='prop')continue;const c=center(a);if(Math.hypot(c.x-x,c.z-z)>3.4||c.y-y>4)continue;hit.add(a);
+        if(a.kind==='vehicle')flingVehicle(a,ux*6,18,uz*6,dmg*0.4);else Damage.apply(P,a,dmg,'blast',{kv:[ux*4,22,uz*4],flung:true,stun:0.6});}
+      hitProps(x,y,z,2.5,P,15);if(Math.random()<0.4)crater(x,y+0.02,z,0,1,0,1.6,[.42,.41,.4]);});}},
+  meteorStrike(){faceAim();let x=aim.x,y=aim.y,z=aim.z;if(!aim.hitAny||Math.hypot(x-P.pos.x,z-P.pos.z)>160){const k=60;x=P.pos.x+camF.x*k;z=P.pos.z+camF.z*k;y=groundY(x,z,P.pos.y+20);}
+    const R=pstat('meteorStrike','radius'),dmg=pstat('meteorStrike','damage')*strengthMul();ringFx(x,y+0.3,z,1,R,1.1,[1,.45,.2]);feed('Meteor incoming','');
+    fireProj({kind:'rocket',owner:P,x:x+40,y:y+220,z:z+20,vx:-40/1.1,vy:-220/1.1,vz:-20/1.1,dmg,r:2.4,life:1.6,col:0,blast:R,bldDmg:dmg*8,meteor:true});SFX.tone('sawtooth',120,40,1.1,0.1);},
+  forcePush(){faceAim();const R=pstat('forcePush','range'),dmg=pstat('forcePush','damage')*strengthMul();
+    for(const h of inCone(R,0.5)){const f=40*(1-h.d/R*0.5);if(h.a.kind==='vehicle')flingVehicle(h.a,h.dx*f,12,h.dz*f,dmg);else Damage.apply(P,h.a,dmg,'blast',{kv:[h.dx*f,10,h.dz*f],flung:true});}
+    for(const p of debris)if(!p.rest){const dx=p.x-P.pos.x,dz=p.z-P.pos.z,d=Math.hypot(dx,dz)||1;if(d<R&&(dx*camF.x+dz*camF.z)/d>0.5){p.vx+=dx/d*40;p.vy+=10;p.vz+=dz/d*40;}}
+    const o={...center(P)};for(let i=0;i<24;i++){const s=rr(20,45);emit(o.x,o.y,o.z,(camF.x+rr(-.4,.4))*s,(camF.y+rr(-.2,.3))*s,(camF.z+rr(-.4,.4))*s,0.4,[.75,.85,1],1.2,0,1);}
+    hitProps(o.x+camF.x*R*0.4,o.y,o.z+camF.z*R*0.4,R*0.35,P,20);SFX.whoosh();addShake(0.2);},
+  chainLightning(){faceAim();const n=Math.round(pstat('chainLightning','bounces')),dmg=pstat('chainLightning','damage')*strengthMul(),hit=new Set();
+    let from=handPoint(),cur=lockT&&lockT.alive?lockT:aim.actor&&aim.actor.kind!=='prop'&&aim.actor.alive?aim.actor:nearestFoe(aim.x,aim.y,aim.z,20)||nearestFoe(P.pos.x+camF.x*14,P.pos.y+1+camF.y*14,P.pos.z+camF.z*14,16);
+    if(!cur){PS.chainLightning.cd=0;P.en+=POWERS.chainLightning.energy;feed('No one to hit','Aim at someone or lock on (Z)');return;}
+    for(let i=0;i<=n&&cur;i++){const c={...center(cur)},f=from,a=cur;hit.add(a);
+      later(i*0.08,()=>{for(let k=0;k<3;k++)tracer(f.x,f.y,f.z,c.x+rr(-.4,.4),c.y+rr(-.4,.4),c.z+rr(-.4,.4),[.65,.8,1],0.14-k*0.03,0.2);if(a.alive)Damage.apply(P,a,dmg*(1-i*0.08),'shock',{stun:0.5,knock:6});burst(c.x,c.y,c.z,14,8,0.3,CYAN,1,0,2);SFX.tone('sawtooth',1500,200,0.15,0.07);});
+      from=c;cur=nearestFoe(c.x,c.y,c.z,18,hit);}},
+  healingPulse(){const h=pstat('healingPulse','damage');P.hp=Math.min(maxHp(),P.hp+h);let n=0;
+    for(const q of humans)if(q.alive&&q.downed>0&&Math.hypot(q.pos.x-P.pos.x,q.pos.z-P.pos.z)<20){q.downed=0;q.hp=Math.max(q.hp,40);q.state='flee';n++;}
+    ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,20,0.6,HEAL_C[0]);burst(P.pos.x,P.pos.y+1.3,P.pos.z,50,8,0.9,HEAL_C,1.4,-4,1.6);SFX.chime();
+    if(n){addXP(10*n);if(playerFaction()!=='villain')addRep(3*n);}feed('+'+Math.round(h)+' health',n?n+' people back on their feet':'');},
+  vineSnare(){faceAim();let x=aim.x,y=aim.y,z=aim.z;if(!aim.hitAny){x=P.pos.x+camF.x*25;z=P.pos.z+camF.z*25;y=groundY(x,z,P.pos.y+10);}
+    const R=pstat('vineSnare','radius'),stun=pstat('vineSnare','stun'),dmg=pstat('vineSnare','damage')*strengthMul();
+    for(const a of actors){if(!a.alive||a===P||a.kind==='prop'||a.kind==='vehicle')continue;const c=center(a);if(Math.hypot(c.x-x,c.z-z)>R||Math.abs(c.y-y)>6)continue;
+      Damage.apply(P,a,dmg,'slash',{stun});if(a.vel)a.vel.set(0,Math.min(a.vel.y,0),0);a.slow=Math.max(a.slow||0,0.8);a.slowT=Math.max(a.slowT||0,stun+1);}
+    for(let i=0;i<16;i++){const ang=rr(0,TAU),r=rr(0,R),vx=x+Math.cos(ang)*r,vz=z+Math.sin(ang)*r,h=rr(1.5,3.5);
+      spawnPiece(vx,y+h/2,vz,MESH.cyl,0.15,h,0.15,[.18,.42,.16],0,0,0,stun);}
+    ringFx(x,y+0.2,z,1,R,0.5,[.35,.9,.35]);burst(x,y+0.5,z,30,R,0.6,[[.3,.8,.3],[.2,.5,.2]],1.5,-2,1.4);SFX.tone('triangle',200,500,0.3,0.1);},
+  shadowStep(){const R=pstat('shadowStep','range');let t=lockT&&lockT.alive?lockT:aim.actor&&aim.actor.kind!=='prop'&&aim.actor.alive?aim.actor:null;
+    const puff=(px,py,pz)=>{burst(px,py+1.2,pz,40,6,0.6,[[.1,.05,.15],[.35,.15,.55]],2,0,2);smoke(px,py+1,pz,3,1,3,1.2,0.08);};puff(P.pos.x,P.pos.y,P.pos.z);
+    if(t&&Math.hypot(t.pos.x-P.pos.x,t.pos.z-P.pos.z)<=R){const c=center(t),yaw=t.heroYaw!=null?t.heroYaw:t.yaw||0,bx=c.x-Math.sin(yaw)*2.2,bz=c.z-Math.cos(yaw)*2.2;
+      P.pos.set(bx,Math.max(groundY(bx,bz,c.y+2),c.y-1.2),bz);P.vel.set(0,0,0);P.heroYaw=Math.atan2(c.x-bx,c.z-bz);P.punchT=time;P.punchKind='fin';
+      Damage.apply(P,t,pstat('shadowStep','damage')*strengthMul(),'slash',{stun:1,kv:[Math.sin(P.heroYaw)*14,6,Math.cos(P.heroYaw)*14]});SFX.punch(1.2);addShake(0.25);}
+    else{const d=Math.min(R,rayCity(P.pos.x,P.pos.y+1.5,P.pos.z,camF.x,0,camF.z,R)-1.5);const x=P.pos.x+camF.x*d,z=P.pos.z+camF.z*d;P.pos.set(x,Math.max(P.pos.y,groundY(x,z,P.pos.y+2)),z);P.vel.set(0,0,0);}
+    P.web=null;P.wallRun=null;puff(P.pos.x,P.pos.y,P.pos.z);SFX.tone('sine',700,150,0.25,0.1);},
+  plasmaWhip(){faceAim();const R=pstat('plasmaWhip','radius'),dmg=pstat('plasmaWhip','damage')*strengthMul(),o={...center(P)},yaw=P.heroYaw;
+    for(const h of inCone(R,-0.1)){if(h.a.kind==='vehicle')Damage.apply(P,h.a,dmg*0.6,'fire');else Damage.apply(P,h.a,dmg,'fire',{kv:[h.dx*16,7,h.dz*16],stun:0.4});}
+    for(let i=0;i<10;i++){const a0=yaw-1.6+i*0.32,a1=a0+0.32;later(i*0.012,()=>tracer(o.x+Math.sin(a0)*R,o.y+Math.sin(i)*0.3,o.z+Math.cos(a0)*R,o.x+Math.sin(a1)*R,o.y+Math.sin(i+1)*0.3,o.z+Math.cos(a1)*R,[1,.45,.9],0.16,0.18));}
+    hitProps(o.x+Math.sin(yaw)*R*0.6,o.y,o.z+Math.cos(yaw)*R*0.6,R*0.6,P,14);P.punchT=time;P.punchKind='fin';SFX.swish();SFX.tone('sawtooth',500,1600,0.12,0.06);},
+});
+TOGGLE_FN.invisibility=()=>{P.cloak=!P.cloak;if(P.cloak){P.invisible=Math.max(P.invisible||0,0.2);for(const a of actors)if(a.target===P)a.target=null;burst(P.pos.x,P.pos.y+1.3,P.pos.z,30,5,0.6,[[.6,.7,.9]],1,0,2);SFX.tone('sine',800,200,0.3,0.08);feed('Invisible','Enemies and the police lose track of you');}
+  else SFX.tone('sine',200,800,0.2,0.06);};
+function updatePool(dt){
+  if(P.cloak){const c=pstat('invisibility','drain')*dt,paid=heroMeter()?payEn(c,'invisibility',true):P.en>=c?(P.en-=c,P.lastSpend=time,true):false;
+    if(!paid||P.alien||P.dead){P.cloak=false;feed('Visible again','');}else P.invisible=Math.max(P.invisible||0,0.2);}
+  if(!P.alien&&P.invisible>0&&!P.cloak)P.invisible=Math.max(0,P.invisible-dt);
+}
+// ================================================================
 // Web-Slinger kit: web wings, updrafts, swing boost, slingshot, dives, air tricks,
 // landing rolls, spider-sense, and the Web Strike / Web Bomb / Web Whip moves
 // ================================================================
@@ -3589,8 +3677,9 @@ const METERS={
   armorFlight:{key:'battery',label:'BATTERY',cls:'bat',rate:0.25},
   stormFlight:{key:'bolt',label:'LIGHTNING',cls:'bolt',rate:0.5},
   superSpeed:{key:'cal',label:'CALORIES',cls:'cal',rate:0.12},
+  powerRing:{key:'ring',label:'RING',cls:'ring',rate:0.25}, // pool powers on keys 4-5 run on ring charge too
 };
-const LIGHTNING_IDS=new Set(['stormHammer','lightning','lightningThrow']);
+const LIGHTNING_IDS=new Set(['stormHammer','lightning','lightningThrow','chainLightning']);
 const TALL_ROOF=110; // how high a roof has to be to call the storm from
 const heroMeter=()=>{if(!save.character||P.alien)return null;return METERS[save.character.movement[0]]||null;};
 const meterCap=m=>m.key==='battery'?pstat('suitBattery','capacity'):100;
@@ -3611,15 +3700,16 @@ function payEn(n,id,tick){
 // powers that the meter blocks right now (the hotbar dims them)
 function meterBlocks(id){const m=heroMeter();if(!m)return false;
   if(m.key==='battery')return save.battery<=0;
+  if(m.key==='ring')return save.ring<=0;
   if(m.key==='bolt')return save.bolt<=0&&LIGHTNING_IDS.has(id)&&id!=='stormHammer';
   return save.cal<=0&&id==='timeStop';}
 const cdMul=()=>hungry()?3:1;
 let meterMsgT=-9;
-function meterOut(m){if(time-meterMsgT<2)return;meterMsgT=time;
+function meterOut(m){if(m.key==='ring'){ringOut();return;}if(time-meterMsgT<2)return;meterMsgT=time;
   if(m.key==='battery')feed('Suit on standby','Fly to Inventor Tower to recharge');
   else if(m.key==='bolt')feed('No lightning left','Call the storm from the top of a tall tower (G)');
   SFX.tone('square',220,140,0.15,0.06);}
-function meterEmpty(m){meterMsgT=time;
+function meterEmpty(m){meterMsgT=time;if(m.key==='ring'){ringOut();return;}
   if(m.key==='battery'){toast('Battery empty','Standby mode · flying and punches only. Recharge at Inventor Tower.','red');SFX.tone('sawtooth',400,60,0.8,0.1);}
   else if(m.key==='bolt')toast('Out of lightning','Fly to the top of a tall tower and call the storm (G)','cyan');
   else toast('Out of calories','You slow down. Press G at a shop to eat.','gold');}
@@ -5468,7 +5558,7 @@ let creatorMode='new';
 function openCreator(mode='new'){
   creatorMode=mode;creating=true;
   if(mode==='new'&&state!=='play'){const pk=parks.find(q=>Math.abs(q.cx-40)<1&&Math.abs(q.cz+360)<1)||parks[0];P.pos.set(pk.cx,1.4,pk.cz);P.vel.set(0,0,0);P.showcase=true;}
-  if(mode==='rechoose'&&save.character){const c=save.character,pre=presetOf(c);draft={name:c.name,suit:c.suit,cape:c.cape,accent:c.accent,capeOn:c.capeOn,movement:c.movement.slice(),body:pre?null:c.body,abilities:pre?[]:c.abilities.filter(id=>ABILITY_POWERS.includes(id)),confirm:false};}
+  if(mode==='rechoose'&&save.character){const c=save.character,pre=presetOf(c);draft={name:c.name,suit:c.suit,cape:c.cape,accent:c.accent,capeOn:c.capeOn,movement:c.movement.slice(),body:pre?null:c.body,abilities:pre?[]:c.abilities.filter(id=>ABILITY_POWERS.includes(id)),kit:pre?c.abilities.slice(0,CONFIG.picks.kit):[],free:pre?c.abilities.slice(CONFIG.picks.kit):[],confirm:false};}
   else draft={name:'Guardian '+Math.floor(rr(100,1000)),suit:(Math.random()*SUIT_OPTS.length)|0,cape:(Math.random()*CAPE_OPTS.length)|0,accent:0,capeOn:true,movement:[],body:null,abilities:[],confirm:false};
   applyLook();creator.hidden=false;$('menu').hidden=true;$('pause').hidden=true;$('create-title').textContent=mode==='rechoose'?'Change your powers':'Create your hero';renderCreator();
 }
@@ -5478,15 +5568,23 @@ function pickCard(id,on,onclick,tag,extra){const c=POWERS[id];
     el('span',{text:PRESETS[id]?PRESETS[id].blurb:c.desc}),extra?el('span',{class:'cat',text:extra}):null);}
 function renderCreator(){
   const y=creatorBody.scrollTop;creatorBody.textContent='';const d=draft;
-  creatorBody.appendChild(el('p',{class:'muted',text:creatorMode==='rechoose'?'Pick new powers. Skill points you spent on powers you drop come back to you.'+(CONFIG.rechoiceCooldown>0?' You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':''):'Pick one way to get around. Three of them are full hero kits; Flight lets you build your own hero from a body mod and two abilities. Powers are free, and you can change them later from the pause menu (once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes). Traversal gets stronger the more you use it; skill points upgrade everything else.'}));
+  creatorBody.appendChild(el('p',{class:'muted',text:creatorMode==='rechoose'?'Pick new powers. Skill points you spent on powers you drop come back to you.'+(CONFIG.rechoiceCooldown>0?' You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':''):'Pick one way to get around. Six of them are full hero kits: pick 3 of the kit\'s moves for keys 1–3 and 2 more for keys 4–5. Flight lets you build your own hero from a body mod (its move goes on key 1) and 4 abilities. Powers are free, and you can change them any time from the pause menu. Traversal gets stronger the more you use it; skill points upgrade everything else.'}));
   if(creatorMode!=='rechoose')renderLook(creatorBody);
   const redraw=()=>{d.confirm=false;renderCreator();};
   creatorBody.appendChild(el('h3',{text:'Traversal · pick 1'}));
-  const tw=el('div',{class:'picks'});for(const id of MOVEMENT_POWERS)tw.appendChild(pickCard(id,d.movement[0]===id,()=>{d.movement=[id];redraw();},PRESETS[id]?'Hero kit':'Build your own'));creatorBody.appendChild(tw);
+  const tw=el('div',{class:'picks'});for(const id of MOVEMENT_POWERS)tw.appendChild(pickCard(id,d.movement[0]===id,()=>{d.movement=[id];if(PRESETS[id]){const ab=presetAbilities(id,[]);d.kit=ab.slice(0,CONFIG.picks.kit);d.free=ab.slice(CONFIG.picks.kit);}redraw();},PRESETS[id]?'Hero kit':'Build your own'));creatorBody.appendChild(tw);
   const pre=PRESETS[d.movement[0]];
   if(pre){
-    creatorBody.appendChild(el('h3',{text:pre.name+' kit'}));
-    const kit=el('div',{class:'picks'});kit.appendChild(pickCard(pre.body,true,()=>{},'Body'));for(const id of pre.abilities)kit.appendChild(pickCard(id,true,()=>{},'Included'));creatorBody.appendChild(kit);
+    if(!d.kit||!d.free){const ab=presetAbilities(d.movement[0],[]);d.kit=ab.slice(0,CONFIG.picks.kit);d.free=ab.slice(CONFIG.picks.kit);}
+    const K=CONFIG.picks.kit,F=CONFIG.picks.free,toggle=(arr,other,max,id)=>{const i=arr.indexOf(id);if(i>=0)arr.splice(i,1);else{const j=other.indexOf(id);if(j>=0)other.splice(j,1);if(arr.length>=max)arr.shift();arr.push(id);}redraw();};
+    creatorBody.appendChild(el('h3',{text:pre.name+' · body'}));
+    const bodyRow=el('div',{class:'picks'});bodyRow.appendChild(pickCard(pre.body,true,()=>{},'Body'));creatorBody.appendChild(bodyRow);
+    creatorBody.appendChild(el('h3',{text:'Keys 1–3 · '+d.kit.length+'/'+K+' from the '+pre.name+' kit'}));
+    const kit=el('div',{class:'picks'});for(const id of pre.abilities)kit.appendChild(pickCard(id,d.kit.includes(id),()=>toggle(d.kit,d.free,K,id),d.kit.includes(id)?'Key '+(d.kit.indexOf(id)+1):'Kit move'));creatorBody.appendChild(kit);
+    creatorBody.appendChild(el('h3',{text:'Keys 4–5 · '+d.free.length+'/'+F+' more: the rest of your kit, or any power'}));
+    const fr=el('div',{class:'picks'});for(const id of [...pre.abilities.filter(x=>!d.kit.includes(x)),...ABILITY_POWERS.filter(x=>!pre.abilities.includes(x))])
+      fr.appendChild(pickCard(id,d.free.includes(id),()=>toggle(d.free,d.kit,F,id),d.free.includes(id)?'Key '+(K+d.free.indexOf(id)+1):pre.abilities.includes(id)?'Kit move':id==='morphBand'?'Transformation':null));
+    creatorBody.appendChild(fr);d.abilities=[...d.kit,...d.free];
   }else if(d.movement[0]){
     creatorBody.appendChild(el('h3',{text:'Body mod · pick 1'}));
     const bw=el('div',{class:'picks'});for(const id of BODY_MODS)bw.appendChild(pickCard(id,d.body===id,()=>{d.body=id;redraw();},null,'Signature move: '+POWERS[POWERS[id].sig].name));creatorBody.appendChild(bw);
@@ -5495,9 +5593,9 @@ function renderCreator(){
     for(const id of ABILITY_POWERS){const on=d.abilities.includes(id);aw.appendChild(pickCard(id,on,()=>{if(on)d.abilities.splice(d.abilities.indexOf(id),1);else if(d.abilities.length<CONFIG.picks.abilities)d.abilities.push(id);else{d.abilities.shift();d.abilities.push(id);}redraw();},id==='morphBand'?'Transformation':null));}
     creatorBody.appendChild(aw);
   }
-  const ready=d.movement.length===1&&(pre||(d.body&&d.abilities.length===CONFIG.picks.abilities));
-  const need=!d.movement.length?'Pick a traversal':!d.body?'Pick a body mod':'Pick '+(CONFIG.picks.abilities-d.abilities.length)+' more abilit'+(CONFIG.picks.abilities-d.abilities.length===1?'y':'ies');
-  const rnd=el('button',{class:'ghost',type:'button',text:'Surprise me',onclick:()=>{d.movement=[pick(MOVEMENT_POWERS)];d.body=pick(BODY_MODS);d.abilities=ABILITY_POWERS.slice().sort(()=>Math.random()-0.5).slice(0,CONFIG.picks.abilities);redraw();}});
+  const ready=d.movement.length===1&&(pre?d.kit.length===CONFIG.picks.kit&&d.free.length===CONFIG.picks.free:(d.body&&d.abilities.length===CONFIG.picks.abilities));
+  const need=!d.movement.length?'Pick a traversal':pre?(d.kit.length<CONFIG.picks.kit?'Pick '+(CONFIG.picks.kit-d.kit.length)+' more kit move'+(CONFIG.picks.kit-d.kit.length>1?'s':''):'Pick '+(CONFIG.picks.free-d.free.length)+' more for keys 4–5'):!d.body?'Pick a body mod':'Pick '+(CONFIG.picks.abilities-d.abilities.length)+' more abilit'+(CONFIG.picks.abilities-d.abilities.length===1?'y':'ies');
+  const rnd=el('button',{class:'ghost',type:'button',text:'Surprise me',onclick:()=>{d.movement=[pick(MOVEMENT_POWERS)];d.body=pick(BODY_MODS);d.abilities=ABILITY_POWERS.slice().sort(()=>Math.random()-0.5).slice(0,CONFIG.picks.abilities);const pr=PRESETS[d.movement[0]];if(pr){const k=pr.abilities.slice().sort(()=>Math.random()-0.5);d.kit=k.slice(0,CONFIG.picks.kit);d.free=[...k.slice(CONFIG.picks.kit),...ABILITY_POWERS.filter(x=>!pr.abilities.includes(x)).sort(()=>Math.random()-0.5)].slice(0,CONFIG.picks.free);}redraw();}});
   const go=el('button',{class:'go',id:'lockin',type:'button',text:!ready?need:d.confirm?'Lock in':'Lock in my powers',onclick:()=>{if(!ready)return;if(!d.confirm){d.confirm=true;renderCreator();return;}finishCreator();}});
   go.disabled=!ready;
   creatorBody.append(el('div',{class:'cta'},go,rnd),d.confirm?el('p',{class:'note warn',text:'Click Lock in to confirm.'}):null);
@@ -5550,7 +5648,7 @@ function dialConfirm(){if(dialSel<0)return;const a=dialItems()[dialSel];if(a&&a.
 function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----
 const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],['punch','Throw a punch','Click to punch','Tap PUNCH'],
-  ['ability','Use a power','Press 1, 2 or 3','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Head for an icon on your minimap','Head for an icon on your minimap']];
+  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Head for an icon on your minimap','Head for an icon on your minimap']];
 function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(GUIDE.every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
   for(const [k,t,kb,tc] of GUIDE)list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:touchOn()?tc:kb})));}
@@ -5684,7 +5782,7 @@ tl.addEventListener('pointermove',e=>{
   else if(e.pointerId===lookId){look(e.clientX-lx,e.clientY-ly,2.2);lx=e.clientX;ly=e.clientY;}});
 const endTouch=e=>{if(e.pointerId===stickId){stickId=null;touchIn.x=touchIn.y=0;knob.style.transform='';stick.style.left='';stick.style.top='';stick.classList.remove('on');}if(e.pointerId===lookId)lookId=null;};
 tl.addEventListener('pointerup',endTouch);tl.addEventListener('pointercancel',endTouch);
-const SHORT={bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'REPULS',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
+const SHORT={sonicScream:'SCREAM',quakeStomp:'QUAKE',meteorStrike:'METEOR',forcePush:'PUSH',chainLightning:'CHAIN',healingPulse:'HEAL',invisibility:'CLOAK',vineSnare:'SNARE',shadowStep:'STEP',plasmaWhip:'WHIP',bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'REPULS',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
 function bindTouchBtn(b,act){
   b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{b.setPointerCapture(e.pointerId);}catch(err){}b.classList.add('down');touchAct(act,true);});
   const up=()=>{if(!b.classList.contains('down'))return;b.classList.remove('down');touchAct(act,false);};
@@ -6277,7 +6375,7 @@ function drawRemote(r){
 function buildDrawList(){
   dlN=0;drawSpace();
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
-    const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.phasing?0.45:0;
+    const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.cloak?0.18:P.phasing?0.45:0;
     if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else if(P.construct&&conHidesRider(P.construct.id)){/* inside the race car, or the suit has become the vehicle */}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const ro=P.construct?riderOffset(P.construct.id):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;}
     if(P.cp&&P.hand){const h=P.hand,k=Math.min(1,P.cp.t/1.2),s=0.3+k*0.6+Math.sin(time*30)*0.05;queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s,s,s),[1,.85,.5,0.9],F_ADD);queue(MESH.glowSphere,at(h[12],h[13],h[14],0,0,0,s*2.5,s*2.5,s*2.5),[1,.6,.3,0.25*k],F_ADD);}
     GHOST=0;
@@ -6328,6 +6426,7 @@ function buildDrawList(){
     else if(p.kind==='bolt'){let px=p.x,py=p.y,pz=p.z;for(let i=1;i<=3;i++){const qx=p.x-p.vx*0.012*i+rr(-.4,.4),qy=p.y-p.vy*0.012*i+rr(-.4,.4),qz=p.z-p.vz*0.012*i+rr(-.4,.4);queue(MESH.glowBox,M4.beam(tmpM(),px,py,pz,qx,qy,qz,0.18),[1,.9,.5,1],F_ADD);px=qx;py=qy;pz=qz;}queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.1,1.1,1.1),[1,.8,.3,0.5],F_ADD);}
     else if(p.kind==='ring'){const s=p.small?0.28:0.5*(p.big||1);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.02,p.y-p.vy*0.02,p.z-p.vz*0.02,s*0.7),[RING_C[0],RING_C[1],RING_C[2],1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,s*2.4,s*2.4,s*2.4),[RING_C[0],RING_C[1],RING_C[2],0.35],F_ADD);}
     else if(p.kind==='web'){queue(MESH.sphere,at(p.x,p.y,p.z,time*6,time*4,0,0.55,0.55,0.55),[.95,.95,1,1],0);}
+    else if(p.kind==='rocket'&&p.meteor){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,3,3,3),[1,.5,.2,1],0);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.15,p.y-p.vy*0.15,p.z-p.vz*0.15,2.2),[1,.4,.1,0.6],F_ADD);}
     else if(p.kind==='rocket'){queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.03,p.y-p.vy*0.03,p.z-p.vz*0.03,0.5),[1,.6,.3,1],0);}
     else{queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.45,0.45,0.45),[1,.25,.2,1],0);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.05,p.y-p.vy*0.05,p.z-p.vz*0.05,0.3),[1,.2,.15,0.5],F_ADD);}}
   for(const t of tracers){const k=t.life/t.max;queue(MESH.glowBox,M4.beam(tmpM(),t.ax,t.ay,t.az,t.bx,t.by,t.bz,t.w),[t.col[0],t.col[1],t.col[2],k],F_ADD);}
@@ -6435,7 +6534,7 @@ function updateHud(dt){
     const st=PS[s.id],c=POWERS[s.id];
     if(s.id==='morphBand'){s.s.classList.toggle('on',!!P.alien||dialOpen);s.s.classList.toggle('bad',st.flash>0);const f=band.cd>0?band.cd/pstat('morphBand','recharge'):0,v=Math.round(clamp(f,0,1)*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}continue;}
-    const active=st.holding||((s.id==='metalSkin'||s.id==='metalForms')&&P.metal)||(s.id==='energyShield'&&P.shieldOn)||(s.id==='telekinesis'&&!!P.tk)||(s.id==='flight'&&P.flying)||(s.trav&&P.flying)||(s.id==='ringShield'&&P.ringShield)||(s.id==='slowTime'&&P.slowOn)||(s.id==='superSpeed'&&P.speeding)||(s.id==='webSwing'&&!!P.web)||(s.id==='wallClimb'&&!!P.wall);
+    const active=st.holding||((s.id==='metalSkin'||s.id==='metalForms')&&P.metal)||(s.id==='energyShield'&&P.shieldOn)||(s.id==='telekinesis'&&!!P.tk)||(s.id==='flight'&&P.flying)||(s.trav&&P.flying)||(s.id==='ringShield'&&P.ringShield)||(s.id==='invisibility'&&P.cloak)||(s.id==='slowTime'&&P.slowOn)||(s.id==='superSpeed'&&P.speeding)||(s.id==='webSwing'&&!!P.web)||(s.id==='wallClimb'&&!!P.wall);
     s.s.classList.toggle('on',active);s.s.classList.toggle('bad',st.flash>0);s.s.classList.toggle('dim',meterBlocks(s.id));
     if(s.cd){const f=c.cooldown?st.cd/pstat(s.id,'cooldown'):0;const v=Math.round(f*100);if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}}
     const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}}
