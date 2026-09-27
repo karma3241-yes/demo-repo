@@ -148,12 +148,24 @@ function updateRemotes(dt){
 // The host relays presence and attacks between everyone, so the room lasts while the host plays.
 const P2P_LIB=['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'];
 // how two players find a path to each other: STUN finds a direct route; when a network blocks direct connections
-// (mobile data, school or work wifi, some routers, VPNs) the TURN relay carries the traffic instead (free public Open Relay, best effort)
-const P2P_ICE=[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},
-  {urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turn:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'}];
+// (mobile data, school or work wifi, some routers, VPNs) a TURN relay carries the traffic instead.
+// The site's /api/turn hands out short-lived Cloudflare TURN credentials when the Vercel project has its two
+// Cloudflare variables set (see Readme); the free public relay below is only a best-effort fallback.
+const P2P_ICE=[{urls:['stun:stun.cloudflare.com:3478','stun:stun.l.google.com:19302']},
+  {urls:['turn:freestun.net:3478'],username:'free',credential:'free'}];
 const P2P_PREFIX='skyline-guardian-v1-',P2P_MAX=8,P2P_TOPICS=['hit','down','fx','dx'],P2P_HOST_TOPICS=['nh','tk','tg','tt'];
 const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off',err:'',open:false,myLast:null,timer:0,
   available:()=>!window.claude&&'RTCPeerConnection' in window,
+  ice:null,
+  // relay credentials from the site (cached until they are close to expiring); falls back to the public list
+  async loadIce(){
+    if(this.ice&&performance.now()<this.iceUntil)return;
+    try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),4000);
+      const r=await fetch('/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
+      const d=r.ok?await r.json():null,list=d&&(Array.isArray(d.iceServers)?d.iceServers:d.iceServers?[d.iceServers]:null);
+      if(list&&list.length){this.ice=list.concat(P2P_ICE);this.iceUntil=performance.now()+6*3600e3;return;}}catch(e){}
+    this.ice=P2P_ICE;this.iceUntil=performance.now()+60e3;
+  },
   loadLib(){
     if(window.Peer)return Promise.resolve();
     return new Promise((res,rej)=>{let i=0;const next=()=>{if(i>=P2P_LIB.length){rej(new Error('lib'));return;}
@@ -177,7 +189,7 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   },
   leave(){this.shutdown();this.state='off';this.err='';this.code='';try{if(location.hash.startsWith('#room='))history.replaceState(null,'',location.pathname+location.search);}catch(e){}this.changed();},
   startPeer(id){
-    const peer=new window.Peer(id,{debug:0,config:{iceServers:P2P_ICE}});this.peer=peer;
+    const peer=new window.Peer(id,{debug:0,config:{iceServers:this.ice||P2P_ICE}});this.peer=peer;
     peer.on('disconnected',()=>{if(this.peer===peer&&this.state!=='off')try{peer.reconnect();}catch(e){}});
     return peer;
   },
@@ -185,6 +197,7 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   async create(){
     this.shutdown();this.state='starting';this.err='';this.host=true;this.code=this.newCode();this.changed();
     try{await this.loadLib();}catch(e){this.fail('Could not load the multiplayer library. Check your connection.');return;}
+    await this.loadIce();
     const peer=this.startPeer(P2P_PREFIX+this.code);
     peer.on('open',id=>{MP.myPeer=id;this.state='open';this.open=true;this.setHash();this.changed();});
     peer.on('connection',conn=>this.accept(conn));
@@ -196,6 +209,7 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
     code=this.cleanCode(code);if(code.length<4){this.fail('That room code looks wrong');return;}
     this.shutdown();this.state='starting';this.err='';this.host=false;this.code=code;this.changed();
     try{await this.loadLib();}catch(e){this.fail('Could not load the multiplayer library. Check your connection.');return;}
+    await this.loadIce();
     const peer=this.startPeer(undefined);
     let found=false;
     peer.on('open',id=>{MP.myPeer=id;found=true;const c=peer.connect(P2P_PREFIX+code,{reliable:true,serialization:'json'});this.hostConn=c;
