@@ -6,7 +6,7 @@ const touchIn={x:0,y:0};let lookT=-9;
 const sensK=()=>0.0023*save.settings.sens;
 function look(dx,dy,k=1){P.yaw-=dx*sensK()*k;P.pitch=clamp(P.pitch+(save.settings.invertY?1:-1)*dy*sensK()*k,-1.3,1.25);lookT=time;}
 const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2,Digit4:3,Digit5:4};
-const DIAL_CODES={Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,Digit6:5};
+const DIAL_CODES={Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,Digit6:5,Digit7:6};
 addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
   if(e.code==='Tab'&&(sheetOpen||state!=='play'||creating))return;
@@ -22,10 +22,11 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyM'){toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
   if(e.code==='KeyH'){hud.keys.classList.toggle('fade');return;}
   if(paused||P.dead)return;
+  if(alienXLocked()){if(alienXAway()&&e.code in XQ_CODES)alienXAnswer(XQ_CODES[e.code]);return;} // Alien X: only the masks' question can be answered
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
-  if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else openDial('construct');}else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
+  if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else if(P.construct)vHoldStart(e.timeStamp);else openDial('construct');}else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
   if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
   if(e.code==='KeyO'&&isRing()){if(ringLocked())closeOath();else openOath();return;}
   if(e.code==='KeyY'&&isRing()){ringRebuild();return;}
@@ -39,8 +40,19 @@ addEventListener('keydown',e=>{
   if(isSpeed()){if(e.code==='KeyF'){toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
   if(e.code==='KeyF'){if(!flyChargeStart())toggleFlight();}else if(e.code==='Space')pressJump();
 });
-addEventListener('keyup',e=>{keys[e.code]=false;if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
-addEventListener('blur',()=>{heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<5;i++)abilityUp(i,true);webRelease();P.charging=false;});
+// Ring Bearer in a construct: tap V to step out of it, hold V to open the construct wheel (let go on a construct to switch to it)
+const V_HOLD=0.3;let vHoldTimer=0,vHoldAt=0,vHeldOpen=false;
+const vHoldOk=()=>state==='play'&&!paused&&!P.dead&&isRing()&&!ringLocked();
+// the press length comes from the key events' own timestamps, so a slow frame can't turn a tap into a hold (or back)
+function vHoldStart(ts){clearTimeout(vHoldTimer);vHeldOpen=false;vHoldAt=ts;vHoldTimer=setTimeout(()=>{vHoldTimer=0;if(!keys.KeyV||!vHoldOk())return;vHeldOpen=true;openDial('construct');},V_HOLD*1000);}
+function vHoldEnd(ts){
+  if(!vHoldAt)return;const tap=ts-vHoldAt<V_HOLD*1000,opened=vHeldOpen;clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;
+  if(tap){if(opened&&dialOpen)closeDial();if(vHoldOk()&&P.construct&&!dialOpen)dismissConstruct();return;}
+  if(!opened){if(vHoldOk()&&!dialOpen)openDial('construct');return;}
+  if(dialOpen&&dialSel>=0)dialConfirm();
+}
+addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyV')vHoldEnd(e.timeStamp);if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
+addEventListener('blur',()=>{clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<5;i++)abilityUp(i,true);webRelease();P.charging=false;});
 canvas.addEventListener('mousedown',e=>{
   if(state!=='play'||touchOn())return;
   if(paused){if(!sheetOpen&&!creating)resume();return;}
@@ -254,7 +266,7 @@ let moved=0;
 function updatePlayer(dt){
   const a=P.anim;
   if(P.dead){P.deadT-=dt;if(P.deadT<=0)respawn();return;}
-  updateCombat(dt);if(P.floatT>0)P.floatT-=dt;
+  updateCombat(dt);if(P.floatT>0)P.floatT-=dt;if(P.grounded||P.flying||P.web||P.wall)P.airHangs=0;
   if(P.heldBy){const H=P.heldBy;if(time-H.t>0.6)P.heldBy=null;else{if(!H.said){H.said=true;feed((H.by&&H.by.name||'Someone')+' has you','Held by telekinesis');}
     const k=damp(8,dt);P.pos.x+=(H.x-P.pos.x)*k;P.pos.y+=(H.y-1-P.pos.y)*k;P.pos.z+=(H.z-P.pos.z)*k;P.vel.set(0,0,0);P.flying=false;P.web=null;P.wallRun=null;P.wall=null;P.grounded=false;P.stun=Math.max(P.stun,0.25);
     if(Math.random()<0.5)emit(P.pos.x+rr(-1,1),P.pos.y+rr(0,2),P.pos.z+rr(-1,1),0,rr(0,2),0,0.5,[.7,.45,1],1.1,0,0);return;}}
@@ -263,6 +275,7 @@ function updatePlayer(dt){
   const inF=clamp((keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)+touchIn.y,-1,1);
   const inR=clamp((keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+touchIn.x,-1,1);
   if(P.car){driveCar(dt,inF,inR);return;}
+  if(alienXLocked()){P.vel.set(0,0,0);return;} // Alien X stands frozen until the masks agree
   if(P.lantern&&!oathFree&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // typing the oath: suspended where you are, construct and all (saying it leaves you free)
   spiderTick(dt);
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();

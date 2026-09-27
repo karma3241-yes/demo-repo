@@ -238,6 +238,17 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
 #oath h3{margin:0 0 8px;font-size:12px;letter-spacing:.24em;color:#8dffb0;font-weight:600}#oath p{margin:0 0 10px;font-size:17px;line-height:1.5;color:rgba(233,243,255,.45)}#oath p b{color:#b6ffca;font-weight:600;text-shadow:0 0 12px rgba(93,255,134,.7)}
 #oath input{width:100%;box-sizing:border-box;padding:10px 12px;font:inherit;font-size:15px;color:#e9f3ff;background:rgba(0,0,0,.45);border:1px solid rgba(93,255,134,.5);border-radius:8px;outline:none}#oath small{display:block;margin-top:8px;font-size:11px;color:var(--ink-dim);letter-spacing:.1em}
 #dial-info{position:absolute;left:50%;bottom:max(18px,4vh);transform:translateX(-50%);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#e2ccff;text-align:center;width:min(560px,92vw)}
+#xquiz{position:fixed;left:50%;bottom:max(24px,6vh);transform:translateX(-50%);z-index:7;width:min(620px,calc(100% - 32px));box-sizing:border-box;padding:16px 18px;text-align:center;font-family:var(--hud);color:var(--ink);background:rgba(6,6,14,.78);border:1px solid rgba(214,226,255,.35);border-radius:14px;box-shadow:0 0 40px rgba(170,190,255,.2);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#xquiz .xq-head{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#cfd9ff}
+#xquiz .xq-q{margin:8px 0 12px;font-size:19px;line-height:1.4;font-weight:600}
+#xquiz .xq-opts{display:grid;gap:8px}
+#xquiz .xq-opt{display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 12px;font:600 15px var(--hud);color:var(--ink);text-align:left;background:rgba(255,255,255,.06);border:1px solid rgba(214,226,255,.3);border-radius:10px;cursor:pointer}
+#xquiz .xq-opt:hover,#xquiz .xq-opt:focus-visible{background:rgba(214,226,255,.16);border-color:#eef6ff;outline:none}
+#xquiz .xq-opt kbd{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:6px;border:1px solid rgba(214,226,255,.5);font:700 12px var(--hud)}
+body.touch #xquiz .xq-opt kbd{display:none}
+#xquiz .xq-foot{margin-top:10px;font-size:12px;letter-spacing:.12em;color:var(--ink-dim)}
+#xquiz[data-mode="lock"]{top:max(90px,12vh);bottom:auto;width:auto;min-width:240px;padding:10px 16px;pointer-events:none;border-color:rgba(255,92,110,.5);box-shadow:0 0 30px rgba(255,60,80,.25)}
+#xquiz[data-mode="lock"] .xq-head{color:#ffb3bd}#xquiz[data-mode="lock"] .xq-foot{margin-top:4px;font-size:14px;color:var(--ink)}
 #guide{position:absolute;right:16px;top:96px;padding:10px 14px;width:230px;box-sizing:border-box}
 #guide h4{margin:0 0 6px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
 #guide ol{margin:0;padding:0;list-style:none;display:grid;gap:6px}
@@ -1437,7 +1448,7 @@ const POWERS={
   chainLasso:{name:'Chain Lasso',cat:'preset',type:'instant',ring:5,desc:'Lasso a target with a construct chain, swing them around and slam them down.',cooldown:4,damage:[40,150]},
   ringShield:{name:'Ring Shield',cat:'preset',type:'toggle',desc:'A hard-light dome with its own health that blocks every hit. Barely costs charge to hold up, a little more while it is being hit. Enough punishment breaks it.',ringDrain:[0.3,0.1],absorb:[180,700],cooldown:4},
   blackHole:{name:'Black Hole',cat:'preset',type:'instant',ring:95,desc:'Pour almost all of your ring into a black hole. It tears buildings, rubble and people into it. Only the strong or fast escape.',cooldown:30,radius:[40,70],duration:6},
-  morphBand:{name:'Morph Band',cat:'special',type:'special',key:'V',desc:'An alien wrist device. Transform into one of six alien forms, each with its own body and powers. Upgrades unlock more aliens and longer transformations.',duration:[45,150],recharge:[40,12],power:[1,2]},
+  morphBand:{name:'Morph Band',cat:'special',type:'special',key:'V',desc:'An alien wrist device. Transform into one of seven alien forms, each with its own body and powers. Upgrades unlock more aliens and longer transformations.',duration:[45,150],recharge:[40,12],power:[1,2]},
   stormHammer:{name:'Storm Hammer',cat:'offence',type:'instant',desc:'Hurl an enchanted hammer. It calls lightning down on whatever it hits, smashes everything in its path and flies back to your hand.',energy:18,cooldown:3,damage:[40,170],stun:[0.5,1.2],range:[45,90]},
   repulsors:{name:'Repulsor Barrage',cat:'offence',type:'channel',desc:'Hold to fire rapid palm blasts from alternating hands. Great for keeping crowds and drones at bay.',energyPerSec:14,damage:[8,30],knock:[5,14]},
   coreBeam:{name:'Core Beam',cat:'offence',type:'instant',desc:'Wind up a blinding beam from your chest. It burns through people, cars and even buildings for a second and a half.',energy:35,cooldown:10,dps:[60,220]},
@@ -1564,7 +1575,7 @@ function loadSave(){
   if(s.stats&&typeof s.stats==='object')for(const k in f.stats)f.stats[k]=Math.floor(num(s.stats[k],0,0,1e9));
   f.rechoiceAt=f.migrated?0:num(s.rechoiceAt,0,0,1e15);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
-  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.bounty=Math.round(num(s.bounty,0,0,1e6));
+  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
@@ -1650,6 +1661,7 @@ const Damage={
     if(tsIntercept(src,t,amount,type,opt))return amount;
     if(t===P){
       if(P.dead||state!=='play')return 0;
+      if(alienXAway())return 0; // being questioned by the masks, far away
       if(P.iframeT>0){if(time-(P.dodgeT||-9)>0.4){P.dodgeT=time;feed('Dodged','');}return 0;}
       if(spiderSense(src,type))return 0;
       if(src&&src.kind!=='remote'&&type!=='pvp')amount*=CONFIG.health.npcTaken;
@@ -1985,7 +1997,7 @@ function computeAim(range){
   aim.t=best;aim.x=ox+dx*best;aim.y=oy+dy*best;aim.z=oz+dz*best;aim.actor=actor;aim.surface=surface;aim.nx=nx;aim.ny=ny;aim.nz=nz;aim.hitAny=best<range+t0-0.01;
   return aim;
 }
-const canAct=()=>state==='play'&&!paused&&!P.dead&&P.stun<=0&&!(frozenT>0);
+const canAct=()=>state==='play'&&!paused&&!P.dead&&P.stun<=0&&!(frozenT>0)&&!alienXLocked();
 function noEnergy(id){if(id)PS[id].flash=0.4;SFX.tone('square',220,150,0.1,0.06);hud.en.classList.add('warn');setTimeout(()=>hud.en.classList.remove('warn'),300);}
 function faceAim(){P.heroYaw=Math.atan2(camF.x,camF.z);castT=time;}
 function handPoint(){const s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw);return {x:P.pos.x+s*0.8+c*0.45,y:P.pos.y+1.95,z:P.pos.z+c*0.8-s*0.45};}
@@ -2260,6 +2272,7 @@ function updatePowers(dt){
 // close; hit 4 is a finisher: a launch (default), an uppercut (hold Space) or a spike
 // (while airborne). Launched targets crater walls, the ground, cars and street props.
 const COMBAT={chain:1.0,gap:0.26,endlag:0.65,reach:3.6,lunge:9,stun:0.75,finStun:1.3,finMul:2.3,launch:40,upper:34,spike:48,
+  lockGap:0.5,lockEndlag:1.1,airHangs:3, // locked on, the chain has a slower rhythm; in the air only the first few hits hold you up
   dashSpeed:40,dashTime:0.24,dashCd:1.1,iframe:0.3,lockRange:110,slamMin:15};
 let lockT=null,comboN=0,comboT=-9,dashCd=0,airDash=true;
 const lockMark=(()=>{const e=document.createElement('div');e.id='lockmark';e.hidden=true;return e;})();
@@ -2320,9 +2333,9 @@ function meleeTargets(fx,fy,fz,reach){
 function punch(){
   if(!canAct()||P.punchCd>0||P.tk||P.car)return;
   if(time-comboT>COMBAT.chain||comboN>=4)comboN=0;
-  comboN++;comboT=time;const fin=comboN===4;P.punchCd=fin?COMBAT.endlag:COMBAT.gap;
+  comboN++;comboT=time;const fin=comboN===4,lk=!!(lockT&&lockT.alive);P.punchCd=fin?(lk?COMBAT.lockEndlag:COMBAT.endlag):(lk?COMBAT.lockGap:COMBAT.gap);
   P.punchN=comboN;P.punchT=time;P.punchArm=comboN%2?1:-1;
-  const air=!P.grounded&&!P.flying&&!P.web,upper=fin&&!air&&(keys.Space||touchJump()),spike=fin&&(air||(P.flying&&P.pitch<-0.35));
+  const air=!P.grounded&&!P.flying&&!P.web,hang=air&&(P.airHangs|0)<COMBAT.airHangs,upper=fin&&!air&&(keys.Space||touchJump()),spike=fin&&(air||(P.flying&&P.pitch<-0.35));
   P.punchKind=fin?(upper?'up':spike?'down':'fin'):comboN===3?'kick':'jab';
   // aim: the lock target, else the camera direction
   let fx=camF.x,fy=P.flying?camF.y:0,fz=camF.z;
@@ -2330,8 +2343,9 @@ function punch(){
   const fl=Math.hypot(fx,fy,fz)||1;fx/=fl;fy/=fl;fz/=fl;P.heroYaw=Math.atan2(fx,fz);
   // close the gap to a locked target (lunge), like a battlegrounds M1
   if(lockT&&lockT.alive){const c=center(lockT),d=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);if(d>COMBAT.reach&&d<COMBAT.lunge+COMBAT.reach){const s=Math.min(34,(d-COMBAT.reach+1)*6);
-    P.vel.x=fx*s;P.vel.z=fz*s;if(air||P.flying)P.vel.y=fy*s;P.burstT=0.14;}}
-  if(air){P.vel.y=Math.max(P.vel.y,fin?4:2.5);P.floatT=fin?0.2:0.45;}
+    P.vel.x=fx*s;P.vel.z=fz*s;if(hang||P.flying)P.vel.y=fy*s;P.burstT=0.14;}}
+  if(air)P.airHangs=(P.airHangs|0)+1;
+  if(hang){P.vel.y=Math.max(P.vel.y,fin?4:2.5);P.floatT=fin?0.2:0.45;}
   const AL=P.alien?ALIENS[P.alien.id]:null,am=AL?(AL.scale>2?3.5:1.6):1;
   const MW=metalWeapon(),dmg=CONFIG.punch.damage*strengthMul()*am*speedPunchMul()*bodyPunchMul()*(fin?COMBAT.finMul:comboN===3?1.25:1);
   const hits=meleeTargets(fx,fy,fz,COMBAT.reach*(AL?Math.max(1,AL.scale*0.8):1)+(AL?0:bodyReach()));let hx=0,hy=0,hz=0;
@@ -2668,6 +2682,9 @@ const ALIENS={
     body:'#6b6f7a',glow:'#ff9a3a',abilities:[{id:'stomp',name:'Titan Stomp',cd:4},{id:'carToss',name:'Car Toss',cd:3},{id:'megaPunch',name:'Mega Punch',cd:1.4}]},
   umbra:{name:'Umbra',blurb:'Shadow phaser. Turns invisible and walks through walls.',unlock:9,scale:1,hp:0.9,speed:1.3,jump:1.2,
     body:'#141018',glow:'#b04dff',abilities:[{id:'veil',name:'Shadow Veil',cd:15},{id:'phase',name:'Phase',cd:1,toggle:true},{id:'shadowStrike',name:'Shadow Strike',cd:4}]},
+  // Alien X: the two masks must agree before he moves (see 45b_alienx.js); his time grows with the Energy passive
+  alienX:{name:'Alien X',blurb:'Reality itself. Answer the two masks first, or stand frozen.',unlock:1,scale:1.6,hp:4,speed:1.4,jump:1.6,flies:true,flySpeed:140,xQuiz:true,
+    body:'#06060c',glow:'#eef6ff',abilities:[{id:'starFlick',name:'Star Flick',cd:1.2},{id:'bigBang',name:'Big Bang',cd:8},{id:'rewrite',name:'Rewrite',cd:20}]},
 };
 const ALIEN_IDS=Object.keys(ALIENS);
 const BAND_COL=[.62,.36,1];
@@ -2685,16 +2702,18 @@ function bandPress(){
 function transformInto(id){
   const a=ALIENS[id];if(!a||!aliensUnlocked().includes(id)||P.alien)return;
   const frac=P.hp/maxHp();stopAllPowers();
-  P.alien={id,t:pstat('morphBand','duration'),max:pstat('morphBand','duration'),cds:[0,0,0],armor:0,veil:0,phase:0,channel:false,warn:0};
+  const dur=a.xQuiz?alienXDuration():pstat('morphBand','duration');
+  P.alien={id,t:dur,max:dur,cds:[0,0,0],armor:0,veil:0,phase:0,channel:false,warn:0};
   P.radius=0.8*Math.max(1,a.scale*0.8);P.height=2.7*a.scale;P.hp=frac*maxHp();
   P.flying=!!a.flies;if(a.flies)P.grounded=false; // alien forms move with their own body, not your flight power
   const c=center(P);ringFx(c.x,c.y,c.z,1,10*a.scale,0.6,BAND_COL);ringFx(c.x,c.y,c.z,1,6,0.4,[1,1,1]);
   burst(c.x,c.y,c.z,90,18,1,[BAND_COL,[.85,.7,1],[1,1,1]],1.6,0,2);flashWhite=0.45;SFX.transform();addShake(0.3);
   toast(a.name,a.blurb,'purple');MP.fx('t',{});buildHotbar();buildTouchButtons();MP.bump();
+  if(a.xQuiz)alienXBegin();
 }
 function revertAlien(silent){
   if(!P.alien)return;const frac=P.hp/maxHp();const a=alienDef();
-  if(P.alien.phase>0)unphase();
+  if(P.alien.phase>0)unphase();if(P.alien.xq)alienXEnd();
   P.alien=null;P.radius=0.8;P.height=2.7;P.hp=Math.max(1,frac*maxHp());P.invisible=0;
   if(a&&a.flies&&!hasPower('flight'))P.flying=false;
   band.cd=pstat('morphBand','recharge');
@@ -2773,7 +2792,8 @@ function updateAliens(dt){
   if(band.cd>0)band.cd=Math.max(0,band.cd-dt);
   if(P.alien){const A=P.alien,a=alienDef();
     for(let i=0;i<3;i++)if(A.cds[i]>0)A.cds[i]=Math.max(0,A.cds[i]-dt);
-    if(state==='play'&&!P.dead){A.t-=dt;if(A.t<5&&A.t>0){A.warn-=dt;if(A.warn<=0){A.warn=1;SFX.tone('square',900,900,0.08,0.06);}}if(A.t<=0){revertAlien(false);feed('Morph Band timed out','Recharging for '+Math.ceil(band.cd)+' s');}}
+    if(A.xq&&A.xq.stage!=='play'){if(state==='play'&&!P.dead)alienXTick(dt);} // the masks hold the clock until he is free
+    else if(state==='play'&&!P.dead){A.t-=dt;if(A.t<5&&A.t>0){A.warn-=dt;if(A.warn<=0){A.warn=1;SFX.tone('square',900,900,0.08,0.06);}}if(A.t<=0){revertAlien(false);feed('Morph Band timed out','Recharging for '+Math.ceil(band.cd)+' s');}}
     if(A.armor>0)A.armor-=dt;if(P.invisible>0)P.invisible-=dt;
     if(A.phase>0){A.phase-=dt;if(A.phase<=0)unphase();}
     if(A.channel&&a.abilities.some(x=>x.id==='frostBreath')){const m=alienMul(),c=center(P);coneHit(18,0.75,25*m*dt,{},'ice');
@@ -2793,6 +2813,130 @@ function updateAliens(dt){
     hitProps(T.x,T.y,T.z,8,P,20);}
   for(let i=spikes.length-1;i>=0;i--){spikes[i].t-=dt;if(spikes[i].t<=0)spikes.splice(i,1);}
 }
+// ================================================================
+// Alien X: two giant masks decide whether you get to move
+// ================================================================
+// Morph into Alien X and your body freezes in place while your view is pulled out to a far corner of space,
+// where two floating masks ask one question with three answers. Answer right and you play as Alien X; answer
+// wrong (or run out of time) and you stand frozen in the alien body for 30 s. Playtime grows linearly with the
+// Energy passive: 5 s at level 0, 3 minutes at the max. Every morph brings a question you haven't had yet, and
+// in multiplayer no two players in the room get the same one (each player's questions ride in their presence).
+const ALIENX={dur:[5,180],answer:20,lock:30,realm:{x:0,y:320000,z:0}};
+function alienXDuration(){return ALIENX.dur[0]+(ALIENX.dur[1]-ALIENX.dur[0])*clamp(pv('energy')/CONFIG.passiveMax,0,1);}
+// c is the index of the right answer (answers are shuffled on screen)
+const XQS=[
+  {q:'Which planet is known as the Red Planet?',a:['Mars','Venus','Jupiter'],c:0},
+  {q:'How many planets are in our Solar System?',a:['Eight','Nine','Seven'],c:0},
+  {q:'Which planet has the biggest, brightest rings?',a:['Saturn','Neptune','Mars'],c:0},
+  {q:'What force pulls things down to the ground?',a:['Gravity','Magnetism','Friction'],c:0},
+  {q:'Which is the largest planet in our Solar System?',a:['Jupiter','Saturn','Earth'],c:0},
+  {q:'Which planet is closest to the Sun?',a:['Mercury','Venus','Mars'],c:0},
+  {q:'What causes day and night on Earth?',a:['Earth spinning on its axis','The Moon circling Earth','The Sun circling Earth'],c:0},
+  {q:'What sits at the centre of our Solar System?',a:['The Sun','Earth','The Moon'],c:0},
+  {q:'About how many days does Earth take to go around the Sun?',a:['365','30','1,000'],c:0},
+  {q:'Which planet spins lying on its side?',a:['Uranus','Mars','Mercury'],c:0},
+  {q:'The Moon\'s pull on Earth\'s oceans causes what?',a:['Tides','Wind','Rain'],c:0},
+  {q:'Which gas do plants take in from the air to make food?',a:['Carbon dioxide','Oxygen','Helium'],c:0},
+  {q:'At sea level, water boils at how many degrees Celsius?',a:['100','90','212'],c:0},
+  {q:'Water freezes at how many degrees Celsius?',a:['0','10','-10'],c:0},
+  {q:'Which is the hardest natural material?',a:['Diamond','Gold','Iron'],c:0},
+  {q:'What does a thermometer measure?',a:['Temperature','Weight','Speed'],c:0},
+  {q:'What is the largest organ of the human body?',a:['Skin','Liver','Heart'],c:0},
+  {q:'Which is the only mammal that can truly fly?',a:['Bat','Flying squirrel','Penguin'],c:0},
+  {q:'How many legs does a spider have?',a:['Eight','Six','Ten'],c:0},
+  {q:'What is a baby frog called?',a:['Tadpole','Cub','Calf'],c:0},
+  {q:'Which is the tallest animal?',a:['Giraffe','Elephant','Horse'],c:0},
+  {q:'Which is the largest ocean on Earth?',a:['Pacific','Atlantic','Indian'],c:0},
+  {q:'Mixing blue and yellow paint makes which colour?',a:['Green','Purple','Orange'],c:0},
+  {q:'How many sides does a hexagon have?',a:['Six','Five','Eight'],c:0},
+  {q:'Which shape has exactly three sides?',a:['Triangle','Square','Pentagon'],c:0},
+  {q:'What is 7 × 8?',a:['56','54','64'],c:0},
+  {q:'What is 12 ÷ 3?',a:['4','3','6'],c:0},
+  {q:'How many minutes are there in an hour?',a:['60','100','30'],c:0},
+  {q:'How many continents are there?',a:['Seven','Five','Nine'],c:0},
+  {q:'What does light travel fastest through?',a:['Empty space','Water','Glass'],c:0},
+];
+// questions this player got while online (shared in presence), and questions other players announced
+const XQ={session:[],claimed:new Set()};
+function xServerUsed(){const u=new Set(XQ.session);for(const q of XQ.claimed)u.add(q);for(const r of MP.peers.values())if(r.aq)for(const q of r.aq)u.add(q);return u;}
+function pickXQuestion(){
+  const all=XQS.map((_,i)=>i);let seen=save.xSeen||(save.xSeen=[]);
+  if(all.every(i=>seen.includes(i)))save.xSeen=seen=seen.slice(-1); // had them all: start a new round (never the same one twice in a row)
+  const used=xServerUsed(),last=seen[seen.length-1];
+  // new to you and to the room · new to the room · new to you · anything
+  const pool=[all.filter(i=>!seen.includes(i)&&!used.has(i)),all.filter(i=>!used.has(i)&&i!==last),all.filter(i=>!seen.includes(i))].find(p=>p.length)||all;
+  const q=pick(pool);seen.push(q);XQ.session.push(q);if(XQ.session.length>XQS.length)XQ.session.shift();
+  persist();MP.fx('aq',{q});MP.bump();return q;
+}
+function onXClaim(d){const q=Math.floor(+d.q);if(q>=0&&q<XQS.length)XQ.claimed.add(q);}
+const alienXStage=()=>P.alien&&P.alien.xq?P.alien.xq.stage:'';
+const alienXLocked=()=>{const s=alienXStage();return s==='quiz'||s==='lock';}; // frozen: no moving, no powers, no reverting
+const alienXAway=()=>alienXStage()==='quiz';                                   // your view is out with the masks
+const XQ_CODES={Digit1:0,Digit2:1,Digit3:2,Numpad1:0,Numpad2:1,Numpad3:2};
+function alienXBegin(){
+  const A=P.alien,qi=pickXQuestion(),order=[0,1,2];
+  for(let i=2;i>0;i--){const j=(Math.random()*(i+1))|0;[order[i],order[j]]=[order[j],order[i]];}
+  A.xq={stage:'quiz',q:qi,order,t:ALIENX.answer};P.vel.set(0,0,0);mouseL=false;if(lockT)lockT=null;
+  if(dialOpen)closeDial();renderXQuiz(true);SFX.tone('sine',110,55,1.2,0.12);
+}
+function alienXAnswer(k){
+  const A=P.alien;if(!A||!A.xq||A.xq.stage!=='quiz')return;const X=A.xq,Q=XQS[X.q];
+  if(k>=0&&X.order[k]===Q.c){X.stage='play';
+    const c=center(P);ringFx(c.x,c.y,c.z,1,18,0.7,[1,1,1]);burst(c.x,c.y,c.z,90,20,1,[[1,1,1],[.7,.8,1]],1.6,0,2);flashWhite=0.4;SFX.chime();
+    toast('The masks agree','You are Alien X for '+xTime(A.t),'purple');}
+  else{X.stage='lock';X.t=ALIENX.lock;SFX.tone('sawtooth',220,70,0.6,0.1);
+    toast(k<0?'Too slow':'The masks disagree','Frozen for '+ALIENX.lock+' s · the answer was '+Q.a[Q.c],'red');}
+  renderXQuiz(true);MP.bump();
+}
+function alienXTick(dt){
+  const X=P.alien.xq;X.t-=dt;
+  if(X.stage==='quiz'&&X.t<=0){alienXAnswer(-1);return;}
+  if(X.stage==='lock'&&X.t<=0){revertAlien(false);feed('The masks let you go','Morph Band recharging for '+Math.ceil(band.cd)+' s');return;}
+  renderXQuiz(false);
+}
+function alienXEnd(){xqEl.hidden=true;xqEl.dataset.mode='';}
+const xTime=s=>s>=60?Math.floor(s/60)+' min'+(s%60>=1?' '+Math.round(s%60)+' s':''):Math.round(s)+' s';
+// ---- the question card (keys 1-3, or tap / click an answer) ----
+const xqEl=(()=>{const e=document.createElement('div');e.id='xquiz';e.hidden=true;e.setAttribute('role','dialog');e.setAttribute('aria-live','polite');document.body.appendChild(e);return e;})();
+function renderXQuiz(full){
+  const X=P.alien&&P.alien.xq;if(!X||X.stage==='play'){xqEl.hidden=true;xqEl.dataset.mode='';return;}
+  const left=Math.max(0,Math.ceil(X.t));
+  if(full||xqEl.dataset.mode!==X.stage){xqEl.dataset.mode=X.stage;xqEl.textContent='';xqEl.hidden=false;
+    if(X.stage==='quiz'){const Q=XQS[X.q];
+      xqEl.append(el('div',{class:'xq-head',text:'The two masks ask'}),el('p',{class:'xq-q',text:Q.q}),
+        el('div',{class:'xq-opts'},...X.order.map((ai,k)=>el('button',{type:'button',class:'xq-opt',onclick:()=>alienXAnswer(k)},el('kbd',{text:String(k+1)}),el('span',{text:Q.a[ai]})))),
+        el('div',{class:'xq-foot'}));}
+    else xqEl.append(el('div',{class:'xq-head',text:'Frozen by the masks'}),el('div',{class:'xq-foot'}));}
+  const f=xqEl.querySelector('.xq-foot'),txt=X.stage==='quiz'?(touchOn()?'Tap an answer':'Press 1, 2 or 3')+' · '+left+' s':'You can move again in '+left+' s';
+  if(f&&f.textContent!==txt)f.textContent=txt;
+}
+// ---- the far-off place: two giant floating masks, only drawn for the player being asked ----
+function drawXRealm(){
+  if(!alienXAway())return;const R=ALIENX.realm,t=time;
+  for(const sd of [-1,1]){
+    const calm=sd>0,face=calm?[.5,.56,.68,1]:[.42,.05,.04,1],dark=calm?[.3,.34,.44,1]:[.16,.02,.02,1],glow=calm?[.3,.7,1,1]:[1,.5,.15,1];
+    const root=at(R.x+sd*210,R.y+Math.sin(t*0.8+sd)*14,R.z-560,Math.sin(t*0.6+sd)*0.04,-sd*0.28+Math.sin(t*0.5+sd)*0.05,Math.sin(t*0.7-sd)*0.05);
+    queue(MESH.sphere,child(root,0,0,0,0,0,0,120,165,40),face,0,0.12);
+    queue(MESH.box,child(root,0,52,30,0,0,0,170,18,26),dark,0,0.08);                        // brow
+    for(const x of [-1,1])queue(MESH.glowBox,child(root,x*46,22,38,0,0,x*(calm?-0.18:0.3),52,calm?9:14,6),glow,F_UN); // eyes
+    queue(MESH.glowBox,child(root,0,-72,34,0,0,0,calm?56:86,calm?7:16,6),glow,F_UN);       // mouth
+    queue(MESH.box,child(root,0,-8,40,0,0,0,10,60,10),dark,0,0.08);                           // nose ridge
+    for(const [x,r] of [[-60,0.45],[0,0],[60,-0.45]])queue(MESH.cone,child(root,x,150,0,0,0,r,calm?14:20,calm?70:110,calm?14:20),dark,0,0.1); // crest
+    for(let k=0;k<6;k++){const a=t*0.4+k*TAU/6+sd,g=6+2*Math.sin(t*3+k);queue(MESH.glowSphere,child(root,Math.cos(a)*170,Math.sin(a)*200,-20,0,0,0,g,g,g),glow,F_ADD);} // motes circling the mask
+  }
+}
+// ---- Alien X's powers once the masks agree ----
+Object.assign(ALIEN_FN,{
+  starFlick(){const m=alienMul();P.punchT=time;P.punchArm=-P.punchArm||1;const n=coneHit(32,0.55,110*m,{knock:45,stun:0.6},'punch');const c=center(P);
+    for(let k=0;k<70;k++){const s=rr(30,70),sp=rr(-0.25,0.25);emit(c.x,c.y,c.z,(camF.x+sp)*s,camF.y*s+rr(-4,4),(camF.z-sp)*s,0.7,k%3?[1,1,1]:[.7,.8,1],rr(0.6,1.4),0,2);}
+    ringFx(c.x,c.y,c.z,1,14,0.35,[.9,.95,1],[camF.x,camF.y,camF.z]);hitProps(c.x+camF.x*10,c.y,c.z+camF.z*10,10,P,34);SFX.boom(0.6,1.6);addShake(n?0.4:0.2);},
+  bigBang(){const m=alienMul(),x=aim.hitAny?aim.x:P.pos.x+camF.x*40,z=aim.hitAny?aim.z:P.pos.z+camF.z*40,y=aim.hitAny?aim.y:groundY(x,z,P.pos.y+2)+0.5;
+    ringFx(x,y,z,2,40,0.8,[1,1,1]);ringFx(x,y,z,1,26,0.6,[.6,.7,1]);burst(x,y,z,160,40,1.4,[[1,1,1],[.75,.8,1],[.3,.35,.8]],3,0,2);flashWhite=0.6;
+    areaDamage(x,y,z,30,220*m,P,{knock:42});hitProps(x,y,z,18,P,40);addScorch(x,groundY(x,z,y+2),z,12);SFX.boom(1,0.8);addShake(1.1);},
+  rewrite(){P.hp=maxHp();const c=center(P);ringFx(c.x,c.y,c.z,1,60,0.9,[.9,.95,1]);flashWhite=0.35;
+    for(const a of actors){if(!a.alive||a.kind==='prop'||a.kind==='remote'||a.kind==='vehicle')continue;if(Math.hypot(a.pos.x-c.x,a.pos.z-c.z)<60)a.stun=Math.max(a.stun||0,4);}
+    toast('Reality rewritten','Healed · everyone around you frozen for 4 s','purple');SFX.chime();},
+});
 // ================================================================
 // Destructible buildings
 // ================================================================
@@ -5340,6 +5484,7 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
     else if(d.k==='bc'){onBountyFx(d,r);}
     else if(d.k==='ts'){startTimeStop(r,clamp(n(d.d),0,5));}
     else if(d.k==='rg'){if(d.g==='o'){ringFx(r.pos.x,r.pos.y+1.5,r.pos.z,1,20,0.7,RING_C);burst(r.pos.x,r.pos.y+1.5,r.pos.z,80,20,1,[RING_C,[1,1,1]],1.6,0,2);}else onRingFx(d,n);}
+    else if(d.k==='aq'){onXClaim(d);}
     else if(d.k==='t'){ringFx(r.pos.x,r.pos.y+1.5,r.pos.z,1,8,0.6,BAND_COL);burst(r.pos.x,r.pos.y+1.5,r.pos.z,50,14,0.8,[BAND_COL,[1,1,1]],1.4,0,2);}
   },
 };
@@ -5354,7 +5499,7 @@ function myPresence(){
   // presence patches merge on the server, so optional fields are always sent (null clears them)
   o.b=beam?(beam.w?[r1(beam.x),r1(beam.y),r1(beam.z),r1(beam.w)]:[r1(beam.x),r1(beam.y),r1(beam.z)]):null;const wp=P.web||P.zip;o.w=wp?[r1(wp.x),r1(wp.y),r1(wp.z)]:null;o.k=P.tk&&P.tk.hold?P.tk.hold.map(r1):null;o.c=null;
   o.cn=P.construct?P.construct.id:null;o.cz=!P.construct?0:CONSTRUCTS[P.construct.id].scale?Math.round(conSize()*conGrow(P.construct.id)*100)/100:(conGrow(P.construct.id)>1.001?Math.round(conGrow(P.construct.id)*100)/100:0);o.ex=presExtra();
-  o.wt=P.web&&P.web.target&&P.web.target.kind==='remote'?P.web.target.peer:null;o.st=P.stars||0;o.sk=myStreak;o.bty=save.bounty||0;
+  o.wt=P.web&&P.web.target&&P.web.target.kind==='remote'?P.web.target.peer:null;o.st=P.stars||0;o.sk=myStreak;o.bty=save.bounty||0;o.aq=XQ.session.slice();
   if(P.car){o.c=[P.car.model,r2(P.car.yaw),P.car.tint.slice(0,3).map(r2)];o.x=r1(P.car.pos.x);o.y=r1(P.car.pos.y);o.z=r1(P.car.pos.z);}
   return o;
 }
@@ -5373,6 +5518,7 @@ function applyPresence(r,p){
   r.beam=Array.isArray(p.b)?{x:n(p.b[0]),y:n(p.b[1]),z:n(p.b[2]),w:clamp(n(p.b[3]),0,8)}:null;r.web=Array.isArray(p.w)?{x:n(p.w[0]),y:n(p.w[1]),z:n(p.w[2])}:null;r.wt=typeof p.wt==='string'?p.wt.slice(0,80):null;
   r.tk=Array.isArray(p.k)&&p.k.length===3?{x:n(p.k[0]),y:n(p.k[1]),z:n(p.k[2])}:null;
   r.car=Array.isArray(p.c)&&CARS[p.c[0]]?{model:p.c[0],yaw:n(p.c[1]),tint:Array.isArray(p.c[2])?[clamp(n(p.c[2][0]),0,1),clamp(n(p.c[2][1]),0,1),clamp(n(p.c[2][2]),0,1),1]:[1,1,1,1]}:null;
+  r.aq=Array.isArray(p.aq)?p.aq.slice(0,XQS.length).filter(v=>Number.isInteger(v)&&v>=0&&v<XQS.length):null; // the Alien X questions this player already got
   r.stars=clamp(n(p.st)|0,0,5);r.sk=clamp(n(p.sk)|0,0,1e5);r.bounty=clamp(n(p.bty),0,1e6);
   r.cn=CONSTRUCTS[p.cn]?p.cn:null;r.cz=clamp(n(p.cz),0,1e5);r.ex=Array.isArray(p.ex)?p.ex.map(n).slice(0,6):null;r.giantS=r.ex&&r.ex[2]>1?clamp(r.ex[2],1,4):1;if(r.ex&&r.ex[3])r.look=civLook(r.look);else if(r.ex&&r.ex[4])r.look.armor=true;
   if(r.pos.y<-40)r.pos.copy(r.tp);
@@ -6121,7 +6267,7 @@ const dialEl=$('dial');
 function dialItems(){
   if(dialKind==='armor')return ARMOR_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Armored Inventor mastery '+c.unlock,glow:'#ff6a3d',info:c.name+' · '+c.attacks,pick:()=>summonConstruct(id)};});
   if(dialKind==='construct')return CON_PAGES.flat().map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Ring mastery '+c.unlock,glow:'#5dff86',cost:c.cost,info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
-  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),lock:'Band LV '+a.unlock,glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · '),pick:()=>transformInto(id)};});
+  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),lock:'Band LV '+a.unlock,glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · ')+(a.xQuiz?' · '+xTime(alienXDuration())+' if the masks agree (Energy raises it)':''),pick:()=>transformInto(id)};});
 }
 let dialPage=0;
 function dialPageTurn(d){} // every construct is on the wheel at once now: nothing to page through
@@ -6159,7 +6305,7 @@ const touchIn={x:0,y:0};let lookT=-9;
 const sensK=()=>0.0023*save.settings.sens;
 function look(dx,dy,k=1){P.yaw-=dx*sensK()*k;P.pitch=clamp(P.pitch+(save.settings.invertY?1:-1)*dy*sensK()*k,-1.3,1.25);lookT=time;}
 const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2,Digit4:3,Digit5:4};
-const DIAL_CODES={Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,Digit6:5};
+const DIAL_CODES={Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,Digit6:5,Digit7:6};
 addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
   if(e.code==='Tab'&&(sheetOpen||state!=='play'||creating))return;
@@ -6175,10 +6321,11 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyM'){toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
   if(e.code==='KeyH'){hud.keys.classList.toggle('fade');return;}
   if(paused||P.dead)return;
+  if(alienXLocked()){if(alienXAway()&&e.code in XQ_CODES)alienXAnswer(XQ_CODES[e.code]);return;} // Alien X: only the masks' question can be answered
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
-  if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else openDial('construct');}else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
+  if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else if(P.construct)vHoldStart(e.timeStamp);else openDial('construct');}else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
   if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
   if(e.code==='KeyO'&&isRing()){if(ringLocked())closeOath();else openOath();return;}
   if(e.code==='KeyY'&&isRing()){ringRebuild();return;}
@@ -6192,8 +6339,19 @@ addEventListener('keydown',e=>{
   if(isSpeed()){if(e.code==='KeyF'){toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
   if(e.code==='KeyF'){if(!flyChargeStart())toggleFlight();}else if(e.code==='Space')pressJump();
 });
-addEventListener('keyup',e=>{keys[e.code]=false;if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
-addEventListener('blur',()=>{heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<5;i++)abilityUp(i,true);webRelease();P.charging=false;});
+// Ring Bearer in a construct: tap V to step out of it, hold V to open the construct wheel (let go on a construct to switch to it)
+const V_HOLD=0.3;let vHoldTimer=0,vHoldAt=0,vHeldOpen=false;
+const vHoldOk=()=>state==='play'&&!paused&&!P.dead&&isRing()&&!ringLocked();
+// the press length comes from the key events' own timestamps, so a slow frame can't turn a tap into a hold (or back)
+function vHoldStart(ts){clearTimeout(vHoldTimer);vHeldOpen=false;vHoldAt=ts;vHoldTimer=setTimeout(()=>{vHoldTimer=0;if(!keys.KeyV||!vHoldOk())return;vHeldOpen=true;openDial('construct');},V_HOLD*1000);}
+function vHoldEnd(ts){
+  if(!vHoldAt)return;const tap=ts-vHoldAt<V_HOLD*1000,opened=vHeldOpen;clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;
+  if(tap){if(opened&&dialOpen)closeDial();if(vHoldOk()&&P.construct&&!dialOpen)dismissConstruct();return;}
+  if(!opened){if(vHoldOk()&&!dialOpen)openDial('construct');return;}
+  if(dialOpen&&dialSel>=0)dialConfirm();
+}
+addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyV')vHoldEnd(e.timeStamp);if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
+addEventListener('blur',()=>{clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<5;i++)abilityUp(i,true);webRelease();P.charging=false;});
 canvas.addEventListener('mousedown',e=>{
   if(state!=='play'||touchOn())return;
   if(paused){if(!sheetOpen&&!creating)resume();return;}
@@ -6407,7 +6565,7 @@ let moved=0;
 function updatePlayer(dt){
   const a=P.anim;
   if(P.dead){P.deadT-=dt;if(P.deadT<=0)respawn();return;}
-  updateCombat(dt);if(P.floatT>0)P.floatT-=dt;
+  updateCombat(dt);if(P.floatT>0)P.floatT-=dt;if(P.grounded||P.flying||P.web||P.wall)P.airHangs=0;
   if(P.heldBy){const H=P.heldBy;if(time-H.t>0.6)P.heldBy=null;else{if(!H.said){H.said=true;feed((H.by&&H.by.name||'Someone')+' has you','Held by telekinesis');}
     const k=damp(8,dt);P.pos.x+=(H.x-P.pos.x)*k;P.pos.y+=(H.y-1-P.pos.y)*k;P.pos.z+=(H.z-P.pos.z)*k;P.vel.set(0,0,0);P.flying=false;P.web=null;P.wallRun=null;P.wall=null;P.grounded=false;P.stun=Math.max(P.stun,0.25);
     if(Math.random()<0.5)emit(P.pos.x+rr(-1,1),P.pos.y+rr(0,2),P.pos.z+rr(-1,1),0,rr(0,2),0,0.5,[.7,.45,1],1.1,0,0);return;}}
@@ -6416,6 +6574,7 @@ function updatePlayer(dt){
   const inF=clamp((keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)+touchIn.y,-1,1);
   const inR=clamp((keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+touchIn.x,-1,1);
   if(P.car){driveCar(dt,inF,inR);return;}
+  if(alienXLocked()){P.vel.set(0,0,0);return;} // Alien X stands frozen until the masks agree
   if(P.lantern&&!oathFree&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // typing the oath: suspended where you are, construct and all (saying it leaves you free)
   spiderTick(dt);
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
@@ -6587,6 +6746,9 @@ function updateCamera(dt){
   }else if(state!=='play'){
     const a=time*0.05;camPos.set(Math.cos(a)*420,170,Math.sin(a)*420);
     let fx=-camPos.x,fy=40-camPos.y,fz=-camPos.z;const l=Math.hypot(fx,fy,fz);camF.set(fx/l,fy/l,fz/l);fov=lerp(fov,60,damp(3,dt));
+  }else if(alienXAway()){ // Alien X: the view is out in far space, facing the two masks
+    const R=ALIENX.realm,s=time*0.2;camPos.set(R.x+Math.sin(s)*8,R.y+Math.sin(s*1.3)*4,R.z);
+    let fx=-camPos.x+R.x,fy=R.y+20-camPos.y,fz=-560;const l=Math.hypot(fx,fy,fz);camF.set(fx/l,fy/l,fz/l);fov=lerp(fov,62,damp(3,dt));
   }else{
     const cp=Math.cos(P.pitch);camF.set(-Math.sin(P.yaw)*cp,Math.sin(P.pitch),-Math.cos(P.yaw)*cp);
     const rX=Math.cos(P.yaw),rZ=-Math.sin(P.yaw),sp=P.vel.len(),spN=clamp(sp/190,0,1),hs=P.height/2.7;
@@ -6692,7 +6854,10 @@ const ALIEN_RIG={
   voltwing:{tw:.55,th:.8,td:.4,nk:.12,aw:.15,ua:.45,fa:.45,hs:.14,lw:.18,ul:.55,ll:.55,fh:.12,fw:.34},
   colossus:{tw:1.1,th:1.1,td:.7,nk:.1,aw:.4,ua:.55,fa:.55,hs:.46,lw:.45,ul:.55,ll:.55,fh:.22,fw:.62,metal:true},
   umbra:{tw:.6,th:.85,td:.36,nk:.12,aw:.17,ua:.45,fa:.45,hs:.15,lw:.2,ul:.55,ll:.55,fh:.12,fw:.32},
+  alienX:{tw:.66,th:.95,td:.4,nk:.12,aw:.19,ua:.52,fa:.5,hs:.17,lw:.23,ul:.6,ll:.58,fh:.13,fw:.34},
 };
+// Alien X's body is a window onto the stars: fixed specks of starlight over the front, back and arms
+const XSTARS=(()=>{let s=7;const r=()=>{s=(s*16807)%2147483647;return s/2147483647;};const o=[];for(let i=0;i<22;i++)o.push([r()-0.5,r(),r()<0.5?1:-1,0.025+r()*0.03]);return o;})();
 function rigAlien(s,o,c,root,fl){
   const a=s.anim,box=o.metal?MESH.mbox:MESH.box,sh=F_SH;
   const legH=o.noLegs?o.hover+Math.sin(time*2.4)*0.08:o.ul+o.ll+o.fh+0.08;
@@ -6782,6 +6947,16 @@ function drawAlien(s,id,isPlayer){
     if(!GHOST)for(let k=0;k<3;k++){const ang=t*2+k*TAU/3;queue(MESH.glowSphere,child(B,Math.cos(ang)*0.7,0.5+Math.sin(t*3+k)*0.3,Math.sin(ang)*0.7,0,0,0,0.07,0.07,0.07),[c.g[0],c.g[1],c.g[2],0.8],F_ADD);}
     if(live&&Math.random()<0.4){const m=child(B,rr(-.3,.3),rr(-.2,.8),0);emit(m[12],m[13],m[14],rr(-.5,.5),rr(.5,1.5),rr(-.5,.5),rr(0.6,1),[.25,.08,.35],rr(0.6,1.1),-1,1);}
     eye=child(H,0,0.19,0.3);
+  }else if(id==='alienX'){
+    Q(MESH.sphere,child(H,0,0.2,0,0,0,0,0.25,0.3,0.27),c.b,F_SH,fl);
+    for(const x of [-0.1,0.1])Q(MESH.glowBox,child(H,x,0.22,0.255,0,0,x*-2.5,0.11,0.05,0.02),[.8,1,.85,1],0);
+    for(const [x,r] of [[-0.15,0.5],[0,0],[0.15,-0.5]])Q(MESH.cone,child(H,x,0.52,-0.03,-0.15,0,r,0.07,0.4,0.07),[.93,.95,1,1],F_SH,fl);
+    for(const [x,y,z,w] of XSTARS)Q(MESH.glowBox,child(B,x*o.tw*0.9,y*o.th,z*(o.td/2+0.012),0,0,0,w,w,0.01),[1,1,1,1],0);
+    for(let i=0;i<2;i++)for(const [x,y] of [[0.3,-0.15],[-0.2,-0.3],[0.1,-0.42]]){Q(MESH.glowBox,child(F.sh[i],x*o.aw,y,o.aw*0.51,0,0,0,0.03,0.03,0.01),[1,1,1,1],0);Q(MESH.glowBox,child(F.el[i],-x*o.aw,y*0.9,o.aw*0.47,0,0,0,0.03,0.03,0.01),[1,1,1,1],0);}
+    if(!GHOST){const p=0.08+0.03*Math.sin(t*2);queue(MESH.glowSphere,child(B,0,0.5,0,0,t*0.3,0,1.0,1.5,0.8),[.6,.7,1,p],F_ADD);
+      if(isPlayer&&alienXLocked())queue(MESH.ring,child(B,0,0.5,0,0,t*1.5,0,1.6,1,1.6),[1,1,1,0.5+0.3*Math.sin(t*4)],F_ADD);}
+    if(live&&Math.random()<0.3){const m=child(B,rr(-.3,.3),rr(0,.9),0);emit(m[12],m[13],m[14],rr(-.4,.4),rr(-.4,.4),rr(-.4,.4),0.8,[1,1,1],rr(0.2,0.4),0,2);}
+    eye=child(H,0,0.22,0.3);
   }
   if(eye&&s.eye)s.eye.set(eye[12],eye[13],eye[14]);
   if(isPlayer)s.hand=F.hand[1];
@@ -6879,7 +7054,7 @@ function drawRemote(r){
   if(r.flags&FLAG.shield)queue(MESH.glowSphere,at(r.pos.x,r.pos.y+1.35,r.pos.z,0,time,0,1.9,2.1,1.9),[.3,.75,1,0.25],F_ADD);
 }
 function buildDrawList(){
-  dlN=0;drawSpace();
+  dlN=0;drawSpace();drawXRealm();
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
     const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.cloak?0.18:P.phasing?0.45:0;
     if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else if(P.construct&&conHidesRider(P.construct.id)){/* inside the race car, or the suit has become the vehicle */}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const cg=P.construct?conDrawGrow(P,P.construct.id,true):1,ro=P.construct?riderSeat(P.construct.id,cg):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;if(P.construct)drawGiantWielder(P,P.construct.id,cg);}
@@ -6979,6 +7154,11 @@ function gatherLights(){
   return n;
 }
 const ID=M4.create(),WHITE=[1,1,1,1];
+// out in space the flat city, its lakes and the ocean plane would poke through the round Earth: past these distances only the planet is drawn
+// (a camera pulled far back behind a giant construct keeps them: the reach grows with how far the camera sits from you)
+const WATER_VIS=SPACE.y,CITY_VIS=9000;
+const camReach=()=>state==='play'&&!alienXAway()?camDist:0;
+const cityVisible=()=>Math.hypot(camPos.x,camPos.y,camPos.z)<CITY_VIS+camReach();
 function drawItem(mesh,M,tint,unlit,emis){
   const u=MAIN.u;gl.uniformMatrix4fv(u.uM,false,M);gl.uniform4fv(u.uTint,tint);gl.uniform1f(u.uUnlit,unlit?1:0);gl.uniform1f(u.uEmis,emis);
   gl.bindVertexArray(mesh.vao);gl.drawElements(gl.TRIANGLES,mesh.n,mesh.type,0);
@@ -6989,7 +7169,7 @@ function render(){
     gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.clear(gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(2.0,4.0);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);
     gl.useProgram(DEPTH.p);gl.uniformMatrix4fv(DEPTH.u.uLVP,false,LVP);
-    gl.uniformMatrix4fv(DEPTH.u.uM,false,ID);gl.bindVertexArray(cityMesh.vao);gl.drawElements(gl.TRIANGLES,cityMesh.n,cityMesh.type,0);
+    if(cityVisible()){gl.uniformMatrix4fv(DEPTH.u.uM,false,ID);gl.bindVertexArray(cityMesh.vao);gl.drawElements(gl.TRIANGLES,cityMesh.n,cityMesh.type,0);}
     for(let i=0;i<dlN;i++){const d=drawList[i];if(!(d.flags&F_SH))continue;gl.uniformMatrix4fv(DEPTH.u.uM,false,d.M);gl.bindVertexArray(d.mesh.vao);gl.drawElements(gl.TRIANGLES,d.mesh.n,d.mesh.type,0);}
     gl.disable(gl.POLYGON_OFFSET_FILL);
   }
@@ -7002,7 +7182,8 @@ function render(){
   gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);
-  {const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */drawItem(groundMesh,ID,WHITE,false,0);drawItem(lakeMesh,ID,WHITE,false,0);drawItem(cityMesh,ID,WHITE,false,0);
+  if(camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
+  if(cityVisible()){drawItem(groundMesh,ID,WHITE,false,0);drawItem(lakeMesh,ID,WHITE,false,0);drawItem(cityMesh,ID,WHITE,false,0);}
   for(let i=0;i<dlN;i++){const d=drawList[i];if(d.flags&(F_ADD|F_BL))continue;drawItem(d.mesh,d.M,d.tint,d.flags&F_UN,d.emis);}
   gl.enable(gl.BLEND);gl.depthMask(false);gl.disable(gl.CULL_FACE);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
@@ -7119,6 +7300,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
+  alienXAnswer,alienXStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>

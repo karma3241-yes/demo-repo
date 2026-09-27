@@ -5,6 +5,7 @@
 // close; hit 4 is a finisher: a launch (default), an uppercut (hold Space) or a spike
 // (while airborne). Launched targets crater walls, the ground, cars and street props.
 const COMBAT={chain:1.0,gap:0.26,endlag:0.65,reach:3.6,lunge:9,stun:0.75,finStun:1.3,finMul:2.3,launch:40,upper:34,spike:48,
+  lockGap:0.5,lockEndlag:1.1,airHangs:3, // locked on, the chain has a slower rhythm; in the air only the first few hits hold you up
   dashSpeed:40,dashTime:0.24,dashCd:1.1,iframe:0.3,lockRange:110,slamMin:15};
 let lockT=null,comboN=0,comboT=-9,dashCd=0,airDash=true;
 const lockMark=(()=>{const e=document.createElement('div');e.id='lockmark';e.hidden=true;return e;})();
@@ -65,9 +66,9 @@ function meleeTargets(fx,fy,fz,reach){
 function punch(){
   if(!canAct()||P.punchCd>0||P.tk||P.car)return;
   if(time-comboT>COMBAT.chain||comboN>=4)comboN=0;
-  comboN++;comboT=time;const fin=comboN===4;P.punchCd=fin?COMBAT.endlag:COMBAT.gap;
+  comboN++;comboT=time;const fin=comboN===4,lk=!!(lockT&&lockT.alive);P.punchCd=fin?(lk?COMBAT.lockEndlag:COMBAT.endlag):(lk?COMBAT.lockGap:COMBAT.gap);
   P.punchN=comboN;P.punchT=time;P.punchArm=comboN%2?1:-1;
-  const air=!P.grounded&&!P.flying&&!P.web,upper=fin&&!air&&(keys.Space||touchJump()),spike=fin&&(air||(P.flying&&P.pitch<-0.35));
+  const air=!P.grounded&&!P.flying&&!P.web,hang=air&&(P.airHangs|0)<COMBAT.airHangs,upper=fin&&!air&&(keys.Space||touchJump()),spike=fin&&(air||(P.flying&&P.pitch<-0.35));
   P.punchKind=fin?(upper?'up':spike?'down':'fin'):comboN===3?'kick':'jab';
   // aim: the lock target, else the camera direction
   let fx=camF.x,fy=P.flying?camF.y:0,fz=camF.z;
@@ -75,8 +76,9 @@ function punch(){
   const fl=Math.hypot(fx,fy,fz)||1;fx/=fl;fy/=fl;fz/=fl;P.heroYaw=Math.atan2(fx,fz);
   // close the gap to a locked target (lunge), like a battlegrounds M1
   if(lockT&&lockT.alive){const c=center(lockT),d=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);if(d>COMBAT.reach&&d<COMBAT.lunge+COMBAT.reach){const s=Math.min(34,(d-COMBAT.reach+1)*6);
-    P.vel.x=fx*s;P.vel.z=fz*s;if(air||P.flying)P.vel.y=fy*s;P.burstT=0.14;}}
-  if(air){P.vel.y=Math.max(P.vel.y,fin?4:2.5);P.floatT=fin?0.2:0.45;}
+    P.vel.x=fx*s;P.vel.z=fz*s;if(hang||P.flying)P.vel.y=fy*s;P.burstT=0.14;}}
+  if(air)P.airHangs=(P.airHangs|0)+1;
+  if(hang){P.vel.y=Math.max(P.vel.y,fin?4:2.5);P.floatT=fin?0.2:0.45;}
   const AL=P.alien?ALIENS[P.alien.id]:null,am=AL?(AL.scale>2?3.5:1.6):1;
   const MW=metalWeapon(),dmg=CONFIG.punch.damage*strengthMul()*am*speedPunchMul()*bodyPunchMul()*(fin?COMBAT.finMul:comboN===3?1.25:1);
   const hits=meleeTargets(fx,fy,fz,COMBAT.reach*(AL?Math.max(1,AL.scale*0.8):1)+(AL?0:bodyReach()));let hx=0,hy=0,hz=0;

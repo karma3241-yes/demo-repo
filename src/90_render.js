@@ -48,6 +48,9 @@ function updateCamera(dt){
   }else if(state!=='play'){
     const a=time*0.05;camPos.set(Math.cos(a)*420,170,Math.sin(a)*420);
     let fx=-camPos.x,fy=40-camPos.y,fz=-camPos.z;const l=Math.hypot(fx,fy,fz);camF.set(fx/l,fy/l,fz/l);fov=lerp(fov,60,damp(3,dt));
+  }else if(alienXAway()){ // Alien X: the view is out in far space, facing the two masks
+    const R=ALIENX.realm,s=time*0.2;camPos.set(R.x+Math.sin(s)*8,R.y+Math.sin(s*1.3)*4,R.z);
+    let fx=-camPos.x+R.x,fy=R.y+20-camPos.y,fz=-560;const l=Math.hypot(fx,fy,fz);camF.set(fx/l,fy/l,fz/l);fov=lerp(fov,62,damp(3,dt));
   }else{
     const cp=Math.cos(P.pitch);camF.set(-Math.sin(P.yaw)*cp,Math.sin(P.pitch),-Math.cos(P.yaw)*cp);
     const rX=Math.cos(P.yaw),rZ=-Math.sin(P.yaw),sp=P.vel.len(),spN=clamp(sp/190,0,1),hs=P.height/2.7;
@@ -153,7 +156,10 @@ const ALIEN_RIG={
   voltwing:{tw:.55,th:.8,td:.4,nk:.12,aw:.15,ua:.45,fa:.45,hs:.14,lw:.18,ul:.55,ll:.55,fh:.12,fw:.34},
   colossus:{tw:1.1,th:1.1,td:.7,nk:.1,aw:.4,ua:.55,fa:.55,hs:.46,lw:.45,ul:.55,ll:.55,fh:.22,fw:.62,metal:true},
   umbra:{tw:.6,th:.85,td:.36,nk:.12,aw:.17,ua:.45,fa:.45,hs:.15,lw:.2,ul:.55,ll:.55,fh:.12,fw:.32},
+  alienX:{tw:.66,th:.95,td:.4,nk:.12,aw:.19,ua:.52,fa:.5,hs:.17,lw:.23,ul:.6,ll:.58,fh:.13,fw:.34},
 };
+// Alien X's body is a window onto the stars: fixed specks of starlight over the front, back and arms
+const XSTARS=(()=>{let s=7;const r=()=>{s=(s*16807)%2147483647;return s/2147483647;};const o=[];for(let i=0;i<22;i++)o.push([r()-0.5,r(),r()<0.5?1:-1,0.025+r()*0.03]);return o;})();
 function rigAlien(s,o,c,root,fl){
   const a=s.anim,box=o.metal?MESH.mbox:MESH.box,sh=F_SH;
   const legH=o.noLegs?o.hover+Math.sin(time*2.4)*0.08:o.ul+o.ll+o.fh+0.08;
@@ -243,6 +249,16 @@ function drawAlien(s,id,isPlayer){
     if(!GHOST)for(let k=0;k<3;k++){const ang=t*2+k*TAU/3;queue(MESH.glowSphere,child(B,Math.cos(ang)*0.7,0.5+Math.sin(t*3+k)*0.3,Math.sin(ang)*0.7,0,0,0,0.07,0.07,0.07),[c.g[0],c.g[1],c.g[2],0.8],F_ADD);}
     if(live&&Math.random()<0.4){const m=child(B,rr(-.3,.3),rr(-.2,.8),0);emit(m[12],m[13],m[14],rr(-.5,.5),rr(.5,1.5),rr(-.5,.5),rr(0.6,1),[.25,.08,.35],rr(0.6,1.1),-1,1);}
     eye=child(H,0,0.19,0.3);
+  }else if(id==='alienX'){
+    Q(MESH.sphere,child(H,0,0.2,0,0,0,0,0.25,0.3,0.27),c.b,F_SH,fl);
+    for(const x of [-0.1,0.1])Q(MESH.glowBox,child(H,x,0.22,0.255,0,0,x*-2.5,0.11,0.05,0.02),[.8,1,.85,1],0);
+    for(const [x,r] of [[-0.15,0.5],[0,0],[0.15,-0.5]])Q(MESH.cone,child(H,x,0.52,-0.03,-0.15,0,r,0.07,0.4,0.07),[.93,.95,1,1],F_SH,fl);
+    for(const [x,y,z,w] of XSTARS)Q(MESH.glowBox,child(B,x*o.tw*0.9,y*o.th,z*(o.td/2+0.012),0,0,0,w,w,0.01),[1,1,1,1],0);
+    for(let i=0;i<2;i++)for(const [x,y] of [[0.3,-0.15],[-0.2,-0.3],[0.1,-0.42]]){Q(MESH.glowBox,child(F.sh[i],x*o.aw,y,o.aw*0.51,0,0,0,0.03,0.03,0.01),[1,1,1,1],0);Q(MESH.glowBox,child(F.el[i],-x*o.aw,y*0.9,o.aw*0.47,0,0,0,0.03,0.03,0.01),[1,1,1,1],0);}
+    if(!GHOST){const p=0.08+0.03*Math.sin(t*2);queue(MESH.glowSphere,child(B,0,0.5,0,0,t*0.3,0,1.0,1.5,0.8),[.6,.7,1,p],F_ADD);
+      if(isPlayer&&alienXLocked())queue(MESH.ring,child(B,0,0.5,0,0,t*1.5,0,1.6,1,1.6),[1,1,1,0.5+0.3*Math.sin(t*4)],F_ADD);}
+    if(live&&Math.random()<0.3){const m=child(B,rr(-.3,.3),rr(0,.9),0);emit(m[12],m[13],m[14],rr(-.4,.4),rr(-.4,.4),rr(-.4,.4),0.8,[1,1,1],rr(0.2,0.4),0,2);}
+    eye=child(H,0,0.22,0.3);
   }
   if(eye&&s.eye)s.eye.set(eye[12],eye[13],eye[14]);
   if(isPlayer)s.hand=F.hand[1];
@@ -340,7 +356,7 @@ function drawRemote(r){
   if(r.flags&FLAG.shield)queue(MESH.glowSphere,at(r.pos.x,r.pos.y+1.35,r.pos.z,0,time,0,1.9,2.1,1.9),[.3,.75,1,0.25],F_ADD);
 }
 function buildDrawList(){
-  dlN=0;drawSpace();
+  dlN=0;drawSpace();drawXRealm();
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
     const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.cloak?0.18:P.phasing?0.45:0;
     if(A)drawAlien(P,A.id,true);else if(P.rag){const m=LOOK;m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else if(P.construct&&conHidesRider(P.construct.id)){/* inside the race car, or the suit has become the vehicle */}else{const m=LOOK;m.metal=P.metal;P.firing=!!beam;const cg=P.construct?conDrawGrow(P,P.construct.id,true):1,ro=P.construct?riderSeat(P.construct.id,cg):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;if(P.construct)drawGiantWielder(P,P.construct.id,cg);}
@@ -440,6 +456,11 @@ function gatherLights(){
   return n;
 }
 const ID=M4.create(),WHITE=[1,1,1,1];
+// out in space the flat city, its lakes and the ocean plane would poke through the round Earth: past these distances only the planet is drawn
+// (a camera pulled far back behind a giant construct keeps them: the reach grows with how far the camera sits from you)
+const WATER_VIS=SPACE.y,CITY_VIS=9000;
+const camReach=()=>state==='play'&&!alienXAway()?camDist:0;
+const cityVisible=()=>Math.hypot(camPos.x,camPos.y,camPos.z)<CITY_VIS+camReach();
 function drawItem(mesh,M,tint,unlit,emis){
   const u=MAIN.u;gl.uniformMatrix4fv(u.uM,false,M);gl.uniform4fv(u.uTint,tint);gl.uniform1f(u.uUnlit,unlit?1:0);gl.uniform1f(u.uEmis,emis);
   gl.bindVertexArray(mesh.vao);gl.drawElements(gl.TRIANGLES,mesh.n,mesh.type,0);
@@ -450,7 +471,7 @@ function render(){
     gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.clear(gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(2.0,4.0);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);
     gl.useProgram(DEPTH.p);gl.uniformMatrix4fv(DEPTH.u.uLVP,false,LVP);
-    gl.uniformMatrix4fv(DEPTH.u.uM,false,ID);gl.bindVertexArray(cityMesh.vao);gl.drawElements(gl.TRIANGLES,cityMesh.n,cityMesh.type,0);
+    if(cityVisible()){gl.uniformMatrix4fv(DEPTH.u.uM,false,ID);gl.bindVertexArray(cityMesh.vao);gl.drawElements(gl.TRIANGLES,cityMesh.n,cityMesh.type,0);}
     for(let i=0;i<dlN;i++){const d=drawList[i];if(!(d.flags&F_SH))continue;gl.uniformMatrix4fv(DEPTH.u.uM,false,d.M);gl.bindVertexArray(d.mesh.vao);gl.drawElements(gl.TRIANGLES,d.mesh.n,d.mesh.type,0);}
     gl.disable(gl.POLYGON_OFFSET_FILL);
   }
@@ -463,7 +484,8 @@ function render(){
   gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);
-  {const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */drawItem(groundMesh,ID,WHITE,false,0);drawItem(lakeMesh,ID,WHITE,false,0);drawItem(cityMesh,ID,WHITE,false,0);
+  if(camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
+  if(cityVisible()){drawItem(groundMesh,ID,WHITE,false,0);drawItem(lakeMesh,ID,WHITE,false,0);drawItem(cityMesh,ID,WHITE,false,0);}
   for(let i=0;i<dlN;i++){const d=drawList[i];if(d.flags&(F_ADD|F_BL))continue;drawItem(d.mesh,d.M,d.tint,d.flags&F_UN,d.emis);}
   gl.enable(gl.BLEND);gl.depthMask(false);gl.disable(gl.CULL_FACE);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
