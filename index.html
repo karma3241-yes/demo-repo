@@ -27,6 +27,23 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hi
 .bar.shield{height:4px;margin-top:3px}.bar.shield i{background:#8fe3ff}
 #enm.warn .bar.en{box-shadow:0 0 0 2px var(--health)}
 #enm.ring .bar.en i{background:linear-gradient(90deg,#128a3a,#6dff95)}#enm.ring span b{color:#8dffb0}
+/* overcharged ring (100-200): a second, brighter layer over the full bar, a pulsing glow and bubbles fizzing up off it */
+#enb2{display:none}#enm.ring.over #enb2{display:block;width:0;background:linear-gradient(90deg,#b6ffca,#f4fff7);box-shadow:0 0 8px #8dffb0}
+#enm.ring.over{position:relative}#enm.ring.over .bar.en{box-shadow:0 0 6px 1px rgba(109,255,149,.65);animation:ringGlow 1.3s ease-in-out infinite}
+#enm.ring.over span b{color:#eafff0;text-shadow:0 0 8px #6dff95}
+#enm.ring.over::before,#enm.ring.over::after{content:'';position:absolute;left:0;right:0;bottom:0;height:10px;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 6% 70%,#f4fff7 0 1.4px,transparent 2.3px),radial-gradient(circle at 19% 40%,#b6ffca 0 1.6px,transparent 2.5px),radial-gradient(circle at 33% 80%,#f4fff7 0 1.4px,transparent 2.3px),radial-gradient(circle at 47% 30%,#8dffb0 0 1.7px,transparent 2.6px),radial-gradient(circle at 61% 65%,#f4fff7 0 1.4px,transparent 2.3px),radial-gradient(circle at 76% 35%,#b6ffca 0 1.6px,transparent 2.5px),radial-gradient(circle at 90% 75%,#f4fff7 0 1.4px,transparent 2.3px);
+  animation:ringFizz 1.6s linear infinite}
+#enm.ring.over::after{transform:translateX(3%);animation-delay:-.8s;filter:hue-rotate(-20deg)}
+@keyframes ringGlow{50%{box-shadow:0 0 14px 3px rgba(146,255,176,.9)}}
+@keyframes ringFizz{0%{opacity:0;translate:0 0}20%{opacity:1}100%{opacity:0;translate:0 -18px}}
+@media (prefers-reduced-motion:reduce){#enm.ring.over .bar.en{animation:none;box-shadow:0 0 10px 2px rgba(146,255,176,.8)}#enm.ring.over::before,#enm.ring.over::after{display:none}}
+/* mic level: a green fill with a white line at the overcharge loudness; bright once it's past the line */
+.miclvl{position:relative;height:6px;margin:10px 0 2px;border-radius:3px;background:rgba(255,255,255,.12)}
+.miclvl i{position:absolute;inset:0 auto 0 0;width:var(--lvl,0%);border-radius:3px;background:linear-gradient(90deg,#128a3a,#6dff95);transition:width .06s linear}
+.miclvl b{position:absolute;top:-3px;bottom:-3px;left:var(--thr,65%);width:2px;margin-left:-1px;border-radius:1px;background:#fff;box-shadow:0 0 4px #000}
+.miclvl.hit i{background:linear-gradient(90deg,#6dff95,#f4fff7);box-shadow:0 0 10px #8dffb0}
+#oath.mini .miclvl{width:160px;margin:4px 0 2px auto}
 #enm.bat .bar.en i{background:linear-gradient(90deg,#1b6fc4,#bff4ff)}#enm.bat span b{color:#bff4ff}
 #enm.bolt .bar.en i{background:linear-gradient(90deg,#4a3cff,#e6ecff)}#enm.bolt span b{color:#c9d2ff}
 #enm.cal .bar.en i{background:linear-gradient(90deg,#c88a12,#ffe14d)}#enm.cal span b{color:#ffe14d}
@@ -262,7 +279,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div class="hud-bc">
     <div class="meters panel">
       <div class="meter"><span>HEALTH <b id="hpt">100</b></span><div class="bar hp"><i id="hpb"></i></div><div class="bar shield" id="shbar" hidden><i id="shb"></i></div></div>
-      <div class="meter" id="enm"><span>ENERGY <b id="ent">100</b></span><div class="bar en"><i id="enb"></i></div></div>
+      <div class="meter" id="enm"><span>ENERGY <b id="ent">100</b></span><div class="bar en"><i id="enb"></i><i id="enb2"></i></div></div>
     </div>
     <div class="hotbar" id="hotbar"></div>
   </div>
@@ -323,7 +340,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
 <div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
 <div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div></div>
-<div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><small id="oath-note">Esc to put the lantern away</small></div>
+<div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><div id="oath-lvl" class="miclvl" hidden><i></i><b></b></div><small id="oath-note">Esc to put the lantern away</small></div>
 <div id="dead" class="overlay" hidden><div><p class="big">Knocked out</p><p class="sub" id="deads"></p></div></div>
 <div id="nogl" class="overlay" hidden><div><p class="big">No WebGL 2</p><p class="sub">This browser can't run the game. Try a recent Chrome, Edge, Firefox or Safari.</p></div></div>
 
@@ -1488,7 +1505,8 @@ const CRIMES={maxActive:3,spawnGap:[14,32],minDist:90,maxDist:420,clearXp:100,cl
 // ================================================================
 const Bus={h:{},on(e,f){(this.h[e]||(this.h[e]=[])).push(f);},emit(e,d){const l=this.h[e];if(l)for(const f of l)f(d);}};
 const SAVE_KEY='skyline-guardian-save',SAVE_VERSION=1;
-const DEFAULT_SETTINGS={oathInput:'voice',controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
+const RING_MAX=200; // ring charge tops out at 100; a loud spoken oath overcharges it up to this
+const DEFAULT_SETTINGS={oathInput:'voice',micLoud:0.65,controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
@@ -1535,7 +1553,7 @@ function loadSave(){
     if(['auto','touch','kbm'].includes(t.controls))st.controls=t.controls;
     if(['voice','type'].includes(t.oathInput))st.oathInput=t.oathInput;
     for(const k of ['autoLock','invertY','shadows'])if(typeof t[k]==='boolean')st[k]=t[k];
-    st.sens=num(t.sens,1,0.3,3);st.volume=num(t.volume,0.7,0,1);}
+    st.sens=num(t.sens,1,0.3,3);st.volume=num(t.volume,0.7,0,1);st.micLoud=num(t.micLoud,0.65,0.2,0.95);}
   f.character=validCharacter(s.character);
   if(!f.character){f.character=migrateCharacter(s.character);if(f.character)f.migrated=true;}
   if(!f.character)return f;
@@ -1546,7 +1564,7 @@ function loadSave(){
   if(s.stats&&typeof s.stats==='object')for(const k in f.stats)f.stats[k]=Math.floor(num(s.stats[k],0,0,1e9));
   f.rechoiceAt=f.migrated?0:num(s.rechoiceAt,0,0,1e15);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
-  f.ring=num(s.ring,100,0,100);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.bounty=Math.round(num(s.bounty,0,0,1e6));
+  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
@@ -1940,11 +1958,12 @@ function drawPrimed(){
 }
 function skillGrowStep(slot,dir){
   const id=save.character&&!P.alien&&save.character.abilities[slot];if(!id||!PS[id]||!canAct())return false;
+  if(ringLocked()){oathBusy();return true;}
   const s=PS[id],g=s.grow||1,ng=dir>0?Math.min(SKILL_GROW.max,g*SKILL_GROW.mul):Math.max(1,g/SKILL_GROW.mul);
   if(Math.abs(ng-g)<1e-6){if(time-(s.maxMsg||-9)>3){s.maxMsg=time;feed(POWERS[id].name+(dir>0?' is as big as it gets (×30)':' is back to normal size'),'');}return true;}
   const ring=hasTrav('powerRing'),cost=ring?SKILL_GROW.ring:SKILL_GROW.energy;
   if(ng>g){if(ring?save.ring<cost:!spend(cost,id)){noEnergy(id);return true;}if(ring)save.ring-=cost;}
-  else{const back=cost*SKILL_GROW.refund,m=heroMeter();if(ring)save.ring=Math.min(100,save.ring+back);else if(m)save[m.key]=Math.min(meterCap(m),save[m.key]+back*(m.rate||1));else P.en=Math.min(maxEn(),P.en+back);}
+  else{const back=cost*SKILL_GROW.refund,m=heroMeter();if(ring)save.ring=Math.min(Math.max(100,save.ring),save.ring+back);else if(m)save[m.key]=Math.min(meterCap(m),save[m.key]+back*(m.rate||1));else P.en=Math.min(maxEn(),P.en+back);}
   s.grow=ng;if(time-(s.sizeMsg||-9)>0.35){s.sizeMsg=time;feed(POWERS[id].name+' · size ×'+(ng<10?ng.toFixed(1):Math.round(ng)),dir>0?'Keep scrolling to grow it':'Shrinking gives back a quarter of the cost');}
   SFX.tone('sine',ng>g?300:600,ng>g?160:1000,0.15,0.06);return true;
 }
@@ -1974,6 +1993,7 @@ function dirTo(from,x,y,z){const dx=x-from.x,dy=y-from.y,dz=z-from.z,l=Math.hypo
 function abilityDown(slot){
   if(P.alien){alienAbilityDown(slot);return;}
   const id=save.character&&save.character.abilities[slot];if(!id||!canAct())return;
+  if(ringLocked()){oathBusy();return;} // the ring is busy while you say the oath out loud
   if(id==='morphBand'){bandPress();return;}
   const c=POWERS[id],s=PS[id];
   if(id==='metalForms'){metalDown();return;}
@@ -1993,6 +2013,7 @@ function castPrimed(id){
 }
 function abilityUp(slot,cancel){
   if(P.alien){alienAbilityUp(slot);return;}
+  if(ringLocked())return; // opening the voice oath already let go of everything held
   const id=save.character&&save.character.abilities[slot];if(!id)return;
   if(PS[id]&&PS[id].primed){PS[id].primed=false;if(!cancel&&!(PS[id].cd>0))castPrimed(id);}
   if(POWERS[id].type==='channel')PS[id].holding=false;
@@ -2844,7 +2865,7 @@ function updateBuildings(dt){
 // the Ring Bearer rebuilds every broken building at once (Y): 10 ring charge
 const RING_BUILD={ghost:0.9,fill:0.8,cost:10};
 function ringRebuild(){
-  if(!isRing()||!canAct())return false;const list=bldgs.filter(b=>b.state!=='up'&&b.state!=='ring');
+  if(!isRing()||!canAct())return false;if(ringLocked()){oathBusy();return true;}const list=bldgs.filter(b=>b.state!=='up'&&b.state!=='ring');
   if(!list.length){feed('Nothing to rebuild','Every building in the city is standing');return true;}
   if(save.ring<RING_BUILD.cost){ringOut();return true;}save.ring-=RING_BUILD.cost;
   for(const b of list){const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;b.state='ring';b.t=0;b.tilt=0;b.ringDelay=Math.min(1.5,Math.hypot(cx-P.pos.x,cz-P.pos.z)/900);
@@ -3269,6 +3290,7 @@ function updateWebbed(dt){for(const a of actors)if(a.webT>0){a.webT-=dt;a.stun=M
 // ================================================================
 // Everything the ring does costs charge (save.ring, 0-100). It never refills on its own:
 // press O to hold up the lantern and type the oath. At zero charge you can only walk.
+// Said out loud and loud enough (Settings → Ring oath), the oath overcharges the ring to 200 (RING_MAX).
 // B builds your default construct (the last one you picked), V opens the construct wheel.
 // Inside a construct, left click / right click / X are its attacks.
 const RING_C=[.36,1,.52],RING_C4=[.36,1,.52,1];
@@ -3281,7 +3303,7 @@ const CONSTRUCTS={
 };
 const CON_IDS=Object.keys(CONSTRUCTS);
 const OATH='Through fear and doubt my will holds fast. What I imagine, I make last. Let every foe who stands to fight be humbled by my ring of light.';
-let conPick='bubble',armorPick='aJet',oathOpen=false,oathStart=0;
+let conPick='bubble',armorPick='aJet',oathOpen=false,oathStart=0,oathFree=false,oathBusyT=-9;
 const isRing=()=>hasTrav('powerRing')&&!P.alien;
 const ringMk=()=>mk('powerRing');
 const conSize=()=>0.8+0.45*ringMk(); // constructs grow with ring mastery
@@ -3304,7 +3326,7 @@ function conGrowStep(dir){
   const ng=dir>0?Math.min(mx,g*CON_GROW.mul):Math.max(1,g/CON_GROW.mul);
   if(Math.abs(ng-g)<1e-6){if(time-(K.maxMsg||-9)>3){K.maxMsg=time;feed(dir>0?C.name+' is as big as the Earth':C.name+' is back to normal size','');}return true;}
   if(ng>g){if(conFuel()<CON_GROW.cost+0.5){ringOut();return true;}conBurn(CON_GROW.cost);}
-  else if(armorForms())save.battery=Math.min(meterCap(METERS.armorFlight),save.battery+CON_GROW.cost*CON_GROW.refund*0.25);else save.ring=Math.min(100,save.ring+CON_GROW.cost*CON_GROW.refund);
+  else if(armorForms())save.battery=Math.min(meterCap(METERS.armorFlight),save.battery+CON_GROW.cost*CON_GROW.refund*0.25);else save.ring=Math.min(Math.max(100,save.ring),save.ring+CON_GROW.cost*CON_GROW.refund);
   K.grow=ng;conBody();const c=center(P),sz=conBase(K.id)*ng;ringFx(c.x,P.pos.y+0.3,c.z,1,Math.min(4*sz,CON_GROW.earth),0.4,C.armor?ARMOR_FX:RING_C);
   if(time-(K.sizeMsg||-9)>0.4){K.sizeMsg=time;feed(C.name+' · '+sizeLabel(sz),dir>0?'Scroll up to keep growing':'Shrinking gives back a quarter of the charge');}
   SFX.tone('sine',ng>g?220:500,ng>g?120:900,0.25,0.08);if(ng>g)addShake(Math.min(0.6,0.05*Math.log2(ng+1)));MP.bump();return true;
@@ -3320,6 +3342,7 @@ const conOwner=id=>CONSTRUCTS[id]&&CONSTRUCTS[id].armor?'armorFlight':'powerRing
 function ringOut(){if(armorForms()){meterOut(METERS.armorFlight);return;}feed('Ring charge is empty','Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
 function summonConstruct(id){
   if(!(isRing()||armorForms())||!canAct()||P.car)return;
+  if(ringLocked()){oathBusy();return;}
   if(!id&&P.construct){dismissConstruct();return;}
   id=id||(armorForms()?armorPick:conPick);const C=CONSTRUCTS[id];if(!C)return;
   if(P.construct&&P.construct.id===id){dismissConstruct();return;}
@@ -3511,19 +3534,35 @@ const oathNorm=s=>s.toLowerCase().replace(/[^a-z ]/g,'').replace(/\s+/g,' ');
 function openOath(){
   oathWire();
   if(!isRing()||P.dead||state!=='play'||oathOpen)return;
-  if(save.ring>=99.5){feed('Your ring is fully charged','');return;}
-  // you keep your construct and stay where you are: in the air you hang there while you speak
+  const vo=oathVoice();
+  if(save.ring>=(vo?RING_MAX:100)-0.5){feed(vo?'Your ring is fully overcharged':'Your ring is fully charged','');return;}
+  // typed: you keep your construct and stay where you are: in the air you hang there while you type
   // the game keeps running and the mouse stays locked: on a keyboard your keys type straight into the oath
-  oathOpen=true;oathStart=save.ring;oathIn.value='';oathEl.hidden=false;oathEl.classList.toggle('mini',!!save.oathKnown);renderOath(0);
+  // said out loud: you move and fight freely, but the ring is busy (no ring powers or constructs until you finish)
+  oathOpen=true;oathFree=vo;oathStart=save.ring;voicePeak=0;oathIn.value='';oathEl.hidden=false;oathEl.classList.toggle('mini',!!save.oathKnown);renderOath(0);
   const tch=touchOn();oathIn.readOnly=!tch;oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';
   $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the lantern away')
     :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the lantern away.');
-  $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;P.charging=false;
-  for(const k in keys)keys[k]=false;mouseL=false;if(tch&&!oathVoice())setTimeout(()=>oathIn.focus(),30);
+  $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;
+  if(!vo){P.charging=false;for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);}
   SFX.tone('sine',200,400,0.6,0.08);
-  if(oathVoice()){oathIn.placeholder='Listening… say the oath out loud';voiceOathStart();}
+  if(vo){oathIn.placeholder='Listening… say the oath out loud';oathFreeHands();voiceOathStart();if(!voiceRec)oathTyped();else{micOn('oath');$('oath-lvl').hidden=false;micShow();}}
 }
-function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;voiceOathStop();oathEl.hidden=true;P.lantern=false;oathIn.blur();}
+// the voice oath leaves you free to move and fight, but the ring is busy: the construct goes, held powers let go, the shield drops
+function oathFreeHands(){
+  if(P.construct){dismissConstruct();feed('Construct released','Finish the oath to build again');}
+  if(P.ringShield){P.ringShield=false;SFX.tone('sine',900,300,0.2,0.08);}
+  for(const k in PS){PS[k].primed=false;PS[k].holding=false;}heldSlot=-1;if(P.tk)tkDrop();if(beam){beam=null;SFX.setLaser(false);}
+}
+// the voice oath fell through (no speech service, mic blocked): carry on typing it, suspended as usual
+function oathTyped(){
+  if(!oathOpen||!oathFree)return;oathFree=false;micOff('oath');$('oath-lvl').hidden=true;
+  P.charging=false;for(const k in keys)keys[k]=false;mouseL=false;
+  const tch=touchOn();oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';if(tch)setTimeout(()=>oathIn.focus(),30);
+}
+const ringLocked=()=>oathOpen&&oathFree;
+function oathBusy(){if(time-oathBusyT<1.2)return;oathBusyT=time;feed('Finish the oath first','The ring is busy while you speak · '+(touchOn()?'tap OATH':'O')+' puts the lantern away');SFX.tone('square',220,160,0.08,0.05);}
+function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathFree=false;voiceOathStop();micOff('oath');$('oath-lvl').hidden=true;oathEl.hidden=true;P.lantern=false;oathIn.blur();}
 // keyboard typing while the lantern is out (called from the main key handler before anything else)
 function oathKey(e){
   e.preventDefault();const k=e.key;
@@ -3535,10 +3574,12 @@ function oathKey(e){
 function oathWire(){if(oathEl)return;oathEl=$('oath');oathIn=$('oath-in');oathText=$('oath-text');
 oathIn.addEventListener('input',()=>{
   const want=oathNorm(OATH),got=oathNorm(oathIn.value);let n=0;while(n<got.length&&got[n]===want[n])n++;
-  renderOath(n);const k=n/want.length;save.ring=Math.max(save.ring,oathStart+(100-oathStart)*k);
+  renderOath(n);const k=n/want.length;save.ring=Math.max(save.ring,oathStart+Math.max(0,100-oathStart)*k);
   if(n<got.length){oathIn.style.borderColor='#ff4d5e';}else oathIn.style.borderColor='';
-  if(n>=want.length){save.ring=100;closeOath();const c=center(P);flashWhite=0.5;ringFx(c.x,c.y,c.z,1,24,0.7,RING_C);ringFx(c.x,c.y,c.z,1,12,0.5,[1,1,1]);
-    burst(c.x,c.y,c.z,120,24,1,[RING_C,[1,1,1]],1.8,0,2);SFX.transform();addShake(0.4);toast('Ring fully charged','Your will is the only limit','cyan');MP.fx('rg',{g:'o'});save.oathKnown=true;persist();}
+  if(n>=want.length){const over=oathLoud(),said=oathVoice();save.ring=Math.max(save.ring,over?RING_MAX:100);closeOath();const c=center(P);flashWhite=0.5;ringFx(c.x,c.y,c.z,1,24,0.7,RING_C);ringFx(c.x,c.y,c.z,1,12,0.5,[1,1,1]);
+    if(over){ringFx(c.x,c.y,c.z,1,48,0.9,[1,1,1]);addShake(0.3);}
+    burst(c.x,c.y,c.z,120,24,1,[RING_C,[1,1,1]],1.8,0,2);SFX.transform();addShake(0.4);
+    toast(over?'Ring overcharged':'Ring fully charged',over?'Your voice carried it past every limit · '+Math.round(save.ring)+'%':said?'Say it louder to overcharge it to 200':'Your will is the only limit','cyan');MP.fx('rg',{g:'o'});save.oathKnown=true;persist();}
 });
 oathIn.addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();closeOath();}else if(e.code==='Tab'){e.preventDefault();oathNextWord();}e.stopPropagation();});
 $('oath-next').addEventListener('pointerdown',e=>{e.preventDefault();oathNextWord();});}
@@ -3846,7 +3887,7 @@ const METERS={
 const LIGHTNING_IDS=new Set(['stormHammer','lightning','lightningThrow','chainLightning']);
 const TALL_ROOF=110; // how high a roof has to be to call the storm from
 const heroMeter=()=>{if(!save.character||P.alien)return null;return METERS[save.character.movement[0]]||null;};
-const meterCap=m=>m.key==='battery'?pstat('suitBattery','capacity'):100;
+const meterCap=m=>m.key==='battery'?pstat('suitBattery','capacity'):m.key==='ring'&&save.ring>100?RING_MAX:100; // an overcharged ring holds up to 200
 const meterFrac=m=>clamp(save[m.key]/meterCap(m),0,1);
 const standby=()=>{const m=heroMeter();return !!m&&m.key==='battery'&&save.battery<=0;};
 const hungry=()=>{const m=heroMeter();return !!m&&m.key==='cal'&&save.cal<=0;};
@@ -4334,11 +4375,13 @@ for(const id in CONSTRUCTS){const C=CONSTRUCTS[id];if(C.weapon)C.drain=0;}
 // Settings → Ring oath picks "Say it out loud" (the default where the browser can listen) or "Type it".
 // In voice mode the game asks for the microphone when you start playing as the Ring Bearer, and O starts listening.
 // Words are matched loosely and in order (a missed or misheard word is skipped), so the ring charges as you speak.
-// Typing still works as a fallback while listening.
+// While it listens you move and fight freely, but ring powers and constructs wait until you finish (O or Esc puts it away).
+// If listening fails (no speech service, mic blocked) the oath carries on as the typed one: suspended, keys typed into it.
+// Say it loudly: if your voice passes the Settings line at any point, finishing the oath overcharges the ring to 200.
 const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition||null;
 const voiceOK=()=>!!SpeechRec;
 const oathVoice=()=>save.settings.oathInput==='voice'&&voiceOK()&&!voiceBlocked;
-let voiceFails=0,voiceRec=null,voiceBlocked=false,voicePtr=0,voiceBase=0,micAsked=false,voiceHeard='';
+let voiceFails=0,voiceRec=null,voiceBlocked=false,voicePtr=0,voiceBase=0,micAsked=false,voiceHeard='',voicePeak=0;
 // letters only, then fold spellings that sound the same (light / lite, fear / fere, will / wil)
 const vNorm=w=>w.toLowerCase().replace(/[^a-z]/g,'').replace(/ight/g,'ite').replace(/ph/g,'f').replace(/ck/g,'k').replace(/(.)\1+/g,'$1').replace(/(.{3,})e$/,'$1');
 function vLev(a,b){const m=a.length,n=b.length;let prev=Array.from({length:n+1},(_,j)=>j);
@@ -4361,10 +4404,10 @@ function voiceOathStart(){
   voiceRec.onresult=e=>{voiceFails=0;let t='';for(let i=0;i<e.results.length;i++)t+=' '+e.results[i][0].transcript;voiceHeard=t.trim();
     voicePtr=Math.max(voicePtr,voiceMatch(voiceHeard,voiceBase));voiceApply();voiceNote('🎙 "'+voiceHeard.slice(-70)+'"');};
   voiceRec.onerror=e=>{const er=e&&e.error;
-    if(er&&er!=='no-speech'&&er!=='aborted'&&++voiceFails>=3&&!voiceBlocked){voiceBlocked=true;voiceNote('Speech recognition is not working here right now · type the oath instead');feed('Can\'t listen right now','Type the oath instead');return;} // e.g. offline: stop retrying
-    if(er==='not-allowed'||er==='service-not-allowed'||er==='audio-capture'){voiceBlocked=true;voiceNote('The microphone is blocked here · type the oath instead ('+(touchOn()?'NEXT WORD':'Tab')+' fills words once you know it)');feed('Microphone blocked','Type the oath instead · allow the mic in your browser to speak it');}};
+    if(er&&er!=='no-speech'&&er!=='aborted'&&++voiceFails>=3&&!voiceBlocked){voiceBlocked=true;oathTyped();voiceNote('Speech recognition is not working here right now · type the oath instead');feed('Can\'t listen right now','Type the oath instead');return;} // e.g. offline: stop retrying
+    if(er==='not-allowed'||er==='service-not-allowed'||er==='audio-capture'){voiceBlocked=true;oathTyped();voiceNote('The microphone is blocked here · type the oath instead ('+(touchOn()?'NEXT WORD':'Tab')+' fills words once you know it)');feed('Microphone blocked','Type the oath instead · allow the mic in your browser to speak it');}};
   voiceRec.onend=()=>{const r=voiceRec;if(!r)return;if(oathOpen&&oathVoice()){voiceBase=voicePtr;setTimeout(()=>{if(voiceRec===r&&oathOpen)try{r.start();}catch(e){}},120);}}; // it stops after a pause: keep listening
-  try{voiceRec.start();voiceNote('🎙 Listening · say the oath out loud (you can still type it) · Enter puts the lantern away');}catch(e){voiceRec=null;}
+  try{voiceRec.start();voiceNote('🎙 Listening · say the oath out loud, loudly to overcharge the ring'+(touchOn()?' (you can still type it) · tap OATH':' · O or Esc')+' puts the lantern away');}catch(e){voiceRec=null;}
 }
 function voiceOathStop(){const r=voiceRec;voiceRec=null;if(r)try{r.onend=null;r.abort();}catch(e){}}
 // ask for the microphone up front (once per session) so the first oath is not interrupted by the prompt
@@ -4374,6 +4417,38 @@ function askMic(force){
   md.getUserMedia({audio:true}).then(s=>{for(const t of s.getTracks())t.stop();feed('Microphone ready','Press O and say the oath out loud');})
     .catch(()=>{voiceBlocked=true;feed('No microphone','You can still type the oath · switch in Settings');});
 }
+// ---- how loud you are ----
+// While the voice oath listens (or Settings tests the mic) the mic runs into an analyser: level is 0-1 (-60 dB to 0 dB, RMS).
+// The loudest moment of the oath is kept; past save.settings.micLoud, finishing the oath overcharges the ring.
+// The stream and its AudioContext are released as soon as nothing needs them (the oath closes, Settings closes).
+const MIC={users:new Set(),ctx:null,stream:null,an:null,buf:null,level:0,raf:0};
+const oathLoud=()=>voicePeak>=save.settings.micLoud;
+function micOn(who){
+  MIC.users.add(who);if(MIC.ctx)return;
+  const md=navigator.mediaDevices,AC=window.AudioContext||window.webkitAudioContext;if(!md||!md.getUserMedia||!AC)return;
+  let ctx;try{ctx=new AC();}catch(e){return;}MIC.ctx=ctx;MIC.level=0; // made inside the key press or click, so it is allowed to run
+  md.getUserMedia({audio:{autoGainControl:false}}).then(s=>{ // no auto gain: it would turn a shout back down
+    if(MIC.ctx!==ctx){for(const t of s.getTracks())t.stop();return;}
+    MIC.stream=s;const an=ctx.createAnalyser();an.fftSize=1024;ctx.createMediaStreamSource(s).connect(an);MIC.an=an;MIC.buf=new Float32Array(an.fftSize);
+    if(ctx.resume)ctx.resume().catch(()=>{});cancelAnimationFrame(MIC.raf);micTick();
+  }).catch(()=>{if(MIC.ctx===ctx)micRelease();});
+}
+function micOff(who){MIC.users.delete(who);if(!MIC.users.size&&MIC.ctx)micRelease();}
+function micRelease(){cancelAnimationFrame(MIC.raf);MIC.raf=0;if(MIC.stream)for(const t of MIC.stream.getTracks())t.stop();
+  const c=MIC.ctx;MIC.ctx=null;MIC.stream=null;MIC.an=null;MIC.level=0;if(c)try{c.close();}catch(e){}micShow();}
+function micTick(){
+  if(MIC.users.has('test')&&(sheetOpen!=='set'||!$('set-miclvl'))){micOff('test');if(!MIC.ctx)return;}
+  MIC.raf=requestAnimationFrame(micTick);if(!MIC.an)return;
+  MIC.an.getFloatTimeDomainData(MIC.buf);let e=0;for(let i=0;i<MIC.buf.length;i++)e+=MIC.buf[i]*MIC.buf[i];
+  MIC.level=clamp((10*Math.log10(e/MIC.buf.length+1e-12)+60)/60,0,1);
+  if(oathOpen&&oathFree){const was=oathLoud();voicePeak=Math.max(voicePeak,MIC.level);if(!was&&oathLoud()){feed('Loud and clear','Finish the oath to overcharge the ring to '+RING_MAX);SFX.tone('sine',600,1200,0.25,0.06);}}
+  micShow();
+}
+// the level bars: in the oath panel (lights up once the oath is loud enough) and in Settings (lights up while you are past the line)
+function micShow(){const thr=save.settings.micLoud;
+  for(const id of ['oath-lvl','set-miclvl']){const e=$(id);if(!e||e.hidden)continue;
+    e.style.setProperty('--lvl',(MIC.level*100).toFixed(1)+'%');e.style.setProperty('--thr',(thr*100).toFixed(1)+'%');
+    e.classList.toggle('hit',id==='oath-lvl'?oathLoud():MIC.level>=thr);}}
 // ================================================================
 // NPCs: people, drones, vehicles, rival supers, shops
 // ================================================================
@@ -5323,9 +5398,25 @@ function updateRemotes(dt){
 // over WebRTC (PeerJS, loaded on demand; its free public server only introduces the players).
 // The host relays presence and attacks between everyone, so the room lasts while the host plays.
 const P2P_LIB=['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'];
+// how two players find a path to each other: STUN finds a direct route; when a network blocks direct connections
+// (mobile data, school or work wifi, some routers, VPNs) a TURN relay carries the traffic instead.
+// The site's /api/turn hands out short-lived Cloudflare TURN credentials when the Vercel project has its two
+// Cloudflare variables set (see Readme); the free public relay below is only a best-effort fallback.
+const P2P_ICE=[{urls:['stun:stun.cloudflare.com:3478','stun:stun.l.google.com:19302']},
+  {urls:['turn:freestun.net:3478'],username:'free',credential:'free'}];
 const P2P_PREFIX='skyline-guardian-v1-',P2P_MAX=8,P2P_TOPICS=['hit','down','fx','dx'],P2P_HOST_TOPICS=['nh','tk','tg','tt'];
 const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off',err:'',open:false,myLast:null,timer:0,
   available:()=>!window.claude&&'RTCPeerConnection' in window,
+  ice:null,
+  // relay credentials from the site (cached until they are close to expiring); falls back to the public list
+  async loadIce(){
+    if(this.ice&&performance.now()<this.iceUntil)return;
+    try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),4000);
+      const r=await fetch('/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
+      const d=r.ok?await r.json():null,list=d&&(Array.isArray(d.iceServers)?d.iceServers:d.iceServers?[d.iceServers]:null);
+      if(list&&list.length){this.ice=list.concat(P2P_ICE);this.iceUntil=performance.now()+6*3600e3;return;}}catch(e){}
+    this.ice=P2P_ICE;this.iceUntil=performance.now()+60e3;
+  },
   loadLib(){
     if(window.Peer)return Promise.resolve();
     return new Promise((res,rej)=>{let i=0;const next=()=>{if(i>=P2P_LIB.length){rej(new Error('lib'));return;}
@@ -5349,7 +5440,7 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   },
   leave(){this.shutdown();this.state='off';this.err='';this.code='';try{if(location.hash.startsWith('#room='))history.replaceState(null,'',location.pathname+location.search);}catch(e){}this.changed();},
   startPeer(id){
-    const peer=new window.Peer(id,{debug:0});this.peer=peer;
+    const peer=new window.Peer(id,{debug:0,config:{iceServers:this.ice||P2P_ICE}});this.peer=peer;
     peer.on('disconnected',()=>{if(this.peer===peer&&this.state!=='off')try{peer.reconnect();}catch(e){}});
     return peer;
   },
@@ -5357,6 +5448,7 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   async create(){
     this.shutdown();this.state='starting';this.err='';this.host=true;this.code=this.newCode();this.changed();
     try{await this.loadLib();}catch(e){this.fail('Could not load the multiplayer library. Check your connection.');return;}
+    await this.loadIce();
     const peer=this.startPeer(P2P_PREFIX+this.code);
     peer.on('open',id=>{MP.myPeer=id;this.state='open';this.open=true;this.setHash();this.changed();});
     peer.on('connection',conn=>this.accept(conn));
@@ -5368,15 +5460,17 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
     code=this.cleanCode(code);if(code.length<4){this.fail('That room code looks wrong');return;}
     this.shutdown();this.state='starting';this.err='';this.host=false;this.code=code;this.changed();
     try{await this.loadLib();}catch(e){this.fail('Could not load the multiplayer library. Check your connection.');return;}
+    await this.loadIce();
     const peer=this.startPeer(undefined);
-    peer.on('open',id=>{MP.myPeer=id;const c=peer.connect(P2P_PREFIX+code,{reliable:true,serialization:'json'});this.hostConn=c;
+    let found=false;
+    peer.on('open',id=>{MP.myPeer=id;found=true;const c=peer.connect(P2P_PREFIX+code,{reliable:true,serialization:'json'});this.hostConn=c;
       c.on('open',()=>{if(this.hostConn!==c)return;this.state='open';this.open=true;this.setHash();this.changed();if(state==='play')feed('Joined room '+code,'');});
       c.on('data',m=>this.fromHost(m));
       c.on('close',()=>{if(this.hostConn===c&&this.state!=='off')this.fail(this.open?'The host left, so the room closed':'Could not connect to that room');});
       c.on('error',()=>{});});
     peer.on('error',e=>{if(this.peer!==peer)return;const t=e&&e.type;
       this.fail(t==='peer-unavailable'?'No room with code '+code+'. Check the code, and make sure the host is still playing.':this.open?'Connection lost ('+(t||'error')+')':'Could not join ('+(t||'error')+')');});
-    this.timer=setTimeout(()=>{if(this.state==='starting'&&this.peer===peer)this.fail('Could not connect to room '+code+'. A strict network may be blocking it.');},20000);
+    this.timer=setTimeout(()=>{if(this.state==='starting'&&this.peer===peer)this.fail(found?'Found room '+code+' but could not connect to the host. One of your networks may be blocking it: try another network (e.g. a phone hotspot).':'Could not reach the matchmaking server. Check your connection and try again.');},25000);
   },
   // host side
   accept(conn){
@@ -5691,7 +5785,7 @@ function el(tag,attrs={},...kids){
   return e;
 }
 const hud={root:$('hud'),hname:$('hname'),htier:$('htier'),lvl:$('lvl'),xpb:$('xpb'),rep:$('rep'),sp:$('sp'),spwrap:$('spwrap'),bounty:$('bounty'),wanted:$('wanted'),
-  clock:$('clock'),mode:$('mode'),hpb:$('hpb'),hpt:$('hpt'),enb:$('enb'),ent:$('ent'),en:$('enm'),shbar:$('shbar'),shb:$('shb'),hotbar:$('hotbar'),
+  clock:$('clock'),mode:$('mode'),hpb:$('hpb'),hpt:$('hpt'),enb:$('enb'),enb2:$('enb2'),ent:$('ent'),en:$('enm'),shbar:$('shbar'),shb:$('shb'),hotbar:$('hotbar'),
   cross:$('cross'),prompt:$('prompt'),charge:$('charge'),chargeb:$('chargeb'),toasts:$('toasts'),feed:$('feed'),tags:$('tags'),
   bossbar:$('bossbar'),bossname:$('bossname'),bossb:$('bossb'),keys:$('keys'),vig:$('vig'),flash:$('flash')};
 function toast(title,sub='',cls=''){
@@ -5936,11 +6030,22 @@ function renderSettings(){
       el('div',{class:'lb-tabs'},...modes.map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.controls===k),text:l,onclick:()=>{s.controls=k;persist();applyTouchUI();buildHotbar();renderSheet();}})))),
     el('div',{class:'field'},el('span',{text:'Ring oath · how the Ring Bearer recites it'}),
       el('div',{class:'lb-tabs'},...[['voice','Say it out loud'],['type','Type it (Tab)']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.oathInput===k),disabled:k==='voice'&&!voiceOK(),text:l,onclick:()=>{s.oathInput=k;persist();if(k==='voice')askMic(true);renderSheet();}}))),
-      el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line; you can still type it too.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
+      el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line, and you can keep moving and fighting (no ring powers until you finish). O or Esc puts the lantern away.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
+    ...(s.oathInput==='voice'&&voiceOK()?micSettings(s,rng):[]),
     row('Lock the mouse when you click into the game',chk('autoLock')),
     el('p',{class:'muted',text:'Press L any time to lock or unlock the mouse. While it is unlocked, hold the middle mouse button and drag to look around.'}),
     row('Mouse sensitivity',rng('sens',0.3,3,0.05)),row('Invert vertical look',chk('invertY')),
     row('Volume',rng('volume',0,1,0.05,()=>SFX.setVolume(s.volume))),row('Shadows',chk('shadows')));
+}
+// Ring oath loudness: say the oath louder than the line and finishing it overcharges the ring to 200
+function micSettings(s,rng){
+  const lvl=el('div',{class:'miclvl',id:'set-miclvl'},el('i'),el('b'));
+  const test=el('button',{class:'ghost',type:'button',text:MIC.users.has('test')?'Stop the mic test':'Test your mic',onclick:()=>{
+    if(MIC.users.has('test'))micOff('test');else micOn('test');test.textContent=MIC.users.has('test')?'Stop the mic test':'Test your mic';}});
+  const out=[el('label',{class:'row'},el('span',{text:'Overcharge loudness'}),rng('micLoud',0.2,0.95,0.01,micShow)),lvl,
+    el('div',{class:'cta'},test),
+    el('p',{class:'muted',text:'Say the oath loud enough to pass the white line at any point and finishing it overcharges the ring to 200. Test your mic and speak to see where your voice lands.'})];
+  setTimeout(micShow,0);return out;
 }
 // ---- character creator ----
 const creator=$('create'),creatorBody=$('create-body');
@@ -6059,10 +6164,10 @@ addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
   if(e.code==='Tab'&&(sheetOpen||state!=='play'||creating))return;
   if(['Space','ArrowUp','ArrowDown','Tab'].includes(e.code))e.preventDefault();
-  if(oathOpen&&!touchOn()&&state==='play'&&!paused){oathKey(e);return;}
+  if(oathOpen&&!oathFree&&!touchOn()&&state==='play'&&!paused){oathKey(e);return;} // the typed oath takes every key; the spoken one leaves them to you
   const was=keys[e.code];keys[e.code]=true;if(was)return;
   if(dialOpen){if(e.code in DIAL_CODES){setDialSel(DIAL_CODES[e.code]);dialConfirm();}else if(e.code==='KeyQ'||e.code==='KeyE'||e.code==='Tab'){e.preventDefault();dialPageTurn(e.code==='KeyQ'?-1:1);}else if(e.code==='Escape'||e.code==='KeyV')closeDial();return;}
-  if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
+  if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(ringLocked()&&state==='play'&&!paused){closeOath();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
   if(state!=='play')return;
   if(e.code==='Tab'||e.code==='KeyK'){if(sheetOpen==='skills')closeSheet();else openSheet('skills');return;}
   if(e.code==='KeyP'){setPaused(!paused);return;}
@@ -6073,9 +6178,9 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
-  if(e.code==='KeyV'){if(isRing())openDial('construct');else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
+  if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else openDial('construct');}else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
   if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
-  if(e.code==='KeyO'&&isRing()){openOath();return;}
+  if(e.code==='KeyO'&&isRing()){if(ringLocked())closeOath();else openOath();return;}
   if(e.code==='KeyY'&&isRing()){ringRebuild();return;}
   if(e.code==='KeyB'&&(isRing()||armorForms())&&!P.car){summonConstruct();return;}
   if(P.car)return;
@@ -6094,7 +6199,7 @@ canvas.addEventListener('mousedown',e=>{
   if(paused){if(!sheetOpen&&!creating)resume();return;}
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
-  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car||oathOpen)return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
   else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
@@ -6204,8 +6309,8 @@ function touchAct(a,down){
   if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
   else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){heldSlot=+a[1];abilityDown(+a[1]);guideDone('ability');}else{if(heldSlot===+a[1])heldSlot=-1;abilityUp(+a[1]);}}
   else if(a==='con'){if(down)summonConstruct();}
-  else if(a==='conpick'){if(down)openDial(isRing()?'construct':'armor');}
-  else if(a==='oath'){if(down)openOath();}
+  else if(a==='conpick'){if(down){if(isRing()&&ringLocked())oathBusy();else openDial(isRing()?'construct':'armor');}}
+  else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
   else if(a==='rebuild'){if(down)ringRebuild();}
@@ -6311,7 +6416,7 @@ function updatePlayer(dt){
   const inF=clamp((keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)+touchIn.y,-1,1);
   const inR=clamp((keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+touchIn.x,-1,1);
   if(P.car){driveCar(dt,inF,inR);return;}
-  if(P.lantern&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // reciting the oath: suspended where you are, construct and all
+  if(P.lantern&&!oathFree&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // typing the oath: suspended where you are, construct and all (saying it leaves you free)
   spiderTick(dt);
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
@@ -6924,7 +7029,8 @@ function updateHud(dt){
   hud.spwrap.classList.toggle('glow',save.sp>0);hud.bounty.hidden=!(save.bounty>0);if(save.bounty>0)setText(hud.bounty,'bty','BOUNTY $'+save.bounty.toLocaleString('en-US'));
   hud.wanted.hidden=!P.stars;if(P.stars){setText(hud.wanted,'wstar',starText(P.stars));hud.wanted.classList.toggle('blink',unseenT>2);}
   setW(hud.hpb,'hp',P.hp/maxHp());{const rg=isRing(),hm=heroMeter(),mode=rg?'ring':hm?hm.cls:'';if(lastHud.rg!==mode){lastHud.rg=mode;const e=$('enm');for(const k of ['ring','bat','bolt','cal'])e.classList.toggle(k,k===mode);e.firstElementChild.firstChild.nodeValue=rg?'RING ':hm?hm.label+' ':'ENERGY ';}
-    if(rg){setW(hud.enb,'en',save.ring/100);setText(hud.ent,'ent',String(Math.floor(save.ring))+'%');}
+    {const ov=rg&&save.ring>100;if(lastHud.ov!==ov){lastHud.ov=ov;$('enm').classList.toggle('over',ov);}}
+    if(rg){setW(hud.enb,'en',save.ring/100);setW(hud.enb2,'en2',(save.ring-100)/100);setText(hud.ent,'ent',String(Math.floor(save.ring))+'%');}
     else if(hm){const f=meterFrac(hm);setW(hud.enb,'en',f);setText(hud.ent,'ent',hm.key==='battery'&&save.battery<=0?'STANDBY':String(Math.floor(f*100))+'%');$('enm').classList.toggle('low',f<0.15);}else{setW(hud.enb,'en',P.en/maxEn());setText(hud.ent,'ent',String(Math.floor(P.en)));}}setText(hud.hpt,'hpt',String(Math.ceil(P.hp)));
   hud.shbar.hidden=!P.shieldOn&&!P.ringShield;if(P.shieldOn)setW(hud.shb,'sh',P.shield/pstat('energyShield','absorb'));else if(P.ringShield)setW(hud.shb,'sh',P.rsHp/pstat('ringShield','absorb'));
   const mins=Math.floor(tod*24*60);setText(hud.clock,'clock',String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0'));
@@ -7012,7 +7118,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
-  tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
+  tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>

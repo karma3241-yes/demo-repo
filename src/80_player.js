@@ -11,10 +11,10 @@ addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
   if(e.code==='Tab'&&(sheetOpen||state!=='play'||creating))return;
   if(['Space','ArrowUp','ArrowDown','Tab'].includes(e.code))e.preventDefault();
-  if(oathOpen&&!touchOn()&&state==='play'&&!paused){oathKey(e);return;}
+  if(oathOpen&&!oathFree&&!touchOn()&&state==='play'&&!paused){oathKey(e);return;} // the typed oath takes every key; the spoken one leaves them to you
   const was=keys[e.code];keys[e.code]=true;if(was)return;
   if(dialOpen){if(e.code in DIAL_CODES){setDialSel(DIAL_CODES[e.code]);dialConfirm();}else if(e.code==='KeyQ'||e.code==='KeyE'||e.code==='Tab'){e.preventDefault();dialPageTurn(e.code==='KeyQ'?-1:1);}else if(e.code==='Escape'||e.code==='KeyV')closeDial();return;}
-  if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
+  if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(ringLocked()&&state==='play'&&!paused){closeOath();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
   if(state!=='play')return;
   if(e.code==='Tab'||e.code==='KeyK'){if(sheetOpen==='skills')closeSheet();else openSheet('skills');return;}
   if(e.code==='KeyP'){setPaused(!paused);return;}
@@ -25,9 +25,9 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
-  if(e.code==='KeyV'){if(isRing())openDial('construct');else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
+  if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else openDial('construct');}else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
   if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
-  if(e.code==='KeyO'&&isRing()){openOath();return;}
+  if(e.code==='KeyO'&&isRing()){if(ringLocked())closeOath();else openOath();return;}
   if(e.code==='KeyY'&&isRing()){ringRebuild();return;}
   if(e.code==='KeyB'&&(isRing()||armorForms())&&!P.car){summonConstruct();return;}
   if(P.car)return;
@@ -46,7 +46,7 @@ canvas.addEventListener('mousedown',e=>{
   if(paused){if(!sheetOpen&&!creating)resume();return;}
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
-  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car||oathOpen)return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
   else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
@@ -156,8 +156,8 @@ function touchAct(a,down){
   if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
   else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){heldSlot=+a[1];abilityDown(+a[1]);guideDone('ability');}else{if(heldSlot===+a[1])heldSlot=-1;abilityUp(+a[1]);}}
   else if(a==='con'){if(down)summonConstruct();}
-  else if(a==='conpick'){if(down)openDial(isRing()?'construct':'armor');}
-  else if(a==='oath'){if(down)openOath();}
+  else if(a==='conpick'){if(down){if(isRing()&&ringLocked())oathBusy();else openDial(isRing()?'construct':'armor');}}
+  else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
   else if(a==='rebuild'){if(down)ringRebuild();}
@@ -263,7 +263,7 @@ function updatePlayer(dt){
   const inF=clamp((keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)+touchIn.y,-1,1);
   const inR=clamp((keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+touchIn.x,-1,1);
   if(P.car){driveCar(dt,inF,inR);return;}
-  if(P.lantern&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // reciting the oath: suspended where you are, construct and all
+  if(P.lantern&&!oathFree&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // typing the oath: suspended where you are, construct and all (saying it leaves you free)
   spiderTick(dt);
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);

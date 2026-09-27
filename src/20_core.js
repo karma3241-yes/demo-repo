@@ -122,7 +122,8 @@ const CRIMES={maxActive:3,spawnGap:[14,32],minDist:90,maxDist:420,clearXp:100,cl
 // ================================================================
 const Bus={h:{},on(e,f){(this.h[e]||(this.h[e]=[])).push(f);},emit(e,d){const l=this.h[e];if(l)for(const f of l)f(d);}};
 const SAVE_KEY='skyline-guardian-save',SAVE_VERSION=1;
-const DEFAULT_SETTINGS={oathInput:'voice',controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
+const RING_MAX=200; // ring charge tops out at 100; a loud spoken oath overcharges it up to this
+const DEFAULT_SETTINGS={oathInput:'voice',micLoud:0.65,controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
@@ -169,7 +170,7 @@ function loadSave(){
     if(['auto','touch','kbm'].includes(t.controls))st.controls=t.controls;
     if(['voice','type'].includes(t.oathInput))st.oathInput=t.oathInput;
     for(const k of ['autoLock','invertY','shadows'])if(typeof t[k]==='boolean')st[k]=t[k];
-    st.sens=num(t.sens,1,0.3,3);st.volume=num(t.volume,0.7,0,1);}
+    st.sens=num(t.sens,1,0.3,3);st.volume=num(t.volume,0.7,0,1);st.micLoud=num(t.micLoud,0.65,0.2,0.95);}
   f.character=validCharacter(s.character);
   if(!f.character){f.character=migrateCharacter(s.character);if(f.character)f.migrated=true;}
   if(!f.character)return f;
@@ -180,7 +181,7 @@ function loadSave(){
   if(s.stats&&typeof s.stats==='object')for(const k in f.stats)f.stats[k]=Math.floor(num(s.stats[k],0,0,1e9));
   f.rechoiceAt=f.migrated?0:num(s.rechoiceAt,0,0,1e15);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
-  f.ring=num(s.ring,100,0,100);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.bounty=Math.round(num(s.bounty,0,0,1e6));
+  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car'])if(s.guide[k]===true)f.guide[k]=true;
   return f;

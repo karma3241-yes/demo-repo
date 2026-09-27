@@ -20,11 +20,12 @@ function drawPrimed(){
 }
 function skillGrowStep(slot,dir){
   const id=save.character&&!P.alien&&save.character.abilities[slot];if(!id||!PS[id]||!canAct())return false;
+  if(ringLocked()){oathBusy();return true;}
   const s=PS[id],g=s.grow||1,ng=dir>0?Math.min(SKILL_GROW.max,g*SKILL_GROW.mul):Math.max(1,g/SKILL_GROW.mul);
   if(Math.abs(ng-g)<1e-6){if(time-(s.maxMsg||-9)>3){s.maxMsg=time;feed(POWERS[id].name+(dir>0?' is as big as it gets (×30)':' is back to normal size'),'');}return true;}
   const ring=hasTrav('powerRing'),cost=ring?SKILL_GROW.ring:SKILL_GROW.energy;
   if(ng>g){if(ring?save.ring<cost:!spend(cost,id)){noEnergy(id);return true;}if(ring)save.ring-=cost;}
-  else{const back=cost*SKILL_GROW.refund,m=heroMeter();if(ring)save.ring=Math.min(100,save.ring+back);else if(m)save[m.key]=Math.min(meterCap(m),save[m.key]+back*(m.rate||1));else P.en=Math.min(maxEn(),P.en+back);}
+  else{const back=cost*SKILL_GROW.refund,m=heroMeter();if(ring)save.ring=Math.min(Math.max(100,save.ring),save.ring+back);else if(m)save[m.key]=Math.min(meterCap(m),save[m.key]+back*(m.rate||1));else P.en=Math.min(maxEn(),P.en+back);}
   s.grow=ng;if(time-(s.sizeMsg||-9)>0.35){s.sizeMsg=time;feed(POWERS[id].name+' · size ×'+(ng<10?ng.toFixed(1):Math.round(ng)),dir>0?'Keep scrolling to grow it':'Shrinking gives back a quarter of the cost');}
   SFX.tone('sine',ng>g?300:600,ng>g?160:1000,0.15,0.06);return true;
 }
@@ -54,6 +55,7 @@ function dirTo(from,x,y,z){const dx=x-from.x,dy=y-from.y,dz=z-from.z,l=Math.hypo
 function abilityDown(slot){
   if(P.alien){alienAbilityDown(slot);return;}
   const id=save.character&&save.character.abilities[slot];if(!id||!canAct())return;
+  if(ringLocked()){oathBusy();return;} // the ring is busy while you say the oath out loud
   if(id==='morphBand'){bandPress();return;}
   const c=POWERS[id],s=PS[id];
   if(id==='metalForms'){metalDown();return;}
@@ -73,6 +75,7 @@ function castPrimed(id){
 }
 function abilityUp(slot,cancel){
   if(P.alien){alienAbilityUp(slot);return;}
+  if(ringLocked())return; // opening the voice oath already let go of everything held
   const id=save.character&&save.character.abilities[slot];if(!id)return;
   if(PS[id]&&PS[id].primed){PS[id].primed=false;if(!cancel&&!(PS[id].cd>0))castPrimed(id);}
   if(POWERS[id].type==='channel')PS[id].holding=false;

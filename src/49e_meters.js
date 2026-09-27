@@ -17,7 +17,7 @@ const METERS={
 const LIGHTNING_IDS=new Set(['stormHammer','lightning','lightningThrow','chainLightning']);
 const TALL_ROOF=110; // how high a roof has to be to call the storm from
 const heroMeter=()=>{if(!save.character||P.alien)return null;return METERS[save.character.movement[0]]||null;};
-const meterCap=m=>m.key==='battery'?pstat('suitBattery','capacity'):100;
+const meterCap=m=>m.key==='battery'?pstat('suitBattery','capacity'):m.key==='ring'&&save.ring>100?RING_MAX:100; // an overcharged ring holds up to 200
 const meterFrac=m=>clamp(save[m.key]/meterCap(m),0,1);
 const standby=()=>{const m=heroMeter();return !!m&&m.key==='battery'&&save.battery<=0;};
 const hungry=()=>{const m=heroMeter();return !!m&&m.key==='cal'&&save.cal<=0;};

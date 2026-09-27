@@ -70,7 +70,7 @@ function updateBuildings(dt){
 // the Ring Bearer rebuilds every broken building at once (Y): 10 ring charge
 const RING_BUILD={ghost:0.9,fill:0.8,cost:10};
 function ringRebuild(){
-  if(!isRing()||!canAct())return false;const list=bldgs.filter(b=>b.state!=='up'&&b.state!=='ring');
+  if(!isRing()||!canAct())return false;if(ringLocked()){oathBusy();return true;}const list=bldgs.filter(b=>b.state!=='up'&&b.state!=='ring');
   if(!list.length){feed('Nothing to rebuild','Every building in the city is standing');return true;}
   if(save.ring<RING_BUILD.cost){ringOut();return true;}save.ring-=RING_BUILD.cost;
   for(const b of list){const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;b.state='ring';b.t=0;b.tilt=0;b.ringDelay=Math.min(1.5,Math.hypot(cx-P.pos.x,cz-P.pos.z)/900);

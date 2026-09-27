@@ -3,6 +3,7 @@
 // ================================================================
 // Everything the ring does costs charge (save.ring, 0-100). It never refills on its own:
 // press O to hold up the lantern and type the oath. At zero charge you can only walk.
+// Said out loud and loud enough (Settings → Ring oath), the oath overcharges the ring to 200 (RING_MAX).
 // B builds your default construct (the last one you picked), V opens the construct wheel.
 // Inside a construct, left click / right click / X are its attacks.
 const RING_C=[.36,1,.52],RING_C4=[.36,1,.52,1];
@@ -15,7 +16,7 @@ const CONSTRUCTS={
 };
 const CON_IDS=Object.keys(CONSTRUCTS);
 const OATH='Through fear and doubt my will holds fast. What I imagine, I make last. Let every foe who stands to fight be humbled by my ring of light.';
-let conPick='bubble',armorPick='aJet',oathOpen=false,oathStart=0;
+let conPick='bubble',armorPick='aJet',oathOpen=false,oathStart=0,oathFree=false,oathBusyT=-9;
 const isRing=()=>hasTrav('powerRing')&&!P.alien;
 const ringMk=()=>mk('powerRing');
 const conSize=()=>0.8+0.45*ringMk(); // constructs grow with ring mastery
@@ -38,7 +39,7 @@ function conGrowStep(dir){
   const ng=dir>0?Math.min(mx,g*CON_GROW.mul):Math.max(1,g/CON_GROW.mul);
   if(Math.abs(ng-g)<1e-6){if(time-(K.maxMsg||-9)>3){K.maxMsg=time;feed(dir>0?C.name+' is as big as the Earth':C.name+' is back to normal size','');}return true;}
   if(ng>g){if(conFuel()<CON_GROW.cost+0.5){ringOut();return true;}conBurn(CON_GROW.cost);}
-  else if(armorForms())save.battery=Math.min(meterCap(METERS.armorFlight),save.battery+CON_GROW.cost*CON_GROW.refund*0.25);else save.ring=Math.min(100,save.ring+CON_GROW.cost*CON_GROW.refund);
+  else if(armorForms())save.battery=Math.min(meterCap(METERS.armorFlight),save.battery+CON_GROW.cost*CON_GROW.refund*0.25);else save.ring=Math.min(Math.max(100,save.ring),save.ring+CON_GROW.cost*CON_GROW.refund);
   K.grow=ng;conBody();const c=center(P),sz=conBase(K.id)*ng;ringFx(c.x,P.pos.y+0.3,c.z,1,Math.min(4*sz,CON_GROW.earth),0.4,C.armor?ARMOR_FX:RING_C);
   if(time-(K.sizeMsg||-9)>0.4){K.sizeMsg=time;feed(C.name+' · '+sizeLabel(sz),dir>0?'Scroll up to keep growing':'Shrinking gives back a quarter of the charge');}
   SFX.tone('sine',ng>g?220:500,ng>g?120:900,0.25,0.08);if(ng>g)addShake(Math.min(0.6,0.05*Math.log2(ng+1)));MP.bump();return true;
@@ -54,6 +55,7 @@ const conOwner=id=>CONSTRUCTS[id]&&CONSTRUCTS[id].armor?'armorFlight':'powerRing
 function ringOut(){if(armorForms()){meterOut(METERS.armorFlight);return;}feed('Ring charge is empty','Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
 function summonConstruct(id){
   if(!(isRing()||armorForms())||!canAct()||P.car)return;
+  if(ringLocked()){oathBusy();return;}
   if(!id&&P.construct){dismissConstruct();return;}
   id=id||(armorForms()?armorPick:conPick);const C=CONSTRUCTS[id];if(!C)return;
   if(P.construct&&P.construct.id===id){dismissConstruct();return;}
@@ -245,19 +247,35 @@ const oathNorm=s=>s.toLowerCase().replace(/[^a-z ]/g,'').replace(/\s+/g,' ');
 function openOath(){
   oathWire();
   if(!isRing()||P.dead||state!=='play'||oathOpen)return;
-  if(save.ring>=99.5){feed('Your ring is fully charged','');return;}
-  // you keep your construct and stay where you are: in the air you hang there while you speak
+  const vo=oathVoice();
+  if(save.ring>=(vo?RING_MAX:100)-0.5){feed(vo?'Your ring is fully overcharged':'Your ring is fully charged','');return;}
+  // typed: you keep your construct and stay where you are: in the air you hang there while you type
   // the game keeps running and the mouse stays locked: on a keyboard your keys type straight into the oath
-  oathOpen=true;oathStart=save.ring;oathIn.value='';oathEl.hidden=false;oathEl.classList.toggle('mini',!!save.oathKnown);renderOath(0);
+  // said out loud: you move and fight freely, but the ring is busy (no ring powers or constructs until you finish)
+  oathOpen=true;oathFree=vo;oathStart=save.ring;voicePeak=0;oathIn.value='';oathEl.hidden=false;oathEl.classList.toggle('mini',!!save.oathKnown);renderOath(0);
   const tch=touchOn();oathIn.readOnly=!tch;oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';
   $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the lantern away')
     :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the lantern away.');
-  $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;P.charging=false;
-  for(const k in keys)keys[k]=false;mouseL=false;if(tch&&!oathVoice())setTimeout(()=>oathIn.focus(),30);
+  $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;
+  if(!vo){P.charging=false;for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);}
   SFX.tone('sine',200,400,0.6,0.08);
-  if(oathVoice()){oathIn.placeholder='Listening… say the oath out loud';voiceOathStart();}
+  if(vo){oathIn.placeholder='Listening… say the oath out loud';oathFreeHands();voiceOathStart();if(!voiceRec)oathTyped();else{micOn('oath');$('oath-lvl').hidden=false;micShow();}}
 }
-function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;voiceOathStop();oathEl.hidden=true;P.lantern=false;oathIn.blur();}
+// the voice oath leaves you free to move and fight, but the ring is busy: the construct goes, held powers let go, the shield drops
+function oathFreeHands(){
+  if(P.construct){dismissConstruct();feed('Construct released','Finish the oath to build again');}
+  if(P.ringShield){P.ringShield=false;SFX.tone('sine',900,300,0.2,0.08);}
+  for(const k in PS){PS[k].primed=false;PS[k].holding=false;}heldSlot=-1;if(P.tk)tkDrop();if(beam){beam=null;SFX.setLaser(false);}
+}
+// the voice oath fell through (no speech service, mic blocked): carry on typing it, suspended as usual
+function oathTyped(){
+  if(!oathOpen||!oathFree)return;oathFree=false;micOff('oath');$('oath-lvl').hidden=true;
+  P.charging=false;for(const k in keys)keys[k]=false;mouseL=false;
+  const tch=touchOn();oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';if(tch)setTimeout(()=>oathIn.focus(),30);
+}
+const ringLocked=()=>oathOpen&&oathFree;
+function oathBusy(){if(time-oathBusyT<1.2)return;oathBusyT=time;feed('Finish the oath first','The ring is busy while you speak · '+(touchOn()?'tap OATH':'O')+' puts the lantern away');SFX.tone('square',220,160,0.08,0.05);}
+function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathFree=false;voiceOathStop();micOff('oath');$('oath-lvl').hidden=true;oathEl.hidden=true;P.lantern=false;oathIn.blur();}
 // keyboard typing while the lantern is out (called from the main key handler before anything else)
 function oathKey(e){
   e.preventDefault();const k=e.key;
@@ -269,10 +287,12 @@ function oathKey(e){
 function oathWire(){if(oathEl)return;oathEl=$('oath');oathIn=$('oath-in');oathText=$('oath-text');
 oathIn.addEventListener('input',()=>{
   const want=oathNorm(OATH),got=oathNorm(oathIn.value);let n=0;while(n<got.length&&got[n]===want[n])n++;
-  renderOath(n);const k=n/want.length;save.ring=Math.max(save.ring,oathStart+(100-oathStart)*k);
+  renderOath(n);const k=n/want.length;save.ring=Math.max(save.ring,oathStart+Math.max(0,100-oathStart)*k);
   if(n<got.length){oathIn.style.borderColor='#ff4d5e';}else oathIn.style.borderColor='';
-  if(n>=want.length){save.ring=100;closeOath();const c=center(P);flashWhite=0.5;ringFx(c.x,c.y,c.z,1,24,0.7,RING_C);ringFx(c.x,c.y,c.z,1,12,0.5,[1,1,1]);
-    burst(c.x,c.y,c.z,120,24,1,[RING_C,[1,1,1]],1.8,0,2);SFX.transform();addShake(0.4);toast('Ring fully charged','Your will is the only limit','cyan');MP.fx('rg',{g:'o'});save.oathKnown=true;persist();}
+  if(n>=want.length){const over=oathLoud(),said=oathVoice();save.ring=Math.max(save.ring,over?RING_MAX:100);closeOath();const c=center(P);flashWhite=0.5;ringFx(c.x,c.y,c.z,1,24,0.7,RING_C);ringFx(c.x,c.y,c.z,1,12,0.5,[1,1,1]);
+    if(over){ringFx(c.x,c.y,c.z,1,48,0.9,[1,1,1]);addShake(0.3);}
+    burst(c.x,c.y,c.z,120,24,1,[RING_C,[1,1,1]],1.8,0,2);SFX.transform();addShake(0.4);
+    toast(over?'Ring overcharged':'Ring fully charged',over?'Your voice carried it past every limit · '+Math.round(save.ring)+'%':said?'Say it louder to overcharge it to 200':'Your will is the only limit','cyan');MP.fx('rg',{g:'o'});save.oathKnown=true;persist();}
 });
 oathIn.addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();closeOath();}else if(e.code==='Tab'){e.preventDefault();oathNextWord();}e.stopPropagation();});
 $('oath-next').addEventListener('pointerdown',e=>{e.preventDefault();oathNextWord();});}
