@@ -7,8 +7,8 @@
 // never mid-fight. A rewarded ad (from the pause menu) doubles XP for 5 minutes. Rooms get the portal's invite button.
 // Big moments (level-ups, heists stopped, bosses and rivals beaten, an overcharged ring) call happytime(), at most once a minute.
 // The save is copied to the portal's cloud storage, so it survives cleared browser storage and follows a signed-in player;
-// on start the newer of the two wins. New players get Quick play (a random ready-made hero) and every session's first crime
-// starts a short run from you, so there is something to do within seconds.
+// on start the newer of the two wins. Every session's first crime starts a short run from you, so there is something to do
+// within seconds. The rewards live in the HUD icon bar (67_hudbar.js).
 const PORTAL=window.__PORTAL__||'';
 const PORTAL_AD_GAP=180,XP_BOOST={mul:2,time:300};
 const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,
@@ -59,29 +59,11 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:fals
   inviteLink(code){try{return this.sdk?this.sdk.game.inviteLink({room:code}):'';}catch(e){return '';}},
   roomChanged(){if(!this.sdk)return;try{if(P2P.state==='open'&&P2P.code)this.sdk.game.showInviteButton({room:P2P.code});else this.sdk.game.hideInviteButton();}catch(e){}},
 };
-// the pause menu's "watch an ad" button (portal build only)
-// the pause menu's portal buttons: double XP, refill, trials and cosmetics (portal build only)
-function renderPortalButtons(){
-  if(!PBAL)return;let row=$('p-portal');
-  if(!row){row=el('div',{class:'pause-btns',id:'p-portal'},
-      el('button',{class:'ghost',id:'p-ad',type:'button',onclick:()=>Portal.rewardXP()}),el('button',{class:'ghost',id:'p-refill',type:'button',onclick:()=>refill()}),
-      el('button',{class:'ghost',id:'p-trials',type:'button',text:'Try locked powers',onclick:()=>openSheet('trials')}),el('button',{class:'ghost',id:'p-cos',type:'button',text:'Cosmetics',onclick:()=>openSheet('cos')}));
-    $('resume').parentNode.after(row);}
-  const on=Portal.on(),left=Portal.boostUntil-time,b=$('p-ad');b.disabled=!on||left>0;b.textContent=left>0?'Double XP active · '+Math.ceil(left/60)+' min left':'Watch an ad: double XP for 5 min';
-  const r=refillInfo(),f=$('p-refill');f.hidden=!r;if(r){f.disabled=!on||!r.need;f.textContent=r.need?'Watch an ad: refill '+r.m.label.toLowerCase():r.m.label.charAt(0)+r.m.label.slice(1).toLowerCase()+' is full';}
-}
+// the rewards (double XP, refill, try locked powers, cosmetics) are HUD icons now (67_hudbar.js): keep them current
+function renderPortalButtons(){updateHudbar(true);}
 // the first crime of a session starts close by (30-120 m) instead of 90-420 m away
 function nearCrime(){const a=CRIMES.minDist,b=CRIMES.maxDist;CRIMES.minDist=30;CRIMES.maxDist=120;
   try{if(!startShopRobbery()&&!startAtmHack())startRandomCrime();}finally{CRIMES.minDist=a;CRIMES.maxDist=b;}}
-// Quick play: straight into the city as a random ready-made hero; the first change of powers is free
-function quickPlay(){
-  SFX.init();const ids=Object.keys(PRESETS),m=ids[Math.floor(Math.random()*ids.length)];
-  const c=validCharacter({name:'Guardian '+Math.floor(rr(100,1000)),suit:Math.floor(Math.random()*SUIT_OPTS.length),cape:Math.floor(Math.random()*CAPE_OPTS.length),accent:0,capeOn:true,movement:[m],abilities:[]});
-  if(!c){openCreator();return;}newHero(c,true);
-  feed('You are the '+PRESETS[m].name,'Pause → Change powers to pick your own (free the first time)');
-}
-// the menu's Quick play button, next to Create your hero (made on the first menu refresh, once the UI helpers exist)
-function quickButton(){let q=$('quick');if(!q&&PBAL){q=el('button',{class:'ghost',id:'quick',type:'button',text:'Quick play',onclick:quickPlay});$('start').after(q);}if(q)q.hidden=!!save.character;}
 Bus.on('levelUp',()=>Portal.happy());
 Bus.on('defeated',({target,killer})=>{if(killer===P&&(target.kind==='boss'||target.kind==='rival'||(target.kind==='human'&&target.role==='boss')))Portal.happy();});
 Portal.init();

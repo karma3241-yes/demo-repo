@@ -109,7 +109,8 @@ kbd:empty{display:none}
 #bossbar .name{font-family:var(--display);font-size:12px;letter-spacing:.2em;color:#ff8a70;text-align:center;text-shadow:0 1px 3px #000}
 #bossbar .bar{height:10px}
 #keys{position:absolute;right:16px;top:96px;padding:10px 12px;display:grid;grid-template-columns:auto auto;gap:4px 12px;font-size:12px;color:var(--ink-dim);transition:opacity .6s}
-#keys.fade{opacity:0}
+#keys.fade{opacity:0}#keys.fade *{pointer-events:none}
+#keys{width:min(370px,36vw);grid-template-columns:max-content 1fr!important;box-sizing:border-box;max-height:calc(100% - 96px - 200px);overflow:auto;overscroll-behavior:contain;align-content:start}#keys kbd{justify-self:start;align-self:start}#keys h4{grid-column:1/-1;margin:6px 0 0;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700}#keys h4:first-child{margin-top:0}
 #vig{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,20,50,.55) 100%)}
 #flash{position:fixed;inset:0;pointer-events:none;opacity:0;background:#eef6ff}
 .overlay{position:fixed;inset:0;display:grid;align-items:center;padding-inline:16px;z-index:4}
@@ -144,7 +145,7 @@ button:disabled{cursor:default}
 #dead .big{color:var(--health)}
 #sheet,#create{position:fixed;inset:0;z-index:5;display:grid;place-items:center;padding-inline:16px;background:rgba(3,5,12,.55)}
 #sheet.side,#create{justify-items:start;padding-inline:clamp(16px,4vw,64px);background:linear-gradient(90deg,rgba(3,5,12,.9),rgba(3,5,12,.25) 50%,transparent 70%)}
-#sheet.side .sheet-card,#create .sheet-card{width:min(520px,52vw)}
+#sheet.side .sheet-card{width:min(520px,52vw)}#create .sheet-card{width:min(900px,72vw)}
 .sheet-card{width:min(580px,100%);max-height:calc(100% - 40px);overflow:hidden;display:grid;grid-template-rows:auto 1fr;gap:12px;padding:18px 20px;box-sizing:border-box;background:rgba(7,11,24,.92)}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .sheet-head h2{margin:0;font-family:var(--display);font-weight:400;font-size:24px;letter-spacing:.03em}
@@ -176,7 +177,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--energy);flex:none
 .lb td small{display:block;color:var(--ink-dim);font-size:11px;letter-spacing:.08em}
 .lb td:last-child{text-align:right;font-weight:700}
 .lb tr.me td{color:var(--gold)}
-.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
 .pick{display:grid;gap:4px;align-content:start;text-align:left;color:var(--ink);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:10px}
 .pick b{font-size:14px}.pick span{font-size:12px;line-height:1.4;color:var(--ink-dim)}
 .pick .cat{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--energy)}
@@ -207,7 +208,7 @@ body.touch .toast b{font-size:15px}body.touch .toast span{font-size:10px}
 body.touch #feed{right:12px;top:72px;transform:none;max-width:200px}
 body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 290px))}
 @media (max-height:520px){body.touch #map{display:none}}
-@media (max-width:1100px){#keys{display:none}}
+@media (max-width:1100px){#keys:not(.pin){display:none}}
 @media (max-width:1000px){body:not(.touch) .hud-bc{left:212px;right:16px;transform:none;width:auto;justify-items:start}body:not(.touch) #bossbar{width:min(440px,calc(100% - 340px))}}
 @media (max-width:760px){
   .controls{grid-template-columns:1fr}#menu{background:rgba(3,5,12,.84)}
@@ -258,7 +259,19 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #guide li::before{content:"";position:absolute;left:0;top:3px;width:10px;height:10px;border:1.5px solid var(--ink-dim);border-radius:3px}
 #guide li.done{opacity:.45}#guide li.done::before{background:#7dffb0;border-color:#7dffb0}
 #guide li span{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
-#guide:not([hidden])~#keys{top:312px}
+#guide:not([hidden])~#keys{top:312px;max-height:calc(100% - 312px - 200px)}
+/* HUD icon bar: every menu one key or click away */
+#hudbar{position:absolute;left:16px;top:122px;display:flex;flex-wrap:wrap;gap:6px;max-width:330px;pointer-events:none}
+.hbtn{pointer-events:auto;position:relative;width:40px;height:40px;padding:0;display:grid;place-items:center;color:var(--ink);background:var(--panel);border:1px solid var(--edge);border-radius:10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;transition:border-color .15s,background .15s}
+.hbtn:hover{background:rgba(79,216,255,.16);border-color:var(--energy)}.hbtn:focus-visible{outline:2px solid var(--energy);outline-offset:2px}
+.hbtn.on{border-color:var(--gold);box-shadow:0 0 10px rgba(255,201,60,.35) inset}.hbtn:disabled{opacity:.4;cursor:default}
+.hbtn .ico{width:22px;height:22px}.hbtn kbd{position:absolute;right:-4px;bottom:-5px;padding:0 4px;font-size:9px;line-height:14px;background:#0b1224;border-radius:4px;border-width:1px}
+.hbtn .dot{position:absolute;right:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);display:none}.hbtn.badge .dot{display:block}
+.hbtn:hover::after{content:attr(data-tip);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);white-space:nowrap;padding:4px 8px;font:600 12px var(--hud);color:var(--ink);background:rgba(4,8,18,.92);border:1px solid var(--edge);border-radius:6px;pointer-events:none;z-index:3}
+#hb-xp{color:var(--gold)}#hb-refill{color:#7dffb0}#hb-trials{color:#c89bff}#hb-cos{color:#ff9bd2}
+body.touch #hudbar{top:8px!important;left:auto;right:66px;max-width:calc(100% - 290px);justify-content:flex-end}body.touch .hbtn{width:36px;height:36px}body.touch .hbtn kbd,body.touch .hbtn.kbm{display:none}
+.ico{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pick .pico{width:28px;height:28px;margin-bottom:2px}
 body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176px;padding:7px 9px}body.touch #guide li{font-size:11px}
 @media (max-height:520px){body.touch #guide{display:none}}
 .tb.use{background:rgba(125,255,176,.22)}.tb.use.dim{opacity:.35}
@@ -306,21 +319,8 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div id="toasts"></div>
   <div id="feed"></div>
   <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol></div>
-  <div id="keys" class="panel">
-    <kbd>WASD</kbd><span>Move</span>
-    <kbd>Click</kbd><span>Punch (hold to keep swinging)</span>
-    <kbd>1 – 5</kbd><span>Your abilities (also Q E R)</span>
-    <kbd>Space</kbd><span>Jump · hold for a super jump</span>
-    <kbd>F · Shift · Right click</kbd><span>Movement powers</span>
-    <kbd>Z · X</kbd><span>Lock on · dash</span>
-    <kbd>G</kbd><span>Enter a car · help someone up</span>
-    <kbd>V</kbd><span>Morph Band (if you have it)</span>
-    <div id="keys-hero" style="display:contents"></div>
-    <kbd>Tab</kbd><span>Skills and upgrades</span>
-    <kbd>L</kbd><span>Lock or unlock the mouse</span>
-    <kbd>Esc</kbd><span>Pause</span>
-    <kbd>H</kbd><span>Hide this help</span>
-  </div>
+  <div id="keys" class="panel"><div id="keys-hero" style="display:contents"></div></div>
+  <div id="hudbar"></div>
 </div>
 <div id="vig"></div>
 <div id="flash"></div>
@@ -338,7 +338,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
       <div><kbd>Z</kbd> Lock on · <kbd>X</kbd> Dash</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
     </div>
     <p class="muted" id="menu-touch" hidden>Touch controls: drag on the left side to move, drag on the right side to look, and use the buttons for punches, abilities and movement.</p>
-    <div class="cta"><button class="go" id="start" type="button">Create your hero</button><span id="menu-sub"></span></div>
+    <div class="cta"><button class="go" id="start" type="button">Play</button><span id="menu-sub"></span></div>
     <p class="note" id="menu-online"></p>
     <div class="menu-btns"><button class="ghost" id="m-mp" type="button">Multiplayer</button><button class="ghost" id="m-lb" type="button">Leaderboard</button><button class="ghost" id="m-set" type="button">Settings</button></div>
   </div>
@@ -3964,22 +3964,31 @@ function drawSuit(){
     queue(MESH.glowBox,at(P.pos.x,P.pos.y+k*1.5,P.pos.z,0,P.heroYaw,0,1.1,k*3,0.7),[RING_C[0],RING_C[1],RING_C[2],0.2],F_ADD);}
   else if(A.st==='metal'){const y=P.pos.y+k*2.9;queue(MESH.ring,M4.alignY(tmpM(),P.pos.x,y,P.pos.z,0,1,0,1),[.9,.92,.95,1],F_ADD);}
 }
-// the keys panel shows the controls for the hero you are playing
+// the move list (right side, H) shows everything the hero you are playing can do
 function renderHeroKeys(){
-  const box=$('keys-hero');if(!box)return;box.textContent='';const c=save.character;if(!c)return;
+  const box=$('keys-hero');if(!box)return;box.textContent='';const c=save.character;
+  const H=t=>box.appendChild(el('h4',{text:t}));
   const K=(k,t)=>{box.appendChild(el('kbd',{text:k}));box.appendChild(el('span',{text:t}));};
-  const m=c.movement[0];
+  const m=c&&c.movement[0];
+  H('Moving');K('WASD','Move');K('Space','Jump · hold for a super jump');
   if(m==='webSwing'){K('Right click','Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
-  else if(m==='powerRing'){K('F','Fly · hold on the ground to charge a launch');K('B · V','Build a construct · pick one');K('O','Recite the oath to recharge the ring');K('Y','Rebuild every broken building');K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');}
-  else if(m==='flight'||m==='stormFlight'||m==='armorFlight'||m==='solarFlight'){K('F','Fly · hold on the ground to charge a launch');
+  else if(m)K('F','Fly · hold on the ground to charge a launch');
+  if(c){H('Your powers');c.abilities.forEach((id,i)=>{const p=POWERS[id];if(!p)return;
+      K(String(i+1)+(i<3?' · '+'QER'[i]:''),p.name+(PBAL&&typeof slotLocked==='function'&&slotLocked(i)?' · unlocks at LV '+KIT_LV[i]:''));});
+    K('Hold 1–5 · wheel','Size a power (up to ×30), let go to use it');}
+  H('Fighting');K('Click','Punch · hold to keep swinging');K('Z · X','Lock on · dash');K('G','Get in a car · help someone up');
+  if(m){H(PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Your hero');
+    if(m==='powerRing'){K('B','Build your construct (the last one you picked)');K('V','Construct wheel · in a construct: tap to step out, hold to switch');
+      K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');K('O','Say or type the oath to recharge the ring');K('Y','Rebuild every broken building');}
     if(m==='armorFlight'){K('Inventor Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
-    if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');}
-  if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
-  if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
-  if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
-  K('Hold 1–5 · wheel','Size a power (up to ×30), let go to use it');
-  K('U','Suit up or down');
+    if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');
+    if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
+    if(hasPower('morphBand'))K('V','Morph Band: pick an alien · tap again to change back');
+    if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
+    if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
+    K('U','Suit up or down');}
+  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('L','Free the mouse to click the icons');K('Esc','Pause');K('H','Show or hide this list');
 }
 // ================================================================
 // Wanted level (1-5 stars) and bounty
@@ -5946,8 +5955,8 @@ function renderHostControls(B){
 // never mid-fight. A rewarded ad (from the pause menu) doubles XP for 5 minutes. Rooms get the portal's invite button.
 // Big moments (level-ups, heists stopped, bosses and rivals beaten, an overcharged ring) call happytime(), at most once a minute.
 // The save is copied to the portal's cloud storage, so it survives cleared browser storage and follows a signed-in player;
-// on start the newer of the two wins. New players get Quick play (a random ready-made hero) and every session's first crime
-// starts a short run from you, so there is something to do within seconds.
+// on start the newer of the two wins. Every session's first crime starts a short run from you, so there is something to do
+// within seconds. The rewards live in the HUD icon bar (67_hudbar.js).
 const PORTAL=window.__PORTAL__||'';
 const PORTAL_AD_GAP=180,XP_BOOST={mul:2,time:300};
 const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,
@@ -5998,29 +6007,11 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:fals
   inviteLink(code){try{return this.sdk?this.sdk.game.inviteLink({room:code}):'';}catch(e){return '';}},
   roomChanged(){if(!this.sdk)return;try{if(P2P.state==='open'&&P2P.code)this.sdk.game.showInviteButton({room:P2P.code});else this.sdk.game.hideInviteButton();}catch(e){}},
 };
-// the pause menu's "watch an ad" button (portal build only)
-// the pause menu's portal buttons: double XP, refill, trials and cosmetics (portal build only)
-function renderPortalButtons(){
-  if(!PBAL)return;let row=$('p-portal');
-  if(!row){row=el('div',{class:'pause-btns',id:'p-portal'},
-      el('button',{class:'ghost',id:'p-ad',type:'button',onclick:()=>Portal.rewardXP()}),el('button',{class:'ghost',id:'p-refill',type:'button',onclick:()=>refill()}),
-      el('button',{class:'ghost',id:'p-trials',type:'button',text:'Try locked powers',onclick:()=>openSheet('trials')}),el('button',{class:'ghost',id:'p-cos',type:'button',text:'Cosmetics',onclick:()=>openSheet('cos')}));
-    $('resume').parentNode.after(row);}
-  const on=Portal.on(),left=Portal.boostUntil-time,b=$('p-ad');b.disabled=!on||left>0;b.textContent=left>0?'Double XP active · '+Math.ceil(left/60)+' min left':'Watch an ad: double XP for 5 min';
-  const r=refillInfo(),f=$('p-refill');f.hidden=!r;if(r){f.disabled=!on||!r.need;f.textContent=r.need?'Watch an ad: refill '+r.m.label.toLowerCase():r.m.label.charAt(0)+r.m.label.slice(1).toLowerCase()+' is full';}
-}
+// the rewards (double XP, refill, try locked powers, cosmetics) are HUD icons now (67_hudbar.js): keep them current
+function renderPortalButtons(){updateHudbar(true);}
 // the first crime of a session starts close by (30-120 m) instead of 90-420 m away
 function nearCrime(){const a=CRIMES.minDist,b=CRIMES.maxDist;CRIMES.minDist=30;CRIMES.maxDist=120;
   try{if(!startShopRobbery()&&!startAtmHack())startRandomCrime();}finally{CRIMES.minDist=a;CRIMES.maxDist=b;}}
-// Quick play: straight into the city as a random ready-made hero; the first change of powers is free
-function quickPlay(){
-  SFX.init();const ids=Object.keys(PRESETS),m=ids[Math.floor(Math.random()*ids.length)];
-  const c=validCharacter({name:'Guardian '+Math.floor(rr(100,1000)),suit:Math.floor(Math.random()*SUIT_OPTS.length),cape:Math.floor(Math.random()*CAPE_OPTS.length),accent:0,capeOn:true,movement:[m],abilities:[]});
-  if(!c){openCreator();return;}newHero(c,true);
-  feed('You are the '+PRESETS[m].name,'Pause → Change powers to pick your own (free the first time)');
-}
-// the menu's Quick play button, next to Create your hero (made on the first menu refresh, once the UI helpers exist)
-function quickButton(){let q=$('quick');if(!q&&PBAL){q=el('button',{class:'ghost',id:'quick',type:'button',text:'Quick play',onclick:quickPlay});$('start').after(q);}if(q)q.hidden=!!save.character;}
 Bus.on('levelUp',()=>Portal.happy());
 Bus.on('defeated',({target,killer})=>{if(killer===P&&(target.kind==='boss'||target.kind==='rival'||(target.kind==='human'&&target.role==='boss')))Portal.happy();});
 Portal.init();
@@ -6133,6 +6124,136 @@ save.cos=cleanCos(save.cos);
 // new power keys open as you level up
 let kitLvSeen=save.level;
 Bus.on('levelUp',lv=>{if(!PBAL)return;KIT_LV.forEach((l,i)=>{if(l>kitLvSeen&&l<=lv&&save.character){const id=save.character.abilities[i];toast('Key '+(i+1)+' unlocked',(POWERS[id]?POWERS[id].name:'A new power')+' is ready','gold');}});kitLvSeen=lv;buildHotbar();buildTouchButtons();});
+// ================================================================
+// Icons: small line drawings for the HUD icon bar and the power cards
+// ================================================================
+// Every glyph is drawn on a 24×24 grid with round 2px strokes in the current text colour, so CSS picks the colour.
+const GLYPHS={
+  // HUD icon bar
+  moves:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/>',
+  skills:'<path d="M12 3l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.4 6.7 19.3l1.1-5.9L3.4 9.3l6-.8z"/>',
+  swap:'<path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/>',
+  shirt:'<path d="M8 3l-5 3 2 4 3-1.5V21h8V8.5l3 1.5 2-4-5-3c-.5 1.8-2 3-4 3s-3.5-1.2-4-3z"/>',
+  people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.7-6 6-6s6 2.4 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2c2.9.3 5 2.5 5 5.8"/>',
+  gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+  trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8M9.5 18h5"/>',
+  x2:'<path d="M4 8l6 8M10 8l-6 8"/><path d="M13.5 9.5a3 3 0 0 1 6 0c0 2.5-6 4-6 6.5h6"/>',
+  refill:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M11 9.5v5M8.5 12h5"/>',
+  unlock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.6-1.7"/><path d="M12 15v2"/>',
+  sparkle:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.8 2.2 2.2.8-2.2.8L19 22l-.8-2.2-2.2-.8 2.2-.8z"/>',
+  // powers
+  wing:'<path d="M3 17c4-1 7-4 9-9 1 4 4 7 9 9"/><path d="M6 20c2-.5 4-2 6-4 2 2 4 3.5 6 4"/><path d="M12 8V3"/>',
+  run:'<path d="M3 8h7M2 12h6M4 16h5"/><path d="M13 5l6 7-6 7"/>',
+  climb:'<path d="M4 4h16v16H4zM4 9.3h16M4 14.6h16M9 4v5.3M15 9.3v5.3M9 14.6V20"/>',
+  web:'<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><path d="M12 7l3.5 1.5L17 12l-1.5 3.5L12 17l-3.5-1.5L7 12l1.5-3.5z"/>',
+  flame:'<path d="M12 21a6 6 0 0 0 6-6c0-4-3-6-4-10-1.5 2-2 3.5-2 5-1-1-1.8-2-2.2-3.5C7.5 9 6 11.5 6 15a6 6 0 0 0 6 6z"/><path d="M12 21a2.5 2.5 0 0 0 2.5-2.5c0-2-2.5-3.5-2.5-3.5s-2.5 1.5-2.5 3.5A2.5 2.5 0 0 0 12 21z"/>',
+  snow:'<path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7"/><path d="M9.5 3.5L12 6l2.5-2.5M9.5 20.5L12 18l2.5 2.5"/>',
+  bolt:'<path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/>',
+  burst:'<circle cx="12" cy="12" r="3.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.8 2.8M16.2 16.2L19 19M5 19l2.8-2.8M16.2 7.8L19 5"/>',
+  eye:'<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  orbit:'<circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-25 12 12)"/>',
+  wave:'<path d="M8 8a5.5 5.5 0 0 0 0 8M5 5a10 10 0 0 0 0 14"/><path d="M16 8a5.5 5.5 0 0 1 0 8M19 5a10 10 0 0 1 0 14"/><circle cx="12" cy="12" r="1.5"/>',
+  metal:'<path d="M12 2l8.5 5v10L12 22l-8.5-5V7z"/><path d="M12 2v20M3.5 7L12 12l8.5-5"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+  ring:'<circle cx="12" cy="13" r="6.5"/><circle cx="12" cy="13" r="3"/><path d="M9 5.5L12 3l3 2.5"/>',
+  storm:'<path d="M6.5 15.5a4.5 4.5 0 0 1 .5-9 6 6 0 0 1 11.3 2A3.5 3.5 0 0 1 17.5 15.5"/><path d="M13 12l-3 5h4l-2 5"/>',
+  helmet:'<path d="M5 13a7 7 0 0 1 14 0v5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/><path d="M8 13h8l-1 3H9z"/>',
+  sun:'<circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/>',
+  spider:'<circle cx="12" cy="13" r="3.5"/><circle cx="12" cy="7.5" r="2"/><path d="M8.5 11L4 8l-1-3M8.5 13.5H3.5M8.5 15.5L5 19l-.5 2M15.5 11L20 8l1-3M15.5 13.5h5M15.5 15.5L19 19l.5 2"/>',
+  bomb:'<circle cx="11" cy="14" r="6.5"/><path d="M15.5 9.5L18 7M18 7l1-3M18 7l3-1"/>',
+  whip:'<path d="M4 20l3-3"/><path d="M7 17c2-2 1-5 4-7s6 1 8-2 0-5-2-5"/>',
+  phase:'<path d="M12 3a5 5 0 0 1 5 5v11l-2.5-2-2.5 2-2.5-2L7 19V8a5 5 0 0 1 5-5z" stroke-dasharray="3 2.4"/><circle cx="10" cy="9" r=".8"/><circle cx="14" cy="9" r=".8"/>',
+  tornado:'<path d="M3 4h18M5 8h14M7.5 12h9M9.5 16h5M11 20h2"/>',
+  clock:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9.5 2.5h5"/>',
+  clockStop:'<circle cx="12" cy="12" r="9"/><path d="M10 8.5v7M14 8.5v7"/>',
+  hammer:'<path d="M4 4h10v6H4zM9 10v11"/><path d="M14 7h4"/>',
+  chain:'<rect x="2.5" y="8.5" width="10" height="7" rx="3.5" transform="rotate(-35 7.5 12)"/><rect x="11.5" y="8.5" width="10" height="7" rx="3.5" transform="rotate(-35 16.5 12)"/>',
+  spiral:'<path d="M12 12a1.5 1.5 0 1 1 1.5 1.5A3 3 0 0 1 10.5 10.5a4.5 4.5 0 0 1 6 -1.5A6 6 0 0 1 18 16.5a7.5 7.5 0 0 1-12 1A8.5 8.5 0 0 1 8 5"/>',
+  band:'<rect x="6" y="7" width="12" height="10" rx="3"/><path d="M8.5 7V3h7v4M8.5 17v4h7v-4"/><circle cx="12" cy="12" r="2"/>',
+  beam:'<circle cx="5" cy="12" r="3"/><path d="M8 10.5h14M8 13.5h14"/>',
+  roundShield:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4"/>',
+  claw:'<path d="M5 20L15 4M9.5 21L19 6M14 21.5l6-10"/>',
+  stretch:'<path d="M3 12h2l2-5 3 10 3-10 3 10 2-5h3"/>',
+  giant:'<circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M8 11h8M12 15l-3 6M12 15l3 6"/><path d="M3 9V3m0 0L1 5m2-2 2 2M21 9V3m0 0-2 2m2-2 2 2"/>',
+  blink:'<path d="M3 12h3M9 12h3M15 12h3" /><path d="M18 8l4 4-4 4"/><circle cx="4" cy="6" r="1"/><circle cx="8" cy="18" r="1"/>',
+  gravity:'<circle cx="12" cy="8" r="4.5"/><path d="M6 16l6 5 6-5M12 13v8"/>',
+  quake:'<path d="M2 12h5l2-3 3 6 2-4 1 1h7"/><path d="M4 19h16"/>',
+  meteor:'<circle cx="15.5" cy="15.5" r="5"/><path d="M11.5 11.5L3 3M13 9L7 3M9 13L3 7"/>',
+  push:'<path d="M3 12h11M3 7h8M3 17h8"/><path d="M15 5l6 7-6 7"/>',
+  heal:'<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>',
+  eyeOff:'<path d="M2 12s3.5-6 10-6c2 0 3.7.6 5.1 1.4M22 12s-1.2 2.1-3.4 3.8M6.3 16.7C3.6 15 2 12 2 12"/><path d="M9.5 14.5a3 3 0 0 0 4.2-4.2M3 21L21 3"/>',
+  vine:'<path d="M12 21V11c0-3 2-6 6-7 0 4-2 6-6 7M12 14c0-2.5-2-4.5-6-5 0 3.5 2 5.5 6 5"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  wisp:'<path d="M6 20c-2-3-1-7 3-9s5-5 3-8c4 1 7 5 6 9s-5 5-6 8"/><circle cx="12.5" cy="13" r="1.5"/>',
+  battery:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M6.5 10v4M10 10v4M13.5 10v4"/>',
+};
+// which glyph each power uses (anything missing falls back to a burst)
+const POWER_GLYPH={flight:'wing',superSpeed:'run',wallClimb:'climb',webSwing:'web',fireball:'flame',iceCloud:'snow',lightning:'bolt',energyBlast:'burst',
+  laserVision:'eye',telekinesis:'orbit',shockwave:'wave',metalSkin:'metal',energyShield:'shield',powerRing:'ring',stormFlight:'storm',armorFlight:'helmet',
+  solarFlight:'sun',stormBody:'storm',armorSuit:'helmet',solarBody:'sun',spiderPowers:'spider',ringCore:'ring',surgeSuit:'run',webStrike:'web',webBomb:'bomb',
+  webWhip:'whip',lightningThrow:'bolt',phaseStrike:'phase',speedTornado:'tornado',slowTime:'clock',timeStop:'clockStop',ringBlast:'burst',hammerSmash:'hammer',
+  chainLasso:'chain',ringShield:'shield',blackHole:'spiral',morphBand:'band',stormHammer:'hammer',repulsors:'burst',coreBeam:'beam',ricochetShield:'roundShield',
+  bladeClaws:'claw',elasticBody:'stretch',titanGrowth:'giant',metalForms:'metal',bladeLeap:'claw',stretchStrike:'stretch',giantForm:'giant',blink:'blink',
+  gravityWell:'gravity',sonicScream:'wave',quakeStomp:'quake',meteorStrike:'meteor',forcePush:'push',chainLightning:'bolt',healingPulse:'heal',
+  invisibility:'eyeOff',vineSnare:'vine',shadowStep:'moon',plasmaWhip:'whip',spiritWave:'wisp',suitBattery:'battery',timeDilation:'clock'};
+// a power's colour follows what kind of power it is (hero kit moves in gold, the Ring Bearer's in ring green)
+const GLYPH_COL={movement:'#4fd8ff',offence:'#ff8a5c',body:'#c9d7ea',defence:'#8fe3ff',preset:'#ffc93c',signature:'#ffc93c',special:'#c89bff',utility:'#7dffb0',upgrade:'#bff4ff'};
+const RING_KIT=new Set(['powerRing','ringCore','ringBlast','hammerSmash','chainLasso','ringShield','blackHole']);
+function glyph(name,cls){const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('aria-hidden','true');
+  s.setAttribute('class','ico'+(cls?' '+cls:''));s.innerHTML=GLYPHS[name]||GLYPHS.burst;return s;}
+function powerIcon(id){const c=POWERS[id],s=glyph(POWER_GLYPH[id]||'burst','pico');s.style.color=RING_KIT.has(id)?'#6dff95':GLYPH_COL[c&&c.cat]||'#e9f3ff';return s;}
+// ================================================================
+// HUD icon bar and the move list
+// ================================================================
+// A row of icons under your name, one per menu, each showing its key (like a game launcher's top bar). With the mouse locked,
+// press the key; L frees the mouse to click them. On touch screens tap them. The CrazyGames build adds its rewards here
+// (double XP, refill, try locked powers, cosmetics) instead of in the pause menu.
+// The move list (right side) lists everything your hero can do. It is open for the first 2 minutes of each session;
+// H or its icon shows or hides it, and once you choose it stays that way for the session.
+const HUDBAR=[
+  {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
+  {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
+  {id:'powers',glyph:'swap',key:'J',code:'KeyJ',tip:()=>'Change powers'+(save.rechoiceAt?'':' · free the first time'),act:()=>{if(sheetOpen)closeSheet();tryRechoose();}},
+  {id:'look',glyph:'shirt',key:'I',code:'KeyI',tip:'Appearance',act:()=>sheetToggle('look'),on:()=>sheetOpen==='look'},
+  {id:'mp',glyph:'people',key:'6',code:'Digit6',tip:'Multiplayer',act:()=>sheetToggle('mp'),on:()=>sheetOpen==='mp'||MP.online()},
+  {id:'set',glyph:'gear',key:'7',code:'Digit7',tip:'Settings',act:()=>sheetToggle('set'),on:()=>sheetOpen==='set'},
+  {id:'lb',glyph:'trophy',key:'8',code:'Digit8',tip:'Leaderboard',act:()=>sheetToggle('lb'),on:()=>sheetOpen==='lb'},
+  // CrazyGames build only
+  {id:'xp',glyph:'x2',key:'9',code:'Digit9',portal:true,act:()=>Portal.rewardXP(),
+    tip:()=>{const l=Portal.boostUntil-time;return l>0?'Double XP active · '+Math.ceil(l/60)+' min left':'Watch an ad: double XP for 5 min';},
+    on:()=>Portal.boostUntil>time,off:()=>!Portal.on()||Portal.boostUntil>time},
+  {id:'refill',glyph:'refill',key:'0',code:'Digit0',portal:true,act:()=>refill(),hide:()=>!refillInfo(),
+    tip:()=>{const r=refillInfo();return !r?'':r.need?'Watch an ad: refill your '+r.m.label.toLowerCase():'Your '+r.m.label.toLowerCase()+' is full';},
+    off:()=>{const r=refillInfo();return !Portal.on()||!r||!r.need;}},
+  {id:'trials',glyph:'unlock',key:',',code:'Comma',portal:true,tip:'Try locked powers',act:()=>sheetToggle('trials'),on:()=>sheetOpen==='trials'},
+  {id:'cos',glyph:'sparkle',key:'.',code:'Period',portal:true,tip:'Cosmetics',act:()=>sheetToggle('cos'),on:()=>sheetOpen==='cos'},
+];
+const HUDBAR_KEYS={};for(const b of HUDBAR)if(!b.portal||PBAL)HUDBAR_KEYS[b.code]=b;
+const hbVal=(v)=>typeof v==='function'?v():v;
+function sheetToggle(name){if(sheetOpen===name)closeSheet();else openSheet(name);}
+let hudbarT=0;
+function buildHudbar(){
+  const bar=$('hudbar');if(!bar||bar.childElementCount)return;
+  for(const b of HUDBAR){if(b.portal&&!PBAL)continue;
+    const btn=el('button',{class:'hbtn',type:'button',id:'hb-'+b.id,onclick:e=>{e.stopPropagation();if(state==='play')b.act();}});
+    btn.appendChild(glyph(b.glyph));btn.appendChild(el('kbd',{text:b.key}));btn.appendChild(el('i',{class:'dot'}));
+    if(b.touch===false)btn.classList.add('kbm');bar.appendChild(btn);b.el=btn;}
+  updateHudbar(true);
+}
+function updateHudbar(force){
+  if(!force&&time-hudbarT<0.25)return;hudbarT=time;
+  for(const b of HUDBAR){const e=b.el;if(!e)continue;const tip=hbVal(b.tip)||'';
+    if(e.dataset.tip!==tip){e.dataset.tip=tip;e.setAttribute('aria-label',tip+' ('+b.key+')');}
+    e.hidden=!!(b.hide&&b.hide());e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));}
+  // sit just under the name panel, whatever its height
+  const tl=document.querySelector('.hud-tl'),bar=$('hudbar');if(tl&&bar&&!touchOn()){const top=(tl.offsetTop+tl.offsetHeight+8)+'px';if(bar.style.top!==top)bar.style.top=top;}
+}
+// ---- move list ----
+let movesUntil=0,movesChosen=false;
+const movesShown=()=>!hud.keys.classList.contains('fade');
+function showMovesForAWhile(){if(movesChosen)return;hud.keys.classList.remove('fade');movesUntil=time+120;}
+function toggleMoves(){movesChosen=true;movesUntil=0;const show=!movesShown();hud.keys.classList.toggle('fade',!show);hud.keys.classList.toggle('pin',show);updateHudbar(true);}
+function updateMoves(){if(movesUntil&&time>=movesUntil){movesUntil=0;if(!movesChosen){hud.keys.classList.add('fade');updateHudbar(true);}}}
 // ================================================================
 // HUD
 // ================================================================
@@ -6419,7 +6540,7 @@ function openCreator(mode='new'){
   applyLook();creator.hidden=false;$('menu').hidden=true;$('pause').hidden=true;$('create-title').textContent=mode==='rechoose'?'Change your powers':'Create your hero';renderCreator();
 }
 function pickCard(id,on,onclick,tag,extra){const c=POWERS[id];
-  return el('button',{type:'button',class:'pick'+(on?' on':'')+(tag?' special':''),'aria-pressed':String(on),onclick},el('b',{text:PRESETS[id]?PRESETS[id].name:c.name}),
+  return el('button',{type:'button',class:'pick'+(on?' on':'')+(tag?' special':''),'aria-pressed':String(on),onclick},powerIcon(id),el('b',{text:PRESETS[id]?PRESETS[id].name:c.name}),
     el('span',{class:'cat',text:tag||(c.cat==='defence'?'Defence':c.cat==='special'?'Transformation':c.cat==='utility'?'Utility':c.type==='charge'?'Attack · hold':c.cat==='body'?'Body mod':'Attack')}),
     el('span',{text:PRESETS[id]?PRESETS[id].blurb:c.desc}),extra?el('span',{class:'cat',text:extra}):null);}
 function renderCreator(){
@@ -6469,6 +6590,14 @@ function finishCreator(){
   }
   newHero(c);
 }
+// new players start straight away as the Ring Bearer; the first change of powers (J, or the swap icon) is free
+function startAsRingBearer(){
+  const c=validCharacter({name:'Guardian '+Math.floor(rr(100,1000)),suit:2,cape:4,accent:4,capeOn:true,movement:['powerRing'],abilities:[]});
+  if(!c){openCreator();return;}newHero(c,true);
+  feed('You are the Ring Bearer','Press J (the swap icon, top left) to pick other powers · free the first time');
+}
+// the menu's second button, for players who want to pick their powers before they start
+function menuButtons(){let q=$('choose');if(!q){q=el('button',{class:'ghost',id:'choose',type:'button',text:'Choose your powers',onclick:()=>{SFX.init();openCreator();}});$('start').after(q);}q.hidden=!!save.character;}
 function newHero(c,freeChange){
   save.character=c;save.level=1;save.xp=0;save.sp=CONFIG.progression.startSP;save.powerLevels={};save.passives=freshPassives();save.reputation=0;save.rechoiceAt=freeChange?0:Date.now();save.mastery={};save.ring=100;save.battery=300;save.bolt=100;save.cal=100;
   persist();creating=false;draft=null;creator.hidden=true;applyLook();startPlay(true);
@@ -6534,10 +6663,11 @@ addEventListener('keydown',e=>{
   if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(ringLocked()&&state==='play'&&!paused){closeOath();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
   if(state!=='play')return;
   if(e.code==='Tab'||e.code==='KeyK'){if(sheetOpen==='skills')closeSheet();else openSheet('skills');return;}
+  {const hb=HUDBAR_KEYS[e.code];if(hb&&!creating&&!(hb.off&&hb.off())&&!(hb.hide&&hb.hide())){hb.act();return;}} // the HUD icon bar's keys
   if(e.code==='KeyP'){setPaused(!paused);return;}
   if(e.code==='KeyL'){toggleLock();return;}
   if(e.code==='KeyM'){toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
-  if(e.code==='KeyH'){hud.keys.classList.toggle('fade');return;}
+  if(e.code==='KeyH'){toggleMoves();return;}
   if(P.dead&&!paused&&e.code==='KeyR'&&reviveReady()){revive();return;}
   if(paused||P.dead)return;
   if(voidbornLocked()){if(voidbornAway()&&e.code in XQ_CODES)voidbornAnswer(XQ_CODES[e.code]);return;} // Voidborn: only the masks' question can be answered
@@ -7428,6 +7558,7 @@ function setText(e,k,v){if(lastHud[k]!==v){lastHud[k]=v;e.textContent=v;}}
 function setW(e,k,v){v=Math.round(clamp(v,0,1)*1000)/10;if(lastHud[k]!==v){lastHud[k]=v;e.style.width=v+'%';}}
 function updateHud(dt){
   if(state!=='play')return;
+  buildHudbar();updateHudbar();
   const t=repTier(save.reputation);
   setText(hud.htier,'tier',t.name);if(lastHud.tf!==t.faction){lastHud.tf=t.faction;hud.htier.style.color=FACTION_COL[t.faction];}
   setText(hud.lvl,'lvl','LV '+save.level);setW(hud.xpb,'xp',save.xp/xpNeed());
@@ -7465,7 +7596,7 @@ function updateHud(dt){
   hud.vig.style.opacity=(hurtFlash*0.9+(P.hp/maxHp()<0.3?0.35+Math.sin(time*6)*0.1:0)).toFixed(3);
   hud.flash.style.opacity=flashWhite.toFixed(3);
   if(boss&&!boss.leave){hud.bossbar.hidden=false;setText(hud.bossname,'bn',boss.name);setW(hud.bossb,'boss',boss.hp/boss.maxHp);}else hud.bossbar.hidden=true;
-  if(helpTimer>0){helpTimer-=dt;if(helpTimer<=0)hud.keys.classList.add('fade');}
+  updateMoves();
   const tb=$('touch');if(!tb.hidden){const dn=tbtns.querySelector('.dn');if(dn)dn.hidden=!P.flying;const u=tbtns.querySelector('.use');if(u){u.classList.toggle('dim',!it);const t=it?it.kind==='exit'?'EXIT':it.kind==='car'?'CAR':'HELP':'USE';if(u.textContent!==t)u.textContent=t;}}
   if(lastHud.alien!==(P.alien?P.alien.id:'')){lastHud.alien=P.alien?P.alien.id:'';buildHotbar();buildTouchButtons();}
   setText($('online'),'online',MP.status());
@@ -7475,19 +7606,19 @@ function updateHud(dt){
 // ================================================================
 // Main loop
 // ================================================================
-function refreshMenu(){const b=$('start');quickButton();b.textContent=save.character?'Continue as '+save.character.name:'Create your hero';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name:'Pick your powers, then take the city.';}
+function refreshMenu(){const b=$('start');menuButtons();b.textContent=save.character?'Continue as '+save.character.name:'Play';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name:'You start as the Ring Bearer · change powers any time';}
 function startPlay(first){
   if(P.showcase||first||!P.placed){const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.showcase=false;P.placed=true;}
   SFX.init();SFX.setVolume(save.settings.volume);state='play';$('menu').hidden=true;hud.root.hidden=false;
   applyLook();buildHotbar();buildTouchButtons();applyTouchUI();
   if(save.settings.autoLock&&!touchOn())requestLock();
-  helpTimer=18;P.hp=maxHp();P.en=maxEn();
+  showMovesForAWhile();P.hp=maxHp();P.en=maxEn();
   toast(first?'Welcome to Nova Bay':'Welcome back, '+save.character.name,first?'Crimes show up on your minimap. Stop them, or join in.':'LV '+save.level+' · '+repTier(save.reputation).name,'gold');
   syncPlayerDoc(true);renderGuide();Portal.onPlay();
   if(save.migrated)later(3,()=>toast('Powers updated','You now pick one traversal and one body mod. Your hero was converted; Change powers in the pause menu is free right now.','gold'));
   askMic();
 }
-$('start').addEventListener('click',()=>{SFX.init();if(!save.character)openCreator();else startPlay(false);});
+$('start').addEventListener('click',()=>{SFX.init();if(!save.character)startAsRingBearer();else startPlay(false);});
 $('m-lb').addEventListener('click',()=>openSheet('lb'));$('m-mp').addEventListener('click',()=>openSheet('mp'));$('p-mp').addEventListener('click',()=>openSheet('mp'));$('m-set').addEventListener('click',()=>openSheet('set'));
 $('resume').addEventListener('click',resume);
 $('p-skills').addEventListener('click',()=>openSheet('skills'));$('p-look').addEventListener('click',()=>openSheet('look'));

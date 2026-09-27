@@ -284,7 +284,7 @@ function openCreator(mode='new'){
   applyLook();creator.hidden=false;$('menu').hidden=true;$('pause').hidden=true;$('create-title').textContent=mode==='rechoose'?'Change your powers':'Create your hero';renderCreator();
 }
 function pickCard(id,on,onclick,tag,extra){const c=POWERS[id];
-  return el('button',{type:'button',class:'pick'+(on?' on':'')+(tag?' special':''),'aria-pressed':String(on),onclick},el('b',{text:PRESETS[id]?PRESETS[id].name:c.name}),
+  return el('button',{type:'button',class:'pick'+(on?' on':'')+(tag?' special':''),'aria-pressed':String(on),onclick},powerIcon(id),el('b',{text:PRESETS[id]?PRESETS[id].name:c.name}),
     el('span',{class:'cat',text:tag||(c.cat==='defence'?'Defence':c.cat==='special'?'Transformation':c.cat==='utility'?'Utility':c.type==='charge'?'Attack · hold':c.cat==='body'?'Body mod':'Attack')}),
     el('span',{text:PRESETS[id]?PRESETS[id].blurb:c.desc}),extra?el('span',{class:'cat',text:extra}):null);}
 function renderCreator(){
@@ -334,6 +334,14 @@ function finishCreator(){
   }
   newHero(c);
 }
+// new players start straight away as the Ring Bearer; the first change of powers (J, or the swap icon) is free
+function startAsRingBearer(){
+  const c=validCharacter({name:'Guardian '+Math.floor(rr(100,1000)),suit:2,cape:4,accent:4,capeOn:true,movement:['powerRing'],abilities:[]});
+  if(!c){openCreator();return;}newHero(c,true);
+  feed('You are the Ring Bearer','Press J (the swap icon, top left) to pick other powers · free the first time');
+}
+// the menu's second button, for players who want to pick their powers before they start
+function menuButtons(){let q=$('choose');if(!q){q=el('button',{class:'ghost',id:'choose',type:'button',text:'Choose your powers',onclick:()=>{SFX.init();openCreator();}});$('start').after(q);}q.hidden=!!save.character;}
 function newHero(c,freeChange){
   save.character=c;save.level=1;save.xp=0;save.sp=CONFIG.progression.startSP;save.powerLevels={};save.passives=freshPassives();save.reputation=0;save.rechoiceAt=freeChange?0:Date.now();save.mastery={};save.ring=100;save.battery=300;save.bolt=100;save.cal=100;
   persist();creating=false;draft=null;creator.hidden=true;applyLook();startPlay(true);

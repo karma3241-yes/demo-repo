@@ -10,6 +10,7 @@ It works on laptops and phones. The game detects your device and switches betwee
 
 ## Your hero
 
+- **Start playing right away.** New players press **Play** and start as the **Ring Bearer** (or pick **Choose your powers** first). The first change of powers afterwards is free: press `J` or the swap icon in the top-left icon bar. The change-powers screen is wide, and every power has its own icon.
 - **Build your hero.** When you create a hero you pick **one traversal power**. Six of them are complete hero kits (**presets**: Web-Slinger, Speedster, Storm God, Armored Inventor, Sun Titan and Ring Bearer) that come with their own body and moves. You have **five power keys** (`1`–`5`): a hero kit puts **3 of its own moves on keys 1–3** (you choose which) and you pick **2 more for keys 4–5**, either the rest of your kit or any power from the shared pool (so the Ring Bearer and the Speedster can still carry all five of theirs). The last, **Flight**, lets you build your own: pick **one body mod** (its signature move goes on key 1) and **4 abilities**. Saves from before five keys keep their powers and get the new keys filled in; change them any time. You can swap later with **Change powers** in the pause menu whenever you like. Skill points you spent on powers you drop come back to you.
 - **Level up by fighting.** You earn XP from fights, from damage you deal, and from glowing orbs around the city (yellow 25 XP, blue 50, red 100; red orbs only appear on rooftops). Each level gives you **3 skill points**.
 - **Spend skill points** to upgrade your abilities and body mod (up to level 10) and four passives: Strength, Vitality, Healing and Energy (up to level 50 each). Upgraded powers look stronger too. For example, Laser Vision starts as a thin orange line and ends as a thick red beam, and Telekinesis lifts more, and heavier things, as it levels up. **Reset skill points** at the bottom of the Skills screen refunds everything you spent.
@@ -162,10 +163,15 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `G` | Get in or out of a car, or help an injured person up |
 | `V` | Morph Band dial / change back (Ring Bearer: construct wheel; in a construct, tap to step out, hold for the wheel) |
 | `Tab` or `K` | Skills and upgrades |
+| `J` · `I` | Change powers · Appearance |
+| `6` · `7` · `8` | Multiplayer · Settings · Leaderboard |
+| `H` | Show or hide the move list |
 | `L` | Lock or unlock the mouse. When it's unlocked, drag with the middle mouse button to look |
 | `Esc` / `P` | Pause (Appearance, Multiplayer, Leaderboard and Settings are here). In a multiplayer room the menu opens but the game keeps running |
 
-Each hero's own keys (swinging, the speed dial, constructs and so on) are listed above and in the in-game help panel (`H`).
+**Icon bar.** Under your name (top left) is a row of icons, one for every menu: move list, skills, change powers, appearance, multiplayer, settings and leaderboard. Each icon shows its key; with the mouse locked press the key, or press `L` to free the mouse and click. In the CrazyGames build the rewards are here too: double XP (`9`), refill (`0`), try locked powers (`,`) and cosmetics (`.`).
+
+**Move list.** The panel on the right lists everything your current hero can do: moving, your five powers by name (on CrazyGames, with the level each one unlocks at), fighting, the hero's own keys (for the Ring Bearer: constructs, the wheel, the oath, rebuilding) and the menus. It stays open for your first 2 minutes each session; `H` or its icon shows or hides it, and once you choose, it stays that way.
 
 **Driving:** `W` accelerates, `S` brakes and reverses, `A` and `D` steer, `Space` is the handbrake, and `G` gets you out.
 
@@ -237,7 +243,7 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
   - **Double XP** for 5 minutes.
   - **Cosmetics:** 4 glowing suits, 4 trails, 4 capes and 4 auras. Each one is yours for good after one ad, and other players in your room see them.
 - **Short ads** can play after a knockout or when you leave the pause menu. At most once every 3 minutes, and never in the first 3 minutes. The game freezes and the sound is muted while one plays.
-- **Quick play:** new players can skip the power picker and start straight away as a random ready-made hero; their first change of powers (Pause → Change powers) is free.
+- **Rewards in the icon bar:** double XP, refill, try locked powers and cosmetics are HUD icons (keys `9`, `0`, `,`, `.`) instead of pause-menu buttons.
 - **Something to do right away:** every session's first crime starts 30–120 m from you a few seconds after you start, instead of 90–420 m away.
 - **Cloud save:** the save is also kept in CrazyGames' own storage, so progress survives the browser clearing its storage and follows a signed-in player to other devices. When the game starts, the newer of the two saves wins.
 - **Happy time:** level-ups, stopping a heist, beating a boss or a rival hero, and overcharging the ring tell CrazyGames it's a big moment (at most once a minute).
