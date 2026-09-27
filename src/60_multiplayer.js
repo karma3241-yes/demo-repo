@@ -167,7 +167,7 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
     try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),4000);
       const r=await fetch('/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
       const d=r.ok?await r.json():null,list=d&&(Array.isArray(d.iceServers)?d.iceServers:d.iceServers?[d.iceServers]:null);
-      if(list&&list.length){this.ice=list.concat(P2P_ICE);this.iceUntil=performance.now()+6*3600e3;return;}}catch(e){}
+      if(list&&list.length){this.ice=list.concat(P2P_ICE);this.iceUntil=performance.now()+50*60e3;return;}}catch(e){}
     this.ice=P2P_ICE;this.iceUntil=performance.now()+60e3;
   },
   loadLib(){
