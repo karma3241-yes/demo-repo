@@ -123,7 +123,7 @@ function applyPresence(r,p){
   r.beam=Array.isArray(p.b)?{x:n(p.b[0]),y:n(p.b[1]),z:n(p.b[2]),w:clamp(n(p.b[3]),0,8)}:null;r.web=Array.isArray(p.w)?{x:n(p.w[0]),y:n(p.w[1]),z:n(p.w[2])}:null;r.wt=typeof p.wt==='string'?p.wt.slice(0,80):null;
   r.tk=Array.isArray(p.k)&&p.k.length===3?{x:n(p.k[0]),y:n(p.k[1]),z:n(p.k[2])}:null;
   r.car=Array.isArray(p.c)&&CARS[p.c[0]]?{model:p.c[0],yaw:n(p.c[1]),tint:Array.isArray(p.c[2])?[clamp(n(p.c[2][0]),0,1),clamp(n(p.c[2][1]),0,1),clamp(n(p.c[2][2]),0,1),1]:[1,1,1,1]}:null;
-  r.aq=Array.isArray(p.aq)?p.aq.slice(0,XQS.length).filter(v=>Number.isInteger(v)&&v>=0&&v<XQS.length):null; // the Alien X questions this player already got
+  r.aq=Array.isArray(p.aq)?p.aq.slice(0,XQS.length).filter(v=>Number.isInteger(v)&&v>=0&&v<XQS.length):null; // the Voidborn questions this player already got
   r.stars=clamp(n(p.st)|0,0,5);r.sk=clamp(n(p.sk)|0,0,1e5);r.bounty=clamp(n(p.bty),0,1e6);
   r.cn=CONSTRUCTS[p.cn]?p.cn:null;r.cz=clamp(n(p.cz),0,1e5);r.ex=Array.isArray(p.ex)?p.ex.map(n).slice(0,6):null;r.giantS=r.ex&&r.ex[2]>1?clamp(r.ex[2],1,4):1;if(r.ex&&r.ex[3])r.look=civLook(r.look);else if(r.ex&&r.ex[4])r.look.armor=true;
   if(r.pos.y<-40)r.pos.copy(r.tp);
@@ -163,7 +163,7 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   async loadIce(){
     if(this.ice&&performance.now()<this.iceUntil)return;
     try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),4000);
-      const r=await fetch('/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
+      const r=await fetch((PORTAL?SITE_URL:'')+'/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
       const d=r.ok?await r.json():null,list=d&&(Array.isArray(d.iceServers)?d.iceServers:d.iceServers?[d.iceServers]:null);
       if(list&&list.length){this.ice=list.concat(P2P_ICE);this.iceUntil=performance.now()+6*3600e3;return;}}catch(e){}
     this.ice=P2P_ICE;this.iceUntil=performance.now()+60e3;
@@ -180,7 +180,7 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
     if(this.state==='error')return 'Room: '+this.err;
     const n=MP.peers.size;return 'Room '+this.code+' · '+(n?n+' other'+(n>1?'s':'')+' playing':'waiting for friends');
   },
-  changed(){MP.dirty=true;if(sheetOpen==='mp')renderSheet();},
+  changed(){MP.dirty=true;if(sheetOpen==='mp')renderSheet();Portal.roomChanged();},
   fail(msg){this.shutdown();this.state='error';this.err=msg;this.changed();if(state==='play')feed('Multiplayer',msg);},
   shutdown(){
     clearTimeout(this.timer);this.open=false;resetRoom();

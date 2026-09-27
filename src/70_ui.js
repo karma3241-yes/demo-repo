@@ -230,7 +230,7 @@ function renderMP(){
   if(!P2P.available()){B.append(el('p',{class:'muted',text:'This browser can\'t do peer-to-peer connections, so multiplayer is off.'}));return;}
   B.append(el('p',{class:'muted',text:'Play with friends in the same city. One of you creates a room and shares the code or invite link; everyone else joins with it. The room stays open while its host is playing. Each player\'s crimes and traffic are their own; players and their attacks are shared.'}));
   if(P2P.state==='open'){
-    const link=location.origin+location.pathname+'#room='+P2P.code;
+    const link=Portal.inviteLink(P2P.code)||location.origin+location.pathname+'#room='+P2P.code;
     const names=[(save.character?save.character.name:'You')+' (you)'+(P2P.host?' · host':'')];for(const r of MP.peers.values())names.push(r.name+' · LV '+r.level);
     const copy=el('button',{class:'go',type:'button',text:'Copy invite link',onclick:async()=>{try{await navigator.clipboard.writeText(link);copy.textContent='Copied';}catch(e){inp.select();copy.textContent='Press Ctrl+C to copy';}}});
     const inp=el('input',{type:'text',value:link,readonly:'readonly','aria-label':'Invite link'});
@@ -347,7 +347,7 @@ const dialEl=$('dial');
 function dialItems(){
   if(dialKind==='armor')return ARMOR_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Armored Inventor mastery '+c.unlock,glow:'#ff6a3d',info:c.name+' · '+c.attacks,pick:()=>summonConstruct(id)};});
   if(dialKind==='construct')return CON_PAGES.flat().map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Ring mastery '+c.unlock,glow:'#5dff86',cost:c.cost,info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
-  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),lock:'Band LV '+a.unlock,glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · ')+(a.xQuiz?' · '+xTime(alienXDuration())+' if the masks agree (Energy raises it)':''),pick:()=>transformInto(id)};});
+  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),lock:'Band LV '+a.unlock,glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · ')+(a.xQuiz?' · '+xTime(voidbornDuration())+' if the masks agree (Energy raises it)':''),pick:()=>transformInto(id)};});
 }
 let dialPage=0;
 function dialPageTurn(d){} // every construct is on the wheel at once now: nothing to page through
