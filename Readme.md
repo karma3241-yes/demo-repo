@@ -51,7 +51,7 @@ All of these are original characters inspired by famous hero styles.
   - **Overcharge:** say it loudly. The oath panel shows your mic level against a white line, and if your voice passes the line at any point during the oath, finishing it overcharges the ring to **200** instead of 100. Said quietly it stops at 100. You can also say it with a full ring just to overcharge it. Above 100 the ring bar glows and fizzes, and a brighter second layer shows the charge from 100 to 200 (a steady glow if your system asks for reduced motion). The overcharge is spent like any other charge and is kept when you save. **Settings → Ring oath → Overcharge loudness** sets the line; *Test your mic* shows a live level so you can see where your voice lands. The mic is only open while the spoken oath or the mic test is running.
 - **Recharging by typing:** in *Type it* mode, press `O` to hold up the lantern and type the oath to recharge. The game doesn't pause and the mouse stays locked: just start typing, and `Enter` or `Esc` puts the lantern away. The first time, the oath shows in the middle of the screen with an explanation. After you've typed it once, it sits as plain text in the bottom-right corner and `Tab` (NEXT WORD on touch screens) fills in each word for you. At 0 charge you can only walk.
 - **Flying:** `F` flies.
-- **Constructs:** `B` builds your default construct and `V` opens the construct wheel. The choices are a spiked Bubble, a Jet (guns and homing missiles), a Mech and a Huge Mech (punches, guns, missile salvos; the huge one tramples buildings) and a Dragon you ride (claw strike, breath, roar). Inside a construct, left click, right click and `X` are its attacks.
+- **Constructs:** `B` builds your default construct and `V` opens the construct wheel. Inside a construct, tap `V` to step out of it, or hold `V` to open the wheel and switch (let go of `V` on a construct to pick it). The choices are a spiked Bubble, a Jet (guns and homing missiles), a Mech and a Huge Mech (punches, guns, missile salvos; the huge one tramples buildings) and a Dragon you ride (claw strike, breath, roar). Inside a construct, left click, right click and `X` are its attacks.
 - **More constructs** on the wheel's second page (`Q`/`E`, the mouse wheel or the page button switch pages):
   - a **Bike** (ring mastery 2) and a **Race Car** (4) that you drive with `WASD`, `Shift` to boost and `Space` to hop, with guns on left click (and a ram or missiles on right click);
   - a hard-light **Rifle** (1: rapid fire, a heavy burst and a grenade on `X`), a **Bazooka** (3: rockets and a homing salvo) and the **Shoulder Cannon** (8): hold left click to charge it and let go to fire a beam that cuts through buildings.
@@ -108,8 +108,8 @@ The other abilities:
 
 ### Fighting
 
-- **Punch chains.** Click up to four times for a chain. Hits 1–3 stun and keep the target close; hit 4 is a finisher. It launches them, or it's an **uppercut** if you hold `Space`, or a **spike** into the ground if you're in the air. Juggle airborne targets by hitting them again.
-- **Lock on** with `Z` to keep your camera, punches and powers on one target (people, drones, rival heroes, helicopters, bosses or other players), at any distance. Press `Z` again to let go. When you're locked on, your punches lunge to close the gap. When you beat your target, the lock jumps to the nearest enemy within 110 m.
+- **Punch chains.** Click up to four times for a chain. Hits 1–3 stun and keep the target close; hit 4 is a finisher. It launches them, or it's an **uppercut** if you hold `Space`, or a **spike** into the ground if you're in the air. Juggle airborne targets by hitting them again. In the air, only your first three punches hold you up; after that you drop until you land.
+- **Lock on** with `Z` to keep your camera, punches and powers on one target (people, drones, rival heroes, helicopters, bosses or other players), at any distance. Press `Z` again to let go. When you're locked on, your punches lunge to close the gap, and the chain has a slower rhythm (half a second between punches, about a second after a finisher), so you can't spam it. When you beat your target, the lock jumps to the nearest enemy within 110 m.
 - **Dash** with `X` in any direction you're holding, once in mid-air too. You can't be hurt for a moment at the start of a dash.
 - **Charged punch.** While flying and locked on, hold the left mouse button to charge, then let go: you rocket into the target and send them flying hundreds of meters.
 - **Ragdolls.** Anyone launched by a finisher or a charged punch goes limp and tumbles, then gets up if they can.
@@ -119,14 +119,14 @@ You start tough: 220 health, and ordinary people and police do half damage to yo
 
 ### Getting around
 
-- **Space:** anything that flies can keep climbing. Past the clouds the sky turns black, Earth curves away below, and you can keep flying or press `F` to let go and drift slowly back down; nothing snaps you back. The higher you are, the faster you fly (it slows down again near any surface), so the Moon, Mercury, Venus, Mars, Jupiter, Saturn (with its rings), Uranus, Neptune and a few of their moons are all a short trip away. The planets are solid, so you can land on them. The Sun burns. Past the city the ocean goes on and on: nothing pulls you back, so roam as far as you like. Flying constructs like the Dragon can land too: press `F`.
+- **Space:** anything that flies can keep climbing. Past the clouds the sky turns black, Earth curves away below, and you can keep flying or press `F` to let go and drift slowly back down; nothing snaps you back. The higher you are, the faster you fly (it slows down again near any surface), so the Moon, Mercury, Venus, Mars, Jupiter, Saturn (with its rings), Uranus, Neptune and a few of their moons are all a short trip away. The planets are solid, so you can land on them. The Sun burns. Past the city the ocean goes on and on: nothing pulls you back, so roam as far as you like. Flying constructs like the Dragon can land too: press `F`. Once you're far from Earth (about 9 km), the city, its lakes and the ocean drop out of view and only the planet is drawn.
 - **Wall running** is for everyone: sprint (hold `Shift`) into a wall to run up it, or hit it at an angle to run along it. `Space` leaps off. The Speedster's wall running gets faster with the speed dial.
 - **Parkour leap:** a quick jump while sprinting carries you much further.
 - **At night** the street lamps and car headlights light up the streets around you.
 
 ### Morph Band
 
-The Morph Band is an ability that turns you into one of six alien forms. Press `V` (or its ability key) to open the dial, then pick an alien. While you're transformed, your ability keys use the alien's own powers, and a timer counts down until you change back. Press `V` again to change back early. The band then needs to recharge. Alien forms move with their own body, not your traversal power.
+The Morph Band is an ability that turns you into one of seven alien forms. Press `V` (or its ability key) to open the dial, then pick an alien. While you're transformed, your ability keys use the alien's own powers, and a timer counts down until you change back. Press `V` again to change back early. The band then needs to recharge. Alien forms move with their own body, not your traversal power.
 
 | Alien | Band level | What it does |
 | --- | --- | --- |
@@ -136,8 +136,14 @@ The Morph Band is an ability that turns you into one of six alien forms. Press `
 | Voltwing | 5 | Very fast and climbs anything: chain lightning, an EMP that stalls cars, short-range blinks |
 | Colossus | 7 | A titan three times your size: ground stomps, car throwing, huge punches |
 | Umbra | 9 | Shadow phaser: turns invisible to enemies, walks through walls, teleport strikes |
+| Alien X | 1 | Flies. Star Flick (a huge cone blast), Big Bang (an explosion where you aim), Rewrite (full heal and freezes everyone near you for 4 s). But first you have to answer the masks (below) |
 
-Upgrading the band unlocks more aliens, makes transformations last longer (45 s at level 1, 150 s at level 10), shortens the recharge and makes alien attacks hit harder. The aliens are original designs.
+Upgrading the band unlocks more aliens, makes transformations last longer (45 s at level 1, 150 s at level 10), shortens the recharge and makes alien attacks hit harder. The other aliens are original designs.
+
+**Alien X** works differently. The moment you morph, your body turns into Alien X and freezes where it stands, and your view is pulled out to a far corner of space with two giant floating masks. They ask one question with three answers: press `1`, `2` or `3` (or tap / click an answer) within 20 s. While you're being asked, nothing can hurt you.
+- **Right answer:** your view comes back and you play as Alien X. How long depends on your **Energy** passive, not the band level: 5 s with no Energy upgrades, rising in a straight line to **3 minutes** at the max (Energy 50). The dial shows your current time.
+- **Wrong answer (or out of time):** your view comes back, but you stay frozen in the Alien X body for 30 s: you can't move, use powers or change back, and you can be hit. Then you change back and the band recharges.
+- There are 30 questions. You get one you haven't had yet every time (after all 30 they start over), and in a multiplayer room no two players get the same question.
 
 ## Controls
 
@@ -154,7 +160,7 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `U` | Suit up / suit down |
 | `O` | Ring Bearer: hold up the lantern and say (or type) the oath. While you're saying it, `O` or `Esc` puts it away |
 | `G` | Get in or out of a car, or help an injured person up |
-| `V` | Morph Band dial / change back (Ring Bearer: construct wheel) |
+| `V` | Morph Band dial / change back (Ring Bearer: construct wheel; in a construct, tap to step out, hold for the wheel) |
 | `Tab` or `K` | Skills and upgrades |
 | `L` | Lock or unlock the mouse. When it's unlocked, drag with the middle mouse button to look |
 | `Esc` / `P` | Pause (Appearance, Multiplayer, Leaderboard and Settings are here). In a multiplayer room the menu opens but the game keeps running |
@@ -223,7 +229,7 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 | `40_powers.js`, `47_abilities.js` | Hero powers, including the hero-inspired abilities |
 | `42_combat.js`, `43_ragdoll.js` | Lock-on, punch chains, dash, charged punch, impacts, ragdolls |
 | `44_movement.js` | Web swinging, web zip, wall running |
-| `45_aliens.js` | Morph Band aliens |
+| `45_aliens.js`, `45b_alienx.js` | Morph Band aliens; Alien X's masks and questions |
 | `46_buildings.js` | Building damage, collapse and regrowth |
 | `49d_wanted.js` | Wanted stars and bounty |
 | `50_npcs.js`, `52_heli.js` | People, traffic, police, helicopters, crimes, heists, rivals |

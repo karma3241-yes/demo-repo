@@ -16,6 +16,9 @@ const ALIENS={
     body:'#6b6f7a',glow:'#ff9a3a',abilities:[{id:'stomp',name:'Titan Stomp',cd:4},{id:'carToss',name:'Car Toss',cd:3},{id:'megaPunch',name:'Mega Punch',cd:1.4}]},
   umbra:{name:'Umbra',blurb:'Shadow phaser. Turns invisible and walks through walls.',unlock:9,scale:1,hp:0.9,speed:1.3,jump:1.2,
     body:'#141018',glow:'#b04dff',abilities:[{id:'veil',name:'Shadow Veil',cd:15},{id:'phase',name:'Phase',cd:1,toggle:true},{id:'shadowStrike',name:'Shadow Strike',cd:4}]},
+  // Alien X: the two masks must agree before he moves (see 45b_alienx.js); his time grows with the Energy passive
+  alienX:{name:'Alien X',blurb:'Reality itself. Answer the two masks first, or stand frozen.',unlock:1,scale:1.6,hp:4,speed:1.4,jump:1.6,flies:true,flySpeed:140,xQuiz:true,
+    body:'#06060c',glow:'#eef6ff',abilities:[{id:'starFlick',name:'Star Flick',cd:1.2},{id:'bigBang',name:'Big Bang',cd:8},{id:'rewrite',name:'Rewrite',cd:20}]},
 };
 const ALIEN_IDS=Object.keys(ALIENS);
 const BAND_COL=[.62,.36,1];
@@ -33,16 +36,18 @@ function bandPress(){
 function transformInto(id){
   const a=ALIENS[id];if(!a||!aliensUnlocked().includes(id)||P.alien)return;
   const frac=P.hp/maxHp();stopAllPowers();
-  P.alien={id,t:pstat('morphBand','duration'),max:pstat('morphBand','duration'),cds:[0,0,0],armor:0,veil:0,phase:0,channel:false,warn:0};
+  const dur=a.xQuiz?alienXDuration():pstat('morphBand','duration');
+  P.alien={id,t:dur,max:dur,cds:[0,0,0],armor:0,veil:0,phase:0,channel:false,warn:0};
   P.radius=0.8*Math.max(1,a.scale*0.8);P.height=2.7*a.scale;P.hp=frac*maxHp();
   P.flying=!!a.flies;if(a.flies)P.grounded=false; // alien forms move with their own body, not your flight power
   const c=center(P);ringFx(c.x,c.y,c.z,1,10*a.scale,0.6,BAND_COL);ringFx(c.x,c.y,c.z,1,6,0.4,[1,1,1]);
   burst(c.x,c.y,c.z,90,18,1,[BAND_COL,[.85,.7,1],[1,1,1]],1.6,0,2);flashWhite=0.45;SFX.transform();addShake(0.3);
   toast(a.name,a.blurb,'purple');MP.fx('t',{});buildHotbar();buildTouchButtons();MP.bump();
+  if(a.xQuiz)alienXBegin();
 }
 function revertAlien(silent){
   if(!P.alien)return;const frac=P.hp/maxHp();const a=alienDef();
-  if(P.alien.phase>0)unphase();
+  if(P.alien.phase>0)unphase();if(P.alien.xq)alienXEnd();
   P.alien=null;P.radius=0.8;P.height=2.7;P.hp=Math.max(1,frac*maxHp());P.invisible=0;
   if(a&&a.flies&&!hasPower('flight'))P.flying=false;
   band.cd=pstat('morphBand','recharge');
@@ -121,7 +126,8 @@ function updateAliens(dt){
   if(band.cd>0)band.cd=Math.max(0,band.cd-dt);
   if(P.alien){const A=P.alien,a=alienDef();
     for(let i=0;i<3;i++)if(A.cds[i]>0)A.cds[i]=Math.max(0,A.cds[i]-dt);
-    if(state==='play'&&!P.dead){A.t-=dt;if(A.t<5&&A.t>0){A.warn-=dt;if(A.warn<=0){A.warn=1;SFX.tone('square',900,900,0.08,0.06);}}if(A.t<=0){revertAlien(false);feed('Morph Band timed out','Recharging for '+Math.ceil(band.cd)+' s');}}
+    if(A.xq&&A.xq.stage!=='play'){if(state==='play'&&!P.dead)alienXTick(dt);} // the masks hold the clock until he is free
+    else if(state==='play'&&!P.dead){A.t-=dt;if(A.t<5&&A.t>0){A.warn-=dt;if(A.warn<=0){A.warn=1;SFX.tone('square',900,900,0.08,0.06);}}if(A.t<=0){revertAlien(false);feed('Morph Band timed out','Recharging for '+Math.ceil(band.cd)+' s');}}
     if(A.armor>0)A.armor-=dt;if(P.invisible>0)P.invisible-=dt;
     if(A.phase>0){A.phase-=dt;if(A.phase<=0)unphase();}
     if(A.channel&&a.abilities.some(x=>x.id==='frostBreath')){const m=alienMul(),c=center(P);coneHit(18,0.75,25*m*dt,{},'ice');
