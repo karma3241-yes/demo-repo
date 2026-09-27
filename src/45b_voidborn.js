@@ -1,13 +1,13 @@
 // ================================================================
-// Alien X: two giant masks decide whether you get to move
+// Voidborn: two giant masks decide whether you get to move
 // ================================================================
-// Morph into Alien X and your body freezes in place while your view is pulled out to a far corner of space,
-// where two floating masks ask one question with three answers. Answer right and you play as Alien X; answer
+// Morph into Voidborn and your body freezes in place while your view is pulled out to a far corner of space,
+// where two floating masks ask one question with three answers. Answer right and you play as Voidborn; answer
 // wrong (or run out of time) and you stand frozen in the alien body for 30 s. Playtime grows linearly with the
 // Energy passive: 5 s at level 0, 3 minutes at the max. Every morph brings a question you haven't had yet, and
 // in multiplayer no two players in the room get the same one (each player's questions ride in their presence).
-const ALIENX={dur:[5,180],answer:20,lock:30,realm:{x:0,y:320000,z:0}};
-function alienXDuration(){return ALIENX.dur[0]+(ALIENX.dur[1]-ALIENX.dur[0])*clamp(pv('energy')/CONFIG.passiveMax,0,1);}
+const VOIDBORN={dur:[5,180],answer:20,lock:30,realm:{x:0,y:320000,z:0}};
+function voidbornDuration(){return VOIDBORN.dur[0]+(VOIDBORN.dur[1]-VOIDBORN.dur[0])*clamp(pv('energy')/CONFIG.passiveMax,0,1);}
 // c is the index of the right answer (answers are shuffled on screen)
 const XQS=[
   {q:'Which planet is known as the Red Planet?',a:['Mars','Venus','Jupiter'],c:0},
@@ -54,32 +54,32 @@ function pickXQuestion(){
   persist();MP.fx('aq',{q});MP.bump();return q;
 }
 function onXClaim(d){const q=Math.floor(+d.q);if(q>=0&&q<XQS.length)XQ.claimed.add(q);}
-const alienXStage=()=>P.alien&&P.alien.xq?P.alien.xq.stage:'';
-const alienXLocked=()=>{const s=alienXStage();return s==='quiz'||s==='lock';}; // frozen: no moving, no powers, no reverting
-const alienXAway=()=>alienXStage()==='quiz';                                   // your view is out with the masks
+const voidbornStage=()=>P.alien&&P.alien.xq?P.alien.xq.stage:'';
+const voidbornLocked=()=>{const s=voidbornStage();return s==='quiz'||s==='lock';}; // frozen: no moving, no powers, no reverting
+const voidbornAway=()=>voidbornStage()==='quiz';                                   // your view is out with the masks
 const XQ_CODES={Digit1:0,Digit2:1,Digit3:2,Numpad1:0,Numpad2:1,Numpad3:2};
-function alienXBegin(){
+function voidbornBegin(){
   const A=P.alien,qi=pickXQuestion(),order=[0,1,2];
   for(let i=2;i>0;i--){const j=(Math.random()*(i+1))|0;[order[i],order[j]]=[order[j],order[i]];}
-  A.xq={stage:'quiz',q:qi,order,t:ALIENX.answer};P.vel.set(0,0,0);mouseL=false;if(lockT)lockT=null;
+  A.xq={stage:'quiz',q:qi,order,t:VOIDBORN.answer};P.vel.set(0,0,0);mouseL=false;if(lockT)lockT=null;
   if(dialOpen)closeDial();renderXQuiz(true);SFX.tone('sine',110,55,1.2,0.12);
 }
-function alienXAnswer(k){
+function voidbornAnswer(k){
   const A=P.alien;if(!A||!A.xq||A.xq.stage!=='quiz')return;const X=A.xq,Q=XQS[X.q];
   if(k>=0&&X.order[k]===Q.c){X.stage='play';
     const c=center(P);ringFx(c.x,c.y,c.z,1,18,0.7,[1,1,1]);burst(c.x,c.y,c.z,90,20,1,[[1,1,1],[.7,.8,1]],1.6,0,2);flashWhite=0.4;SFX.chime();
-    toast('The masks agree','You are Alien X for '+xTime(A.t),'purple');}
-  else{X.stage='lock';X.t=ALIENX.lock;SFX.tone('sawtooth',220,70,0.6,0.1);
-    toast(k<0?'Too slow':'The masks disagree','Frozen for '+ALIENX.lock+' s · the answer was '+Q.a[Q.c],'red');}
+    toast('The masks agree','You are Voidborn for '+xTime(A.t),'purple');}
+  else{X.stage='lock';X.t=VOIDBORN.lock;SFX.tone('sawtooth',220,70,0.6,0.1);
+    toast(k<0?'Too slow':'The masks disagree','Frozen for '+VOIDBORN.lock+' s · the answer was '+Q.a[Q.c],'red');}
   renderXQuiz(true);MP.bump();
 }
-function alienXTick(dt){
+function voidbornTick(dt){
   const X=P.alien.xq;X.t-=dt;
-  if(X.stage==='quiz'&&X.t<=0){alienXAnswer(-1);return;}
+  if(X.stage==='quiz'&&X.t<=0){voidbornAnswer(-1);return;}
   if(X.stage==='lock'&&X.t<=0){revertAlien(false);feed('The masks let you go','Morph Band recharging for '+Math.ceil(band.cd)+' s');return;}
   renderXQuiz(false);
 }
-function alienXEnd(){xqEl.hidden=true;xqEl.dataset.mode='';}
+function voidbornEnd(){xqEl.hidden=true;xqEl.dataset.mode='';}
 const xTime=s=>s>=60?Math.floor(s/60)+' min'+(s%60>=1?' '+Math.round(s%60)+' s':''):Math.round(s)+' s';
 // ---- the question card (keys 1-3, or tap / click an answer) ----
 const xqEl=(()=>{const e=document.createElement('div');e.id='xquiz';e.hidden=true;e.setAttribute('role','dialog');e.setAttribute('aria-live','polite');document.body.appendChild(e);return e;})();
@@ -89,7 +89,7 @@ function renderXQuiz(full){
   if(full||xqEl.dataset.mode!==X.stage){xqEl.dataset.mode=X.stage;xqEl.textContent='';xqEl.hidden=false;
     if(X.stage==='quiz'){const Q=XQS[X.q];
       xqEl.append(el('div',{class:'xq-head',text:'The two masks ask'}),el('p',{class:'xq-q',text:Q.q}),
-        el('div',{class:'xq-opts'},...X.order.map((ai,k)=>el('button',{type:'button',class:'xq-opt',onclick:()=>alienXAnswer(k)},el('kbd',{text:String(k+1)}),el('span',{text:Q.a[ai]})))),
+        el('div',{class:'xq-opts'},...X.order.map((ai,k)=>el('button',{type:'button',class:'xq-opt',onclick:()=>voidbornAnswer(k)},el('kbd',{text:String(k+1)}),el('span',{text:Q.a[ai]})))),
         el('div',{class:'xq-foot'}));}
     else xqEl.append(el('div',{class:'xq-head',text:'Frozen by the masks'}),el('div',{class:'xq-foot'}));}
   const f=xqEl.querySelector('.xq-foot'),txt=X.stage==='quiz'?(touchOn()?'Tap an answer':'Press 1, 2 or 3')+' · '+left+' s':'You can move again in '+left+' s';
@@ -97,7 +97,7 @@ function renderXQuiz(full){
 }
 // ---- the far-off place: two giant floating masks, only drawn for the player being asked ----
 function drawXRealm(){
-  if(!alienXAway())return;const R=ALIENX.realm,t=time;
+  if(!voidbornAway())return;const R=VOIDBORN.realm,t=time;
   for(const sd of [-1,1]){
     const calm=sd>0,face=calm?[.5,.56,.68,1]:[.42,.05,.04,1],dark=calm?[.3,.34,.44,1]:[.16,.02,.02,1],glow=calm?[.3,.7,1,1]:[1,.5,.15,1];
     const root=at(R.x+sd*210,R.y+Math.sin(t*0.8+sd)*14,R.z-560,Math.sin(t*0.6+sd)*0.04,-sd*0.28+Math.sin(t*0.5+sd)*0.05,Math.sin(t*0.7-sd)*0.05);
@@ -110,7 +110,7 @@ function drawXRealm(){
     for(let k=0;k<6;k++){const a=t*0.4+k*TAU/6+sd,g=6+2*Math.sin(t*3+k);queue(MESH.glowSphere,child(root,Math.cos(a)*170,Math.sin(a)*200,-20,0,0,0,g,g,g),glow,F_ADD);} // motes circling the mask
   }
 }
-// ---- Alien X's powers once the masks agree ----
+// ---- Voidborn's powers once the masks agree ----
 Object.assign(ALIEN_FN,{
   starFlick(){const m=alienMul();P.punchT=time;P.punchArm=-P.punchArm||1;const n=coneHit(32,0.55,110*m,{knock:45,stun:0.6},'punch');const c=center(P);
     for(let k=0;k<70;k++){const s=rr(30,70),sp=rr(-0.25,0.25);emit(c.x,c.y,c.z,(camF.x+sp)*s,camF.y*s+rr(-4,4),(camF.z-sp)*s,0.7,k%3?[1,1,1]:[.7,.8,1],rr(0.6,1.4),0,2);}

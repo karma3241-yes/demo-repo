@@ -38,7 +38,7 @@ const Damage={
     if(tsIntercept(src,t,amount,type,opt))return amount;
     if(t===P){
       if(P.dead||state!=='play')return 0;
-      if(alienXAway())return 0; // being questioned by the masks, far away
+      if(voidbornAway())return 0; // being questioned by the masks, far away
       if(P.iframeT>0){if(time-(P.dodgeT||-9)>0.4){P.dodgeT=time;feed('Dodged','');}return 0;}
       if(spiderSense(src,type))return 0;
       if(src&&src.kind!=='remote'&&type!=='pvp')amount*=CONFIG.health.npcTaken;
@@ -84,14 +84,14 @@ function playerDown(killer){
 function respawn(){
   const s=SPAWNS[(Math.random()*SPAWNS.length)|0];if(P.alien)revertAlien(true);
   P.dead=false;P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();clearWanted();P.stun=0;P.lastHit=-99;
-  $('dead').hidden=true;
+  $('dead').hidden=true;Portal.midgame();
 }
 
 // ---- progression ----
 const xpNeed=()=>CONFIG.progression.xpToNext(save.level);
 function addXP(n){
   if(!(n>0)||save.level>=CONFIG.progression.levelCap)return;
-  save.xp+=n;let ups=0;
+  n*=Portal.xpMul();save.xp+=n;let ups=0;
   while(save.level<CONFIG.progression.levelCap&&save.xp>=xpNeed()){save.xp-=xpNeed();save.level++;save.sp+=CONFIG.progression.spPerLevel;ups++;}
   if(ups){
     P.hp=maxHp();P.en=maxEn();

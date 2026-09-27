@@ -136,13 +136,13 @@ The Morph Band is an ability that turns you into one of seven alien forms. Press
 | Voltwing | 5 | Very fast and climbs anything: chain lightning, an EMP that stalls cars, short-range blinks |
 | Colossus | 7 | A titan three times your size: ground stomps, car throwing, huge punches |
 | Umbra | 9 | Shadow phaser: turns invisible to enemies, walks through walls, teleport strikes |
-| Alien X | 1 | Flies. Star Flick (a huge cone blast), Big Bang (an explosion where you aim), Rewrite (full heal and freezes everyone near you for 4 s). But first you have to answer the masks (below) |
+| Voidborn | 1 | Flies. Star Flick (a huge cone blast), Big Bang (an explosion where you aim), Rewrite (full heal and freezes everyone near you for 4 s). But first you have to answer the masks (below) |
 
-Upgrading the band unlocks more aliens, makes transformations last longer (45 s at level 1, 150 s at level 10), shortens the recharge and makes alien attacks hit harder. The other aliens are original designs.
+Upgrading the band unlocks more aliens, makes transformations last longer (45 s at level 1, 150 s at level 10), shortens the recharge and makes alien attacks hit harder. The aliens are original designs.
 
-**Alien X** works differently. The moment you morph, your body turns into Alien X and freezes where it stands, and your view is pulled out to a far corner of space with two giant floating masks. They ask one question with three answers: press `1`, `2` or `3` (or tap / click an answer) within 20 s. While you're being asked, nothing can hurt you.
-- **Right answer:** your view comes back and you play as Alien X. How long depends on your **Energy** passive, not the band level: 5 s with no Energy upgrades, rising in a straight line to **3 minutes** at the max (Energy 50). The dial shows your current time.
-- **Wrong answer (or out of time):** your view comes back, but you stay frozen in the Alien X body for 30 s: you can't move, use powers or change back, and you can be hit. Then you change back and the band recharges.
+**Voidborn** works differently. The moment you morph, your body turns into Voidborn and freezes where it stands, and your view is pulled out to a far corner of space with two giant floating masks. They ask one question with three answers: press `1`, `2` or `3` (or tap / click an answer) within 20 s. While you're being asked, nothing can hurt you.
+- **Right answer:** your view comes back and you play as Voidborn. How long depends on your **Energy** passive, not the band level: 5 s with no Energy upgrades, rising in a straight line to **3 minutes** at the max (Energy 50). The dial shows your current time.
+- **Wrong answer (or out of time):** your view comes back, but you stay frozen in the Voidborn body for 30 s: you can't move, use powers or change back, and you can be hit. Then you change back and the band recharges.
 - There are 30 questions. You get one you haven't had yet every time (after all 30 they start over), and in a multiplayer room no two players get the same question.
 
 ## Controls
@@ -219,6 +219,12 @@ Progress saves automatically in your browser. A short checklist in the corner wa
 
 The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS shell. Run `node tools/build.mjs` to join them into `index.html` (no packages needed). Commit the rebuilt `index.html` alongside source changes.
 
+**CrazyGames build.** `node tools/build.mjs crazygames` also writes `dist/crazygames/index.html`: the same game with the CrazyGames SDK loaded in front of it. Zip that one file (with `index.html` at the top of the zip) and upload it on the CrazyGames developer portal. The website and the claude.ai version never load the SDK. In the CrazyGames build:
+- the portal is told when you're actually playing (not in menus, paused, knocked out or watching an ad);
+- a short ad can play after a knockout or when you leave the pause menu, at most once every 3 minutes and never in the first 3 minutes; the game freezes and the sound is muted while it plays;
+- the pause menu has **Watch an ad: double XP for 5 min** (a rewarded ad);
+- room-code multiplayer works as on the website, peer to peer. A room shows CrazyGames' invite button, invite links open straight into the room, and CrazyGames' "play with friends" starts a room. The relay credentials still come from this site's `/api/turn`, which answers CrazyGames pages too.
+
 | Module | Contents |
 | --- | --- |
 | `00_engine.js` | Math, WebGL 2 renderer, geometry, particles, audio |
@@ -229,11 +235,12 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 | `40_powers.js`, `47_abilities.js` | Hero powers, including the hero-inspired abilities |
 | `42_combat.js`, `43_ragdoll.js` | Lock-on, punch chains, dash, charged punch, impacts, ragdolls |
 | `44_movement.js` | Web swinging, web zip, wall running |
-| `45_aliens.js`, `45b_alienx.js` | Morph Band aliens; Alien X's masks and questions |
+| `45_aliens.js`, `45b_voidborn.js` | Morph Band aliens; Voidborn's masks and questions |
 | `46_buildings.js` | Building damage, collapse and regrowth |
 | `49d_wanted.js` | Wanted stars and bounty |
 | `50_npcs.js`, `52_heli.js` | People, traffic, police, helicopters, crimes, heists, rivals |
 | `60_multiplayer.js`, `62_worldsync.js`, `63_host.js` | Players over the claude.ai room or room codes, the shared host city, and room host controls |
+| `64_portal.js` | CrazyGames build: gameplay events, ad breaks, the double-XP rewarded ad, invite links |
 | `70_ui.js`, `80_player.js` | HUD, menus, input, driving, player movement |
 | `90_render.js`, `99_main.js` | Camera, models, draw list, main loop |
 
