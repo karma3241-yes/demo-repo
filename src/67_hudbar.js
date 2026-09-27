@@ -5,7 +5,9 @@
 // press the key; L frees the mouse to click them. On touch screens tap them. The CrazyGames build adds its rewards here
 // (double XP, refill, try locked powers, cosmetics) instead of in the pause menu.
 // The move list (right side) lists everything your hero can do. It is open for the first 2 minutes of each session;
-// H or its icon shows or hides it, and once you choose it stays that way for the session.
+// H or its icon shows or hides it, and once you choose it stays that way for the session. It lays out in two columns
+// and shrinks to fit (folding "Getting started" down to its next step if it has to), so it never needs scrolling.
+// The leaderboard sits under the icons on the left (the full board opens from it, the main menu or the pause menu).
 const HUDBAR=[
   {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
@@ -13,7 +15,6 @@ const HUDBAR=[
   {id:'look',glyph:'shirt',key:'I',code:'KeyI',tip:'Appearance',act:()=>sheetToggle('look'),on:()=>sheetOpen==='look'},
   {id:'mp',glyph:'people',key:'6',code:'Digit6',tip:'Multiplayer',act:()=>sheetToggle('mp'),on:()=>sheetOpen==='mp'||MP.online()},
   {id:'set',glyph:'gear',key:'7',code:'Digit7',tip:'Settings',act:()=>sheetToggle('set'),on:()=>sheetOpen==='set'},
-  {id:'lb',glyph:'trophy',key:'8',code:'Digit8',tip:'Leaderboard',act:()=>sheetToggle('lb'),on:()=>sheetOpen==='lb'},
   // CrazyGames build only
   {id:'xp',glyph:'x2',key:'9',code:'Digit9',portal:true,act:()=>Portal.rewardXP(),
     tip:()=>{const l=Portal.boostUntil-time;return l>0?'Double XP active · '+Math.ceil(l/60)+' min left':'Watch an ad: double XP for 5 min';},
@@ -43,10 +44,52 @@ function updateHudbar(force){
     e.hidden=!!(b.hide&&b.hide());e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));}
   // sit just under the name panel, whatever its height
   const tl=document.querySelector('.hud-tl'),bar=$('hudbar');if(tl&&bar&&!touchOn()){const top=(tl.offsetTop+tl.offsetHeight+8)+'px';if(bar.style.top!==top)bar.style.top=top;}
+  updateLBMini();
+}
+// ---- the leaderboard panel (left, under the icons) ----
+let lbMiniKey='',lbMiniTop=-1;
+function lbRows(tab){
+  if(LB.db)return LB.lists[tab]||[];
+  let rows=save.character?[{id:'me',name:save.character.name,level:save.level,rep:save.reputation}]:[];
+  if(tab==='respected')rows=rows.filter(r=>r.rep>0);if(tab==='feared')rows=rows.filter(r=>r.rep<0);return rows;
+}
+const LB_TABS=[['respected','Respected'],['feared','Feared'],['level','Level']];
+function updateLBMini(force){
+  const box=$('lbmini');if(!box)return;
+  if(touchOn()||state!=='play'){box.hidden=true;return;} // touch screens: Leaderboard is in the pause menu
+  const bar=$('hudbar'),top=bar.offsetTop+bar.offsetHeight+8,room=innerHeight-top-212; // 212: the minimap below it
+  if(room<70){box.hidden=true;return;}box.hidden=false;
+  if(top!==lbMiniTop){lbMiniTop=top;box.style.top=top+'px';}
+  const max=clamp(Math.floor((room-52)/19),1,5),rows=lbRows(lbTab).slice(0,max);
+  const key=lbTab+'|'+max+'|'+rows.map(r=>r.id+':'+r.name+':'+r.level+':'+r.rep).join(',')+'|'+(LB.uid||'');
+  if(!force&&key===lbMiniKey)return;lbMiniKey=key;box.textContent='';
+  const open=e=>{e.stopPropagation();if(state==='play')openSheet('lb');};
+  box.appendChild(el('button',{type:'button',class:'lbm-head',onclick:open,title:'Open the full leaderboard'},glyph('trophy'),el('b',{text:'Leaderboard'})));
+  box.appendChild(el('div',{class:'lbm-tabs'},...LB_TABS.map(([k,l])=>el('button',{type:'button','aria-pressed':String(lbTab===k),text:l,onclick:e=>{e.stopPropagation();lbTab=k;updateLBMini(true);}}))));
+  if(!rows.length){box.appendChild(el('p',{class:'lbm-none',text:LB.db?'Nobody here yet':'Shared board on claude.ai'}));return;}
+  const ol=el('ol');rows.forEach((r,i)=>ol.appendChild(el('li',{class:(r.id===LB.uid||r.id==='me')?'me':''},el('i',{text:String(i+1)}),el('span',{text:r.name}),
+    el('b',{text:lbTab==='level'?'LV '+r.level:(r.rep>0?'+':'')+r.rep.toLocaleString('en-US')}))));
+  box.appendChild(ol);
 }
 // ---- move list ----
 let movesUntil=0,movesChosen=false;
 const movesShown=()=>!hud.keys.classList.contains('fade');
-function showMovesForAWhile(){if(movesChosen)return;hud.keys.classList.remove('fade');movesUntil=time+120;}
-function toggleMoves(){movesChosen=true;movesUntil=0;const show=!movesShown();hud.keys.classList.toggle('fade',!show);hud.keys.classList.toggle('pin',show);updateHudbar(true);}
-function updateMoves(){if(movesUntil&&time>=movesUntil){movesUntil=0;if(!movesChosen){hud.keys.classList.add('fade');updateHudbar(true);}}}
+function showMovesForAWhile(){if(movesChosen)return;hud.keys.classList.remove('fade');movesUntil=time+120;fitMoves();}
+function toggleMoves(){movesChosen=true;movesUntil=0;const show=!movesShown();hud.keys.classList.toggle('fade',!show);hud.keys.classList.toggle('pin',show);fitMoves();updateHudbar(true);}
+let fitT=0;
+function updateMoves(){if(movesUntil&&time>=movesUntil){movesUntil=0;if(!movesChosen){hud.keys.classList.add('fade');fitMoves();updateHudbar(true);}}
+  if(time-fitT>1)fitMoves();}
+// fit the whole list on screen: place it under "Getting started", then fold that down to its next step, then use the tight rows
+function fitMoves(){
+  fitT=time;const k=hud.keys,g=$('guide');if(!k)return;
+  const shown=movesShown()&&getComputedStyle(k).display!=='none';
+  if(!shown){if(g.classList.contains('mini'))g.classList.remove('mini');return;}
+  const place=()=>{const top=g.hidden?96:g.offsetTop+g.offsetHeight+8;k.style.top=top+'px';k.style.maxHeight=Math.max(120,innerHeight-top-150)+'px';};
+  const over=()=>k.scrollHeight>k.clientHeight+1;
+  g.classList.remove('mini');k.classList.remove('tight');place();
+  if(over()&&!g.hidden){g.classList.add('mini');place();}
+  if(over())k.classList.add('tight');
+}
+addEventListener('resize',()=>fitMoves());
+// if it still can't fit (a very small window), the wheel scrolls it while the mouse is free, without also resizing a power
+document.getElementById('keys').addEventListener('wheel',e=>{const k=e.currentTarget;if(k.scrollHeight>k.clientHeight+1)e.stopPropagation();},{passive:true});

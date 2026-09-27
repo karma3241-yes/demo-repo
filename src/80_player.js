@@ -22,9 +22,9 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyL'){toggleLock();return;}
   if(e.code==='KeyM'){toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
   if(e.code==='KeyH'){toggleMoves();return;}
-  if(P.dead&&!paused&&e.code==='KeyR'&&reviveReady()){revive();return;}
   if(paused||P.dead)return;
   if(voidbornLocked()){if(voidbornAway()&&e.code in XQ_CODES)voidbornAnswer(XQ_CODES[e.code]);return;} // Voidborn: only the masks' question can be answered
+  if(P.swim&&e.code==='KeyC')return; // C dives while swimming
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
@@ -82,7 +82,8 @@ function setPaused(v){
 }
 function resume(){if(sheetOpen)closeSheet();setPaused(false);Portal.midgame();if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
-function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
+function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.swim&&!P.grounded)return; // under water Space just swims you up
+  if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
 // web-slingers: tap Space in the air to web-zip, hold it to open the web wings
 function releaseJump(){if(P.charging&&canAct())doJump();P.charging=false;
   if(P.spaceT&&!P.wings&&time-P.spaceT<0.22&&!P.grounded&&canAct())webZip();P.spaceT=0;}
@@ -283,7 +284,7 @@ function updatePlayer(dt){
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
   const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=(P.alien&&P.alien.phase>0)||P.phasing;
-  P.speeding=false;
+  P.speeding=false;swimCheck(shift,phasing);
   if(P.wallRun)wallRunStep(dt,inF,inR);
   else if(P.wall){
     const w=P.wall,cs=(AL&&AL.climb?18:pstat('wallClimb','speed'))*slowMul;let tx=-w.nz,tz=w.nx;if(tx*camR.x+tz*camR.z<0){tx=-tx;tz=-tz;}
@@ -299,6 +300,7 @@ function updatePlayer(dt){
     if(P.dashT>0){P.dashT-=dt;const m=alienMul();for(const q of actors){if(!q.alive||q.kind==='prop'||time-(q.dashHit||-9)<0.5)continue;const c=center(q);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1,c.z-P.pos.z)<3.5){q.dashHit=time;Damage.apply(P,q,25*m,'wind',{knock:20});}}
       if(Math.random()<0.8)emit(P.pos.x,P.pos.y+1.3,P.pos.z,0,0,0,0.4,[.8,1,1],1.4,0,0);}
     else if(P.burstT>0){P.burstT-=dt;if(!P.flying&&!P.grounded)P.vel.y-=CONFIG.move.gravity*0.35*dt;}
+    else if(P.swim)swimStep(dt,inF,inR,fwdX,fwdZ,rX,rZ,slowMul,shift);
     else if(P.zip)zipStep(dt);
     else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(conDrive()&&!P.flying)driveConstruct(dt,inF,inR,shift);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
@@ -310,7 +312,7 @@ function updatePlayer(dt){
       let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
       const am=AL?AL.speed:P.construct&&!P.flying?conSpeedMul():1;
       const canSpeed=hasPower('superSpeed')&&(shift||P.fastMode)&&P.grounded&&l>0.1&&P.en>1;P.speeding=canSpeed;
-      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*speedMult():shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul;
+      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*speedMult():shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul*(canSpeed?1:wadeMul());
       const hsp=Math.hypot(P.vel.x,P.vel.z);
       if(!P.grounded&&hsp>spd+2){ // keep swing / leap momentum: steer it instead of braking
         if(l>0.1){const turn=damp(1.8,dt),nx=P.vel.x+(tx*hsp-P.vel.x)*turn,nz=P.vel.z+(tz*hsp-P.vel.z)*turn,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hsp;P.vel.z=nz/nl*hsp;}
@@ -319,11 +321,11 @@ function updatePlayer(dt){
       if(hasWeb()&&!P.grounded&&P.pitch<-0.5&&inF>0){P.vel.y-=30*dt;P.vel.x+=fwdX*12*dt;P.vel.z+=fwdZ*12*dt;} // dive
       if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
     }
-    const prevY=P.pos.y;P.pos.addS(P.vel,dt);
+    const prevY=P.pos.y,prevX=P.pos.x,prevZ=P.pos.z;P.pos.addS(P.vel,dt);if(P.swim)swimShore(prevX,prevZ);
     if(P.web){const W=P.web;let dx=P.pos.x-W.x,dy=P.pos.y+1.6-W.y,dz=P.pos.z-W.z;const d=Math.hypot(dx,dy,dz)||1;
       if(d>W.L){dx/=d;dy/=d;dz/=d;P.pos.x-=dx*(d-W.L);P.pos.y-=dy*(d-W.L);P.pos.z-=dz*(d-W.L);const vr=P.vel.x*dx+P.vel.y*dy+P.vel.z*dz;if(vr>0){P.vel.x-=dx*vr;P.vel.y-=dy*vr;P.vel.z-=dz*vr;}}}
     if(phasing){const gb=baseY(P.pos.x,P.pos.z);P.grounded=false;if(P.pos.y<=gb){P.pos.y=gb;if(P.vel.y<0)P.vel.y=0;P.grounded=true;}}
-    else{const pvx=P.vel.x,pvy=P.vel.y,pvz=P.vel.z,vpre=Math.hypot(pvx,pvy,pvz);const col=collideBody(P.pos,P.vel,prevY,P.radius,P.height);P.grounded=col.grounded;
+    else{const pvx=P.vel.x,pvy=P.vel.y,pvz=P.vel.z,vpre=Math.hypot(pvx,pvy,pvz);const col=collideBody(P.pos,P.vel,prevY,P.radius,P.height,swimFloor());P.grounded=col.grounded||(!!P.swim&&swimFloats());
       if(col.wall&&(P.flying||P.rush||(P.alien&&P.alien.dashing))&&vpre>70&&!P.car){const w=col.wall;
         if(damageBuilding(w.b.bld,vpre*vpre*0.08*(P.rush?3:1),P.pos.x,P.pos.y+1,P.pos.z,-(w.nx||0),-(w.nz||0))){P.vel.set(pvx*0.85,pvy*0.85,pvz*0.85);addShake(0.5);}
         else if(time-(P.wallHitT||-9)>0.5){P.wallHitT=time;crater(P.pos.x,P.pos.y+1.2,P.pos.z,w.nx||0,0,w.nz||0,clamp(vpre*0.025,1.5,4),w.b.col);}}

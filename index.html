@@ -108,9 +108,13 @@ kbd:empty{display:none}
 #bossbar{position:absolute;left:50%;top:18px;transform:translateX(-50%);width:min(440px,calc(100% - 520px));display:grid;gap:4px}
 #bossbar .name{font-family:var(--display);font-size:12px;letter-spacing:.2em;color:#ff8a70;text-align:center;text-shadow:0 1px 3px #000}
 #bossbar .bar{height:10px}
-#keys{position:absolute;right:16px;top:96px;padding:10px 12px;display:grid;grid-template-columns:auto auto;gap:4px 12px;font-size:12px;color:var(--ink-dim);transition:opacity .6s}
-#keys.fade{opacity:0}#keys.fade *{pointer-events:none}
-#keys{width:min(370px,36vw);grid-template-columns:max-content 1fr!important;box-sizing:border-box;max-height:calc(100% - 96px - 200px);overflow:auto;overscroll-behavior:contain;align-content:start}#keys kbd{justify-self:start;align-self:start}#keys h4{grid-column:1/-1;margin:6px 0 0;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700}#keys h4:first-child{margin-top:0}
+#keys{position:absolute;right:16px;top:96px;padding:8px 12px 6px;width:min(600px,48vw);box-sizing:border-box;max-height:calc(100% - 96px - 150px);overflow:auto;overscroll-behavior:contain;font-size:11px;line-height:1.3;color:var(--ink-dim);transition:opacity .6s;pointer-events:auto}
+#keys.fade{opacity:0;pointer-events:none}#keys.fade *{pointer-events:none}
+#keys-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:5px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700}#keys-head span{letter-spacing:.08em;color:var(--ink-dim)}#keys-head kbd{font-size:10px;padding:0 5px}
+#keys-hero{column-count:2;column-gap:16px}#keys .ks{break-inside:avoid;margin-bottom:7px}#keys .kg{display:grid;grid-template-columns:max-content 1fr;gap:3px 8px}
+#keys kbd{justify-self:start;align-self:start;font-size:10px;padding:0 5px}#keys h4{margin:0 0 3px;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700}
+#keys.tight{font-size:10px;line-height:1.2;padding:6px 10px 4px}#keys.tight .ks{margin-bottom:4px}#keys.tight .kg{gap:1px 6px}#keys.tight kbd{font-size:9px;padding:0 4px}
+@media (max-width:900px){#keys-hero{column-count:1}#keys{width:min(360px,60vw)}}
 #vig{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,20,50,.55) 100%)}
 #flash{position:fixed;inset:0;pointer-events:none;opacity:0;background:#eef6ff}
 .overlay{position:fixed;inset:0;display:grid;align-items:center;padding-inline:16px;z-index:4}
@@ -259,7 +263,7 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #guide li::before{content:"";position:absolute;left:0;top:3px;width:10px;height:10px;border:1.5px solid var(--ink-dim);border-radius:3px}
 #guide li.done{opacity:.45}#guide li.done::before{background:#7dffb0;border-color:#7dffb0}
 #guide li span{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
-#guide:not([hidden])~#keys{top:312px;max-height:calc(100% - 312px - 200px)}
+#guide.mini li{display:none}#guide.mini li:not(.done){display:grid}#guide.mini li:not(.done)~li{display:none}#guide.mini h4{margin-bottom:4px}
 /* HUD icon bar: every menu one key or click away */
 #hudbar{position:absolute;left:16px;top:122px;display:flex;flex-wrap:wrap;gap:6px;max-width:330px;pointer-events:none}
 .hbtn{pointer-events:auto;position:relative;width:40px;height:40px;padding:0;display:grid;place-items:center;color:var(--ink);background:var(--panel);border:1px solid var(--edge);border-radius:10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;transition:border-color .15s,background .15s}
@@ -291,10 +295,38 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 .sitelink{color:var(--gold);font-weight:700;font-size:16px}
 .plist{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
 @media (prefers-reduced-motion: reduce){.toast,.fline{animation:none}}
+/* leaderboard panel (left, under the icon bar) */
+#lbmini{position:absolute;left:16px;top:180px;width:220px;box-sizing:border-box;padding:7px 9px 6px;pointer-events:auto;font-size:11px}
+#lbmini .lbm-head{display:flex;align-items:center;gap:6px;width:100%;padding:0;margin:0 0 5px;background:none;border:0;color:var(--gold);font:700 10px var(--hud);letter-spacing:.22em;text-transform:uppercase;cursor:pointer;text-align:left}
+#lbmini .lbm-head .ico{width:14px;height:14px}#lbmini .lbm-head:hover b{text-decoration:underline}
+#lbmini .lbm-tabs{display:flex;gap:4px;margin-bottom:5px}
+#lbmini .lbm-tabs button{flex:1;padding:2px 0;font:600 10px var(--hud);color:var(--ink-dim);background:rgba(255,255,255,.05);border:1px solid var(--edge);border-radius:4px;cursor:pointer}
+#lbmini .lbm-tabs button[aria-pressed="true"]{color:var(--ink);border-color:var(--gold)}
+#lbmini ol{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+#lbmini li{display:grid;grid-template-columns:14px 1fr auto;gap:6px;align-items:baseline;line-height:17px}
+#lbmini li i{font-style:normal;color:var(--ink-dim)}#lbmini li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#lbmini li.me span{color:var(--gold)}
+#lbmini .lbm-none{margin:0;color:var(--ink-dim)}
+/* markers over crimes and recharge spots (like the name tags, but clamped to the screen edge with an arrow) */
+#marks{position:absolute;inset:0;overflow:hidden}
+.mk{position:absolute;left:0;top:0;display:grid;justify-items:center;gap:3px;will-change:transform;--c:#ff5a3d}
+.mk .pw{position:relative;width:28px;height:28px}
+.mk .pin{position:absolute;inset:0;display:grid;place-items:center;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--c);box-shadow:0 0 12px var(--c),0 2px 5px rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.85)}
+.mk .pin b{transform:rotate(45deg);font:800 15px var(--hud);color:#0b0f1a;line-height:1}
+.mk .arr{position:absolute;left:50%;top:50%;width:0;height:0;margin-top:-7px;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:11px solid var(--c);transform-origin:0 50%;display:none;filter:drop-shadow(0 0 3px rgba(0,0,0,.7))}
+.mk.edge .pin{border-radius:50%;transform:none}.mk.edge .pin b{transform:none}.mk.edge .arr{display:block}
+.mk small{font:700 11px var(--hud);letter-spacing:.04em;color:#fff;text-shadow:0 1px 3px #000,0 0 2px #000;white-space:nowrap}
+.mk.big .pw{animation:mkPulse 1s ease-in-out infinite}@keyframes mkPulse{50%{transform:scale(1.18)}}
+.mk.goal .pin b{font-size:14px}
+#uw{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(ellipse at 50% 0%,rgba(90,190,230,.35),transparent 60%),linear-gradient(180deg,rgba(30,120,170,.5),rgba(4,34,70,.82))}
+#lowhint{padding:4px 12px;border-radius:999px;background:rgba(4,8,18,.72);border:1px solid var(--c,#ff5a3d);font:700 11px var(--hud);letter-spacing:.08em;text-transform:uppercase;color:#fff;text-align:center;animation:lhPulse 1.6s ease-in-out infinite}
+@keyframes lhPulse{50%{box-shadow:0 0 12px var(--c,#ff5a3d)}}
+#adbreak{position:absolute;left:50%;top:22%;transform:translateX(-50%);padding:10px 22px;font:700 18px var(--hud);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border-color:var(--gold)}
+@media (prefers-reduced-motion: reduce){.mk.big .pw,#lowhint{animation:none}}
 </style>
 </head>
 <body>
 <canvas id="gl"></canvas>
+<div id="uw"></div>
 <div id="hud" hidden>
   <div class="hud-tl panel">
     <div class="who"><b id="hname">Hero</b><span id="htier" class="tier">Unknown</span></div>
@@ -303,6 +335,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   </div>
   <div class="hud-tr panel"><div id="clock">17:00</div><div id="mode">On foot</div><div id="online"></div></div>
   <div class="hud-bc">
+    <div id="lowhint" hidden></div>
     <div class="meters panel">
       <div class="meter"><span>HEALTH <b id="hpt">100</b></span><div class="bar hp"><i id="hpb"></i></div><div class="bar shield" id="shbar" hidden><i id="shb"></i></div></div>
       <div class="meter" id="enm"><span>ENERGY <b id="ent">100</b></span><div class="bar en"><i id="enb"></i><i id="enb2"></i></div></div>
@@ -311,6 +344,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   </div>
   <canvas id="map" width="360" height="360"></canvas>
   <div id="tags"></div>
+  <div id="marks"></div>
   <div id="dmgs"></div>
   <div id="cross"></div>
   <div id="prompt"></div>
@@ -319,8 +353,10 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div id="toasts"></div>
   <div id="feed"></div>
   <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol></div>
-  <div id="keys" class="panel"><div id="keys-hero" style="display:contents"></div></div>
+  <div id="keys" class="panel"><div id="keys-head"><b>Move list</b><span><kbd>H</kbd> hide</span></div><div id="keys-hero"></div></div>
   <div id="hudbar"></div>
+  <div id="lbmini" class="panel" hidden></div>
+  <div id="adbreak" class="panel" hidden></div>
 </div>
 <div id="vig"></div>
 <div id="flash"></div>
@@ -847,7 +883,7 @@ const cellI=x=>Math.floor((x-X0)/CELL),cellJ=z=>Math.floor((z-Z0)/CELL);
 // road edges on the grid lines: along z (axis 0) at x line k between z nodes m and m+1; along x (axis 1) at z line m between x nodes k and k+1
 function zEdge(k,m){if(m<0||m>=GZ)return false;const a=cellAt(k-1,m),b=cellAt(k,m);return !!(a||b)&&!(a===2&&b===2);}
 function xEdge(m,k){if(k<0||k>=GX)return false;const a=cellAt(k,m-1),b=cellAt(k,m);if(BRIDGES.includes(m)&&RIVER.includes(k))return true;return !!(a||b)&&!(a===2&&b===2);}
-const colliders=[],blockCols=[],extraCols=[],roofTops=[],mapRects=[],parks=[],shops=[],atms=[],alleys=[],curbSpots=[],orbSpots=[],lakes=[];
+const colliders=[],blockCols=[],extraCols=[],roofTops=[],mapRects=[],parks=[],shops=[],atms=[],alleys=[],curbSpots=[],orbSpots=[],lakes=[],fountainSpots=[];
 const blockProps=[],tlights=[];
 let bank=null,hospital=null,policeHQ=null,invTower=null;
 const city=new Geo();
@@ -1075,9 +1111,8 @@ function parkBlock(i,j,cx,cz,list,bi,big){
   city.box(cx-28,0.25,cz-28,cx+28,0.4,cz+28,GRASS,5);parks.push({cx,cz});rect(cx-28,cz-28,cx+28,cz+28,-1);
   city.box(cx-28,0.4,cz-1.5,cx+28,0.45,cz+1.5,PATHC,0);city.box(cx-1.5,0.4,cz-28,cx+1.5,0.45,cz+28,PATHC,0);
   if(big&&i===7&&j===3){ // lake
-    lakes.push({x:cx+10,z:cz+10,r:14});city.prim(PRIM.cyl,cx+10,0.3,cz+10,0,0,0,15,0.3,15,C('#6b6456'),0);
-    for(let k=0;k<10;k++){const a=k/10*TAU;city.prim(PRIM.sphere,cx+10+Math.cos(a)*15,0.6,cz+10+Math.sin(a)*15,0,a,0,sr(0.8,1.4),sr(0.5,0.9),sr(0.8,1.4),C('#7a7a74'),0);}
-  }else{city.prim(PRIM.cyl,cx,0.9,cz,0,0,0,6,1,6,C('#8d9199'),0);city.prim(PRIM.cyl,cx,1.35,cz,0,0,0,5.4,0.1,5.4,C('#1f6fa8'),0);}
+    const L={x:cx+10,z:cz+10,r:14};lakes.push(L);lakeRim(L,10);
+  }else parkFountain(cx,cz);
   if(big&&i===8&&j===4){city.box(cx+8,0.4,cz+8,cx+18,0.8,cz+18,STONE,0);for(const [a,b] of [[8.5,8.5],[17.5,8.5],[8.5,17.5],[17.5,17.5]])city.prim(PRIM.cyl,cx+a,3,cz+b,0,0,0,0.3,4.4,0.3,STONE,0);
     city.prim(PRIM.cone,cx+13,6.4,cz+13,0,0,0,7.5,2.6,7.5,C('#5c3b30'),0);}
   const nt=big?18:12;
@@ -1105,7 +1140,35 @@ function centralPark(i,j,cx,cz,list,bi){
   addProp(bi,'lamp',cx+3,cz+3,0,{y:0.4});addProp(bi,'bench',cx+4,cz-3,Math.PI,{y:0.4});addProp(bi,'bench',cx-4,cz+3,0,{y:0.4});
   orbSpots.push({x:cx+14,y:1.6,z:cz,roof:false});
 }
-for(const l of lakes){city.prim(PRIM.cyl,l.x,0.3,l.z,0,0,0,l.r+1,0.3,l.r+1,C('#6b6456'),0);for(let k=0;k<12;k++){const a=k/12*TAU;city.prim(PRIM.sphere,l.x+Math.cos(a)*(l.r+1),0.6,l.z+Math.sin(a)*(l.r+1),0,a,0,sr(0.8,1.4),sr(0.5,0.9),sr(0.8,1.4),C('#7a7a74'),0);}}
+// ponds are irregular, not circles: the shore wobbles inside the old circle (so nothing planted around it ends up in the water)
+function lakeR(l,a){const h=l.x*0.137+l.z*0.071;return l.r*(0.8+0.07*Math.sin(2*a+h)+0.06*Math.sin(3*a+h*2.3+1)+0.04*Math.sin(5*a+h*3.7+2)+0.03*Math.sin(7*a+h*1.9));}
+const inLake=(x,z,pad=0)=>{for(const l of lakes){const dx=x-l.x,dz=z-l.z;if(dx*dx+dz*dz<(l.r+pad)*(l.r+pad)&&Math.hypot(dx,dz)<lakeR(l,Math.atan2(dz,dx))+pad)return l;}return null;};
+// a flat slab whose outline follows the shore (pad metres out), from y0 to y1
+function lakeSlab(l,pad,y0,y1,N=40){
+  const pos=[],nor=[],idx=[];pos.push(l.x,y1,l.z);nor.push(0,1,0);
+  for(let i=0;i<=N;i++){const a=i/N*TAU,r=lakeR(l,a)+pad;pos.push(l.x+Math.cos(a)*r,y1,l.z+Math.sin(a)*r);nor.push(0,1,0);}
+  for(let i=0;i<N;i++)idx.push(0,i+2,i+1);
+  const b=pos.length/3;
+  for(let i=0;i<=N;i++){const a=i/N*TAU,r=lakeR(l,a)+pad,c=Math.cos(a),sn=Math.sin(a);pos.push(l.x+c*r,y1,l.z+sn*r,l.x+c*r,y0,l.z+sn*r);nor.push(c,0,sn,c,0,sn);}
+  for(let i=0;i<N;i++){const t0=b+i*2;idx.push(t0,t0+3,t0+1,t0,t0+2,t0+3);}
+  return {pos,nor,idx};
+}
+const IDM=M4.create();
+// the stone shore and the rocks around a pond (same random draws as the old round rim, so the rest of the city is unchanged)
+function lakeRim(l,n){city.add(lakeSlab(l,1,0.15,0.45),IDM,C('#6b6456'),0);
+  for(let k=0;k<n;k++){const a=k/n*TAU,r=lakeR(l,a)+1;city.prim(PRIM.sphere,l.x+Math.cos(a)*r,0.6,l.z+Math.sin(a)*r,0,a,0,sr(0.8,1.4),sr(0.5,0.9),sr(0.8,1.4),C('#7a7a74'),0);}}
+// the fountain in each small square park: a stone basin with a raised lip, a column, an upper bowl and a spout.
+// Both water surfaces sit a few cm above the stone under them (the old disc sat level with the basin top and flickered).
+function parkFountain(x,z){const ST=C('#8d9199'),ST2=C('#a7abb2'),W=[1,1,1];
+  city.prim(PRIM.cyl,x,0.8,z,0,0,0,6,0.8,6,ST,0);            // basin, 0.4 to 1.2
+  city.prim(PRIM.cyl,x,1.23,z,0,0,0,5.3,0.06,5.3,W,4);        // its water, up to 1.26
+  city.prim(PRIM.torus,x,1.26,z,0,0,0,5.75,2.4,5.75,ST2,0);   // the raised lip
+  city.prim(PRIM.cyl,x,2.3,z,0,0,0,0.55,2.2,0.55,ST,0);       // column
+  city.prim(PRIM.cyl,x,3.5,z,0,0,0,1.9,0.3,1.9,ST2,0);        // upper bowl, 3.35 to 3.65
+  city.prim(PRIM.cyl,x,3.68,z,0,0,0,1.6,0.06,1.6,W,4);        // its water
+  city.prim(PRIM.cyl,x,4.1,z,0,0,0,0.22,0.8,0.22,ST,0);city.prim(PRIM.sphere,x,4.55,z,0,0,0,0.32,0.32,0.32,ST2,0);
+  fountainSpots.push({x,z});}
+for(const l of lakes)lakeRim(l,12);
 for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++){
   const bi=i*GZ+j,cx=cellX(i),cz=cellZ(j),list=[],dist=districtOf(i,j);blockCols[bi]=list;blockProps[bi]=[];
   const lv=cellAt(i,j);if(!lv)continue;
@@ -1189,7 +1252,7 @@ for(const b of extraCols)if(!colliders.includes(b))colliders.push(b);
 const cityMesh=city.mesh();
 const groundMesh=groundGeo.mesh();
 const waterMesh=new Geo().prim(PRIM.quad,0,-1.2,0,0,0,0,9000,1,9000,[1,1,1],4).mesh();
-const lakeMesh=(()=>{const g=new Geo();for(const l of lakes)g.prim(PRIM.cyl,l.x,0.46,l.z,0,0,0,l.r,0.02,l.r,[1,1,1],4);return g.mesh();})();
+const lakeMesh=(()=>{const g=new Geo();for(const l of lakes)g.add(lakeSlab(l,0,0.45,0.47),IDM,[1,1,1],4);return g.mesh();})();
 for(let bi=0;bi<GX*GZ;bi++)if(blockProps[bi])buildBlockProps(bi);
 for(const list of blockProps)for(const p of list)if(p.type==='tlight')tlights.push(p);
 (function(){
@@ -1292,8 +1355,8 @@ function raySphere(ox,oy,oz,dx,dy,dz,cx,cy,cz,r,ys=1){
 }
 // body vs buildings: resolves penetration, reports ground and the wall that was hit
 const COL={grounded:false,wall:null};
-function collideBody(pos,vel,prevY,R,HT){
-  COL.grounded=false;COL.wall=null;const gb=baseY(pos.x,pos.z);
+function collideBody(pos,vel,prevY,R,HT,floor){ // floor: override the ground height (the player swimming over open water)
+  COL.grounded=false;COL.wall=null;const gb=floor===undefined?baseY(pos.x,pos.z):floor;
   if(pos.y<=gb){pos.y=gb;if(vel.y<0)vel.y=0;COL.grounded=true;}
   for(const b of nearCols(pos.x,pos.z)){
     if(pos.x>b.x0-R&&pos.x<b.x1+R&&pos.z>b.z0-R&&pos.z<b.z1+R&&pos.y<b.y1&&pos.y+HT>b.y0){
@@ -1707,10 +1770,10 @@ const Damage={
 let hitMarkT=-9;
 function breakShield(){P.shield=0;P.shieldOn=false;PS.energyShield.cd=POWERS.energyShield.cooldown;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,2,6,0.4,[.4,.85,1]);SFX.tone('square',900,200,0.3,0.12);feed('Shield broken','Recharging for '+POWERS.energyShield.cooldown+' s');}
 function playerDown(killer){
-  P.dead=true;P.deadT=CONFIG.health.respawn;stopAllPowers();downBy=killer||null;
+  P.dead=true;P.deadT=CONFIG.health.respawn;stopAllPowers();
   explode(P.pos.x,P.pos.y+1.2,P.pos.z,0.8);
   $('dead').hidden=false;$('deads').textContent=(killer&&killer.name?killer.name+' took you down. ':'')+'Back in '+CONFIG.health.respawn+' seconds. You keep your level, powers and reputation.';
-  reviveOffer();MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
+  MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
 }
 function respawn(){
   const s=SPAWNS[(Math.random()*SPAWNS.length)|0];if(P.alien)revertAlien(true);
@@ -3967,10 +4030,11 @@ function drawSuit(){
 // the move list (right side, H) shows everything the hero you are playing can do
 function renderHeroKeys(){
   const box=$('keys-hero');if(!box)return;box.textContent='';const c=save.character;
-  const H=t=>box.appendChild(el('h4',{text:t}));
-  const K=(k,t)=>{box.appendChild(el('kbd',{text:k}));box.appendChild(el('span',{text:t}));};
+  let grid=null; // each heading starts a section that the two-column layout keeps in one piece
+  const H=t=>{const s=el('section',{class:'ks'},el('h4',{text:t}));grid=el('div',{class:'kg'});s.appendChild(grid);box.appendChild(s);};
+  const K=(k,t)=>{grid.appendChild(el('kbd',{text:k}));grid.appendChild(el('span',{text:t}));};
   const m=c&&c.movement[0];
-  H('Moving');K('WASD','Move');K('Space','Jump · hold for a super jump');
+  H('Moving');K('WASD','Move');K('Space','Jump · hold for a super jump');K('C · Space in water','Dive · swim back up');
   if(m==='webSwing'){K('Right click','Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
   else if(m)K('F','Fly · hold on the ground to charge a launch');
@@ -3988,7 +4052,7 @@ function renderHeroKeys(){
     if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
     if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
     K('U','Suit up or down');}
-  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('L','Free the mouse to click the icons');K('Esc','Pause');K('H','Show or hide this list');
+  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('L','Free the mouse to click the icons');K('Esc','Pause');K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
 }
 // ================================================================
 // Wanted level (1-5 stars) and bounty
@@ -5237,7 +5301,7 @@ function updateWorld(dt){
   updateHunters(dt);
   for(const r of rivals.slice())updateRival(r,dt);
   if(boss){if(boss.type==='ship')updateShip(boss,dt);else updateMech(boss,dt);}
-  updateProps(dt);updateStreetProps(dt);updateCrimes(dt);managePopulation(dt);manageRivals(dt);updatePolice(dt);updateHelis(dt);updateAliens(dt);
+  updateProps(dt);updateStreetProps(dt);updateCrimes(dt);managePopulation(dt);manageRivals(dt);updatePolice(dt);updateHelis(dt);updateAmbient(dt);updateAliens(dt);
   SFX.setSiren(Math.max(0,...vehicles.filter(v=>v.siren).map(v=>SFX.vol(v.pos.x,1,v.pos.z)),0));
 }
 function seedTraffic(){
@@ -5419,6 +5483,215 @@ function drawHelis(){
         queue(MESH.cone,coneM(tmpM(),h.pos.x,h.pos.y+0.4,h.pos.z,c.x,gy,c.z,6),[1,.97,.85,0.07*env.night],F_ADD);
         queue(MESH.disc,M4.alignY(tmpM(),c.x,gy+0.1,c.z,0,1,0,5),[1,.97,.85,0.18*env.night],F_ADD);}}}
 }
+// ================================================================
+// Water: swimming, diving and splashes
+// ================================================================
+// Off the island the player swims instead of standing on the sea: you float with your head above the surface, move
+// at swimming pace, hold C to dive and let go (or hold Space) to come back up. Space at the surface jumps out as
+// before (hold it for a super jump), and swimming into the shore climbs you out. Crossing the surface splashes (bigger
+// the faster you hit it), a blue tint covers the screen while the camera is under, and bubbles rise as you swim.
+// Cars, constructs, giants and a speedster running fast still skim the surface like before. Park ponds are shallow:
+// walking through one splashes and slows you down.
+const SEA_Y=-1.2,SWIM_Y=-3.0,SEABED=-18; // the sea surface, where your feet float, and the sea floor
+const seabedMesh=new Geo().prim(PRIM.quad,0,SEABED,0,0,0,0,9000,1,9000,[.16,.21,.18],5).mesh();
+SFX.water=function(v=1){if(!this.ctx||v<=0.02)return;const c=this.ctx,t=c.currentTime,len=0.3+0.5*Math.min(1,v);
+  const s=c.createBufferSource();s.buffer=this.noise;const f=c.createBiquadFilter();f.type='bandpass';f.Q.value=0.9;
+  f.frequency.setValueAtTime(2600,t);f.frequency.exponentialRampToValueAtTime(320,t+len);
+  const g=c.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.55*Math.min(1.4,v),t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+len);
+  s.connect(f).connect(g).connect(this.master);s.start(t,Math.random());s.stop(t+len+0.05);this.tone('sine',700,160,0.14,0.06*Math.min(1,v));};
+function splashAt(x,y,z,k){ // k: 0.2 a ripple ... 1 a big dive
+  const n=Math.round(10+k*40),s=0.5+k;
+  for(let i=0;i<n;i++){const a=rr(0,TAU),o=rr(0.2,1.2)*s;emit(x+Math.cos(a)*o,y+0.1,z+Math.sin(a)*o,Math.cos(a)*rr(1,4)*s,rr(5,13)*s,Math.sin(a)*rr(1,4)*s,rr(0.5,1.1),WATER[(Math.random()*2)|0],rr(0.5,1.3)*(0.7+k*0.5),22,0.3);}
+  ringFx(x,y+0.05,z,0.4,3+k*7,0.9,[.75,.9,1]);SFX.water(SFX.vol(x,y,z)*(0.35+k*0.8));
+}
+// can the player swim here at all (else the old sea "floor" holds them up)
+function swimOk(shift){
+  if(P.car||P.construct||P.dead||inSpace())return false;const AL=alienDef();if(AL&&AL.scale>2)return false; // giants wade
+  if(!AL&&hasPower('superSpeed')&&(shift||P.fastMode)&&P.pos.y>SWIM_Y-0.5)return false; // a speedster at speed runs across the water
+  return true;
+}
+let swimShift=false;
+const swimFloor=()=>!onIsland(P.pos.x,P.pos.z)&&swimOk(swimShift)?SEABED:undefined;
+// the camera may follow you under once you dive; floating at the surface it stays above the water
+function camFloorY(x,z){if(state!=='play'||swimFloor()===undefined)return baseY(x,z)+0.6;return P.pos.y<SWIM_Y-0.8?SEABED+1:SEA_Y+0.3;}
+function swimCheck(shift,phasing){
+  swimShift=shift;const was=P.swim,wet=!onIsland(P.pos.x,P.pos.z);
+  P.swim=wet&&!phasing&&!P.flying&&!P.wall&&P.pos.y<SEA_Y+0.4&&swimOk(shift);
+  if(P.swim&&!was){if(P.web)webRelease(false);P.zip=null;P.wings=false;P.wallRun=null;}
+  const under=wet&&!P.car&&P.pos.y<SEA_Y;
+  if(under!==!!P.wetFeet){P.wetFeet=under;
+    if(under&&!phasing)splashAt(P.pos.x,SEA_Y,P.pos.z,clamp(-P.vel.y/40,0.25,1));
+    else if(!under&&P.vel.y>4)splashAt(P.pos.x,SEA_Y,P.pos.z,0.2);}
+  const wade=!P.swim&&!P.flying&&!P.car&&P.pos.y<0.9&&!!inLake(P.pos.x,P.pos.z);
+  if(wade&&!P.wade)splashAt(P.pos.x,0.47,P.pos.z,clamp(-P.vel.y/40,0.15,0.8));
+  P.wade=wade;
+  if(wade&&Math.hypot(P.vel.x,P.vel.z)>2&&Math.random()<0.3)emit(P.pos.x+rr(-.5,.5),0.5,P.pos.z+rr(-.5,.5),rr(-1.5,1.5),rr(2,4),rr(-1.5,1.5),0.5,WATER[0],0.8,15,1);
+}
+const wadeMul=()=>P.wade?0.55:1;
+function swimStep(dt,inF,inR,fwdX,fwdZ,rX,rZ,slowMul,shift){
+  let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
+  const AL=alienDef(),spd=(AL?AL.speed:1)*CONFIG.move.run*(shift?0.62:0.4)*slowMul,k=damp(2.5,dt);
+  P.vel.x+=(tx*spd-P.vel.x)*k;P.vel.z+=(tz*spd-P.vel.z)*k;
+  const depth=SWIM_Y-P.pos.y,dive=!!keys.KeyC,up=!!keys.Space;
+  if(dive)P.vel.y+=(-6-P.vel.y)*damp(3,dt);
+  else if(depth>0.3)P.vel.y+=((up?8:Math.min(4.5,1.5+depth*0.6))-P.vel.y)*damp(P.vel.y<-3?5:2.5,dt); // the water brakes a dive, then floats you up
+  else if(depth<-0.05||P.vel.y>1.5)P.vel.y-=CONFIG.move.gravity*dt;           // jumping out, or dropping in from above
+  else P.vel.y+=(depth*5-P.vel.y)*damp(6,dt);                                // bobbing at the surface
+  if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
+  if(depth>1.5&&Math.random()<dt*6)emit(P.pos.x+rr(-.3,.3),P.pos.y+2.2,P.pos.z+rr(-.3,.3),rr(-.3,.3),rr(1.5,2.5),rr(-.3,.3),rr(0.8,1.4),[.75,.9,1],rr(0.15,0.3),-4,0.5); // bubbles
+}
+// floating at the surface counts as standing (so Space jumps out, and holding it charges a super jump)
+const swimFloats=()=>Math.abs(SWIM_Y-P.pos.y)<0.45&&!keys.KeyC&&Math.abs(P.vel.y)<3;
+// deep down the shore is a wall; at the surface swimming into it climbs you out
+function swimShore(px,pz){
+  if(!onIsland(P.pos.x,P.pos.z))return;
+  if(P.pos.y<SWIM_Y-1){P.pos.x=px;P.pos.z=pz;P.vel.x=0;P.vel.z=0;return;}
+  if(P.pos.y<-0.3){P.pos.x=px;P.pos.z=pz;if(P.vel.y<5){P.vel.y=22;splashAt(P.pos.x,SEA_Y,P.pos.z,0.3);}}
+}
+let uwOn=false;
+function updateUnderwater(){const on=state==='play'&&camPos.y<SEA_Y&&!onIsland(camPos.x,camPos.z);if(on!==uwOn){uwOn=on;$('uw').style.opacity=on?'1':'0';}}
+// ================================================================
+// City life: planes, a blimp, birds, pigeons, boats, fountains and ponds
+// ================================================================
+// All of it is decoration: nothing here collides, fights or syncs to other players, and everything is only
+// updated in detail and drawn when it is near the camera (like the helicopters, a handful of boxes each).
+// - Airliners cross high over the city now and then, leaving contrails by day and blinking lights by night.
+// - A blimp circles the city; at night its side panels light up.
+// - Flocks of gulls circle over the parks and rooftops near you.
+// - Pigeons sit on roof edges and park paths nearby and scatter when you come close.
+// - Boats cruise the water around you: speedboats, ferries and sailboats, each with a wake.
+// - The small parks' fountains spray, pour from the upper bowl and ripple; the ponds ripple and glint.
+const LITE=IS_TOUCH_DEVICE;
+const planes=[],boats=[],flocks=[],pigeonGroups=[],ripples=[];let planeT=rr(5,15);
+const blimp={a:rr(0,TAU),R:560,y:190,x:0,z:0,yaw:0};
+const AMB={white:[.93,.94,.96,1],grey:[.72,.74,.78,1],dark:[.2,.22,.26,1],fin:[.18,.34,.7,1],red:[1,.15,.12,1],green:[.2,1,.35,1],strobe:[1,1,1,1],
+  gull:[.9,.9,.92,1],gullW:[.78,.8,.84,1],pigeon:[.45,.47,.53,1],pigeonW:[.38,.4,.46,1],silver:[.84,.85,.89,1],stripe:[.78,.14,.18,1],
+  curtain:[.72,.88,1,.24],ripple:[.75,.9,1,1],glint:[1,1,.92]};
+// ---- airliners ----
+function spawnPlane(){const a=rr(0,TAU),R=2400,ta=a+Math.PI+rr(-0.5,0.5),hx=Math.cos(ta),hz=Math.sin(ta);
+  planes.push({x:camPos.x+Math.cos(a)*R,y:rr(380,470),z:camPos.z+Math.sin(a)*R,hx,hz,yaw:Math.atan2(hx,hz),spd:rr(75,95),life:0,max:2*R/85+10,trail:0,side:1});}
+function updatePlanes(dt){
+  planeT-=dt;if(planeT<=0&&planes.length<2){planeT=rr(25,50);spawnPlane();}
+  for(let i=planes.length-1;i>=0;i--){const p=planes[i];p.x+=p.hx*p.spd*dt;p.z+=p.hz*p.spd*dt;p.life+=dt;if(p.life>p.max){planes.splice(i,1);continue;}
+    p.trail-=dt;if(p.trail<=0&&env.night<0.5&&Math.hypot(p.x-camPos.x,p.z-camPos.z)<1600){p.trail=0.1;p.side=-p.side;
+      const c=Math.cos(p.yaw),s=Math.sin(p.yaw),ox=p.side*7,oz=-2;SMOKE.emit(p.x+ox*c+oz*s,p.y-1.4,p.z-ox*s+oz*c,0,0,0,6,[.95,.95,.97],rr(5,8),0,0.2);}}
+}
+function drawPlanes(){
+  for(const p of planes){if(inView(p.x,p.z,3200,400)<0)continue;const root=at(p.x,p.y,p.z,0,p.yaw,0);
+    queue(MESH.sphere,child(root,0,0,0,0,0,0,2,2,19),AMB.white,0);
+    queue(MESH.box,child(root,0,-0.5,1,0,0,0,32,0.5,5),AMB.grey,0);
+    queue(MESH.box,child(root,0,0.4,-16,0,0,0,11,0.4,3),AMB.grey,0);queue(MESH.box,child(root,0,3.3,-16.5,0,0,0,0.5,6,4),AMB.fin,0);
+    for(const sx of [-7,7])queue(MESH.cyl,child(root,sx,-1.5,2.5,Math.PI/2,0,0,0.9,4,0.9),AMB.dark,0);
+    const on=Math.sin(time*6+p.x)>0.6;
+    queue(MESH.glowBox,child(root,-16,-0.4,1,0,0,0,0.5,0.5,0.5),AMB.red,0);queue(MESH.glowBox,child(root,16,-0.4,1,0,0,0,0.5,0.5,0.5),AMB.green,0);
+    if(on)queue(MESH.glowBox,child(root,0,0.6,-18.5,0,0,0,0.6,0.6,0.6),AMB.strobe,0);}
+}
+// ---- the blimp ----
+function updateBlimp(dt){const b=blimp;b.a+=dt*11/b.R;b.x=Math.cos(b.a)*b.R;b.z=Math.sin(b.a)*b.R;b.yaw=Math.atan2(-Math.sin(b.a),Math.cos(b.a));}
+function drawBlimp(){const b=blimp;if(inView(b.x,b.z,2600,300)<0)return;const y=b.y+Math.sin(time*0.4)*2,root=at(b.x,y,b.z,0,b.yaw,Math.sin(time*0.3)*0.03);
+  queue(MESH.sphere,child(root,0,0,0,0,0,0,8,8,26),AMB.silver,0);queue(MESH.sphere,child(root,0,0,0,0,0,0,8.1,2.2,24),AMB.stripe,0);
+  queue(MESH.box,child(root,0,-8.4,2,0,0,0,2.6,2,8),AMB.dark,0);
+  queue(MESH.box,child(root,0,5,-21,0,0,0,0.4,6,6),AMB.stripe,0);queue(MESH.box,child(root,0,-5,-21,0,0,0,0.4,6,6),AMB.stripe,0);
+  queue(MESH.box,child(root,5,0,-21,0,0,0,6,0.4,6),AMB.stripe,0);queue(MESH.box,child(root,-5,0,-21,0,0,0,6,0.4,6),AMB.stripe,0);
+  if(env.night>0.3){const h=(time*0.1)%1,c=[0.5+0.5*Math.sin(h*TAU),0.5+0.5*Math.sin(h*TAU+2),0.5+0.5*Math.sin(h*TAU+4),env.night];
+    queue(MESH.glowBox,child(root,8.05,0,2,0,0,0,0.1,3,12),c,0);queue(MESH.glowBox,child(root,-8.05,0,2,0,0,0,0.1,3,12),c,0);}
+  if(Math.sin(time*3)>0.7)queue(MESH.glowBox,child(root,0,-9.6,2,0,0,0,0.4,0.4,0.4),AMB.red,0);
+}
+// ---- gulls circling over the parks and rooftops near you ----
+function homeFlock(f){const pk=parks.filter(p=>Math.hypot(p.cx-P.pos.x,p.cz-P.pos.z)<350);
+  if(pk.length&&Math.random()<0.6){const p=pick(pk);f.hx=p.cx;f.hz=p.cz;}else{const a=rr(0,TAU),d=rr(100,280);f.hx=P.pos.x+Math.cos(a)*d;f.hz=P.pos.z+Math.sin(a)*d;}
+  f.hy=Math.max(groundY(f.hx,f.hz)+rr(25,45),rr(35,80));f.R=rr(18,40);}
+for(let i=0;i<(LITE?2:3);i++)flocks.push({hx:1e9,hz:1e9,hy:50,R:30,ph:rr(0,TAU),w:rr(0.25,0.4)*(i%2?1:-1),n:7+i*2});
+function updateFlocks(dt){for(const f of flocks){f.ph+=f.w*dt;if(Math.hypot(f.hx-P.pos.x,f.hz-P.pos.z)>450)homeFlock(f);}}
+function drawBird(x,y,z,yaw,flap,s,body,wing){const root=at(x,y,z,0,yaw,0);
+  queue(MESH.box,child(root,0,0,0,0,0,0,0.3*s,0.25*s,0.9*s),body,0);
+  queue(MESH.box,child(child(root,0,0.05*s,0,0,0,flap),0.6*s,0,0,0,0,0,1.2*s,0.05*s,0.4*s),wing,0);
+  queue(MESH.box,child(child(root,0,0.05*s,0,0,0,-flap),-0.6*s,0,0,0,0,0,1.2*s,0.05*s,0.4*s),wing,0);}
+function drawFlocks(){
+  for(const f of flocks){const cx=f.hx+Math.cos(f.ph)*f.R,cz=f.hz+Math.sin(f.ph)*f.R;if(inView(cx,cz,320,60)<0)continue;
+    const d=Math.sign(f.w),tx=-Math.sin(f.ph)*d,tz=Math.cos(f.ph)*d,yaw=Math.atan2(tx,tz);
+    for(let j=0;j<f.n;j++){const ox=Math.sin(time*0.7+j*1.7)*5,oy=Math.sin(time*0.9+j)*1.8,oz=Math.cos(time*0.6+j*2.3)*5,glide=Math.sin(time*0.5+j)>0.3;
+      drawBird(cx+ox,f.hy+oy,cz+oz,yaw-d*0.35,glide?0.1:Math.sin(time*11+j*2)*0.6,1.3,AMB.gull,AMB.gullW);}}
+}
+// ---- pigeons: they sit on a roof edge or a park path near you, and scatter when you come close ----
+function pigeonSpot(g){
+  const px=P.pos.x,pz=P.pos.z,opts=[];
+  for(const p of parks){const d=Math.hypot(p.cx-px,p.cz-pz);if(d>30&&d<200)opts.push({x:p.cx+rr(-20,20),z:p.cz+(Math.random()<0.5?-1:1)*rr(6,20),y:0.45});}
+  for(const r of roofTops){if(r.y>90||r.x1-r.x0<8||r.z1-r.z0<8)continue;const d=Math.hypot(r.x-px,r.z-pz);if(d<30||d>170)continue;
+    if(opts.length<60||Math.random()<0.2)opts.push({x:rr(r.x0+2,r.x1-2),z:Math.random()<0.5?r.z0+0.8:r.z1-0.8,y:r.y});}
+  if(!opts.length){g.state='gone';g.t=-5;return;}
+  const s=pick(opts);g.x=s.x;g.y=s.y;g.z=s.z;g.state='sit';g.t=0;
+  g.birds=[];for(let i=0;i<(LITE?4:6);i++)g.birds.push({x:s.x+rr(-2.5,2.5),y:s.y,z:s.z+rr(-0.5,0.5),yaw:rr(0,TAU),vx:0,vy:0,vz:0,ph:rr(0,TAU)});
+}
+for(let i=0;i<2;i++)pigeonGroups.push({state:'gone',t:-rr(1,4),x:0,y:0,z:0,birds:[]});
+function scatterPigeons(g){g.state='fly';g.t=0;SFX.tone('triangle',900,1400,0.12,0.03*SFX.vol(g.x,g.y,g.z));
+  for(const b of g.birds){const a=Math.atan2(b.z-P.pos.z,b.x-P.pos.x)+rr(-0.8,0.8),s=rr(5,9);b.vx=Math.cos(a)*s;b.vz=Math.sin(a)*s;b.vy=rr(3,6);b.yaw=Math.atan2(b.vx,b.vz);}}
+function updatePigeons(dt){
+  for(const g of pigeonGroups){g.t+=dt;
+    if(g.state==='gone'){if(g.t>0&&state==='play')pigeonSpot(g);continue;}
+    const d=Math.hypot(g.x-P.pos.x,g.z-P.pos.z);
+    if(g.state==='sit'){if(d>260){g.state='gone';g.t=-2;continue;}
+      if(state==='play'&&(Math.hypot(d,g.y-P.pos.y)<11||(d<30&&P.vel.len()>30)))scatterPigeons(g);}
+    else{for(const b of g.birds){b.x+=b.vx*dt;b.y+=b.vy*dt;b.z+=b.vz*dt;b.vy=Math.min(b.vy+2*dt,8);}if(g.t>8){g.state='gone';g.t=-rr(4,10);}}}
+}
+function drawPigeons(){
+  for(const g of pigeonGroups){if(g.state==='gone'||inView(g.x,g.z,160,20)<0)continue;
+    for(const b of g.birds){
+      if(g.state==='sit'){const peck=Math.max(0,Math.sin(time*3+b.ph*5))*0.5,root=at(b.x,b.y+0.18,b.z,0,b.yaw+Math.sin(time*0.5+b.ph)*0.4,0);
+        queue(MESH.box,child(root,0,0,0,0,0,0,0.22,0.22,0.4),AMB.pigeon,0);queue(MESH.box,child(root,0,0.12,0.2,peck,0,0,0.13,0.13,0.16),AMB.pigeonW,0);}
+      else drawBird(b.x,b.y+0.2,b.z,b.yaw,Math.sin(time*18+b.ph)*0.8,0.55,AMB.pigeon,AMB.pigeonW);}}
+}
+// ---- boats on the water near you ----
+const BOATS=[{L:8,W:2.6,spd:15,hull:[.95,.95,.97,1],cab:[.18,.28,.45,1]},{L:24,W:7,spd:6,hull:[.96,.78,.18,1],cab:[.95,.95,.95,1],ferry:true},{L:10,W:3,spd:5,hull:[.9,.9,.92,1],cab:[.55,.35,.22,1],sail:true}];
+const openWater=(x,z)=>!onIsland(x,z)&&!onIsland(x+18,z)&&!onIsland(x-18,z)&&!onIsland(x,z+18)&&!onIsland(x,z-18);
+function spawnBoat(b){
+  for(let k=0;k<14;k++){const a=rr(0,TAU),d=rr(140,420),x=P.pos.x+Math.cos(a)*d,z=P.pos.z+Math.sin(a)*d;if(!openWater(x,z))continue;
+    Object.assign(b,{x,z,yaw:rr(0,TAU),kind:BOATS[Math.floor(Math.random()*3)],turn:0,seed:rr(0,9),on:true});return;}
+  b.on=false;
+}
+for(let i=0;i<(LITE?3:5);i++)boats.push({on:false,wait:rr(0,3)});
+function updateBoats(dt){
+  for(const b of boats){
+    if(!b.on){b.wait-=dt;if(b.wait<=0){b.wait=4;spawnBoat(b);}continue;}
+    if(Math.hypot(b.x-P.pos.x,b.z-P.pos.z)>650){b.on=false;b.wait=rr(1,4);continue;}
+    const K=b.kind,s=Math.sin(b.yaw),c=Math.cos(b.yaw);
+    if(onIsland(b.x+s*30,b.z+c*30)||onIsland(b.x+s*15,b.z+c*15)){if(!b.turn)b.turn=onIsland(b.x+Math.sin(b.yaw+0.8)*30,b.z+Math.cos(b.yaw+0.8)*30)?-1:1;b.yaw+=b.turn*0.9*dt;}
+    else{b.turn=0;b.yaw+=Math.sin(time*0.1+b.seed)*0.05*dt;}
+    const v=onIsland(b.x+s*8,b.z+c*8)?0:K.spd;b.x+=s*v*dt;b.z+=c*v*dt;
+    if(v>0&&Math.random()<dt*20&&inView(b.x,b.z,260,30)>=0)emit(b.x-s*K.L*0.5+rr(-1,1),SEA_Y+0.2,b.z-c*K.L*0.5+rr(-1,1),-s*rr(1,3)+rr(-1.5,1.5),rr(0.5,2),-c*rr(1,3)+rr(-1.5,1.5),rr(0.8,1.6),WATER[(Math.random()*2)|0],rr(0.6,1.2)*(K.ferry?1.8:1),6,1);}
+}
+function drawBoats(){
+  for(const b of boats){if(!b.on)continue;const q=inView(b.x,b.z,700,40);if(q<0)continue;const K=b.kind,fl=q<150*150?F_SH:0;
+    const root=at(b.x,SEA_Y+0.15+Math.sin(time*1.3+b.seed)*0.12,b.z,Math.sin(time*0.9+b.seed)*0.03,b.yaw,Math.sin(time*1.1+b.seed)*0.04);
+    queue(MESH.box,child(root,0,0.5,-K.W*0.3,0,0,0,K.W,1.3,K.L-K.W*0.6),K.hull,fl);
+    queue(MESH.box,child(root,0,0.5,K.L*0.5-K.W*0.5,0,Math.PI/4,0,K.W*0.707,1.3,K.W*0.707),K.hull,fl);
+    if(K.ferry){queue(MESH.box,child(root,0,2.2,-2,0,0,0,K.W*0.8,2.2,K.L*0.6),K.cab,fl);queue(MESH.box,child(root,0,4.2,-3,0,0,0,K.W*0.6,1.8,K.L*0.35),K.cab,fl);
+      queue(MESH.box,child(root,0,5.6,-6,0,0,0,1.2,1.5,1.2),AMB.dark,fl);}
+    else if(K.sail){queue(MESH.cyl,child(root,0,6,0.5,0,0,0,0.12,10,0.12),AMB.dark,fl);queue(MESH.roof,child(root,0,6.4,-1.3,0,0,0,0.06,8.6,3.6),AMB.white,fl);
+      queue(MESH.box,child(root,0,1.5,-2.8,0,0,0,K.W*0.6,0.8,2.6),K.cab,fl);}
+    else queue(MESH.box,child(root,0,1.5,-0.8,0,0,0,K.W*0.8,0.9,2.6),K.cab,fl);
+    if(env.night>0.4){queue(MESH.glowBox,child(root,0,K.ferry?6.6:K.sail?11:2.4,0,0,0,0,0.3,0.3,0.3),AMB.strobe,0);}}
+}
+// ---- the small parks' fountains and the ponds ----
+function updateWaterLife(dt){
+  for(const f of fountainSpots){if(inView(f.x,f.z,110,20)<0)continue;
+    f.acc=(f.acc||0)+dt*(LITE?50:90);while(f.acc>=1){f.acc--;
+      if(Math.random()<0.55)emit(f.x+rr(-.1,.1),4.8,f.z+rr(-.1,.1),rr(-1.1,1.1),rr(6,8.5),rr(-1.1,1.1),rr(0.9,1.2),WATER[(Math.random()*2)|0],rr(0.4,0.8),22,0.2); // the spout
+      else{const a=Math.floor(rr(0,8))/8*TAU+time*0.05,cx=Math.cos(a),cz=Math.sin(a);                                                   // eight jets from the lip
+        emit(f.x+cx*5.2,1.5,f.z+cz*5.2,-cx*rr(2.6,3.2),rr(5.5,6.5),-cz*rr(2.6,3.2),rr(0.8,1),WATER[(Math.random()*2)|0],rr(0.35,0.6),22,0.1);}}}
+  for(const l of lakes){if(inView(l.x,l.z,300,l.r+10)<0)continue;
+    if(ripples.length<(LITE?16:36)&&Math.random()<dt*l.r*0.12){const a=rr(0,TAU),r=lakeR(l,a)*Math.sqrt(Math.random())*0.85;ripples.push({x:l.x+Math.cos(a)*r,z:l.z+Math.sin(a)*r,t:0,dur:rr(2,3.2),r:rr(2,4)});}
+    if(env.night<0.5&&Math.random()<dt*l.r*0.25){const a=rr(0,TAU),r=lakeR(l,a)*Math.sqrt(Math.random())*0.9;emit(l.x+Math.cos(a)*r,0.5,l.z+Math.sin(a)*r,0,0.2,0,rr(0.25,0.45),AMB.glint,rr(0.2,0.4),0,0);}}
+  for(let i=ripples.length-1;i>=0;i--){const r=ripples[i];r.t+=dt;if(r.t>r.dur)ripples.splice(i,1);}
+}
+function drawWaterLife(){
+  for(const f of fountainSpots){if(inView(f.x,f.z,110,20)<0)continue;
+    queue(MESH.tube,at(f.x,2.47,f.z,0,time*0.4,0,1.72,2.3,1.72),[AMB.curtain[0],AMB.curtain[1],AMB.curtain[2],AMB.curtain[3]+Math.sin(time*7+f.x)*0.05],F_BL);
+    for(let k=0;k<2;k++){const u=((time*0.7+k*0.5)%1),r=1+u*4;queue(MESH.ring,M4.alignY(tmpM(),f.x,1.275,f.z,0,1,0,r),[.8,.95,1,0.3*(1-u)],F_ADD);}}
+  for(const r of ripples){const k=r.t/r.dur;queue(MESH.ring,M4.alignY(tmpM(),r.x,0.48,r.z,0,1,0,0.3+k*r.r),[AMB.ripple[0],AMB.ripple[1],AMB.ripple[2],0.35*(1-k)],F_ADD);}
+}
+function updateAmbient(dt){if(!cityVisible())return;updatePlanes(dt);updateBlimp(dt);updateFlocks(dt);updatePigeons(dt);updateBoats(dt);updateWaterLife(dt);}
+function drawAmbient(){if(!cityVisible())return;drawPlanes();drawBlimp();drawFlocks();drawPigeons();drawBoats();drawWaterLife();}
 // ================================================================
 // Multiplayer: other players via the claude.ai room capability
 // ================================================================
@@ -5952,14 +6225,16 @@ function renderHostControls(B){
 // Only the portal build (`node tools/build.mjs crazygames`) sets window.__PORTAL__ and loads the CrazyGames SDK;
 // on the website and in the claude.ai version everything here does nothing.
 // Ads only come at natural breaks: after a knockout and when you leave the pause menu, at most once every 3 minutes,
-// never mid-fight. A rewarded ad (from the pause menu) doubles XP for 5 minutes. Rooms get the portal's invite button.
+// never mid-fight. If none has played for 20 minutes of play (you haven't been knocked out), an ad break waits for a
+// calm moment (no fight, not wanted, no boss, no menu), counts down 5 seconds on screen, then plays; from the countdown
+// until the ad ends you can't be hurt (other players included) and you stay where you are. A rewarded ad (from the pause menu) doubles XP for 5 minutes. Rooms get the portal's invite button.
 // Big moments (level-ups, heists stopped, bosses and rivals beaten, an overcharged ring) call happytime(), at most once a minute.
 // The save is copied to the portal's cloud storage, so it survives cleared browser storage and follows a signed-in player;
 // on start the newer of the two wins. Every session's first crime starts a short run from you, so there is something to do
 // within seconds. The rewards live in the HUD icon bar (67_hudbar.js).
 const PORTAL=window.__PORTAL__||'';
-const PORTAL_AD_GAP=180,XP_BOOST={mul:2,time:300};
-const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,
+const PORTAL_AD_GAP=180,AD_BREAK_EVERY=20*60,AD_BREAK_COUNT=5,XP_BOOST={mul:2,time:300};
+const Portal={sdk:null,inAd:false,adAt:0,playing:false,playT:0,adPlayT:0,lastTick:0,breakCd:0,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,
   on(){return !!this.sdk;},
   async init(){
     if(PORTAL!=='crazygames')return;const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;
@@ -5974,12 +6249,24 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:fals
   tick(){
     if(this.crimeAt&&time>=this.crimeAt&&state==='play'&&!paused&&!P.dead){this.crimeAt=0;if(ROOM.crimes&&!MP.online())nearCrime();}
     if(!this.sdk)return;const now=state==='play'&&!paused&&!sheetOpen&&!creating&&!P.dead&&!this.inAd;
+    const t=performance.now()/1000,d=Math.min(0.25,t-(this.lastTick||t));this.lastTick=t;if(now)this.playT+=d;this.breakTick(d);
     if(now===this.playing)return;this.playing=now;try{now?this.sdk.game.gameplayStart():this.sdk.game.gameplayStop();}catch(e){}
+  },
+  // the 20-minute ad break: only at a calm moment, after an on-screen countdown, with you safe and still until it ends
+  calm(){return this.playing&&!dialOpen&&!oathOpen&&!P.stars&&!(boss&&!boss.leave)&&time-(P.lastHit||-99)>6&&!voidbornLocked();},
+  breakTick(d){
+    const box=$('adbreak');if(!box)return;
+    if(this.inAd||this.playT-this.adPlayT<AD_BREAK_EVERY||!this.calm()){if(this.breakCd){this.breakCd=0;box.hidden=true;}return;}
+    if(!this.breakCd){this.breakCd=AD_BREAK_COUNT;box.hidden=false;}
+    this.breakCd-=d;P.iframeT=Math.max(P.iframeT||0,0.5);
+    if(this.breakCd<=0){this.breakCd=0;box.hidden=true;P.vel.set(0,0,0);P.iframeT=1e9; // safe for the whole ad
+      this.show('midgame',()=>{P.iframeT=2;P.vel.set(0,0,0);});return;}
+    const txt='Ad break in '+Math.ceil(this.breakCd);if(box.textContent!==txt)box.textContent=txt;
   },
   quiet(on){if(on){this.muteWas=SFX.muted;if(!SFX.muted)SFX.toggleMute();}else if(SFX.muted&&!this.muteWas)SFX.toggleMute();},
   show(kind,done){
     if(!this.sdk||this.inAd){done&&done(false);return;}
-    const end=ok=>{if(!this.inAd)return;this.inAd=false;this.quiet(false);this.tick();done&&done(ok);};
+    const end=ok=>{if(!this.inAd)return;this.inAd=false;this.adPlayT=this.playT;this.quiet(false);this.tick();done&&done(ok);};
     this.inAd=true;this.tick();
     try{this.sdk.ad.requestAd(kind,{adStarted:()=>{this.quiet(true);mouseL=false;for(const k in keys)keys[k]=false;},adFinished:()=>{this.adAt=performance.now()/1000;end(true);},adError:()=>end(false)});}
     catch(e){end(false);}
@@ -6016,12 +6303,12 @@ Bus.on('levelUp',()=>Portal.happy());
 Bus.on('defeated',({target,killer})=>{if(killer===P&&(target.kind==='boss'||target.kind==='rival'||(target.kind==='human'&&target.role==='boss')))Portal.happy();});
 Portal.init();
 // ================================================================
-// CrazyGames rewards: power keys by level, 10-minute trials, revive, refills and cosmetics
+// CrazyGames rewards: power keys by level, 10-minute trials, refills and cosmetics
 // ================================================================
 // Everything here is for the CrazyGames build (PBAL); the website and claude.ai never lock a key or show an ad button.
 // Rewarded ads are always optional: nothing is out of reach without them, they only get you there sooner.
 const KIT_LV=[1,2,4,6,9];                 // the level each power key (1-5) opens at
-const TRIAL_MIN=10,REVIVE_GAP=180;
+const TRIAL_MIN=10;
 const slotLocked=i=>PBAL&&save.level<KIT_LV[i]&&!trialOn('key'+i);
 function lockedSlotMsg(i){if(time-(P.lockMsgT||-9)<1)return;P.lockMsgT=time;const id=save.character.abilities[i];
   feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],Portal.on()?'Pause → Try locked powers to use it now for '+TRIAL_MIN+' min':'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
@@ -6060,16 +6347,6 @@ function renderTrials(){
 }
 // locked dial slots (constructs, suit forms, aliens) offer a trial on click
 function dialTrial(a){if(!PBAL||!a||!a.trialKey)return false;if(!Portal.on()){feed(a.name+' is locked',a.lock);return true;}closeDial();startTrial(a.trialKey,a.name);return true;}
-// ---- revive where you fell ----
-let reviveAt=-1e9,downBy=null;
-const reviveReady=()=>PBAL&&Portal.on()&&P.dead&&!(downBy&&downBy.kind==='remote')&&performance.now()/1000-reviveAt>=REVIVE_GAP;
-function reviveOffer(){ // the knockout screen's revive button (R, or tap it), made the first time it's needed
-  let b=$('revive');if(!b){if(!PBAL)return;const box=$('dead').firstElementChild;b=el('button',{class:'go',id:'revive',type:'button',text:'Watch an ad: get up right here (R)',onclick:revive});b.style.marginTop='14px';box.appendChild(b);}
-  b.hidden=!reviveReady();}
-function revive(){if(!reviveReady())return;
-  Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}if(!P.dead)return;
-    reviveAt=performance.now()/1000;P.dead=false;P.hp=maxHp();P.en=maxEn();P.stun=0;P.lastHit=-99;P.iframeT=2;$('dead').hidden=true;
-    const c=center(P);ringFx(c.x,c.y,c.z,1,8,0.5,[1,.9,.5]);burst(c.x,c.y,c.z,50,12,0.8,GOLD,1.4,0,2);toast('Back on your feet','Right where you fell','gold');});}
 // ---- refill your hero's meter ----
 function refillInfo(){const m=heroMeter();if(!m)return null;const cap=m.key==='ring'?100:meterCap(m);return {m,cap,need:save[m.key]<cap-0.5};}
 function refill(){const r=refillInfo();if(!r||!r.need)return;
@@ -6209,7 +6486,9 @@ function powerIcon(id){const c=POWERS[id],s=glyph(POWER_GLYPH[id]||'burst','pico
 // press the key; L frees the mouse to click them. On touch screens tap them. The CrazyGames build adds its rewards here
 // (double XP, refill, try locked powers, cosmetics) instead of in the pause menu.
 // The move list (right side) lists everything your hero can do. It is open for the first 2 minutes of each session;
-// H or its icon shows or hides it, and once you choose it stays that way for the session.
+// H or its icon shows or hides it, and once you choose it stays that way for the session. It lays out in two columns
+// and shrinks to fit (folding "Getting started" down to its next step if it has to), so it never needs scrolling.
+// The leaderboard sits under the icons on the left (the full board opens from it, the main menu or the pause menu).
 const HUDBAR=[
   {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
@@ -6217,7 +6496,6 @@ const HUDBAR=[
   {id:'look',glyph:'shirt',key:'I',code:'KeyI',tip:'Appearance',act:()=>sheetToggle('look'),on:()=>sheetOpen==='look'},
   {id:'mp',glyph:'people',key:'6',code:'Digit6',tip:'Multiplayer',act:()=>sheetToggle('mp'),on:()=>sheetOpen==='mp'||MP.online()},
   {id:'set',glyph:'gear',key:'7',code:'Digit7',tip:'Settings',act:()=>sheetToggle('set'),on:()=>sheetOpen==='set'},
-  {id:'lb',glyph:'trophy',key:'8',code:'Digit8',tip:'Leaderboard',act:()=>sheetToggle('lb'),on:()=>sheetOpen==='lb'},
   // CrazyGames build only
   {id:'xp',glyph:'x2',key:'9',code:'Digit9',portal:true,act:()=>Portal.rewardXP(),
     tip:()=>{const l=Portal.boostUntil-time;return l>0?'Double XP active · '+Math.ceil(l/60)+' min left':'Watch an ad: double XP for 5 min';},
@@ -6247,13 +6525,112 @@ function updateHudbar(force){
     e.hidden=!!(b.hide&&b.hide());e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));}
   // sit just under the name panel, whatever its height
   const tl=document.querySelector('.hud-tl'),bar=$('hudbar');if(tl&&bar&&!touchOn()){const top=(tl.offsetTop+tl.offsetHeight+8)+'px';if(bar.style.top!==top)bar.style.top=top;}
+  updateLBMini();
+}
+// ---- the leaderboard panel (left, under the icons) ----
+let lbMiniKey='',lbMiniTop=-1;
+function lbRows(tab){
+  if(LB.db)return LB.lists[tab]||[];
+  let rows=save.character?[{id:'me',name:save.character.name,level:save.level,rep:save.reputation}]:[];
+  if(tab==='respected')rows=rows.filter(r=>r.rep>0);if(tab==='feared')rows=rows.filter(r=>r.rep<0);return rows;
+}
+const LB_TABS=[['respected','Respected'],['feared','Feared'],['level','Level']];
+function updateLBMini(force){
+  const box=$('lbmini');if(!box)return;
+  if(touchOn()||state!=='play'){box.hidden=true;return;} // touch screens: Leaderboard is in the pause menu
+  const bar=$('hudbar'),top=bar.offsetTop+bar.offsetHeight+8,room=innerHeight-top-212; // 212: the minimap below it
+  if(room<70){box.hidden=true;return;}box.hidden=false;
+  if(top!==lbMiniTop){lbMiniTop=top;box.style.top=top+'px';}
+  const max=clamp(Math.floor((room-52)/19),1,5),rows=lbRows(lbTab).slice(0,max);
+  const key=lbTab+'|'+max+'|'+rows.map(r=>r.id+':'+r.name+':'+r.level+':'+r.rep).join(',')+'|'+(LB.uid||'');
+  if(!force&&key===lbMiniKey)return;lbMiniKey=key;box.textContent='';
+  const open=e=>{e.stopPropagation();if(state==='play')openSheet('lb');};
+  box.appendChild(el('button',{type:'button',class:'lbm-head',onclick:open,title:'Open the full leaderboard'},glyph('trophy'),el('b',{text:'Leaderboard'})));
+  box.appendChild(el('div',{class:'lbm-tabs'},...LB_TABS.map(([k,l])=>el('button',{type:'button','aria-pressed':String(lbTab===k),text:l,onclick:e=>{e.stopPropagation();lbTab=k;updateLBMini(true);}}))));
+  if(!rows.length){box.appendChild(el('p',{class:'lbm-none',text:LB.db?'Nobody here yet':'Shared board on claude.ai'}));return;}
+  const ol=el('ol');rows.forEach((r,i)=>ol.appendChild(el('li',{class:(r.id===LB.uid||r.id==='me')?'me':''},el('i',{text:String(i+1)}),el('span',{text:r.name}),
+    el('b',{text:lbTab==='level'?'LV '+r.level:(r.rep>0?'+':'')+r.rep.toLocaleString('en-US')}))));
+  box.appendChild(ol);
 }
 // ---- move list ----
 let movesUntil=0,movesChosen=false;
 const movesShown=()=>!hud.keys.classList.contains('fade');
-function showMovesForAWhile(){if(movesChosen)return;hud.keys.classList.remove('fade');movesUntil=time+120;}
-function toggleMoves(){movesChosen=true;movesUntil=0;const show=!movesShown();hud.keys.classList.toggle('fade',!show);hud.keys.classList.toggle('pin',show);updateHudbar(true);}
-function updateMoves(){if(movesUntil&&time>=movesUntil){movesUntil=0;if(!movesChosen){hud.keys.classList.add('fade');updateHudbar(true);}}}
+function showMovesForAWhile(){if(movesChosen)return;hud.keys.classList.remove('fade');movesUntil=time+120;fitMoves();}
+function toggleMoves(){movesChosen=true;movesUntil=0;const show=!movesShown();hud.keys.classList.toggle('fade',!show);hud.keys.classList.toggle('pin',show);fitMoves();updateHudbar(true);}
+let fitT=0;
+function updateMoves(){if(movesUntil&&time>=movesUntil){movesUntil=0;if(!movesChosen){hud.keys.classList.add('fade');fitMoves();updateHudbar(true);}}
+  if(time-fitT>1)fitMoves();}
+// fit the whole list on screen: place it under "Getting started", then fold that down to its next step, then use the tight rows
+function fitMoves(){
+  fitT=time;const k=hud.keys,g=$('guide');if(!k)return;
+  const shown=movesShown()&&getComputedStyle(k).display!=='none';
+  if(!shown){if(g.classList.contains('mini'))g.classList.remove('mini');return;}
+  const place=()=>{const top=g.hidden?96:g.offsetTop+g.offsetHeight+8;k.style.top=top+'px';k.style.maxHeight=Math.max(120,innerHeight-top-150)+'px';};
+  const over=()=>k.scrollHeight>k.clientHeight+1;
+  g.classList.remove('mini');k.classList.remove('tight');place();
+  if(over()&&!g.hidden){g.classList.add('mini');place();}
+  if(over())k.classList.add('tight');
+}
+addEventListener('resize',()=>fitMoves());
+// if it still can't fit (a very small window), the wheel scrolls it while the mouse is free, without also resizing a power
+document.getElementById('keys').addEventListener('wheel',e=>{const k=e.currentTarget;if(k.scrollHeight>k.clientHeight+1)e.stopPropagation();},{passive:true});
+// ================================================================
+// Markers in the world: crimes, and where to recharge
+// ================================================================
+// Every active crime gets a floating "!" pin over it with its distance (the nearest six), like the name tags. When it is
+// off screen the pin slides to the edge of the screen and an arrow points the way. Heists get a bigger, pulsing "!!".
+// When a hero meter runs low (under a quarter) a pin marks where to recharge it and a hint above the meters says how:
+// the suit battery at Inventor Tower, lightning on the nearest tall roof, calories at the nearest shop. The ring has no
+// place to go, so its hint just says to press O (tap OATH) and say the oath. Plain energy refills by itself.
+const markPool=[];
+function markEl(i){if(!markPool[i]){const b=el('b'),arr=el('i',{class:'arr'}),pin=el('div',{class:'pin'},b),pw=el('div',{class:'pw'},pin,arr),sm=el('small'),t=el('div',{class:'mk'},pw,sm);
+  $('marks').appendChild(t);markPool[i]={t,b,arr,sm,key:''};}return markPool[i];}
+const fmtDist=d=>d<1000?Math.round(d)+' m':(d/1000).toFixed(1)+' km';
+function placeMark(n,x,y,z,icon,col,label,cls,short){
+  const m=markEl(n),W=innerWidth,H=innerHeight,dx=x-camPos.x,dy=y-camPos.y,dz=z-camPos.z;
+  const fz=dx*camF.x+dy*camF.y+dz*camF.z,rx=dx*camR.x+dy*camR.y+dz*camR.z,uy=dx*camU.x+dy*camU.y+dz*camU.z;
+  const p=fz>0.5?project(x,y,z):null;let sx,sy,edge=false,ang=0;
+  if(p&&p[0]>36&&p[0]<W-36&&p[1]>60&&p[1]<H-40){sx=p[0];sy=p[1];}
+  else{edge=true;ang=Math.atan2(-uy,rx);if(fz<=0&&Math.abs(rx)<Math.abs(uy)*0.2)ang=Math.PI/2; // straight behind you: point down
+    const hw=W/2-40,hh=H/2-64,ux=Math.cos(ang),vy=Math.sin(ang),t=Math.min(hw/Math.max(Math.abs(ux),1e-4),hh/Math.max(Math.abs(vy),1e-4));sx=W/2+ux*t;sy=H/2+vy*t;}
+  m.t.hidden=false;m.t.style.transform=`translate(${sx.toFixed(1)}px,${sy.toFixed(1)}px) translate(-50%,${edge?'-14px':'-100%'})`;
+  const key=icon+'|'+col+'|'+cls+'|'+edge;if(m.key!==key){m.key=key;m.b.textContent=icon;m.t.style.setProperty('--c',col);m.t.className='mk'+(cls?' '+cls:'')+(edge?' edge':'');}
+  if(edge)label=short; // at the screen edge only the distance, so it never runs off the screen
+  if(m.label!==label){m.label=label;m.sm.textContent=label;}
+  if(edge)m.arr.style.transform=`rotate(${ang.toFixed(3)}rad) translateX(16px)`;
+}
+// ---- where to recharge ----
+let goalCache={t:-9,key:'',g:null};
+function nearestTallRoof(){let best=null,bd=1e9;for(const r of roofTops){if(r.y<TALL_ROOF)continue;const d=Math.hypot(r.x-P.pos.x,r.z-P.pos.z);if(d<bd){bd=d;best=r;}}return best;}
+function nearestShop(){let best=null,bd=1e9;for(const s of shops){if(s.prop&&!s.prop.alive)continue;const d=Math.hypot(s.x-P.pos.x,s.z-P.pos.z);if(d<bd){bd=d;best=s;}}return best;}
+function rechargeGoal(){
+  const m=heroMeter();if(!m||P.dead||meterFrac(m)>=0.25)return null;
+  if(m.key==='ring')return {hint:'Ring low · '+(touchOn()?'tap OATH':'press O')+' and say the oath to recharge',col:'#5dff86'};
+  if(m.key==='battery'){if(atInventorTower())return {hint:'Recharging at Inventor Tower',col:'#ff6a3d'};if(!invTower)return null;
+    return {x:invTower.x,y:invTower.top+8,z:invTower.z,icon:'🔋',label:'Inventor Tower',col:'#ff6a3d',hint:(save.battery<=0?'Suit on standby':'Battery low')+' · fly to Inventor Tower to recharge'};}
+  if(m.key==='bolt'){if(tallRoofHere())return {hint:(touchOn()?'Tap USE':'Press G')+' to raise your hammer and call the storm',col:'#8fd8ff'};
+    if(time-goalCache.t>1||goalCache.key!=='bolt'){goalCache={t:time,key:'bolt',g:nearestTallRoof()};}const r=goalCache.g;if(!r)return null;
+    return {x:r.x,y:r.y+8,z:r.z,icon:'⚡',label:'Tall roof',col:'#8fd8ff',hint:'Lightning low · land on a tall roof and '+(touchOn()?'tap USE':'press G')+' to call the storm'};}
+  if(m.key==='cal'){if(nearestShopToEat())return {hint:(touchOn()?'Tap USE':'Press G')+' to eat here',col:'#ffc93c'};
+    if(time-goalCache.t>1||goalCache.key!=='cal'){goalCache={t:time,key:'cal',g:nearestShop()};}const s=goalCache.g;if(!s)return null;
+    return {x:s.x,y:5,z:s.z,icon:'🍔',label:s.name,col:'#ffc93c',hint:'Calories low · '+(touchOn()?'tap USE':'press G')+' at a shop to eat'};}
+  return null;
+}
+let hintKey='';
+function updateMarkers(){
+  let n=0;
+  const on=state==='play'&&!creating&&!P.dead&&!inSpace()&&!voidbornAway();
+  if(on){
+    const list=[];for(const c of crimes){const d=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);list.push([d,c]);}list.sort((a,b)=>a[0]-b[0]);
+    for(const [d,c] of list.slice(0,6)){const big=c.heist||c.type==='vault'||c.type==='truck';
+      placeMark(n++,c.x,groundY(c.x,c.z)+(big?9:5.5),c.z,big?'!!':'!',CRIME_COL[c.type]||'#ff5a3d',d<250?c.label+' · '+fmtDist(d):fmtDist(d),big?'big':'',fmtDist(d));}
+  }
+  const g=on?rechargeGoal():null;
+  if(g&&g.x!==undefined){const d=fmtDist(Math.hypot(g.x-P.pos.x,g.z-P.pos.z));placeMark(n++,g.x,g.y,g.z,g.icon,g.col,g.label+' · '+d,'goal',d);}
+  for(let i=n;i<markPool.length;i++)if(!markPool[i].t.hidden)markPool[i].t.hidden=true;
+  const h=$('lowhint'),k=g?g.hint+'|'+g.col:'';
+  if(k!==hintKey){hintKey=k;h.hidden=!g;if(g){h.textContent=g.hint;h.style.setProperty('--c',g.col);}}
+}
 // ================================================================
 // HUD
 // ================================================================
@@ -6283,7 +6660,7 @@ function feed(title,sub=''){
 const SLOT_KEYS=['1','2','3','4','5'],SLOT_ALT=['Q','E','R','',''];
 let slotEls=[];
 function buildHotbar(){
-  hud.hotbar.textContent='';slotEls=[];renderHeroKeys();if(!save.character)return;
+  hud.hotbar.textContent='';slotEls=[];renderHeroKeys();fitMoves();if(!save.character)return;
   if(P.alien){const a=ALIENS[P.alien.id];
     a.abilities.forEach((ab,i)=>{const cd=el('i',{class:'cd'});const s=el('div',{class:'slot alien'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:ab.name}),el('small',{text:a.name}));hud.hotbar.appendChild(s);slotEls.push({alien:i,s,cd});});
     const tb=el('i');const s=el('div',{class:'slot move band'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Revert'}),el('div',{class:'bar tbar'},tb));hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});
@@ -6307,7 +6684,7 @@ const MAPO=EDGE+130,mapCv=document.createElement('canvas');mapCv.width=mapCv.hei
   for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++){if(!isBlock(i,j))continue;c.fillStyle='#161b25';c.fillRect(X(cellX(i)-30),X(cellZ(j)-30),60*s,60*s);}
   for(const r of mapRects){if(r.col===-1)c.fillStyle='#1f4d2c';else if(r.col===-2)c.fillStyle='#4a3c30';else{const l=Math.round(26+clamp(r.col/260,0,1)*46);c.fillStyle=`hsl(212,22%,${l}%)`;}
     c.fillRect(X(r.x0),X(r.z0),Math.max(1,(r.x1-r.x0)*s),Math.max(1,(r.z1-r.z0)*s));}
-  c.fillStyle='#1d5f8a';for(const l of lakes){c.beginPath();c.arc(X(l.x),X(l.z),l.r*s,0,TAU);c.fill();}
+  c.fillStyle='#1d5f8a';for(const l of lakes){c.beginPath();for(let i=0;i<=32;i++){const a=i/32*TAU,r=lakeR(l,a);c.lineTo(X(l.x+Math.cos(a)*r),X(l.z+Math.sin(a)*r));}c.fill();}
   if(bank){c.fillStyle='#b8953a';c.fillRect(X(bank.x0),X(bank.z0),(bank.x1-bank.x0)*s,(bank.z1-bank.z0)*s);}
 })();
 const mapEl=$('map'),mctx=mapEl.getContext('2d');
@@ -6446,9 +6823,9 @@ let lbTab='respected';
     if(user){try{if(await user.can('data.write')===false)LB.ro=true;}catch(e){}}
     LB.db=db;LB.uid=uid;
     const clean=s=>s.docs.map(d=>{const v=d.data()||{};return {id:d.id,name:typeof v.name==='string'?v.name.slice(0,16):'Hero',level:Math.floor(+v.level||1),rep:Math.round(+v.rep||0)};});
-    db.collection('players').orderBy('rep','desc').limit(10).onSnapshot(s=>{LB.lists.respected=clean(s).filter(r=>r.rep>0);if(sheetOpen==='lb')renderSheet();},()=>{});
-    db.collection('players').orderBy('rep','asc').limit(10).onSnapshot(s=>{LB.lists.feared=clean(s).filter(r=>r.rep<0);if(sheetOpen==='lb')renderSheet();},()=>{});
-    db.collection('players').orderBy('level','desc').limit(10).onSnapshot(s=>{LB.lists.level=clean(s);if(sheetOpen==='lb')renderSheet();},()=>{});
+    db.collection('players').orderBy('rep','desc').limit(10).onSnapshot(s=>{LB.lists.respected=clean(s).filter(r=>r.rep>0);if(sheetOpen==='lb')renderSheet();updateLBMini(true);},()=>{});
+    db.collection('players').orderBy('rep','asc').limit(10).onSnapshot(s=>{LB.lists.feared=clean(s).filter(r=>r.rep<0);if(sheetOpen==='lb')renderSheet();updateLBMini(true);},()=>{});
+    db.collection('players').orderBy('level','desc').limit(10).onSnapshot(s=>{LB.lists.level=clean(s);if(sheetOpen==='lb')renderSheet();updateLBMini(true);},()=>{});
     syncPlayerDoc(true);
   }catch(e){}
 })();
@@ -6534,6 +6911,7 @@ const creator=$('create'),creatorBody=$('create-body');
 let creatorMode='new';
 function openCreator(mode='new'){
   creatorMode=mode;creating=true;
+  if(locked)document.exitPointerLock(); // the creator is clicked with the mouse, so give the cursor back (creating keeps this from pausing)
   if(mode==='new'&&state!=='play'){const pk=parks.find(q=>Math.abs(q.cx-40)<1&&Math.abs(q.cz+360)<1)||parks[0];P.pos.set(pk.cx,1.4,pk.cz);P.vel.set(0,0,0);P.showcase=true;}
   if(mode==='rechoose'&&save.character){const c=save.character,pre=presetOf(c);draft={name:c.name,suit:c.suit,cape:c.cape,accent:c.accent,capeOn:c.capeOn,movement:c.movement.slice(),body:pre?null:c.body,abilities:pre?[]:c.abilities.filter(id=>ABILITY_POWERS.includes(id)),kit:pre?c.abilities.slice(0,CONFIG.picks.kit):[],free:pre?c.abilities.slice(CONFIG.picks.kit):[],confirm:false};}
   else draft={name:'Guardian '+Math.floor(rr(100,1000)),suit:(Math.random()*SUIT_OPTS.length)|0,cape:(Math.random()*CAPE_OPTS.length)|0,accent:0,capeOn:true,movement:[],body:null,abilities:[],confirm:false};
@@ -6639,10 +7017,10 @@ function dialConfirm(){if(dialSel<0)return;const a=dialItems()[dialSel];if(a&&a.
 function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----
 const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],['punch','Throw a punch','Click to punch','Tap PUNCH'],
-  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Head for an icon on your minimap','Head for an icon on your minimap']];
+  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
 function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(GUIDE.every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
-  for(const [k,t,kb,tc] of GUIDE)list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:touchOn()?tc:kb})));}
+  for(const [k,t,kb,tc] of GUIDE)list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:touchOn()?tc:kb})));fitMoves();}
 Bus.on('damaged',e=>{if(e.source===P&&e.type==='punch')guideDone('punch');});
 // ================================================================
 // Input: keyboard, mouse, pointer lock, touch
@@ -6668,9 +7046,9 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyL'){toggleLock();return;}
   if(e.code==='KeyM'){toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
   if(e.code==='KeyH'){toggleMoves();return;}
-  if(P.dead&&!paused&&e.code==='KeyR'&&reviveReady()){revive();return;}
   if(paused||P.dead)return;
   if(voidbornLocked()){if(voidbornAway()&&e.code in XQ_CODES)voidbornAnswer(XQ_CODES[e.code]);return;} // Voidborn: only the masks' question can be answered
+  if(P.swim&&e.code==='KeyC')return; // C dives while swimming
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
@@ -6728,7 +7106,8 @@ function setPaused(v){
 }
 function resume(){if(sheetOpen)closeSheet();setPaused(false);Portal.midgame();if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
-function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
+function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.swim&&!P.grounded)return; // under water Space just swims you up
+  if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
 // web-slingers: tap Space in the air to web-zip, hold it to open the web wings
 function releaseJump(){if(P.charging&&canAct())doJump();P.charging=false;
   if(P.spaceT&&!P.wings&&time-P.spaceT<0.22&&!P.grounded&&canAct())webZip();P.spaceT=0;}
@@ -6929,7 +7308,7 @@ function updatePlayer(dt){
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
   const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=(P.alien&&P.alien.phase>0)||P.phasing;
-  P.speeding=false;
+  P.speeding=false;swimCheck(shift,phasing);
   if(P.wallRun)wallRunStep(dt,inF,inR);
   else if(P.wall){
     const w=P.wall,cs=(AL&&AL.climb?18:pstat('wallClimb','speed'))*slowMul;let tx=-w.nz,tz=w.nx;if(tx*camR.x+tz*camR.z<0){tx=-tx;tz=-tz;}
@@ -6945,6 +7324,7 @@ function updatePlayer(dt){
     if(P.dashT>0){P.dashT-=dt;const m=alienMul();for(const q of actors){if(!q.alive||q.kind==='prop'||time-(q.dashHit||-9)<0.5)continue;const c=center(q);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1,c.z-P.pos.z)<3.5){q.dashHit=time;Damage.apply(P,q,25*m,'wind',{knock:20});}}
       if(Math.random()<0.8)emit(P.pos.x,P.pos.y+1.3,P.pos.z,0,0,0,0.4,[.8,1,1],1.4,0,0);}
     else if(P.burstT>0){P.burstT-=dt;if(!P.flying&&!P.grounded)P.vel.y-=CONFIG.move.gravity*0.35*dt;}
+    else if(P.swim)swimStep(dt,inF,inR,fwdX,fwdZ,rX,rZ,slowMul,shift);
     else if(P.zip)zipStep(dt);
     else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(conDrive()&&!P.flying)driveConstruct(dt,inF,inR,shift);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
@@ -6956,7 +7336,7 @@ function updatePlayer(dt){
       let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
       const am=AL?AL.speed:P.construct&&!P.flying?conSpeedMul():1;
       const canSpeed=hasPower('superSpeed')&&(shift||P.fastMode)&&P.grounded&&l>0.1&&P.en>1;P.speeding=canSpeed;
-      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*speedMult():shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul;
+      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*speedMult():shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul*(canSpeed?1:wadeMul());
       const hsp=Math.hypot(P.vel.x,P.vel.z);
       if(!P.grounded&&hsp>spd+2){ // keep swing / leap momentum: steer it instead of braking
         if(l>0.1){const turn=damp(1.8,dt),nx=P.vel.x+(tx*hsp-P.vel.x)*turn,nz=P.vel.z+(tz*hsp-P.vel.z)*turn,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hsp;P.vel.z=nz/nl*hsp;}
@@ -6965,11 +7345,11 @@ function updatePlayer(dt){
       if(hasWeb()&&!P.grounded&&P.pitch<-0.5&&inF>0){P.vel.y-=30*dt;P.vel.x+=fwdX*12*dt;P.vel.z+=fwdZ*12*dt;} // dive
       if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
     }
-    const prevY=P.pos.y;P.pos.addS(P.vel,dt);
+    const prevY=P.pos.y,prevX=P.pos.x,prevZ=P.pos.z;P.pos.addS(P.vel,dt);if(P.swim)swimShore(prevX,prevZ);
     if(P.web){const W=P.web;let dx=P.pos.x-W.x,dy=P.pos.y+1.6-W.y,dz=P.pos.z-W.z;const d=Math.hypot(dx,dy,dz)||1;
       if(d>W.L){dx/=d;dy/=d;dz/=d;P.pos.x-=dx*(d-W.L);P.pos.y-=dy*(d-W.L);P.pos.z-=dz*(d-W.L);const vr=P.vel.x*dx+P.vel.y*dy+P.vel.z*dz;if(vr>0){P.vel.x-=dx*vr;P.vel.y-=dy*vr;P.vel.z-=dz*vr;}}}
     if(phasing){const gb=baseY(P.pos.x,P.pos.z);P.grounded=false;if(P.pos.y<=gb){P.pos.y=gb;if(P.vel.y<0)P.vel.y=0;P.grounded=true;}}
-    else{const pvx=P.vel.x,pvy=P.vel.y,pvz=P.vel.z,vpre=Math.hypot(pvx,pvy,pvz);const col=collideBody(P.pos,P.vel,prevY,P.radius,P.height);P.grounded=col.grounded;
+    else{const pvx=P.vel.x,pvy=P.vel.y,pvz=P.vel.z,vpre=Math.hypot(pvx,pvy,pvz);const col=collideBody(P.pos,P.vel,prevY,P.radius,P.height,swimFloor());P.grounded=col.grounded||(!!P.swim&&swimFloats());
       if(col.wall&&(P.flying||P.rush||(P.alien&&P.alien.dashing))&&vpre>70&&!P.car){const w=col.wall;
         if(damageBuilding(w.b.bld,vpre*vpre*0.08*(P.rush?3:1),P.pos.x,P.pos.y+1,P.pos.z,-(w.nx||0),-(w.nz||0))){P.vel.set(pvx*0.85,pvy*0.85,pvz*0.85);addShake(0.5);}
         else if(time-(P.wallHitT||-9)>0.5){P.wallHitT=time;crater(P.pos.x,P.pos.y+1.2,P.pos.z,w.nx||0,0,w.nz||0,clamp(vpre*0.025,1.5,4),w.b.col);}}
@@ -7109,7 +7489,7 @@ function updateCamera(dt){
     let dx=cx-tx,dy=cy-ty,dz=cz-tz;const L=Math.hypot(dx,dy,dz)||1;dx/=L;dy/=L;dz/=L;
     const t=L>250?L+1:rayCity(tx,ty,tz,dx,dy,dz,L+0.5),dist=Math.max(1.2,Math.min(L,t-0.6));
     camDist=dist<camDist?dist:lerp(camDist,dist,damp(5,dt));
-    camPos.set(tx+dx*camDist,Math.max(ty+dy*camDist,baseY(tx,tz)+0.6),tz+dz*camDist);
+    camPos.set(tx+dx*camDist,Math.max(ty+dy*camDist,camFloorY(tx,tz)),tz+dz*camDist);
     if(shake>0){const s=shake*shake*0.8;camPos.x+=rr(-s,s);camPos.y+=rr(-s,s);camPos.z+=rr(-s,s);}
     fov=lerp(fov,70+spN*24+(P.speeding?10:0)+(P.car?clamp(Math.abs(P.car.spd||0)/42,0,1)*8:0),damp(4,dt));
   }
@@ -7443,7 +7823,7 @@ function buildDrawList(){
     const hc=crimes.find(c=>c.type==='vault');if(hc&&hc.boss&&hc.boss.alive){const b=hc.boss,mid=(vaultY+b.pos.y)/2,len=b.pos.y-vaultY;const p=0.5+Math.sin(time*5)*0.2;
       queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,time,0,8,len,8),[.4,1,.7,0.18*p],F_ADD);queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,0,0,4,len,4),[.6,1,.8,0.25*p],F_ADD);}}
   for(const c of crimes)if(c.type==='shop'&&c.shop&&Math.sin(time*10)>0)queue(MESH.glowBox,at(c.shop.fx,5.8,c.shop.fz,0,0,0,0.5,0.5,0.5),[1,.1,.1,1],0);
-  drawProps();drawRubble();drawHelis();drawHeroAbilities();drawSpider();drawRing();drawBody();drawSuit();
+  drawProps();drawRubble();drawHelis();drawAmbient();drawHeroAbilities();drawSpider();drawRing();drawBody();drawSuit();
   for(const w of windows){if(inView(w.x,w.z,320)<0)continue;const ax=w.nx!==0;
     queue(MESH.box,at(w.x,w.y,w.z,0,0,0,ax?0.06:2.1,2.3,ax?2.1:0.06),[.02,.02,.025,1],F_UN);
     for(const [u,v,s] of [[-0.8,0.9,0.5],[0.85,-0.8,0.4],[0.7,0.95,0.3]])queue(MESH.box,at(w.x+(ax?w.nx*0.02:u),w.y+v,w.z+(ax?u:w.nz*0.02),0,0,u*0.8,ax?0.04:s,s*0.8,ax?s:0.04),[.55,.7,.8,1],0);}
@@ -7537,7 +7917,7 @@ function render(){
   gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);
-  if(camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
+  if(camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);if(camPos.y<SEA_Y)drawItem(seabedMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
   if(cityVisible()){drawItem(groundMesh,ID,WHITE,false,0);drawItem(lakeMesh,ID,WHITE,false,0);drawItem(cityMesh,ID,WHITE,false,0);}
   for(let i=0;i<dlN;i++){const d=drawList[i];if(d.flags&(F_ADD|F_BL))continue;drawItem(d.mesh,d.M,d.tint,d.flags&F_UN,d.emis);}
   gl.enable(gl.BLEND);gl.depthMask(false);gl.disable(gl.CULL_FACE);
@@ -7572,7 +7952,7 @@ function updateHud(dt){
   hud.shbar.hidden=!P.shieldOn&&!P.ringShield;if(P.shieldOn)setW(hud.shb,'sh',P.shield/pstat('energyShield','absorb'));else if(P.ringShield)setW(hud.shb,'sh',P.rsHp/pstat('ringShield','absorb'));
   const mins=Math.floor(tod*24*60);setText(hud.clock,'clock',String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0'));
   const sp=P.vel.len();
-  setText(hud.mode,'mode',P.dead?'Down':inSpace()?spaceMode():P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.phasing?'Phasing':timeStopT>0?'Time stopped':frozenT>0?'Frozen in time':P.speeding?'Super speed x'+Math.min(P.dial,dialMax()):isSpeed()?'On foot · dial x'+Math.min(P.dial,dialMax())+(P.fastMode?' · fast mode':''):P.charging?'Charging':P.grounded?'On foot':'Airborne');
+  setText(hud.mode,'mode',P.dead?'Down':inSpace()?spaceMode():P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.phasing?'Phasing':timeStopT>0?'Time stopped':frozenT>0?'Frozen in time':P.speeding?'Super speed x'+Math.min(P.dial,dialMax()):isSpeed()?'On foot · dial x'+Math.min(P.dial,dialMax())+(P.fastMode?' · fast mode':''):P.charging?'Charging':P.swim?(P.pos.y<SWIM_Y-1?'Diving':'Swimming'):P.wade?'Wading':P.grounded?'On foot':'Airborne');
   for(const s of slotEls){
     if(s.bandTimer){setW(s.bandTimer,'bt',P.alien?P.alien.t/P.alien.max:0);s.s.classList.toggle('bad',!!P.alien&&P.alien.t<5);continue;}
     if(s.alien!==undefined){if(!P.alien)continue;const ab=ALIENS[P.alien.id].abilities[s.alien],f=ab.cd?P.alien.cds[s.alien]/ab.cd:0,v=Math.round(f*100);
@@ -7646,7 +8026,7 @@ function frame(now){
   if(state==='play')MP.flush(real);
   Portal.tick();if(state==='play'&&PBAL&&time-(P.trialT||0)>1){P.trialT=time;updateTrials();}
   WS.update(real);
-  updateTags();
+  updateTags();updateMarkers();updateUnderwater();
   if(state!=='play')setText($('menu-online'),'monline',MP.status());
 }
 applyTouchUI();refreshMenu();updateEnv(0);applyLook();MP.init();
@@ -7658,7 +8038,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
-  Portal,respawn,resume,startTrial,revive,refill,reviveReady,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,get camPos(){return camPos;},get comboN(){return comboN;},
+  Portal,respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>

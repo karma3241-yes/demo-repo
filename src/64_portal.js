@@ -4,14 +4,16 @@
 // Only the portal build (`node tools/build.mjs crazygames`) sets window.__PORTAL__ and loads the CrazyGames SDK;
 // on the website and in the claude.ai version everything here does nothing.
 // Ads only come at natural breaks: after a knockout and when you leave the pause menu, at most once every 3 minutes,
-// never mid-fight. A rewarded ad (from the pause menu) doubles XP for 5 minutes. Rooms get the portal's invite button.
+// never mid-fight. If none has played for 20 minutes of play (you haven't been knocked out), an ad break waits for a
+// calm moment (no fight, not wanted, no boss, no menu), counts down 5 seconds on screen, then plays; from the countdown
+// until the ad ends you can't be hurt (other players included) and you stay where you are. A rewarded ad (from the pause menu) doubles XP for 5 minutes. Rooms get the portal's invite button.
 // Big moments (level-ups, heists stopped, bosses and rivals beaten, an overcharged ring) call happytime(), at most once a minute.
 // The save is copied to the portal's cloud storage, so it survives cleared browser storage and follows a signed-in player;
 // on start the newer of the two wins. Every session's first crime starts a short run from you, so there is something to do
 // within seconds. The rewards live in the HUD icon bar (67_hudbar.js).
 const PORTAL=window.__PORTAL__||'';
-const PORTAL_AD_GAP=180,XP_BOOST={mul:2,time:300};
-const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,
+const PORTAL_AD_GAP=180,AD_BREAK_EVERY=20*60,AD_BREAK_COUNT=5,XP_BOOST={mul:2,time:300};
+const Portal={sdk:null,inAd:false,adAt:0,playing:false,playT:0,adPlayT:0,lastTick:0,breakCd:0,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,
   on(){return !!this.sdk;},
   async init(){
     if(PORTAL!=='crazygames')return;const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;
@@ -26,12 +28,24 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:fals
   tick(){
     if(this.crimeAt&&time>=this.crimeAt&&state==='play'&&!paused&&!P.dead){this.crimeAt=0;if(ROOM.crimes&&!MP.online())nearCrime();}
     if(!this.sdk)return;const now=state==='play'&&!paused&&!sheetOpen&&!creating&&!P.dead&&!this.inAd;
+    const t=performance.now()/1000,d=Math.min(0.25,t-(this.lastTick||t));this.lastTick=t;if(now)this.playT+=d;this.breakTick(d);
     if(now===this.playing)return;this.playing=now;try{now?this.sdk.game.gameplayStart():this.sdk.game.gameplayStop();}catch(e){}
+  },
+  // the 20-minute ad break: only at a calm moment, after an on-screen countdown, with you safe and still until it ends
+  calm(){return this.playing&&!dialOpen&&!oathOpen&&!P.stars&&!(boss&&!boss.leave)&&time-(P.lastHit||-99)>6&&!voidbornLocked();},
+  breakTick(d){
+    const box=$('adbreak');if(!box)return;
+    if(this.inAd||this.playT-this.adPlayT<AD_BREAK_EVERY||!this.calm()){if(this.breakCd){this.breakCd=0;box.hidden=true;}return;}
+    if(!this.breakCd){this.breakCd=AD_BREAK_COUNT;box.hidden=false;}
+    this.breakCd-=d;P.iframeT=Math.max(P.iframeT||0,0.5);
+    if(this.breakCd<=0){this.breakCd=0;box.hidden=true;P.vel.set(0,0,0);P.iframeT=1e9; // safe for the whole ad
+      this.show('midgame',()=>{P.iframeT=2;P.vel.set(0,0,0);});return;}
+    const txt='Ad break in '+Math.ceil(this.breakCd);if(box.textContent!==txt)box.textContent=txt;
   },
   quiet(on){if(on){this.muteWas=SFX.muted;if(!SFX.muted)SFX.toggleMute();}else if(SFX.muted&&!this.muteWas)SFX.toggleMute();},
   show(kind,done){
     if(!this.sdk||this.inAd){done&&done(false);return;}
-    const end=ok=>{if(!this.inAd)return;this.inAd=false;this.quiet(false);this.tick();done&&done(ok);};
+    const end=ok=>{if(!this.inAd)return;this.inAd=false;this.adPlayT=this.playT;this.quiet(false);this.tick();done&&done(ok);};
     this.inAd=true;this.tick();
     try{this.sdk.ad.requestAd(kind,{adStarted:()=>{this.quiet(true);mouseL=false;for(const k in keys)keys[k]=false;},adFinished:()=>{this.adAt=performance.now()/1000;end(true);},adError:()=>end(false)});}
     catch(e){end(false);}

@@ -27,7 +27,7 @@ function feed(title,sub=''){
 const SLOT_KEYS=['1','2','3','4','5'],SLOT_ALT=['Q','E','R','',''];
 let slotEls=[];
 function buildHotbar(){
-  hud.hotbar.textContent='';slotEls=[];renderHeroKeys();if(!save.character)return;
+  hud.hotbar.textContent='';slotEls=[];renderHeroKeys();fitMoves();if(!save.character)return;
   if(P.alien){const a=ALIENS[P.alien.id];
     a.abilities.forEach((ab,i)=>{const cd=el('i',{class:'cd'});const s=el('div',{class:'slot alien'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:ab.name}),el('small',{text:a.name}));hud.hotbar.appendChild(s);slotEls.push({alien:i,s,cd});});
     const tb=el('i');const s=el('div',{class:'slot move band'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Revert'}),el('div',{class:'bar tbar'},tb));hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});
@@ -51,7 +51,7 @@ const MAPO=EDGE+130,mapCv=document.createElement('canvas');mapCv.width=mapCv.hei
   for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++){if(!isBlock(i,j))continue;c.fillStyle='#161b25';c.fillRect(X(cellX(i)-30),X(cellZ(j)-30),60*s,60*s);}
   for(const r of mapRects){if(r.col===-1)c.fillStyle='#1f4d2c';else if(r.col===-2)c.fillStyle='#4a3c30';else{const l=Math.round(26+clamp(r.col/260,0,1)*46);c.fillStyle=`hsl(212,22%,${l}%)`;}
     c.fillRect(X(r.x0),X(r.z0),Math.max(1,(r.x1-r.x0)*s),Math.max(1,(r.z1-r.z0)*s));}
-  c.fillStyle='#1d5f8a';for(const l of lakes){c.beginPath();c.arc(X(l.x),X(l.z),l.r*s,0,TAU);c.fill();}
+  c.fillStyle='#1d5f8a';for(const l of lakes){c.beginPath();for(let i=0;i<=32;i++){const a=i/32*TAU,r=lakeR(l,a);c.lineTo(X(l.x+Math.cos(a)*r),X(l.z+Math.sin(a)*r));}c.fill();}
   if(bank){c.fillStyle='#b8953a';c.fillRect(X(bank.x0),X(bank.z0),(bank.x1-bank.x0)*s,(bank.z1-bank.z0)*s);}
 })();
 const mapEl=$('map'),mctx=mapEl.getContext('2d');
@@ -190,9 +190,9 @@ let lbTab='respected';
     if(user){try{if(await user.can('data.write')===false)LB.ro=true;}catch(e){}}
     LB.db=db;LB.uid=uid;
     const clean=s=>s.docs.map(d=>{const v=d.data()||{};return {id:d.id,name:typeof v.name==='string'?v.name.slice(0,16):'Hero',level:Math.floor(+v.level||1),rep:Math.round(+v.rep||0)};});
-    db.collection('players').orderBy('rep','desc').limit(10).onSnapshot(s=>{LB.lists.respected=clean(s).filter(r=>r.rep>0);if(sheetOpen==='lb')renderSheet();},()=>{});
-    db.collection('players').orderBy('rep','asc').limit(10).onSnapshot(s=>{LB.lists.feared=clean(s).filter(r=>r.rep<0);if(sheetOpen==='lb')renderSheet();},()=>{});
-    db.collection('players').orderBy('level','desc').limit(10).onSnapshot(s=>{LB.lists.level=clean(s);if(sheetOpen==='lb')renderSheet();},()=>{});
+    db.collection('players').orderBy('rep','desc').limit(10).onSnapshot(s=>{LB.lists.respected=clean(s).filter(r=>r.rep>0);if(sheetOpen==='lb')renderSheet();updateLBMini(true);},()=>{});
+    db.collection('players').orderBy('rep','asc').limit(10).onSnapshot(s=>{LB.lists.feared=clean(s).filter(r=>r.rep<0);if(sheetOpen==='lb')renderSheet();updateLBMini(true);},()=>{});
+    db.collection('players').orderBy('level','desc').limit(10).onSnapshot(s=>{LB.lists.level=clean(s);if(sheetOpen==='lb')renderSheet();updateLBMini(true);},()=>{});
     syncPlayerDoc(true);
   }catch(e){}
 })();
@@ -278,6 +278,7 @@ const creator=$('create'),creatorBody=$('create-body');
 let creatorMode='new';
 function openCreator(mode='new'){
   creatorMode=mode;creating=true;
+  if(locked)document.exitPointerLock(); // the creator is clicked with the mouse, so give the cursor back (creating keeps this from pausing)
   if(mode==='new'&&state!=='play'){const pk=parks.find(q=>Math.abs(q.cx-40)<1&&Math.abs(q.cz+360)<1)||parks[0];P.pos.set(pk.cx,1.4,pk.cz);P.vel.set(0,0,0);P.showcase=true;}
   if(mode==='rechoose'&&save.character){const c=save.character,pre=presetOf(c);draft={name:c.name,suit:c.suit,cape:c.cape,accent:c.accent,capeOn:c.capeOn,movement:c.movement.slice(),body:pre?null:c.body,abilities:pre?[]:c.abilities.filter(id=>ABILITY_POWERS.includes(id)),kit:pre?c.abilities.slice(0,CONFIG.picks.kit):[],free:pre?c.abilities.slice(CONFIG.picks.kit):[],confirm:false};}
   else draft={name:'Guardian '+Math.floor(rr(100,1000)),suit:(Math.random()*SUIT_OPTS.length)|0,cape:(Math.random()*CAPE_OPTS.length)|0,accent:0,capeOn:true,movement:[],body:null,abilities:[],confirm:false};
@@ -383,8 +384,8 @@ function dialConfirm(){if(dialSel<0)return;const a=dialItems()[dialSel];if(a&&a.
 function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----
 const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],['punch','Throw a punch','Click to punch','Tap PUNCH'],
-  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Head for an icon on your minimap','Head for an icon on your minimap']];
+  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
 function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(GUIDE.every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
-  for(const [k,t,kb,tc] of GUIDE)list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:touchOn()?tc:kb})));}
+  for(const [k,t,kb,tc] of GUIDE)list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:touchOn()?tc:kb})));fitMoves();}
 Bus.on('damaged',e=>{if(e.source===P&&e.type==='punch')guideDone('punch');});

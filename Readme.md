@@ -124,6 +124,7 @@ You start tough: 220 health, and ordinary people and police do half damage to yo
 - **Wall running** is for everyone: sprint (hold `Shift`) into a wall to run up it, or hit it at an angle to run along it. `Space` leaps off. The Speedster's wall running gets faster with the speed dial.
 - **Parkour leap:** a quick jump while sprinting carries you much further.
 - **At night** the street lamps and car headlights light up the streets around you.
+- **Swimming:** off the island you swim instead of standing on the sea. You float with your head above the water and move at swimming pace; hold `C` to dive, and let go (or hold `Space`) to come back up. At the surface `Space` jumps out (hold it for a super jump), and swimming into the shore climbs you out. Hitting the water splashes (bigger the faster you hit it), the screen turns blue while the camera is under, and bubbles rise as you swim. Cars, constructs, giant aliens and a Speedster running fast still skim across the top. Park ponds are shallow: walking through one splashes and slows you down.
 
 ### Morph Band
 
@@ -164,14 +165,19 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `V` | Morph Band dial / change back (Ring Bearer: construct wheel; in a construct, tap to step out, hold for the wheel) |
 | `Tab` or `K` | Skills and upgrades |
 | `J` · `I` | Change powers · Appearance |
-| `6` · `7` · `8` | Multiplayer · Settings · Leaderboard |
+| `6` · `7` | Multiplayer · Settings |
 | `H` | Show or hide the move list |
+| `C` in water | Dive (let go, or hold `Space`, to swim back up) |
 | `L` | Lock or unlock the mouse. When it's unlocked, drag with the middle mouse button to look |
 | `Esc` / `P` | Pause (Appearance, Multiplayer, Leaderboard and Settings are here). In a multiplayer room the menu opens but the game keeps running |
 
-**Icon bar.** Under your name (top left) is a row of icons, one for every menu: move list, skills, change powers, appearance, multiplayer, settings and leaderboard. Each icon shows its key; with the mouse locked press the key, or press `L` to free the mouse and click. In the CrazyGames build the rewards are here too: double XP (`9`), refill (`0`), try locked powers (`,`) and cosmetics (`.`).
+**Icon bar.** Under your name (top left) is a row of icons, one for every menu: move list, skills, change powers, appearance, multiplayer and settings. Each icon shows its key; with the mouse locked press the key, or press `L` to free the mouse and click. In the CrazyGames build the rewards are here too: double XP (`9`), refill (`0`), try locked powers (`,`) and cosmetics (`.`).
 
-**Move list.** The panel on the right lists everything your current hero can do: moving, your five powers by name (on CrazyGames, with the level each one unlocks at), fighting, the hero's own keys (for the Ring Bearer: constructs, the wheel, the oath, rebuilding) and the menus. It stays open for your first 2 minutes each session; `H` or its icon shows or hides it, and once you choose, it stays that way.
+**Move list.** The panel on the right lists everything your current hero can do: moving, your five powers by name (on CrazyGames, with the level each one unlocks at), fighting, the hero's own keys (for the Ring Bearer: constructs, the wheel, the oath, rebuilding) and the menus. It stays open for your first 2 minutes each session; `H` or its icon shows or hides it, and once you choose, it stays that way. It always fits on screen without scrolling: it lays out in two columns, shrinks its rows if it has to, and folds "Getting started" down to your next step while it's open. Its top row reminds you that `H` hides it. Opening a menu or Change powers frees the mouse, so the cursor is always there to click with.
+
+**Leaderboard.** A small leaderboard sits on the left, under the icon bar: switch between most respected, most feared and highest level, and click it for the full board (also in the main menu and the pause menu). On touch screens it's in the pause menu only.
+
+**Markers.** Every crime has a floating `!` over it with its distance (heists get a bigger, pulsing `!!`); when it's off screen the marker waits at the edge of the screen with an arrow pointing the way. When your hero's meter drops below a quarter, a marker shows where to recharge it and a hint above the meters says how: the suit battery at Inventor Tower, lightning on the nearest tall roof, calories at the nearest shop, and the ring by pressing `O` to say the oath.
 
 **Driving:** `W` accelerates, `S` brakes and reverses, `A` and `D` steer, `Space` is the handbrake, and `G` gets you out.
 
@@ -183,11 +189,13 @@ Nova Bay is laid out like Manhattan and Queens, about one and a half times the s
 
 - **Traffic** follows lanes and traffic lights, and cars honk and brake for people in the road. You can take any car with `G`. Taking a car that someone is driving is a crime.
 - **Almost everything breaks.** Street lamps, traffic lights, benches, trees, bus stops, mailboxes and hydrants shatter into pieces (and hydrants spray water). Windows break from explosions, lasers and crashes. Cars can be wrecked, and debris bounces off buildings. Broken street furniture comes back after a couple of minutes.
-- **Crimes** play out on their own and only show up as icons on your minimap. There are no pop-ups. Drones rob shops and float the loot to a getaway van, drones hack ATMs, thugs mug people, and thieves break into cars and drive off. If you step in and stop one, you get a bonus.
+- **Crimes** play out on their own and show up as `!` markers over them (with their distance) and as icons on your minimap. There are no pop-ups. Drones rob shops and float the loot to a getaway van, drones hack ATMs, thugs mug people, and thieves break into cars and drive off. If you step in and stop one, you get a bonus.
 - **Heists** are rare and big. The mothership tries to lift the bank vault into the sky, or a Titan mech rips open an armored truck.
 - **People react.** Civilians flee from fights and from villains. Criminals can leave people injured on the ground; heroes can help them up with `G`. Thug gangs hang around alleys and attack heroes on sight. Police go after villains and wanted criminals, and patrol cars chase them with sirens. When you're wanted, **police helicopters** join in at 4 stars; they circle overhead, sweep a searchlight at night and fire at you; shoot one down and it spins out of the sky. Rival heroes and villains with their own powers roam the city too.
 - **Hunter squads.** Stay at 5 stars for a while as a villain and the city sends an armada of hero robots after you. Rack up a long win streak as a hero (25 takedowns without going down) and the villains send robots after you. Each robot has its own kit: fliers strafe you, speedsters rush you on foot, brawlers smash the ground, beamers hold a laser on you and bombers drop rockets from above. More arrive every wave. They pull out when you go down, or when your stars drop. In a room-code game the host's city sends squads after any player who earns one.
 - **Wanted level.** Crimes against civilians and police earn you wanted stars (1–5), shown at the top of the HUD. 1 star sends officers on foot, 2 brings police cars, 3 sends more of everything, 4 calls in helicopters and 5 is everything at once. Stay out of the police's sight and you lose a star at a time; the stars blink while they can't see you. Getting knocked out clears them.
+- **City life:** airliners cross high overhead (contrails by day, blinking lights by night), a blimp circles the city, gulls circle over the parks and rooftops, pigeons sit on roof edges and park paths and scatter when you come close, and speedboats, ferries and sailboats cruise the water with a wake behind them. It's all scenery: nothing in it fights you or blocks you.
+- **Parks:** each small square park has a fountain with a stone basin, a column and an upper bowl; water sprays from the top and from jets around the rim and pours down from the bowl. The ponds in the big parks have irregular shores, ripples and glints of sunlight.
 - **Bounty.** As a villain, your crimes also build a bounty (bigger the more stars you have). It stays on your head until a hero takes you down: a hero player collects it as XP and reputation, and a rival hero can claim it too. Other players can see your stars and bounty on your name tag.
 
 ## Multiplayer
@@ -238,11 +246,11 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
   - Black Hole only tears down buildings from LV 5.
 - **Rewarded ads.** Always optional; they only get you there sooner.
   - **Try locked powers:** one ad gives 10 minutes of any of these: a locked power key, your traversal at full mastery, one of your powers at LV 10, a locked construct or suit form, or a locked alien. It's in the pause menu, or you can click a locked slot on the wheel.
-  - **Revive:** when you're knocked out, press `R` (or tap the button) to get up where you fell. Once every 3 minutes, and not when another player knocked you out.
   - **Refill:** refill your ring charge, battery, calories or lightning.
   - **Double XP** for 5 minutes.
   - **Cosmetics:** 4 glowing suits, 4 trails, 4 capes and 4 auras. Each one is yours for good after one ad, and other players in your room see them.
-- **Short ads** can play after a knockout or when you leave the pause menu. At most once every 3 minutes, and never in the first 3 minutes. The game freezes and the sound is muted while one plays.
+- **Short ads** can play after a knockout (you're back in 5 seconds anyway, so there is no "get up now" ad) or when you leave the pause menu. At most once every 3 minutes, and never in the first 3 minutes. The game freezes and the sound is muted while one plays.
+- **Ad break every 20 minutes** if no ad has played for 20 minutes of play (for example, you haven't been knocked out). It waits for a calm moment: not fighting or recently hit, not wanted, no boss, no menu open. Then "Ad break in 5" counts down on screen and the ad plays. From the countdown until the ad ends you can't be hurt, other players included, and you stay where you are. Any other ad restarts the 20 minutes.
 - **Rewards in the icon bar:** double XP, refill, try locked powers and cosmetics are HUD icons (keys `9`, `0`, `,`, `.`) instead of pause-menu buttons.
 - **Something to do right away:** every session's first crime starts 30–120 m from you a few seconds after you start, instead of 90–420 m away.
 - **Cloud save:** the save is also kept in CrazyGames' own storage, so progress survives the browser clearing its storage and follows a signed-in player to other devices. When the game starts, the newer of the two saves wins.
@@ -264,8 +272,10 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 | `46_buildings.js` | Building damage, collapse and regrowth |
 | `49d_wanted.js` | Wanted stars and bounty |
 | `50_npcs.js`, `52_heli.js` | People, traffic, police, helicopters, crimes, heists, rivals |
+| `53_water.js`, `54_ambient.js` | Swimming, diving and splashes; planes, the blimp, birds, pigeons, boats, fountains and ponds |
 | `60_multiplayer.js`, `62_worldsync.js`, `63_host.js` | Players over the claude.ai room or room codes, the shared host city, and room host controls |
-| `64_portal.js`, `65_rewards.js` | CrazyGames build: gameplay events, ad breaks, invite links; power keys by level, trials, revive, refills, cosmetics |
+| `64_portal.js`, `65_rewards.js` | CrazyGames build: gameplay events, ad breaks, invite links; power keys by level, trials, refills, cosmetics |
+| `66_icons.js`, `67_hudbar.js`, `68_markers.js` | HUD icons, the icon bar, move list and leaderboard panel; crime and recharge markers |
 | `70_ui.js`, `80_player.js` | HUD, menus, input, driving, player movement |
 | `90_render.js`, `99_main.js` | Camera, models, draw list, main loop |
 

@@ -76,10 +76,10 @@ const Damage={
 let hitMarkT=-9;
 function breakShield(){P.shield=0;P.shieldOn=false;PS.energyShield.cd=POWERS.energyShield.cooldown;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,2,6,0.4,[.4,.85,1]);SFX.tone('square',900,200,0.3,0.12);feed('Shield broken','Recharging for '+POWERS.energyShield.cooldown+' s');}
 function playerDown(killer){
-  P.dead=true;P.deadT=CONFIG.health.respawn;stopAllPowers();downBy=killer||null;
+  P.dead=true;P.deadT=CONFIG.health.respawn;stopAllPowers();
   explode(P.pos.x,P.pos.y+1.2,P.pos.z,0.8);
   $('dead').hidden=false;$('deads').textContent=(killer&&killer.name?killer.name+' took you down. ':'')+'Back in '+CONFIG.health.respawn+' seconds. You keep your level, powers and reputation.';
-  reviveOffer();MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
+  MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
 }
 function respawn(){
   const s=SPAWNS[(Math.random()*SPAWNS.length)|0];if(P.alien)revertAlien(true);

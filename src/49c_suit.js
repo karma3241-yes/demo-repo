@@ -44,10 +44,11 @@ function drawSuit(){
 // the move list (right side, H) shows everything the hero you are playing can do
 function renderHeroKeys(){
   const box=$('keys-hero');if(!box)return;box.textContent='';const c=save.character;
-  const H=t=>box.appendChild(el('h4',{text:t}));
-  const K=(k,t)=>{box.appendChild(el('kbd',{text:k}));box.appendChild(el('span',{text:t}));};
+  let grid=null; // each heading starts a section that the two-column layout keeps in one piece
+  const H=t=>{const s=el('section',{class:'ks'},el('h4',{text:t}));grid=el('div',{class:'kg'});s.appendChild(grid);box.appendChild(s);};
+  const K=(k,t)=>{grid.appendChild(el('kbd',{text:k}));grid.appendChild(el('span',{text:t}));};
   const m=c&&c.movement[0];
-  H('Moving');K('WASD','Move');K('Space','Jump · hold for a super jump');
+  H('Moving');K('WASD','Move');K('Space','Jump · hold for a super jump');K('C · Space in water','Dive · swim back up');
   if(m==='webSwing'){K('Right click','Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
   else if(m)K('F','Fly · hold on the ground to charge a launch');
@@ -65,5 +66,5 @@ function renderHeroKeys(){
     if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
     if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
     K('U','Suit up or down');}
-  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('L','Free the mouse to click the icons');K('Esc','Pause');K('H','Show or hide this list');
+  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('L','Free the mouse to click the icons');K('Esc','Pause');K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
 }

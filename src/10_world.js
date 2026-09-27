@@ -27,7 +27,7 @@ const cellI=x=>Math.floor((x-X0)/CELL),cellJ=z=>Math.floor((z-Z0)/CELL);
 // road edges on the grid lines: along z (axis 0) at x line k between z nodes m and m+1; along x (axis 1) at z line m between x nodes k and k+1
 function zEdge(k,m){if(m<0||m>=GZ)return false;const a=cellAt(k-1,m),b=cellAt(k,m);return !!(a||b)&&!(a===2&&b===2);}
 function xEdge(m,k){if(k<0||k>=GX)return false;const a=cellAt(k,m-1),b=cellAt(k,m);if(BRIDGES.includes(m)&&RIVER.includes(k))return true;return !!(a||b)&&!(a===2&&b===2);}
-const colliders=[],blockCols=[],extraCols=[],roofTops=[],mapRects=[],parks=[],shops=[],atms=[],alleys=[],curbSpots=[],orbSpots=[],lakes=[];
+const colliders=[],blockCols=[],extraCols=[],roofTops=[],mapRects=[],parks=[],shops=[],atms=[],alleys=[],curbSpots=[],orbSpots=[],lakes=[],fountainSpots=[];
 const blockProps=[],tlights=[];
 let bank=null,hospital=null,policeHQ=null,invTower=null;
 const city=new Geo();
@@ -255,9 +255,8 @@ function parkBlock(i,j,cx,cz,list,bi,big){
   city.box(cx-28,0.25,cz-28,cx+28,0.4,cz+28,GRASS,5);parks.push({cx,cz});rect(cx-28,cz-28,cx+28,cz+28,-1);
   city.box(cx-28,0.4,cz-1.5,cx+28,0.45,cz+1.5,PATHC,0);city.box(cx-1.5,0.4,cz-28,cx+1.5,0.45,cz+28,PATHC,0);
   if(big&&i===7&&j===3){ // lake
-    lakes.push({x:cx+10,z:cz+10,r:14});city.prim(PRIM.cyl,cx+10,0.3,cz+10,0,0,0,15,0.3,15,C('#6b6456'),0);
-    for(let k=0;k<10;k++){const a=k/10*TAU;city.prim(PRIM.sphere,cx+10+Math.cos(a)*15,0.6,cz+10+Math.sin(a)*15,0,a,0,sr(0.8,1.4),sr(0.5,0.9),sr(0.8,1.4),C('#7a7a74'),0);}
-  }else{city.prim(PRIM.cyl,cx,0.9,cz,0,0,0,6,1,6,C('#8d9199'),0);city.prim(PRIM.cyl,cx,1.35,cz,0,0,0,5.4,0.1,5.4,C('#1f6fa8'),0);}
+    const L={x:cx+10,z:cz+10,r:14};lakes.push(L);lakeRim(L,10);
+  }else parkFountain(cx,cz);
   if(big&&i===8&&j===4){city.box(cx+8,0.4,cz+8,cx+18,0.8,cz+18,STONE,0);for(const [a,b] of [[8.5,8.5],[17.5,8.5],[8.5,17.5],[17.5,17.5]])city.prim(PRIM.cyl,cx+a,3,cz+b,0,0,0,0.3,4.4,0.3,STONE,0);
     city.prim(PRIM.cone,cx+13,6.4,cz+13,0,0,0,7.5,2.6,7.5,C('#5c3b30'),0);}
   const nt=big?18:12;
@@ -285,7 +284,35 @@ function centralPark(i,j,cx,cz,list,bi){
   addProp(bi,'lamp',cx+3,cz+3,0,{y:0.4});addProp(bi,'bench',cx+4,cz-3,Math.PI,{y:0.4});addProp(bi,'bench',cx-4,cz+3,0,{y:0.4});
   orbSpots.push({x:cx+14,y:1.6,z:cz,roof:false});
 }
-for(const l of lakes){city.prim(PRIM.cyl,l.x,0.3,l.z,0,0,0,l.r+1,0.3,l.r+1,C('#6b6456'),0);for(let k=0;k<12;k++){const a=k/12*TAU;city.prim(PRIM.sphere,l.x+Math.cos(a)*(l.r+1),0.6,l.z+Math.sin(a)*(l.r+1),0,a,0,sr(0.8,1.4),sr(0.5,0.9),sr(0.8,1.4),C('#7a7a74'),0);}}
+// ponds are irregular, not circles: the shore wobbles inside the old circle (so nothing planted around it ends up in the water)
+function lakeR(l,a){const h=l.x*0.137+l.z*0.071;return l.r*(0.8+0.07*Math.sin(2*a+h)+0.06*Math.sin(3*a+h*2.3+1)+0.04*Math.sin(5*a+h*3.7+2)+0.03*Math.sin(7*a+h*1.9));}
+const inLake=(x,z,pad=0)=>{for(const l of lakes){const dx=x-l.x,dz=z-l.z;if(dx*dx+dz*dz<(l.r+pad)*(l.r+pad)&&Math.hypot(dx,dz)<lakeR(l,Math.atan2(dz,dx))+pad)return l;}return null;};
+// a flat slab whose outline follows the shore (pad metres out), from y0 to y1
+function lakeSlab(l,pad,y0,y1,N=40){
+  const pos=[],nor=[],idx=[];pos.push(l.x,y1,l.z);nor.push(0,1,0);
+  for(let i=0;i<=N;i++){const a=i/N*TAU,r=lakeR(l,a)+pad;pos.push(l.x+Math.cos(a)*r,y1,l.z+Math.sin(a)*r);nor.push(0,1,0);}
+  for(let i=0;i<N;i++)idx.push(0,i+2,i+1);
+  const b=pos.length/3;
+  for(let i=0;i<=N;i++){const a=i/N*TAU,r=lakeR(l,a)+pad,c=Math.cos(a),sn=Math.sin(a);pos.push(l.x+c*r,y1,l.z+sn*r,l.x+c*r,y0,l.z+sn*r);nor.push(c,0,sn,c,0,sn);}
+  for(let i=0;i<N;i++){const t0=b+i*2;idx.push(t0,t0+3,t0+1,t0,t0+2,t0+3);}
+  return {pos,nor,idx};
+}
+const IDM=M4.create();
+// the stone shore and the rocks around a pond (same random draws as the old round rim, so the rest of the city is unchanged)
+function lakeRim(l,n){city.add(lakeSlab(l,1,0.15,0.45),IDM,C('#6b6456'),0);
+  for(let k=0;k<n;k++){const a=k/n*TAU,r=lakeR(l,a)+1;city.prim(PRIM.sphere,l.x+Math.cos(a)*r,0.6,l.z+Math.sin(a)*r,0,a,0,sr(0.8,1.4),sr(0.5,0.9),sr(0.8,1.4),C('#7a7a74'),0);}}
+// the fountain in each small square park: a stone basin with a raised lip, a column, an upper bowl and a spout.
+// Both water surfaces sit a few cm above the stone under them (the old disc sat level with the basin top and flickered).
+function parkFountain(x,z){const ST=C('#8d9199'),ST2=C('#a7abb2'),W=[1,1,1];
+  city.prim(PRIM.cyl,x,0.8,z,0,0,0,6,0.8,6,ST,0);            // basin, 0.4 to 1.2
+  city.prim(PRIM.cyl,x,1.23,z,0,0,0,5.3,0.06,5.3,W,4);        // its water, up to 1.26
+  city.prim(PRIM.torus,x,1.26,z,0,0,0,5.75,2.4,5.75,ST2,0);   // the raised lip
+  city.prim(PRIM.cyl,x,2.3,z,0,0,0,0.55,2.2,0.55,ST,0);       // column
+  city.prim(PRIM.cyl,x,3.5,z,0,0,0,1.9,0.3,1.9,ST2,0);        // upper bowl, 3.35 to 3.65
+  city.prim(PRIM.cyl,x,3.68,z,0,0,0,1.6,0.06,1.6,W,4);        // its water
+  city.prim(PRIM.cyl,x,4.1,z,0,0,0,0.22,0.8,0.22,ST,0);city.prim(PRIM.sphere,x,4.55,z,0,0,0,0.32,0.32,0.32,ST2,0);
+  fountainSpots.push({x,z});}
+for(const l of lakes)lakeRim(l,12);
 for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++){
   const bi=i*GZ+j,cx=cellX(i),cz=cellZ(j),list=[],dist=districtOf(i,j);blockCols[bi]=list;blockProps[bi]=[];
   const lv=cellAt(i,j);if(!lv)continue;
@@ -369,7 +396,7 @@ for(const b of extraCols)if(!colliders.includes(b))colliders.push(b);
 const cityMesh=city.mesh();
 const groundMesh=groundGeo.mesh();
 const waterMesh=new Geo().prim(PRIM.quad,0,-1.2,0,0,0,0,9000,1,9000,[1,1,1],4).mesh();
-const lakeMesh=(()=>{const g=new Geo();for(const l of lakes)g.prim(PRIM.cyl,l.x,0.46,l.z,0,0,0,l.r,0.02,l.r,[1,1,1],4);return g.mesh();})();
+const lakeMesh=(()=>{const g=new Geo();for(const l of lakes)g.add(lakeSlab(l,0,0.45,0.47),IDM,[1,1,1],4);return g.mesh();})();
 for(let bi=0;bi<GX*GZ;bi++)if(blockProps[bi])buildBlockProps(bi);
 for(const list of blockProps)for(const p of list)if(p.type==='tlight')tlights.push(p);
 (function(){
@@ -472,8 +499,8 @@ function raySphere(ox,oy,oz,dx,dy,dz,cx,cy,cz,r,ys=1){
 }
 // body vs buildings: resolves penetration, reports ground and the wall that was hit
 const COL={grounded:false,wall:null};
-function collideBody(pos,vel,prevY,R,HT){
-  COL.grounded=false;COL.wall=null;const gb=baseY(pos.x,pos.z);
+function collideBody(pos,vel,prevY,R,HT,floor){ // floor: override the ground height (the player swimming over open water)
+  COL.grounded=false;COL.wall=null;const gb=floor===undefined?baseY(pos.x,pos.z):floor;
   if(pos.y<=gb){pos.y=gb;if(vel.y<0)vel.y=0;COL.grounded=true;}
   for(const b of nearCols(pos.x,pos.z)){
     if(pos.x>b.x0-R&&pos.x<b.x1+R&&pos.z>b.z0-R&&pos.z<b.z1+R&&pos.y<b.y1&&pos.y+HT>b.y0){

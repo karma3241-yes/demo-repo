@@ -1,10 +1,10 @@
 // ================================================================
-// CrazyGames rewards: power keys by level, 10-minute trials, revive, refills and cosmetics
+// CrazyGames rewards: power keys by level, 10-minute trials, refills and cosmetics
 // ================================================================
 // Everything here is for the CrazyGames build (PBAL); the website and claude.ai never lock a key or show an ad button.
 // Rewarded ads are always optional: nothing is out of reach without them, they only get you there sooner.
 const KIT_LV=[1,2,4,6,9];                 // the level each power key (1-5) opens at
-const TRIAL_MIN=10,REVIVE_GAP=180;
+const TRIAL_MIN=10;
 const slotLocked=i=>PBAL&&save.level<KIT_LV[i]&&!trialOn('key'+i);
 function lockedSlotMsg(i){if(time-(P.lockMsgT||-9)<1)return;P.lockMsgT=time;const id=save.character.abilities[i];
   feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],Portal.on()?'Pause → Try locked powers to use it now for '+TRIAL_MIN+' min':'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
@@ -43,16 +43,6 @@ function renderTrials(){
 }
 // locked dial slots (constructs, suit forms, aliens) offer a trial on click
 function dialTrial(a){if(!PBAL||!a||!a.trialKey)return false;if(!Portal.on()){feed(a.name+' is locked',a.lock);return true;}closeDial();startTrial(a.trialKey,a.name);return true;}
-// ---- revive where you fell ----
-let reviveAt=-1e9,downBy=null;
-const reviveReady=()=>PBAL&&Portal.on()&&P.dead&&!(downBy&&downBy.kind==='remote')&&performance.now()/1000-reviveAt>=REVIVE_GAP;
-function reviveOffer(){ // the knockout screen's revive button (R, or tap it), made the first time it's needed
-  let b=$('revive');if(!b){if(!PBAL)return;const box=$('dead').firstElementChild;b=el('button',{class:'go',id:'revive',type:'button',text:'Watch an ad: get up right here (R)',onclick:revive});b.style.marginTop='14px';box.appendChild(b);}
-  b.hidden=!reviveReady();}
-function revive(){if(!reviveReady())return;
-  Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}if(!P.dead)return;
-    reviveAt=performance.now()/1000;P.dead=false;P.hp=maxHp();P.en=maxEn();P.stun=0;P.lastHit=-99;P.iframeT=2;$('dead').hidden=true;
-    const c=center(P);ringFx(c.x,c.y,c.z,1,8,0.5,[1,.9,.5]);burst(c.x,c.y,c.z,50,12,0.8,GOLD,1.4,0,2);toast('Back on your feet','Right where you fell','gold');});}
 // ---- refill your hero's meter ----
 function refillInfo(){const m=heroMeter();if(!m)return null;const cap=m.key==='ring'?100:meterCap(m);return {m,cap,need:save[m.key]<cap-0.5};}
 function refill(){const r=refillInfo();if(!r||!r.need)return;
