@@ -219,11 +219,25 @@ Progress saves automatically in your browser. A short checklist in the corner wa
 
 The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS shell. Run `node tools/build.mjs` to join them into `index.html` (no packages needed). Commit the rebuilt `index.html` alongside source changes.
 
-**CrazyGames build.** `node tools/build.mjs crazygames` also writes `dist/crazygames/index.html`: the same game with the CrazyGames SDK loaded in front of it. Zip that one file (with `index.html` at the top of the zip) and upload it on the CrazyGames developer portal. The website and the claude.ai version never load the SDK. In the CrazyGames build:
-- the portal is told when you're actually playing (not in menus, paused, knocked out or watching an ad);
-- a short ad can play after a knockout or when you leave the pause menu, at most once every 3 minutes and never in the first 3 minutes; the game freezes and the sound is muted while it plays;
-- the pause menu has **Watch an ad: double XP for 5 min** (a rewarded ad);
-- room-code multiplayer works as on the website, peer to peer. A room shows CrazyGames' invite button, invite links open straight into the room, and CrazyGames' "play with friends" starts a room. The relay credentials still come from this site's `/api/turn`, which answers CrazyGames pages too.
+**CrazyGames build.** `node tools/build.mjs crazygames` also writes `dist/crazygames/index.html`: the same game with the CrazyGames SDK loaded in front of it. Zip that one file (with `index.html` at the top of the zip) and upload it on the CrazyGames developer portal. The website and the claude.ai version never load the SDK and keep today's balance. The CrazyGames build differs in these ways:
+
+- **Slower, tighter progression:**
+  - Your power keys open with level: key 1 at the start, then LV 2, 4, 6 and 9.
+  - Traversal mastery takes about 6 hours instead of 1.
+  - Flight starts at 20 m/s with a small Shift boost, and grows to full speed with mastery.
+  - The speed dial starts at ×2, and the space speed-up starts at ×10 (×90 when mastered).
+- **Caps on growing:**
+  - Constructs grow to 2× at first and up to 30× with mastery (never Earth-sized).
+  - Held powers grow to 1.5× at LV 1 and up to 10× at LV 10.
+  - Black Hole only tears down buildings from LV 5.
+- **Rewarded ads.** Always optional; they only get you there sooner.
+  - **Try locked powers:** one ad gives 10 minutes of any of these: a locked power key, your traversal at full mastery, one of your powers at LV 10, a locked construct or suit form, or a locked alien. It's in the pause menu, or you can click a locked slot on the wheel.
+  - **Revive:** when you're knocked out, press `R` (or tap the button) to get up where you fell. Once every 3 minutes, and not when another player knocked you out.
+  - **Refill:** refill your ring charge, battery, calories or lightning.
+  - **Double XP** for 5 minutes.
+  - **Cosmetics:** 4 glowing suits, 4 trails, 4 capes and 4 auras. Each one is yours for good after one ad, and other players in your room see them.
+- **Short ads** can play after a knockout or when you leave the pause menu. At most once every 3 minutes, and never in the first 3 minutes. The game freezes and the sound is muted while one plays.
+- **Multiplayer** is peer to peer, the same as on the website. Rooms get CrazyGames' invite button, invite links open straight into the room, and "play with friends" starts a room. It only uses free public relays, never this site's Cloudflare TURN, so players on very strict networks may not connect.
 
 | Module | Contents |
 | --- | --- |
@@ -240,7 +254,7 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 | `49d_wanted.js` | Wanted stars and bounty |
 | `50_npcs.js`, `52_heli.js` | People, traffic, police, helicopters, crimes, heists, rivals |
 | `60_multiplayer.js`, `62_worldsync.js`, `63_host.js` | Players over the claude.ai room or room codes, the shared host city, and room host controls |
-| `64_portal.js` | CrazyGames build: gameplay events, ad breaks, the double-XP rewarded ad, invite links |
+| `64_portal.js`, `65_rewards.js` | CrazyGames build: gameplay events, ad breaks, invite links; power keys by level, trials, revive, refills, cosmetics |
 | `70_ui.js`, `80_player.js` | HUD, menus, input, driving, player movement |
 | `90_render.js`, `99_main.js` | Camera, models, draw list, main loop |
 

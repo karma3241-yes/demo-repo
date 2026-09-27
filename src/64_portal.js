@@ -38,9 +38,14 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:fals
   roomChanged(){if(!this.sdk)return;try{if(P2P.state==='open'&&P2P.code)this.sdk.game.showInviteButton({room:P2P.code});else this.sdk.game.hideInviteButton();}catch(e){}},
 };
 // the pause menu's "watch an ad" button (portal build only)
+// the pause menu's portal buttons: double XP, refill, trials and cosmetics (portal build only)
 function renderPortalButtons(){
-  let b=$('p-ad');if(!Portal.on()){if(b)b.hidden=true;return;}
-  if(!b){b=el('button',{class:'ghost',id:'p-ad',type:'button',onclick:()=>Portal.rewardXP()});$('resume').parentNode.appendChild(b);}
-  const left=Portal.boostUntil-time;b.hidden=false;b.disabled=left>0;b.textContent=left>0?'Double XP active · '+Math.ceil(left/60)+' min left':'Watch an ad: double XP for 5 min';
+  if(!PBAL)return;let row=$('p-portal');
+  if(!row){row=el('div',{class:'pause-btns',id:'p-portal'},
+      el('button',{class:'ghost',id:'p-ad',type:'button',onclick:()=>Portal.rewardXP()}),el('button',{class:'ghost',id:'p-refill',type:'button',onclick:()=>refill()}),
+      el('button',{class:'ghost',id:'p-trials',type:'button',text:'Try locked powers',onclick:()=>openSheet('trials')}),el('button',{class:'ghost',id:'p-cos',type:'button',text:'Cosmetics',onclick:()=>openSheet('cos')}));
+    $('resume').parentNode.after(row);}
+  const on=Portal.on(),left=Portal.boostUntil-time,b=$('p-ad');b.disabled=!on||left>0;b.textContent=left>0?'Double XP active · '+Math.ceil(left/60)+' min left':'Watch an ad: double XP for 5 min';
+  const r=refillInfo(),f=$('p-refill');f.hidden=!r;if(r){f.disabled=!on||!r.need;f.textContent=r.need?'Watch an ad: refill '+r.m.label.toLowerCase():r.m.label.charAt(0)+r.m.label.slice(1).toLowerCase()+' is full';}
 }
 Portal.init();

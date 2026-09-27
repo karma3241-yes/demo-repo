@@ -20,7 +20,7 @@ let conPick='bubble',armorPick='aJet',oathOpen=false,oathStart=0,oathFree=false,
 const isRing=()=>hasTrav('powerRing')&&!P.alien;
 const ringMk=()=>mk('powerRing');
 const conSize=()=>0.8+0.45*ringMk(); // constructs grow with ring mastery
-const conUnlocked=()=>{const arm=armorForms(),l=masteryLevel(arm?'armorFlight':'powerRing');return CON_IDS.filter(id=>!!CONSTRUCTS[id].armor===arm&&CONSTRUCTS[id].unlock<=l);};
+const conUnlocked=()=>{const arm=armorForms(),l=masteryLevel(arm?'armorFlight':'powerRing');return CON_IDS.filter(id=>!!CONSTRUCTS[id].armor===arm&&(CONSTRUCTS[id].unlock<=l||trialOn('con:'+id)));};
 const conDef=()=>P.construct?CONSTRUCTS[P.construct.id]:null;
 const conScale=id=>(CONSTRUCTS[id].scale||1)*(CONSTRUCTS[id].scale?conSize()*conGrow(id):1);
 // Every construct can grow: scroll up (or ] / =) to grow it, down to shrink it back, all the way up to the size of the Earth.
@@ -29,7 +29,7 @@ const CON_GROW={mul:1.2,cost:0.9,refund:0.25,earth:120000};
 const conGrow=id=>P.construct&&P.construct.id===id?P.construct.grow||1:1;
 // how big a construct is before it grows (metres, roughly its longest side)
 function conBase(id){const C=CONSTRUCTS[id];return C.scale?2.7*C.scale*conSize():C.len||4;}
-const conMaxGrow=id=>Math.max(1,CON_GROW.earth/conBase(id));
+const conMaxGrow=id=>PBAL?2+28*mk(conOwner(id)):Math.max(1,CON_GROW.earth/conBase(id)); // CrazyGames: 2x, up to 30x with mastery
 function conBody(){const K=P.construct;if(!K)return;const C=CONSTRUCTS[K.id];if(!C.scale)return;const sc=conScale(K.id);
   // the body stays narrow enough to walk down a street; anything inside the mech's feet gets trampled instead
   P.radius=0.8*Math.max(1,Math.min(sc*0.7,9));P.height=2.7*sc;}
@@ -37,7 +37,7 @@ const sizeLabel=m=>m>=1000?(m/1000).toFixed(m>=10000?0:1)+' km':Math.round(m)+' 
 function conGrowStep(dir){
   const K=P.construct;if(!K||!canAct())return false;const C=CONSTRUCTS[K.id],g=K.grow||1,mx=conMaxGrow(K.id);
   const ng=dir>0?Math.min(mx,g*CON_GROW.mul):Math.max(1,g/CON_GROW.mul);
-  if(Math.abs(ng-g)<1e-6){if(time-(K.maxMsg||-9)>3){K.maxMsg=time;feed(dir>0?C.name+' is as big as the Earth':C.name+' is back to normal size','');}return true;}
+  if(Math.abs(ng-g)<1e-6){if(time-(K.maxMsg||-9)>3){K.maxMsg=time;feed(dir>0?(PBAL?C.name+' is as big as your mastery allows (×'+Math.round(mx*10)/10+')':C.name+' is as big as the Earth'):C.name+' is back to normal size','');}return true;}
   if(ng>g){if(conFuel()<CON_GROW.cost+0.5){ringOut();return true;}conBurn(CON_GROW.cost);}
   else if(armorForms())save.battery=Math.min(meterCap(METERS.armorFlight),save.battery+CON_GROW.cost*CON_GROW.refund*0.25);else save.ring=Math.min(Math.max(100,save.ring),save.ring+CON_GROW.cost*CON_GROW.refund);
   K.grow=ng;conBody();const c=center(P),sz=conBase(K.id)*ng;ringFx(c.x,P.pos.y+0.3,c.z,1,Math.min(4*sz,CON_GROW.earth),0.4,C.armor?ARMOR_FX:RING_C);
@@ -228,7 +228,8 @@ function updateRing(dt){
         if(d<4.5)Damage.apply(P,a,(a.kind==='boss'?40:220)*dt,'gravity');}
       hitProps(H.x,Math.min(H.y,4),H.z,R*0.4*k,P,8);
       // pull down the buildings around it, one at a time, leaning into the hole
-      H.next-=dt;if(H.t>0.8&&H.t<H.dur-1&&H.next<=0){H.next=0.5;let best=null,bd=R*0.9;
+      H.next-=dt;if(H.t>0.8&&H.t<H.dur-1&&H.next<=0&&(!PBAL||powerLevel('blackHole')>=5)){ // CrazyGames: tearing down buildings needs Black Hole LV5
+        H.next=0.5;let best=null,bd=R*0.9;
         for(const b of bldgs){if(b.state!=='up')continue;const d=Math.hypot(Math.max(b.x0-H.x,0,H.x-b.x1),Math.max(b.z0-H.z,0,H.z-b.z1));if(d<bd){bd=d;best=b;}}
         if(best){const cx=(best.x0+best.x1)/2,cz=(best.z0+best.z1)/2;collapseBuilding(best,H.x-cx,H.z-cz,true);H.bl=(H.bl||[]).concat([best]);}}}
     // chunks from falling and fallen buildings stream into the hole

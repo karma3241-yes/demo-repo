@@ -249,6 +249,8 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #xquiz .xq-foot{margin-top:10px;font-size:12px;letter-spacing:.12em;color:var(--ink-dim)}
 #xquiz[data-mode="lock"]{top:max(90px,12vh);bottom:auto;width:auto;min-width:240px;padding:10px 16px;pointer-events:none;border-color:rgba(255,92,110,.5);box-shadow:0 0 30px rgba(255,60,80,.25)}
 #xquiz[data-mode="lock"] .xq-head{color:#ffb3bd}#xquiz[data-mode="lock"] .xq-foot{margin-top:4px;font-size:14px;color:var(--ink)}
+.slot.locked{opacity:.45;filter:grayscale(.8)}.slot.locked small{color:var(--ink-dim)}
+.cos-sw{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:8px;vertical-align:-2px;border:1px solid rgba(255,255,255,.3)}
 #guide{position:absolute;right:16px;top:96px;padding:10px 14px;width:230px;box-sizing:border-box}
 #guide h4{margin:0 0 6px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
 #guide ol{margin:0;padding:0;list-style:none;display:grid;gap:6px}
@@ -1577,7 +1579,7 @@ function loadSave(){
   if(s.stats&&typeof s.stats==='object')for(const k in f.stats)f.stats[k]=Math.floor(num(s.stats[k],0,0,1e9));
   f.rechoiceAt=f.migrated?0:num(s.rechoiceAt,0,0,1e15);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
-  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
+  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
@@ -1597,10 +1599,14 @@ const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'
 const hasPower=id=>{const c=save.character;if(!c)return false;if(c.movement.includes(id)||c.body===id||c.abilities.includes(id))return true;const imp=IMPLIED[c.movement[0]];return !!(imp&&imp.includes(id));};
 const hasTrav=id=>!!save.character&&save.character.movement[0]===id;
 const LEVEL_OF=id=>POWERS[id]&&POWERS[id].of||id; // signature moves share their body mod's level
-const powerLevel=id=>clamp(save.powerLevels[LEVEL_OF(id)]|0||1,1,CONFIG.powerMax);
+const powerLevel=id=>trialOn('lv:'+LEVEL_OF(id))?CONFIG.powerMax:clamp(save.powerLevels[LEVEL_OF(id)]|0||1,1,CONFIG.powerMax);
 // ---- traversal mastery: grows with use, no skill points ----
-const MASTERY_MAX=10,MASTERY_K=1500;
-const masteryLevel=id=>1+(MASTERY_MAX-1)*(1-Math.exp(-(save.mastery[id]||0)/MASTERY_K));
+// The CrazyGames build (PBAL) plays slower and tighter: weaker at the start, mastery takes ~6 hours, every size has a cap,
+// and locked things can be tried for 10 minutes with an ad (see 65_rewards.js). The website and claude.ai keep today's balance.
+const PBAL=window.__PORTAL__==='crazygames';
+const MASTERY_MAX=10,MASTERY_K=PBAL?9000:1500;
+function trialOn(k){return PBAL&&!!save.trials&&save.trials[k]>Date.now();}
+const masteryLevel=id=>trialOn('trav')&&save.character&&id===save.character.movement[0]?MASTERY_MAX:1+(MASTERY_MAX-1)*(1-Math.exp(-(save.mastery[id]||0)/MASTERY_K));
 const mk=id=>(masteryLevel(id)-1)/(MASTERY_MAX-1); // 0 at the start, 1 when mastered
 function addMastery(id,n){if(!save.character||!(n>0))return;const before=Math.floor(masteryLevel(id));save.mastery[id]=(save.mastery[id]||0)+n;const after=Math.floor(masteryLevel(id));
   if(after>before&&typeof feed==='function')feed((PRESETS[id]?PRESETS[id].name:POWERS[id]?POWERS[id].name:'Jumping')+' mastery '+after,MASTERY_NOTES[id]&&MASTERY_NOTES[id][after]||'You can go further, faster');}
@@ -1701,10 +1707,10 @@ const Damage={
 let hitMarkT=-9;
 function breakShield(){P.shield=0;P.shieldOn=false;PS.energyShield.cd=POWERS.energyShield.cooldown;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,2,6,0.4,[.4,.85,1]);SFX.tone('square',900,200,0.3,0.12);feed('Shield broken','Recharging for '+POWERS.energyShield.cooldown+' s');}
 function playerDown(killer){
-  P.dead=true;P.deadT=CONFIG.health.respawn;stopAllPowers();
+  P.dead=true;P.deadT=CONFIG.health.respawn;stopAllPowers();downBy=killer||null;
   explode(P.pos.x,P.pos.y+1.2,P.pos.z,0.8);
   $('dead').hidden=false;$('deads').textContent=(killer&&killer.name?killer.name+' took you down. ':'')+'Back in '+CONFIG.health.respawn+' seconds. You keep your level, powers and reputation.';
-  MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
+  reviveOffer();MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
 }
 function respawn(){
   const s=SPAWNS[(Math.random()*SPAWNS.length)|0];if(P.alien)revertAlien(true);
@@ -1960,6 +1966,8 @@ let beam=null,ice=null,lastScorch=0,castT=-9;
 // Growing a step costs a little energy (ring charge for the Ring Bearer); shrinking gives back a quarter of it.
 // castK is the size of the power being cast right now: radius and range scale with it, damage with its square root.
 const SKILL_GROW={mul:1.2,max:30,ring:0.9,energy:3,refund:0.25};
+// CrazyGames: a power grows up to 1.5x at LV1 and 10x at LV10 (30x everywhere else)
+const skillGrowMax=id=>PBAL?1.5+8.5*lvlK(id):SKILL_GROW.max;
 let castK=1,heldSlot=-1;
 const skillSize=id=>(PS[id]&&PS[id].grow)||1;
 function withCast(id,fn){const was=castK;castK=skillSize(id);try{return fn();}finally{castK=was;}}
@@ -1973,8 +1981,8 @@ function drawPrimed(){
 function skillGrowStep(slot,dir){
   const id=save.character&&!P.alien&&save.character.abilities[slot];if(!id||!PS[id]||!canAct())return false;
   if(ringLocked()){oathBusy();return true;}
-  const s=PS[id],g=s.grow||1,ng=dir>0?Math.min(SKILL_GROW.max,g*SKILL_GROW.mul):Math.max(1,g/SKILL_GROW.mul);
-  if(Math.abs(ng-g)<1e-6){if(time-(s.maxMsg||-9)>3){s.maxMsg=time;feed(POWERS[id].name+(dir>0?' is as big as it gets (×30)':' is back to normal size'),'');}return true;}
+  const s=PS[id],g=s.grow||1,gm=skillGrowMax(id),ng=dir>0?Math.min(gm,Math.max(g,Math.min(gm,g*SKILL_GROW.mul))):Math.max(1,g/SKILL_GROW.mul);
+  if(Math.abs(ng-g)<1e-6){if(time-(s.maxMsg||-9)>3){s.maxMsg=time;feed(POWERS[id].name+(dir>0?' is as big as it gets (×'+(gm<10?gm.toFixed(1):Math.round(gm))+')':' is back to normal size'),dir>0&&PBAL&&gm<10?'Upgrade it to grow it bigger':'');}return true;}
   const ring=hasTrav('powerRing'),cost=ring?SKILL_GROW.ring:SKILL_GROW.energy;
   if(ng>g){if(ring?save.ring<cost:!spend(cost,id)){noEnergy(id);return true;}if(ring)save.ring-=cost;}
   else{const back=cost*SKILL_GROW.refund,m=heroMeter();if(ring)save.ring=Math.min(Math.max(100,save.ring),save.ring+back);else if(m)save[m.key]=Math.min(meterCap(m),save[m.key]+back*(m.rate||1));else P.en=Math.min(maxEn(),P.en+back);}
@@ -2007,6 +2015,7 @@ function dirTo(from,x,y,z){const dx=x-from.x,dy=y-from.y,dz=z-from.z,l=Math.hypo
 function abilityDown(slot){
   if(P.alien){alienAbilityDown(slot);return;}
   const id=save.character&&save.character.abilities[slot];if(!id||!canAct())return;
+  if(slotLocked(slot)){lockedSlotMsg(slot);return;}
   if(ringLocked()){oathBusy();return;} // the ring is busy while you say the oath out loud
   if(id==='morphBand'){bandPress();return;}
   const c=POWERS[id],s=PS[id];
@@ -2046,7 +2055,12 @@ function togglePower(id){
     P.shieldOn=true;P.shield=pstat('energyShield','absorb');ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3,0.3,[.4,.85,1]);SFX.tone('sine',400,900,0.3,0.12);
   }
 }
-const flySpeed=()=>{const m=save.character&&save.character.movement[0];return POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?pstat(m,'speed'):pstat('flight','speed');};
+const flySpeed=()=>{const m=save.character&&save.character.movement[0],id=POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?m:'flight';
+  if(PBAL){const v=POWERS[id].speed;return lerp(20,v[1],(statLevel(id)-1)/(CONFIG.powerMax-1));} // CrazyGames: flight starts at 20 m/s
+  return pstat(id,'speed');};
+// CrazyGames: the Shift boost and the space speed-up grow with traversal mastery too
+const travK=()=>save.character?mk(save.character.movement[0]):0;
+const flyBoost=()=>PBAL?lerp(1.5,POWERS.flight.boost,travK()):POWERS.flight.boost;
 // hold F on the ground to charge, let go to blast off into the sky (a tap still just toggles flight)
 function flyChargeStart(){
   if(!hasPower('flight')||isSpeed()||P.alien||P.car||P.flying||!P.grounded||!canAct()||P.construct)return false;
@@ -2692,7 +2706,7 @@ const ALIEN_IDS=Object.keys(ALIENS);
 const BAND_COL=[.62,.36,1];
 const band={cd:0};
 const tornados=[],spikes=[];
-const aliensUnlocked=()=>ALIEN_IDS.filter(id=>ALIENS[id].unlock<=powerLevel('morphBand'));
+const aliensUnlocked=()=>ALIEN_IDS.filter(id=>ALIENS[id].unlock<=powerLevel('morphBand')||trialOn('al:'+id));
 const alienDef=()=>P.alien?ALIENS[P.alien.id]:null;
 const alienMul=()=>pstat('morphBand','power');
 function bandPress(){
@@ -3453,7 +3467,7 @@ let conPick='bubble',armorPick='aJet',oathOpen=false,oathStart=0,oathFree=false,
 const isRing=()=>hasTrav('powerRing')&&!P.alien;
 const ringMk=()=>mk('powerRing');
 const conSize=()=>0.8+0.45*ringMk(); // constructs grow with ring mastery
-const conUnlocked=()=>{const arm=armorForms(),l=masteryLevel(arm?'armorFlight':'powerRing');return CON_IDS.filter(id=>!!CONSTRUCTS[id].armor===arm&&CONSTRUCTS[id].unlock<=l);};
+const conUnlocked=()=>{const arm=armorForms(),l=masteryLevel(arm?'armorFlight':'powerRing');return CON_IDS.filter(id=>!!CONSTRUCTS[id].armor===arm&&(CONSTRUCTS[id].unlock<=l||trialOn('con:'+id)));};
 const conDef=()=>P.construct?CONSTRUCTS[P.construct.id]:null;
 const conScale=id=>(CONSTRUCTS[id].scale||1)*(CONSTRUCTS[id].scale?conSize()*conGrow(id):1);
 // Every construct can grow: scroll up (or ] / =) to grow it, down to shrink it back, all the way up to the size of the Earth.
@@ -3462,7 +3476,7 @@ const CON_GROW={mul:1.2,cost:0.9,refund:0.25,earth:120000};
 const conGrow=id=>P.construct&&P.construct.id===id?P.construct.grow||1:1;
 // how big a construct is before it grows (metres, roughly its longest side)
 function conBase(id){const C=CONSTRUCTS[id];return C.scale?2.7*C.scale*conSize():C.len||4;}
-const conMaxGrow=id=>Math.max(1,CON_GROW.earth/conBase(id));
+const conMaxGrow=id=>PBAL?2+28*mk(conOwner(id)):Math.max(1,CON_GROW.earth/conBase(id)); // CrazyGames: 2x, up to 30x with mastery
 function conBody(){const K=P.construct;if(!K)return;const C=CONSTRUCTS[K.id];if(!C.scale)return;const sc=conScale(K.id);
   // the body stays narrow enough to walk down a street; anything inside the mech's feet gets trampled instead
   P.radius=0.8*Math.max(1,Math.min(sc*0.7,9));P.height=2.7*sc;}
@@ -3470,7 +3484,7 @@ const sizeLabel=m=>m>=1000?(m/1000).toFixed(m>=10000?0:1)+' km':Math.round(m)+' 
 function conGrowStep(dir){
   const K=P.construct;if(!K||!canAct())return false;const C=CONSTRUCTS[K.id],g=K.grow||1,mx=conMaxGrow(K.id);
   const ng=dir>0?Math.min(mx,g*CON_GROW.mul):Math.max(1,g/CON_GROW.mul);
-  if(Math.abs(ng-g)<1e-6){if(time-(K.maxMsg||-9)>3){K.maxMsg=time;feed(dir>0?C.name+' is as big as the Earth':C.name+' is back to normal size','');}return true;}
+  if(Math.abs(ng-g)<1e-6){if(time-(K.maxMsg||-9)>3){K.maxMsg=time;feed(dir>0?(PBAL?C.name+' is as big as your mastery allows (×'+Math.round(mx*10)/10+')':C.name+' is as big as the Earth'):C.name+' is back to normal size','');}return true;}
   if(ng>g){if(conFuel()<CON_GROW.cost+0.5){ringOut();return true;}conBurn(CON_GROW.cost);}
   else if(armorForms())save.battery=Math.min(meterCap(METERS.armorFlight),save.battery+CON_GROW.cost*CON_GROW.refund*0.25);else save.ring=Math.min(Math.max(100,save.ring),save.ring+CON_GROW.cost*CON_GROW.refund);
   K.grow=ng;conBody();const c=center(P),sz=conBase(K.id)*ng;ringFx(c.x,P.pos.y+0.3,c.z,1,Math.min(4*sz,CON_GROW.earth),0.4,C.armor?ARMOR_FX:RING_C);
@@ -3661,7 +3675,8 @@ function updateRing(dt){
         if(d<4.5)Damage.apply(P,a,(a.kind==='boss'?40:220)*dt,'gravity');}
       hitProps(H.x,Math.min(H.y,4),H.z,R*0.4*k,P,8);
       // pull down the buildings around it, one at a time, leaning into the hole
-      H.next-=dt;if(H.t>0.8&&H.t<H.dur-1&&H.next<=0){H.next=0.5;let best=null,bd=R*0.9;
+      H.next-=dt;if(H.t>0.8&&H.t<H.dur-1&&H.next<=0&&(!PBAL||powerLevel('blackHole')>=5)){ // CrazyGames: tearing down buildings needs Black Hole LV5
+        H.next=0.5;let best=null,bd=R*0.9;
         for(const b of bldgs){if(b.state!=='up')continue;const d=Math.hypot(Math.max(b.x0-H.x,0,H.x-b.x1),Math.max(b.z0-H.z,0,H.z-b.z1));if(d<bd){bd=d;best=b;}}
         if(best){const cx=(best.x0+best.x1)/2,cz=(best.z0+best.z1)/2;collapseBuilding(best,H.x-cx,H.z-cz,true);H.bl=(H.bl||[]).concat([best]);}}}
     // chunks from falling and fallen buildings stream into the hole
@@ -3814,7 +3829,7 @@ function drawRing(){
 // whatever you hit in that moment lands all at once when time starts again.
 const SPD_C=[1,.82,.25],SPD_C2=[1,.45,.15];
 const isSpeed=()=>hasTrav('superSpeed')&&!P.alien;
-const dialMax=()=>hungry()?2:Math.round(3+9*mk('superSpeed')); // x3 at the start, x12 mastered; x2 when out of calories
+const dialMax=()=>hungry()?2:Math.round(PBAL?2+10*mk('superSpeed'):3+9*mk('superSpeed')); // CrazyGames: x2 at the start // x3 at the start, x12 mastered; x2 when out of calories
 P.dial=2;P.fastMode=false;P.phasing=false;P.slowOn=false;
 let timeStopT=0,frozenT=0,slowK=0.3,tsQueue=[],tsPath=[],tsBy=null,lastStreak=null;
 function speedMult(){return isSpeed()?Math.max(1.5,Math.min(P.dial,dialMax())):pstat('superSpeed','mult');}
@@ -4319,7 +4334,7 @@ function nearestBody(){let best=null,bd=1e12;for(const b of PLANETS){const d=Mat
 // flight speed multiplier: much faster the higher you are, slower again close to any surface
 function spaceSpeedMul(){
   if(P.pos.y<=CEIL)return 1;const nb=nearestBody();
-  return Math.max(1,Math.min(1+(P.pos.y-CEIL)/40,90,1+Math.max(0,nb.d)/60,1+(P.pos.y)/60));
+  return Math.max(1,Math.min(1+(P.pos.y-CEIL)/40,PBAL?10+80*travK():90,1+Math.max(0,nb.d)/60,1+(P.pos.y)/60));
 }
 let spaceMsgT=-99,lastBody=null,wasSpace=false;
 function updateSpace(dt){
@@ -5501,7 +5516,7 @@ function myPresence(){
   // presence patches merge on the server, so optional fields are always sent (null clears them)
   o.b=beam?(beam.w?[r1(beam.x),r1(beam.y),r1(beam.z),r1(beam.w)]:[r1(beam.x),r1(beam.y),r1(beam.z)]):null;const wp=P.web||P.zip;o.w=wp?[r1(wp.x),r1(wp.y),r1(wp.z)]:null;o.k=P.tk&&P.tk.hold?P.tk.hold.map(r1):null;o.c=null;
   o.cn=P.construct?P.construct.id:null;o.cz=!P.construct?0:CONSTRUCTS[P.construct.id].scale?Math.round(conSize()*conGrow(P.construct.id)*100)/100:(conGrow(P.construct.id)>1.001?Math.round(conGrow(P.construct.id)*100)/100:0);o.ex=presExtra();
-  o.wt=P.web&&P.web.target&&P.web.target.kind==='remote'?P.web.target.peer:null;o.st=P.stars||0;o.sk=myStreak;o.bty=save.bounty||0;o.aq=XQ.session.slice();
+  o.wt=P.web&&P.web.target&&P.web.target.kind==='remote'?P.web.target.peer:null;o.st=P.stars||0;o.sk=myStreak;o.bty=save.bounty||0;o.aq=XQ.session.slice();o.cs=cosPresence();
   if(P.car){o.c=[P.car.model,r2(P.car.yaw),P.car.tint.slice(0,3).map(r2)];o.x=r1(P.car.pos.x);o.y=r1(P.car.pos.y);o.z=r1(P.car.pos.z);}
   return o;
 }
@@ -5521,6 +5536,7 @@ function applyPresence(r,p){
   r.tk=Array.isArray(p.k)&&p.k.length===3?{x:n(p.k[0]),y:n(p.k[1]),z:n(p.k[2])}:null;
   r.car=Array.isArray(p.c)&&CARS[p.c[0]]?{model:p.c[0],yaw:n(p.c[1]),tint:Array.isArray(p.c[2])?[clamp(n(p.c[2][0]),0,1),clamp(n(p.c[2][1]),0,1),clamp(n(p.c[2][2]),0,1),1]:[1,1,1,1]}:null;
   r.aq=Array.isArray(p.aq)?p.aq.slice(0,XQS.length).filter(v=>Number.isInteger(v)&&v>=0&&v<XQS.length):null; // the Voidborn questions this player already got
+  r.cs=cosFromPresence(p.cs); // cosmetics they unlocked on CrazyGames
   r.stars=clamp(n(p.st)|0,0,5);r.sk=clamp(n(p.sk)|0,0,1e5);r.bounty=clamp(n(p.bty),0,1e6);
   r.cn=CONSTRUCTS[p.cn]?p.cn:null;r.cz=clamp(n(p.cz),0,1e5);r.ex=Array.isArray(p.ex)?p.ex.map(n).slice(0,6):null;r.giantS=r.ex&&r.ex[2]>1?clamp(r.ex[2],1,4):1;if(r.ex&&r.ex[3])r.look=civLook(r.look);else if(r.ex&&r.ex[4])r.look.armor=true;
   if(r.pos.y<-40)r.pos.copy(r.tp);
@@ -5559,8 +5575,9 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   // relay credentials from the site (cached until they are close to expiring); falls back to the public list
   async loadIce(){
     if(this.ice&&performance.now()<this.iceUntil)return;
+    if(PORTAL){this.ice=P2P_ICE;this.iceUntil=1e15;return;} // portal builds only use the free relays, never the site's Cloudflare TURN
     try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),4000);
-      const r=await fetch((PORTAL?SITE_URL:'')+'/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
+      const r=await fetch('/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
       const d=r.ok?await r.json():null,list=d&&(Array.isArray(d.iceServers)?d.iceServers:d.iceServers?[d.iceServers]:null);
       if(list&&list.length){this.ice=list.concat(P2P_ICE);this.iceUntil=performance.now()+6*3600e3;return;}}catch(e){}
     this.ice=P2P_ICE;this.iceUntil=performance.now()+60e3;
@@ -5960,12 +5977,126 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:fals
   roomChanged(){if(!this.sdk)return;try{if(P2P.state==='open'&&P2P.code)this.sdk.game.showInviteButton({room:P2P.code});else this.sdk.game.hideInviteButton();}catch(e){}},
 };
 // the pause menu's "watch an ad" button (portal build only)
+// the pause menu's portal buttons: double XP, refill, trials and cosmetics (portal build only)
 function renderPortalButtons(){
-  let b=$('p-ad');if(!Portal.on()){if(b)b.hidden=true;return;}
-  if(!b){b=el('button',{class:'ghost',id:'p-ad',type:'button',onclick:()=>Portal.rewardXP()});$('resume').parentNode.appendChild(b);}
-  const left=Portal.boostUntil-time;b.hidden=false;b.disabled=left>0;b.textContent=left>0?'Double XP active · '+Math.ceil(left/60)+' min left':'Watch an ad: double XP for 5 min';
+  if(!PBAL)return;let row=$('p-portal');
+  if(!row){row=el('div',{class:'pause-btns',id:'p-portal'},
+      el('button',{class:'ghost',id:'p-ad',type:'button',onclick:()=>Portal.rewardXP()}),el('button',{class:'ghost',id:'p-refill',type:'button',onclick:()=>refill()}),
+      el('button',{class:'ghost',id:'p-trials',type:'button',text:'Try locked powers',onclick:()=>openSheet('trials')}),el('button',{class:'ghost',id:'p-cos',type:'button',text:'Cosmetics',onclick:()=>openSheet('cos')}));
+    $('resume').parentNode.after(row);}
+  const on=Portal.on(),left=Portal.boostUntil-time,b=$('p-ad');b.disabled=!on||left>0;b.textContent=left>0?'Double XP active · '+Math.ceil(left/60)+' min left':'Watch an ad: double XP for 5 min';
+  const r=refillInfo(),f=$('p-refill');f.hidden=!r;if(r){f.disabled=!on||!r.need;f.textContent=r.need?'Watch an ad: refill '+r.m.label.toLowerCase():r.m.label.charAt(0)+r.m.label.slice(1).toLowerCase()+' is full';}
 }
 Portal.init();
+// ================================================================
+// CrazyGames rewards: power keys by level, 10-minute trials, revive, refills and cosmetics
+// ================================================================
+// Everything here is for the CrazyGames build (PBAL); the website and claude.ai never lock a key or show an ad button.
+// Rewarded ads are always optional: nothing is out of reach without them, they only get you there sooner.
+const KIT_LV=[1,2,4,6,9];                 // the level each power key (1-5) opens at
+const TRIAL_MIN=10,REVIVE_GAP=180;
+const slotLocked=i=>PBAL&&save.level<KIT_LV[i]&&!trialOn('key'+i);
+function lockedSlotMsg(i){if(time-(P.lockMsgT||-9)<1)return;P.lockMsgT=time;const id=save.character.abilities[i];
+  feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],Portal.on()?'Pause → Try locked powers to use it now for '+TRIAL_MIN+' min':'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
+// ---- timed trials (one rewarded ad = 10 minutes) ----
+function startTrial(k,label){
+  Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}
+    save.trials=save.trials||{};save.trials[k]=Date.now()+TRIAL_MIN*60e3;persist();
+    toast(label,'Yours for the next '+TRIAL_MIN+' minutes','gold');buildHotbar();buildTouchButtons();if(sheetOpen)renderSheet();});
+}
+const trialLeft=k=>trialOn(k)?Math.ceil((save.trials[k]-Date.now())/60e3):0;
+let trialSeen='';
+function updateTrials(){ // tell the player when a trial runs out, and redraw what it unlocked
+  if(!PBAL||!save.trials)return;const now=Date.now();let gone='';
+  for(const k in save.trials)if(save.trials[k]<=now){gone=k;delete save.trials[k];}
+  if(gone){persist();feed('Trial over','Level up to unlock it for good');buildHotbar();buildTouchButtons();if(P.construct&&!conUnlocked().includes(P.construct.id))dismissConstruct();if(P.alien&&!aliensUnlocked().includes(P.alien.id))revertAlien(false);}
+  const sig=Object.keys(save.trials).join();if(sig!==trialSeen){trialSeen=sig;buildHotbar();}
+}
+function renderTrials(){
+  const B=sheetBody,ch=save.character;if(!ch)return;
+  B.append(el('p',{class:'muted',text:'Watch a short ad to use something before you unlock it. Each trial lasts '+TRIAL_MIN+' minutes; levelling up unlocks it for good.'}));
+  const row=(title,sub,k,label)=>{const left=trialLeft(k);const b=el('button',{class:left?'ghost':'go',type:'button',text:left?left+' min left':'Watch ad · '+TRIAL_MIN+' min',onclick:()=>startTrial(k,label)});b.disabled=!!left||!Portal.on();
+    B.append(el('div',{class:'upg'},el('b',{text:title}),el('div',{class:'btns'},b),el('p',{text:sub})));};
+  B.append(el('h3',{text:'Power keys'}));let any=false;
+  ch.abilities.forEach((id,i)=>{if(save.level>=KIT_LV[i])return;any=true;row('Key '+(i+1)+' · '+POWERS[id].name,'Unlocks at LV '+KIT_LV[i],'key'+i,POWERS[id].name);});
+  if(!any)B.append(el('p',{class:'muted',text:'All your power keys are unlocked.'}));
+  const tv=ch.movement[0],tn=PRESETS[tv]?PRESETS[tv].name:POWERS[tv].name;
+  B.append(el('h3',{text:'Traversal'}));
+  if(masteryLevel(tv)>=MASTERY_MAX-0.01&&!trialOn('trav'))B.append(el('p',{class:'muted',text:'Your traversal is already mastered.'}));
+  else row(tn+' at full mastery','Top speed, the full speed dial and the biggest constructs, right now','trav',tn+' mastered');
+  B.append(el('h3',{text:'A power at LV 10'}));
+  for(const id of ch.abilities){if(!POWERS[id]||(save.powerLevels[LEVEL_OF(id)]|0)>=CONFIG.powerMax)continue;row(POWERS[id].name+' at LV 10','Full strength and the biggest size for '+TRIAL_MIN+' minutes','lv:'+LEVEL_OF(id),POWERS[id].name+' LV 10');}
+  if(isRing()||armorForms()){const arm=armorForms(),l=masteryLevel(arm?'armorFlight':'powerRing'),locked=CON_IDS.filter(id=>!!CONSTRUCTS[id].armor===arm&&CONSTRUCTS[id].unlock>l);
+    if(locked.length){B.append(el('h3',{text:arm?'Suit forms':'Constructs'}));for(const id of locked)row(CONSTRUCTS[id].name,'Unlocks at mastery '+CONSTRUCTS[id].unlock,'con:'+id,CONSTRUCTS[id].name);}}
+  if(hasPower('morphBand')){const lv=powerLevel('morphBand'),locked=ALIEN_IDS.filter(id=>ALIENS[id].unlock>lv);
+    if(locked.length){B.append(el('h3',{text:'Aliens'}));for(const id of locked)row(ALIENS[id].name,'Unlocks at band LV '+ALIENS[id].unlock,'al:'+id,ALIENS[id].name);}}
+}
+// locked dial slots (constructs, suit forms, aliens) offer a trial on click
+function dialTrial(a){if(!PBAL||!a||!a.trialKey)return false;if(!Portal.on()){feed(a.name+' is locked',a.lock);return true;}closeDial();startTrial(a.trialKey,a.name);return true;}
+// ---- revive where you fell ----
+let reviveAt=-1e9,downBy=null;
+const reviveReady=()=>PBAL&&Portal.on()&&P.dead&&!(downBy&&downBy.kind==='remote')&&performance.now()/1000-reviveAt>=REVIVE_GAP;
+function reviveOffer(){ // the knockout screen's revive button (R, or tap it), made the first time it's needed
+  let b=$('revive');if(!b){if(!PBAL)return;const box=$('dead').firstElementChild;b=el('button',{class:'go',id:'revive',type:'button',text:'Watch an ad: get up right here (R)',onclick:revive});b.style.marginTop='14px';box.appendChild(b);}
+  b.hidden=!reviveReady();}
+function revive(){if(!reviveReady())return;
+  Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}if(!P.dead)return;
+    reviveAt=performance.now()/1000;P.dead=false;P.hp=maxHp();P.en=maxEn();P.stun=0;P.lastHit=-99;P.iframeT=2;$('dead').hidden=true;
+    const c=center(P);ringFx(c.x,c.y,c.z,1,8,0.5,[1,.9,.5]);burst(c.x,c.y,c.z,50,12,0.8,GOLD,1.4,0,2);toast('Back on your feet','Right where you fell','gold');});}
+// ---- refill your hero's meter ----
+function refillInfo(){const m=heroMeter();if(!m)return null;const cap=m.key==='ring'?100:meterCap(m);return {m,cap,need:save[m.key]<cap-0.5};}
+function refill(){const r=refillInfo();if(!r||!r.need)return;
+  Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}save[r.m.key]=Math.max(save[r.m.key],r.cap);persist();toast(r.m.label.charAt(0)+r.m.label.slice(1).toLowerCase()+' refilled','','gold');renderPortalButtons();});}
+// ---- cosmetics: glowing suits, trails, capes and auras (one ad each, yours for good) ----
+const COSMETICS={
+  suit:[{id:'neon',name:'Neon Circuit',col:[.3,.95,1]},{id:'solar',name:'Solar Flare',col:[1,.55,.15]},{id:'void',name:'Void Pulse',col:[.72,.35,1],pulse:true},{id:'toxic',name:'Toxic Glow',col:[.45,1,.3],pulse:true}],
+  trail:[{id:'comet',name:'Comet',col:[.75,.9,1]},{id:'ember',name:'Ember',col:[1,.5,.12]},{id:'rainbow',name:'Rainbow',rainbow:true},{id:'spark',name:'Lightning',col:[1,.95,.4],spark:true}],
+  cape:[{id:'royal',name:'Royal Gold',col:[.45,.06,.1],glow:[1,.8,.3]},{id:'night',name:'Night Sky',col:[.04,.05,.14],glow:[.8,.85,1],stars:true},{id:'lava',name:'Lava',col:[.2,.04,.02],glow:[1,.4,.08]},{id:'frost',name:'Frostbite',col:[.62,.85,1],glow:[.9,1,1]}],
+  aura:[{id:'frost',name:'Frost',col:[.6,.85,1]},{id:'flame',name:'Flame',col:[1,.45,.12]},{id:'shadow',name:'Shadow',col:[.4,.15,.6]},{id:'gold',name:'Gold',col:[1,.82,.3]}],
+};
+const COS_KINDS={suit:'Glowing suits',trail:'Trails',cape:'Capes',aura:'Auras'};
+function cleanCos(c){const o={own:[],eq:{suit:'',trail:'',cape:'',aura:''}};if(!c||typeof c!=='object')return o;
+  const ok=(k,id)=>COSMETICS[k]&&COSMETICS[k].some(x=>x.id===id);
+  if(Array.isArray(c.own))o.own=c.own.filter(s=>typeof s==='string'&&ok(s.split(':')[0],s.split(':')[1])).slice(0,64);
+  if(c.eq&&typeof c.eq==='object')for(const k in o.eq)if(ok(k,c.eq[k])&&o.own.includes(k+':'+c.eq[k]))o.eq[k]=c.eq[k];return o;}
+const cosOf=(k,id)=>COSMETICS[k].find(x=>x.id===id)||null;
+// what someone is wearing: you (CrazyGames build only) or another player (from their presence)
+function cosFor(s){if(s===P)return PBAL&&save.cos?save.cos.eq:null;return s.cs||null;}
+function cosPresence(){if(!PBAL||!save.cos)return null;const e=save.cos.eq;return e.suit||e.trail||e.cape||e.aura?[e.suit,e.trail,e.cape,e.aura]:null;}
+function cosFromPresence(a){if(!Array.isArray(a))return null;const k=['suit','trail','cape','aura'],o={};k.forEach((n,i)=>{o[n]=typeof a[i]==='string'&&cosOf(n,a[i])?a[i]:'';});return o;}
+function renderCosmetics(){
+  const B=sheetBody;save.cos=save.cos||cleanCos(null);const C=save.cos;
+  B.append(el('p',{class:'muted',text:'Watch a short ad to unlock an item for good, then wear it. Other players in your room see it too.'}));
+  for(const k in COSMETICS){B.append(el('h3',{text:COS_KINDS[k]}));
+    for(const it of COSMETICS[k]){const own=C.own.includes(k+':'+it.id),on=C.eq[k]===it.id;
+      const b=el('button',{class:own?(on?'ghost':'go'):'go',type:'button',text:own?(on?'Take off':'Wear'):'Watch ad · unlock'});b.disabled=!own&&!Portal.on();
+      b.onclick=()=>{if(own){C.eq[k]=on?'':it.id;persist();MP.bump();renderSheet();return;}
+        Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}if(!C.own.includes(k+':'+it.id))C.own.push(k+':'+it.id);C.eq[k]=it.id;persist();MP.bump();toast(it.name+' unlocked','It\'s yours to keep','gold');renderSheet();});};
+      const sw=el('i',{class:'cos-sw'});const col=it.glow||it.col;sw.style.background=it.rainbow?'linear-gradient(90deg,#f44,#fd4,#4f6,#4cf,#a4f)':'rgb('+col.map(v=>Math.round(v*255)).join(',')+')';
+      B.append(el('div',{class:'upg'},el('b',{},sw,it.name),el('div',{class:'btns'},b)));}}
+}
+// drawn on top of a hero (called from drawSuper with its body matrix)
+function drawCosmetics(s,body,isPlayer){
+  const e=cosFor(s);if(!e||GHOST)return;const t=time;
+  const su=e.suit&&cosOf('suit',e.suit);
+  if(su){const p=su.pulse?0.6+0.4*Math.sin(t*4):1,c=[su.col[0]*p,su.col[1]*p,su.col[2]*p,1];
+    for(const x of [-0.24,0.24])queue(MESH.glowBox,child(body,x,0.55,0.235,0,0,0,0.04,0.8,0.01),c,0);
+    queue(MESH.glowBox,child(body,0,0.3,0.235,0,0,0,0.5,0.04,0.01),c,0);queue(MESH.glowBox,child(body,0,0.82,0.235,0,0,0.785,0.18,0.18,0.01),c,0);
+    for(const x of [-0.2,0.2])queue(MESH.glowBox,child(body,x,0.55,-0.235,0,0,0,0.04,0.8,0.01),c,0);}
+  const au=e.aura&&cosOf('aura',e.aura);
+  if(au){const g=2+Math.sin(t*3)*0.12;queue(MESH.glowSphere,child(body,0,0.4,0,0,t,0,g*0.7,g,g*0.7),[au.col[0],au.col[1],au.col[2],0.12],F_ADD);
+    if(!paused&&Math.random()<0.35){const m=child(body,rr(-.5,.5),rr(-1,1.2),rr(-.4,.4));emit(m[12],m[13],m[14],rr(-.4,.4),rr(.6,1.6),rr(-.4,.4),rr(0.5,0.9),au.col,rr(0.25,0.5),au.id==='shadow'?0:-1,1);}}
+  const tr=e.trail&&cosOf('trail',e.trail),v=s.vel?s.vel.len():0;
+  if(tr&&v>18&&!paused){const n=Math.min(4,1+Math.floor(v/40));for(let i=0;i<n;i++){const col=tr.rainbow?hsl((t*0.5+i*0.07)%1):tr.col;
+    emit(s.pos.x+rr(-.3,.3),s.pos.y+1.3+rr(-.3,.3),s.pos.z+rr(-.3,.3),-s.vel.x*0.05,-s.vel.y*0.05,-s.vel.z*0.05,tr.spark?0.25:0.7,col,tr.spark?rr(0.3,0.6):rr(0.5,0.9),0,tr.spark?2:1);}}
+}
+function hsl(h){const f=n=>{const k=(n+h*12)%12;return 0.5-0.5*Math.max(-1,Math.min(k-3,9-k,1));};return [f(0),f(8),f(4)];}
+// a cape cosmetic recolours the cape and adds a glowing hem (called per cape segment)
+function capeCos(s){const e=cosFor(s);return e&&e.cape?cosOf('cape',e.cape):null;}
+save.cos=cleanCos(save.cos);
+// new power keys open as you level up
+let kitLvSeen=save.level;
+Bus.on('levelUp',lv=>{if(!PBAL)return;KIT_LV.forEach((l,i)=>{if(l>kitLvSeen&&l<=lv&&save.character){const id=save.character.abilities[i];toast('Key '+(i+1)+' unlocked',(POWERS[id]?POWERS[id].name:'A new power')+' is ready','gold');}});kitLvSeen=lv;buildHotbar();buildTouchButtons();});
 // ================================================================
 // HUD
 // ================================================================
@@ -6003,7 +6134,7 @@ function buildHotbar(){
   save.character.abilities.forEach((id,i)=>{
     const cd=el('i',{class:'cd'});const lv=el('small');
     const s=el('div',{class:'slot'+(id==='morphBand'?' bandslot':''),'data-cat':POWERS[id].cat},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]+(id==='morphBand'?' · V':'')}),el('span',{class:'nm',text:POWERS[id].name}),lv);
-    hud.hotbar.appendChild(s);slotEls.push({id,s,cd,lv});
+    hud.hotbar.appendChild(s);slotEls.push({id,s,cd,lv,i});
   });
   for(const id of save.character.movement){
     const lv=el('small');const pre=PRESETS[id];const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':POWERS[id].key}),el('span',{class:'nm',text:pre?pre.name:POWERS[id].name}),lv);
@@ -6087,8 +6218,8 @@ $('sheet-x').addEventListener('click',closeSheet);
 sheet.addEventListener('mousedown',e=>{if(e.target===sheet)closeSheet();});
 function renderSheet(){
   if(!sheetOpen)return;const y=sheetBody.scrollTop;sheetBody.textContent='';
-  sheetTitle.textContent={skills:'Skills',look:'Appearance',lb:'Leaderboard',set:'Settings',mp:'Multiplayer'}[sheetOpen];
-  ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings,mp:renderMP})[sheetOpen]();
+  sheetTitle.textContent={skills:'Skills',look:'Appearance',lb:'Leaderboard',set:'Settings',mp:'Multiplayer',trials:'Try locked powers',cos:'Cosmetics'}[sheetOpen];
+  ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings,mp:renderMP,trials:renderTrials,cos:renderCosmetics})[sheetOpen]();
   sheetBody.scrollTop=y;
 }
 const STAT_LABELS={bounces:'Bounces',duration:'Duration',damage:'Damage',dps:'Damage per second',radius:'Radius',speed:'Speed',drain:'Energy per second',mult:'Speed multiplier',range:'Range',force:'Swing force',
@@ -6313,9 +6444,9 @@ let dialOpen=false,dialSel=-1,dialVX=0,dialVY=0,dialKind='alien';
 const dialEl=$('dial');
 // the radial picker is shared by the Morph Band (aliens) and the power ring (constructs)
 function dialItems(){
-  if(dialKind==='armor')return ARMOR_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Armored Inventor mastery '+c.unlock,glow:'#ff6a3d',info:c.name+' · '+c.attacks,pick:()=>summonConstruct(id)};});
-  if(dialKind==='construct')return CON_PAGES.flat().map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),lock:'Ring mastery '+c.unlock,glow:'#5dff86',cost:c.cost,info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
-  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),lock:'Band LV '+a.unlock,glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · ')+(a.xQuiz?' · '+xTime(voidbornDuration())+' if the masks agree (Energy raises it)':''),pick:()=>transformInto(id)};});
+  if(dialKind==='armor')return ARMOR_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Armored Inventor mastery '+c.unlock+(PBAL?' · click to try':''),glow:'#ff6a3d',info:c.name+' · '+c.attacks,pick:()=>summonConstruct(id)};});
+  if(dialKind==='construct')return CON_PAGES.flat().map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Ring mastery '+c.unlock+(PBAL?' · click to try':''),glow:'#5dff86',cost:c.cost,info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
+  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),trialKey:'al:'+id,lock:'Band LV '+a.unlock+(PBAL?' · click to try':''),glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · ')+(a.xQuiz?' · '+xTime(voidbornDuration())+' if the masks agree (Energy raises it)':''),pick:()=>transformInto(id)};});
 }
 let dialPage=0;
 function dialPageTurn(d){} // every construct is on the wheel at once now: nothing to page through
@@ -6324,7 +6455,7 @@ function openDial(kind='alien',keepPage){
   const two=kind==='construct',nIn=two?DIAL_INNER:list.length; // constructs: an inner ring (mechs, flyers, rides, weapons) and an outer ring (everything newer)
   list.forEach((a,i)=>{const inner=i<nIn,k=inner?i:i-nIn,n=inner?nIn:list.length-nIn,ang=k/n*TAU-Math.PI/2,rad=two?(inner?25:43):38;
     const b=el('button',{type:'button',class:'dslot'+(two?' mini':'')+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*rad).toFixed(1)}%;top:${(50+Math.sin(ang)*rad).toFixed(1)}%`,
-      onclick:()=>{if(a.on){closeDial();a.pick();}},onmouseenter:()=>setDialSel(i)},two?null:el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:two?(a.on?a.cost+' charge':a.lock):a.on?a.blurb:a.lock}));
+      onclick:()=>{if(a.on){closeDial();a.pick();}else dialTrial(a);},onmouseenter:()=>setDialSel(i)},two?null:el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:two?(a.on?a.cost+' charge':a.lock):a.on?a.blurb:a.lock}));
     b.style.setProperty('--g',a.glow);ring.appendChild(b);});
   if(kind==='construct')ring.appendChild(el('div',{class:'dpage'},'All '+list.length+' constructs'));
   $('dial-info').textContent=kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · move toward the centre for the inner ring':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
@@ -6336,7 +6467,7 @@ function dialMove(dx,dy){dialVX=clamp(dialVX+dx,-120,120);dialVY=clamp(dialVY+dy
   const a=Math.atan2(dialVY,dialVX)+Math.PI/2,N=dialItems().length;
   if(dialKind==='construct'){const inner=m<85,n=inner?DIAL_INNER:N-DIAL_INNER,k=((Math.round(a/TAU*n)%n)+n)%n;setDialSel(inner?k:DIAL_INNER+k);return;} // push the mouse further out to reach the outer ring
   setDialSel(((Math.round(a/TAU*N)%N)+N)%N);}
-function dialConfirm(){if(dialSel<0)return;const a=dialItems()[dialSel];if(a&&a.on){closeDial();a.pick();}else SFX.tone('square',200,150,0.1,0.06);}
+function dialConfirm(){if(dialSel<0)return;const a=dialItems()[dialSel];if(a&&a.on){closeDial();a.pick();}else if(!dialTrial(a))SFX.tone('square',200,150,0.1,0.06);}
 function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----
 const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],['punch','Throw a punch','Click to punch','Tap PUNCH'],
@@ -6368,6 +6499,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyL'){toggleLock();return;}
   if(e.code==='KeyM'){toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
   if(e.code==='KeyH'){hud.keys.classList.toggle('fade');return;}
+  if(P.dead&&!paused&&e.code==='KeyR'&&reviveReady()){revive();return;}
   if(paused||P.dead)return;
   if(voidbornLocked()){if(voidbornAway()&&e.code in XQ_CODES)voidbornAnswer(XQ_CODES[e.code]);return;} // Voidborn: only the masks' question can be answered
   if(e.code==='KeyG'){interact();return;}
@@ -6648,7 +6780,7 @@ function updatePlayer(dt){
     else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(conDrive()&&!P.flying)driveConstruct(dt,inF,inR,shift);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
       let tx=fwdX*cp*inF+rX*inR,ty=sp*inF+((keys.Space?1:0)-(keys.KeyC?1:0)),tz=fwdZ*cp*inF+rZ*inR;const l=Math.hypot(tx,ty,tz);if(l>1){tx/=l;ty/=l;tz/=l;}
-      const base=(AL&&AL.flies?AL.flySpeed:flySpeed()*conSpeedMul())*slowMul*spaceSpeedMul(),spd=shift?base*(AL&&AL.flies?1.5:POWERS.flight.boost):base,k=damp(shift?1.8:3,dt);
+      const base=(AL&&AL.flies?AL.flySpeed:flySpeed()*conSpeedMul())*slowMul*spaceSpeedMul(),spd=shift?base*(AL&&AL.flies?1.5:flyBoost()):base,k=damp(shift?1.8:3,dt);
       const lk=P.launchT>0?k*0.06:k;if(P.launchT>0)P.launchT-=dt; // a charged launch keeps its momentum for a moment
       P.vel.x+=(tx*spd-P.vel.x)*lk;P.vel.y+=(ty*spd-P.vel.y)*lk;P.vel.z+=(tz*spd-P.vel.z)*lk;
     }else{
@@ -6886,10 +7018,16 @@ function drawSuper(s,m,isPlayer){
     Q(box,child(knee,0,-0.47,0.06,0,0,0,0.31,0.18,0.44),civ?[.16,.13,.11,1]:cape,sh,fl);
     Q(box,child(knee,0,-0.555,0.06,0,0,0,0.32,0.05,0.46),[.08,.08,.09,1],0,fl);
   }
+  const cc=m.capeOn?capeCos(s):null,capeC=cc?[cc.col[0],cc.col[1],cc.col[2],1]:cape;
   if(m.capeOn){let seg=child(body,0,0.94,-0.25,a.cape,0,0);const v=s.vel?s.vel.len():0;
-    Q(box,child(body,0,0.94,-0.2,0,0,0,0.7,0.1,0.08),cape,sh,fl);
-    for(let i=0;i<3;i++){const f=Math.sin(time*(8+v*0.08)-i*1.3)*0.12*(0.3+clamp(v/60,0,1));
-      Q(MESH.box,child(seg,0,-0.3,0,0,0,0,0.96-i*0.03+i*0.08,0.64,0.05),cape,sh,fl);seg=child(seg,0,-0.6,0,0.08+f,0,0);}}
+    Q(box,child(body,0,0.94,-0.2,0,0,0,0.7,0.1,0.08),capeC,sh,fl);
+    for(let i=0;i<3;i++){const f=Math.sin(time*(8+v*0.08)-i*1.3)*0.12*(0.3+clamp(v/60,0,1)),w=0.96-i*0.03+i*0.08;
+      Q(MESH.box,child(seg,0,-0.3,0,0,0,0,w,0.64,0.05),capeC,sh,fl);
+      if(cc&&!GHOST){if(i===2)queue(MESH.glowBox,child(seg,0,-0.6,-0.03,0,0,0,w,0.05,0.02),[cc.glow[0],cc.glow[1],cc.glow[2],1],0);
+        for(const x of [-1,1])queue(MESH.glowBox,child(seg,x*w/2,-0.3,-0.03,0,0,0,0.03,0.64,0.02),[cc.glow[0],cc.glow[1],cc.glow[2],1],0);
+        if(cc.stars)for(const [x,y] of [[-0.25,-0.15],[0.2,-0.4],[0.05,-0.25]])queue(MESH.glowBox,child(seg,x,y,-0.03,0,0,0,0.035,0.035,0.01),[1,1,1,1],0);}
+      seg=child(seg,0,-0.6,0,0.08+f,0,0);}}
+  drawCosmetics(s,body,isPlayer);
 }
 
 // ---- Morph Band aliens: a shared humanoid rig plus per-alien dressing ----
@@ -7270,6 +7408,7 @@ function updateHud(dt){
     if(s.alien!==undefined){if(!P.alien)continue;const ab=ALIENS[P.alien.id].abilities[s.alien],f=ab.cd?P.alien.cds[s.alien]/ab.cd:0,v=Math.round(f*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}
       s.s.classList.toggle('on',(ab.channel&&P.alien.channel)||(ab.id==='phase'&&P.alien.phase>0)||(ab.id==='veil'&&P.invisible>0)||(ab.id==='crystalArmor'&&P.alien.armor>0));continue;}
+    if(s.i!=null&&PBAL){const L=slotLocked(s.i);s.s.classList.toggle('locked',L);if(L){const t='Unlocks at LV '+KIT_LV[s.i];if(s.lvt!==t){s.lvt=t;s.lv.textContent=t;}continue;}}
     const st=PS[s.id],c=POWERS[s.id];
     if(s.id==='morphBand'){s.s.classList.toggle('on',!!P.alien||dialOpen);s.s.classList.toggle('bad',st.flash>0);const f=band.cd>0?band.cd/pstat('morphBand','recharge'):0,v=Math.round(clamp(f,0,1)*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}continue;}
@@ -7335,7 +7474,7 @@ function frame(now){
   buildDrawList();render();
   if(live)updateHud(dt);
   if(state==='play')MP.flush(real);
-  Portal.tick();
+  Portal.tick();if(state==='play'&&PBAL&&time-(P.trialT||0)>1){P.trialT=time;updateTrials();}
   WS.update(real);
   updateTags();
   if(state!=='play')setText($('menu-online'),'monline',MP.status());
@@ -7349,7 +7488,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
-  Portal,respawn,resume,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,get camPos(){return camPos;},get comboN(){return comboN;},
+  Portal,respawn,resume,startTrial,revive,refill,reviveReady,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>

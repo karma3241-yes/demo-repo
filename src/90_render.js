@@ -140,10 +140,16 @@ function drawSuper(s,m,isPlayer){
     Q(box,child(knee,0,-0.47,0.06,0,0,0,0.31,0.18,0.44),civ?[.16,.13,.11,1]:cape,sh,fl);
     Q(box,child(knee,0,-0.555,0.06,0,0,0,0.32,0.05,0.46),[.08,.08,.09,1],0,fl);
   }
+  const cc=m.capeOn?capeCos(s):null,capeC=cc?[cc.col[0],cc.col[1],cc.col[2],1]:cape;
   if(m.capeOn){let seg=child(body,0,0.94,-0.25,a.cape,0,0);const v=s.vel?s.vel.len():0;
-    Q(box,child(body,0,0.94,-0.2,0,0,0,0.7,0.1,0.08),cape,sh,fl);
-    for(let i=0;i<3;i++){const f=Math.sin(time*(8+v*0.08)-i*1.3)*0.12*(0.3+clamp(v/60,0,1));
-      Q(MESH.box,child(seg,0,-0.3,0,0,0,0,0.96-i*0.03+i*0.08,0.64,0.05),cape,sh,fl);seg=child(seg,0,-0.6,0,0.08+f,0,0);}}
+    Q(box,child(body,0,0.94,-0.2,0,0,0,0.7,0.1,0.08),capeC,sh,fl);
+    for(let i=0;i<3;i++){const f=Math.sin(time*(8+v*0.08)-i*1.3)*0.12*(0.3+clamp(v/60,0,1)),w=0.96-i*0.03+i*0.08;
+      Q(MESH.box,child(seg,0,-0.3,0,0,0,0,w,0.64,0.05),capeC,sh,fl);
+      if(cc&&!GHOST){if(i===2)queue(MESH.glowBox,child(seg,0,-0.6,-0.03,0,0,0,w,0.05,0.02),[cc.glow[0],cc.glow[1],cc.glow[2],1],0);
+        for(const x of [-1,1])queue(MESH.glowBox,child(seg,x*w/2,-0.3,-0.03,0,0,0,0.03,0.64,0.02),[cc.glow[0],cc.glow[1],cc.glow[2],1],0);
+        if(cc.stars)for(const [x,y] of [[-0.25,-0.15],[0.2,-0.4],[0.05,-0.25]])queue(MESH.glowBox,child(seg,x,y,-0.03,0,0,0,0.035,0.035,0.01),[1,1,1,1],0);}
+      seg=child(seg,0,-0.6,0,0.08+f,0,0);}}
+  drawCosmetics(s,body,isPlayer);
 }
 
 // ---- Morph Band aliens: a shared humanoid rig plus per-alien dressing ----

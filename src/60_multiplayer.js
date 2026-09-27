@@ -104,7 +104,7 @@ function myPresence(){
   // presence patches merge on the server, so optional fields are always sent (null clears them)
   o.b=beam?(beam.w?[r1(beam.x),r1(beam.y),r1(beam.z),r1(beam.w)]:[r1(beam.x),r1(beam.y),r1(beam.z)]):null;const wp=P.web||P.zip;o.w=wp?[r1(wp.x),r1(wp.y),r1(wp.z)]:null;o.k=P.tk&&P.tk.hold?P.tk.hold.map(r1):null;o.c=null;
   o.cn=P.construct?P.construct.id:null;o.cz=!P.construct?0:CONSTRUCTS[P.construct.id].scale?Math.round(conSize()*conGrow(P.construct.id)*100)/100:(conGrow(P.construct.id)>1.001?Math.round(conGrow(P.construct.id)*100)/100:0);o.ex=presExtra();
-  o.wt=P.web&&P.web.target&&P.web.target.kind==='remote'?P.web.target.peer:null;o.st=P.stars||0;o.sk=myStreak;o.bty=save.bounty||0;o.aq=XQ.session.slice();
+  o.wt=P.web&&P.web.target&&P.web.target.kind==='remote'?P.web.target.peer:null;o.st=P.stars||0;o.sk=myStreak;o.bty=save.bounty||0;o.aq=XQ.session.slice();o.cs=cosPresence();
   if(P.car){o.c=[P.car.model,r2(P.car.yaw),P.car.tint.slice(0,3).map(r2)];o.x=r1(P.car.pos.x);o.y=r1(P.car.pos.y);o.z=r1(P.car.pos.z);}
   return o;
 }
@@ -124,6 +124,7 @@ function applyPresence(r,p){
   r.tk=Array.isArray(p.k)&&p.k.length===3?{x:n(p.k[0]),y:n(p.k[1]),z:n(p.k[2])}:null;
   r.car=Array.isArray(p.c)&&CARS[p.c[0]]?{model:p.c[0],yaw:n(p.c[1]),tint:Array.isArray(p.c[2])?[clamp(n(p.c[2][0]),0,1),clamp(n(p.c[2][1]),0,1),clamp(n(p.c[2][2]),0,1),1]:[1,1,1,1]}:null;
   r.aq=Array.isArray(p.aq)?p.aq.slice(0,XQS.length).filter(v=>Number.isInteger(v)&&v>=0&&v<XQS.length):null; // the Voidborn questions this player already got
+  r.cs=cosFromPresence(p.cs); // cosmetics they unlocked on CrazyGames
   r.stars=clamp(n(p.st)|0,0,5);r.sk=clamp(n(p.sk)|0,0,1e5);r.bounty=clamp(n(p.bty),0,1e6);
   r.cn=CONSTRUCTS[p.cn]?p.cn:null;r.cz=clamp(n(p.cz),0,1e5);r.ex=Array.isArray(p.ex)?p.ex.map(n).slice(0,6):null;r.giantS=r.ex&&r.ex[2]>1?clamp(r.ex[2],1,4):1;if(r.ex&&r.ex[3])r.look=civLook(r.look);else if(r.ex&&r.ex[4])r.look.armor=true;
   if(r.pos.y<-40)r.pos.copy(r.tp);
@@ -162,8 +163,9 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   // relay credentials from the site (cached until they are close to expiring); falls back to the public list
   async loadIce(){
     if(this.ice&&performance.now()<this.iceUntil)return;
+    if(PORTAL){this.ice=P2P_ICE;this.iceUntil=1e15;return;} // portal builds only use the free relays, never the site's Cloudflare TURN
     try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),4000);
-      const r=await fetch((PORTAL?SITE_URL:'')+'/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
+      const r=await fetch('/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
       const d=r.ok?await r.json():null,list=d&&(Array.isArray(d.iceServers)?d.iceServers:d.iceServers?[d.iceServers]:null);
       if(list&&list.length){this.ice=list.concat(P2P_ICE);this.iceUntil=performance.now()+6*3600e3;return;}}catch(e){}
     this.ice=P2P_ICE;this.iceUntil=performance.now()+60e3;
