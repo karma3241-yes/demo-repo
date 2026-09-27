@@ -28,7 +28,7 @@ function nearestBody(){let best=null,bd=1e12;for(const b of PLANETS){const d=Mat
 // flight speed multiplier: much faster the higher you are, slower again close to any surface
 function spaceSpeedMul(){
   if(P.pos.y<=CEIL)return 1;const nb=nearestBody();
-  return Math.max(1,Math.min(1+(P.pos.y-CEIL)/40,90,1+Math.max(0,nb.d)/60,1+(P.pos.y)/60));
+  return Math.max(1,Math.min(1+(P.pos.y-CEIL)/40,PBAL?10+80*travK():90,1+Math.max(0,nb.d)/60,1+(P.pos.y)/60));
 }
 let spaceMsgT=-99,lastBody=null,wasSpace=false;
 function updateSpace(dt){

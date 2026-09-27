@@ -24,7 +24,7 @@ const ALIEN_IDS=Object.keys(ALIENS);
 const BAND_COL=[.62,.36,1];
 const band={cd:0};
 const tornados=[],spikes=[];
-const aliensUnlocked=()=>ALIEN_IDS.filter(id=>ALIENS[id].unlock<=powerLevel('morphBand'));
+const aliensUnlocked=()=>ALIEN_IDS.filter(id=>ALIENS[id].unlock<=powerLevel('morphBand')||trialOn('al:'+id));
 const alienDef=()=>P.alien?ALIENS[P.alien.id]:null;
 const alienMul=()=>pstat('morphBand','power');
 function bandPress(){

@@ -8,6 +8,8 @@ let beam=null,ice=null,lastScorch=0,castT=-9;
 // Growing a step costs a little energy (ring charge for the Ring Bearer); shrinking gives back a quarter of it.
 // castK is the size of the power being cast right now: radius and range scale with it, damage with its square root.
 const SKILL_GROW={mul:1.2,max:30,ring:0.9,energy:3,refund:0.25};
+// CrazyGames: a power grows up to 1.5x at LV1 and 10x at LV10 (30x everywhere else)
+const skillGrowMax=id=>PBAL?1.5+8.5*lvlK(id):SKILL_GROW.max;
 let castK=1,heldSlot=-1;
 const skillSize=id=>(PS[id]&&PS[id].grow)||1;
 function withCast(id,fn){const was=castK;castK=skillSize(id);try{return fn();}finally{castK=was;}}
@@ -21,8 +23,8 @@ function drawPrimed(){
 function skillGrowStep(slot,dir){
   const id=save.character&&!P.alien&&save.character.abilities[slot];if(!id||!PS[id]||!canAct())return false;
   if(ringLocked()){oathBusy();return true;}
-  const s=PS[id],g=s.grow||1,ng=dir>0?Math.min(SKILL_GROW.max,g*SKILL_GROW.mul):Math.max(1,g/SKILL_GROW.mul);
-  if(Math.abs(ng-g)<1e-6){if(time-(s.maxMsg||-9)>3){s.maxMsg=time;feed(POWERS[id].name+(dir>0?' is as big as it gets (×30)':' is back to normal size'),'');}return true;}
+  const s=PS[id],g=s.grow||1,gm=skillGrowMax(id),ng=dir>0?Math.min(gm,Math.max(g,Math.min(gm,g*SKILL_GROW.mul))):Math.max(1,g/SKILL_GROW.mul);
+  if(Math.abs(ng-g)<1e-6){if(time-(s.maxMsg||-9)>3){s.maxMsg=time;feed(POWERS[id].name+(dir>0?' is as big as it gets (×'+(gm<10?gm.toFixed(1):Math.round(gm))+')':' is back to normal size'),dir>0&&PBAL&&gm<10?'Upgrade it to grow it bigger':'');}return true;}
   const ring=hasTrav('powerRing'),cost=ring?SKILL_GROW.ring:SKILL_GROW.energy;
   if(ng>g){if(ring?save.ring<cost:!spend(cost,id)){noEnergy(id);return true;}if(ring)save.ring-=cost;}
   else{const back=cost*SKILL_GROW.refund,m=heroMeter();if(ring)save.ring=Math.min(Math.max(100,save.ring),save.ring+back);else if(m)save[m.key]=Math.min(meterCap(m),save[m.key]+back*(m.rate||1));else P.en=Math.min(maxEn(),P.en+back);}
@@ -55,6 +57,7 @@ function dirTo(from,x,y,z){const dx=x-from.x,dy=y-from.y,dz=z-from.z,l=Math.hypo
 function abilityDown(slot){
   if(P.alien){alienAbilityDown(slot);return;}
   const id=save.character&&save.character.abilities[slot];if(!id||!canAct())return;
+  if(slotLocked(slot)){lockedSlotMsg(slot);return;}
   if(ringLocked()){oathBusy();return;} // the ring is busy while you say the oath out loud
   if(id==='morphBand'){bandPress();return;}
   const c=POWERS[id],s=PS[id];
@@ -94,7 +97,12 @@ function togglePower(id){
     P.shieldOn=true;P.shield=pstat('energyShield','absorb');ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3,0.3,[.4,.85,1]);SFX.tone('sine',400,900,0.3,0.12);
   }
 }
-const flySpeed=()=>{const m=save.character&&save.character.movement[0];return POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?pstat(m,'speed'):pstat('flight','speed');};
+const flySpeed=()=>{const m=save.character&&save.character.movement[0],id=POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?m:'flight';
+  if(PBAL){const v=POWERS[id].speed;return lerp(20,v[1],(statLevel(id)-1)/(CONFIG.powerMax-1));} // CrazyGames: flight starts at 20 m/s
+  return pstat(id,'speed');};
+// CrazyGames: the Shift boost and the space speed-up grow with traversal mastery too
+const travK=()=>save.character?mk(save.character.movement[0]):0;
+const flyBoost=()=>PBAL?lerp(1.5,POWERS.flight.boost,travK()):POWERS.flight.boost;
 // hold F on the ground to charge, let go to blast off into the sky (a tap still just toggles flight)
 function flyChargeStart(){
   if(!hasPower('flight')||isSpeed()||P.alien||P.car||P.flying||!P.grounded||!canAct()||P.construct)return false;
