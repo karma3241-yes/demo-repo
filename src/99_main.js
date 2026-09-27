@@ -53,7 +53,7 @@ function updateHud(dt){
 // ================================================================
 // Main loop
 // ================================================================
-function refreshMenu(){const b=$('start');b.textContent=save.character?'Continue as '+save.character.name:'Create your hero';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name:'Pick your powers, then take the city.';}
+function refreshMenu(){const b=$('start');quickButton();b.textContent=save.character?'Continue as '+save.character.name:'Create your hero';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name:'Pick your powers, then take the city.';}
 function startPlay(first){
   if(P.showcase||first||!P.placed){const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.showcase=false;P.placed=true;}
   SFX.init();SFX.setVolume(save.settings.volume);state='play';$('menu').hidden=true;hud.root.hidden=false;
@@ -61,7 +61,7 @@ function startPlay(first){
   if(save.settings.autoLock&&!touchOn())requestLock();
   helpTimer=18;P.hp=maxHp();P.en=maxEn();
   toast(first?'Welcome to Nova Bay':'Welcome back, '+save.character.name,first?'Crimes show up on your minimap. Stop them, or join in.':'LV '+save.level+' · '+repTier(save.reputation).name,'gold');
-  syncPlayerDoc(true);renderGuide();
+  syncPlayerDoc(true);renderGuide();Portal.onPlay();
   if(save.migrated)later(3,()=>toast('Powers updated','You now pick one traversal and one body mod. Your hero was converted; Change powers in the pause menu is free right now.','gold'));
   askMic();
 }

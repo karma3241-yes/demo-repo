@@ -237,6 +237,11 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
   - **Double XP** for 5 minutes.
   - **Cosmetics:** 4 glowing suits, 4 trails, 4 capes and 4 auras. Each one is yours for good after one ad, and other players in your room see them.
 - **Short ads** can play after a knockout or when you leave the pause menu. At most once every 3 minutes, and never in the first 3 minutes. The game freezes and the sound is muted while one plays.
+- **Quick play:** new players can skip the power picker and start straight away as a random ready-made hero; their first change of powers (Pause → Change powers) is free.
+- **Something to do right away:** every session's first crime starts 30–120 m from you a few seconds after you start, instead of 90–420 m away.
+- **Cloud save:** the save is also kept in CrazyGames' own storage, so progress survives the browser clearing its storage and follows a signed-in player to other devices. When the game starts, the newer of the two saves wins.
+- **Happy time:** level-ups, stopping a heist, beating a boss or a rival hero, and overcharging the ring tell CrazyGames it's a big moment (at most once a minute).
+- **Oath:** the Ring Bearer types the oath by default here (microphones inside a game portal can't be counted on); *Say it out loud* is still in Settings.
 - **Multiplayer** is peer to peer, the same as on the website. Rooms get CrazyGames' invite button, invite links open straight into the room, and "play with friends" starts a room. It only uses free public relays, never this site's Cloudflare TURN, so players on very strict networks may not connect.
 
 | Module | Contents |

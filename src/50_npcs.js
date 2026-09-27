@@ -568,7 +568,7 @@ function updateCrimes(dt){
     if(r==='cleared'||r==='escaped'){crimes.splice(i,1);c.cleanup&&c.cleanup(r==='escaped');
       for(const a of c.actors)if(a.crime===c&&a.kind!=='boss'){a.crime=null;if(a.kind==='drone'&&a.alive)a.leave=true;}
       if(r==='cleared'&&c.helped){const xp=c.heist?CRIMES.clearXp*3:CRIMES.clearXp;addXP(xp);addRep(c.heist?CRIMES.clearRep*3:CRIMES.clearRep);save.stats.crimesStopped++;guideDone('crime');
-        if(c.heist)toast('Heist stopped','+'+xp+' XP · '+c.label.replace(/^The /,'the '),'gold');else feed('+'+xp+' XP','Crime stopped: '+c.label);persist();}
+        if(c.heist){toast('Heist stopped','+'+xp+' XP · '+c.label.replace(/^The /,'the '),'gold');Portal.happy();}else feed('+'+xp+' XP','Crime stopped: '+c.label);persist();}
       if(r==='cleared'&&WS.host)WS.crimeReward(c);}}
   if(state!=='play')return;
   const small=crimes.filter(c=>!c.heist).length;

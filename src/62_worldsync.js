@@ -143,7 +143,7 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
     if(d.k==='kill'){const t={kind:String(d.kind),role:NPCS[d.role]?d.role:'thug',type:d.type==='ship'?'ship':'mech',level:clamp(+d.level||1,1,100),faction:d.faction==='hero'?'hero':'villain',bounty:!!d.bounty,name:String(d.name||'').slice(0,30),crime:null,pos:P.pos};
       if(['human','drone','rival','boss'].includes(t.kind))Bus.emit('defeated',{target:t,killer:P});}
     else if(d.k==='crime'){const xp=clamp(+d.xp||0,0,1000),rep=clamp(+d.rep||0,0,500);addXP(xp);addRep(rep);save.stats.crimesStopped++;guideDone('crime');
-      if(d.heist)toast('Heist stopped','+'+xp+' XP · '+String(d.label||'').slice(0,40),'gold');else feed('+'+xp+' XP','Crime stopped: '+String(d.label||'').slice(0,40));persist();}
+      if(d.heist){toast('Heist stopped','+'+xp+' XP · '+String(d.label||'').slice(0,40),'gold');Portal.happy();}else feed('+'+xp+' XP','Crime stopped: '+String(d.label||'').slice(0,40));persist();}
   },
   onTkGrab(peer,d){if(!this.host||!d)return;const a=this.find(+d.id),r=MP.peers.get(peer);if(!a||!r||a.held||a.kind==='boss'||a.kind==='heli')return;
     a.held=true;a.heldBy=r;a.heldT=time;if(a.kind==='vehicle'){a.state='held';if(a.driver)ejectDriver(a);}if(a.kind==='human')a.air=false;},
