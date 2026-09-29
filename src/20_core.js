@@ -129,6 +129,10 @@ const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
 function cleanName(s){return String(s).replace(/[^\p{L}\p{N} _.'-]/gu,'').replace(/\s+/g,' ').trim().slice(0,16);}
+// other players' names are typed by them: a basic profanity filter (letters, common digit swaps and whole words)
+const BAD_PART=/fuck|fck|fuk|shit|cunt|bitch|nigg|fagg|whore|slut|porn|penis|vagina|asshole|retard|hitler|nazi/,BAD_WORD=/^(rape|fag|dick|cock|kys|sex|anal|cum)$/;
+function safeName(s){const n=cleanName(s);const t=n.toLowerCase().replace(/[0134579@$]/g,c=>({0:'o',1:'i',3:'e',4:'a',5:'s',7:'t',9:'g','@':'a','$':'s'})[c]);
+  return BAD_PART.test(t.replace(/[^a-z]/g,''))||t.split(/[^a-z]+/).some(w=>BAD_WORD.test(w))?'':n;}
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
 function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}

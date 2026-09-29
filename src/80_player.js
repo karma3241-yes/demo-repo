@@ -20,7 +20,7 @@ addEventListener('keydown',e=>{
   {const hb=HUDBAR_KEYS[e.code];if(hb&&!creating&&!(hb.off&&hb.off())&&!(hb.hide&&hb.hide())){hb.act();return;}} // the HUD icon bar's keys
   if(e.code==='KeyP'){setPaused(!paused);return;}
   if(e.code==='KeyL'){toggleLock();return;}
-  if(e.code==='KeyM'){toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
+  if(e.code==='KeyM'){if(Portal.forceMute){toast('Sound is off','Turn it back on with the site\'s sound button','cyan');return;}toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
   if(e.code==='KeyH'){toggleMoves();return;}
   if(paused||P.dead)return;
   if(voidbornLocked()){if(voidbornAway()&&e.code in XQ_CODES)voidbornAnswer(XQ_CODES[e.code]);return;} // Voidborn: only the masks' question can be answered
@@ -80,7 +80,7 @@ function setPaused(v){
   paused=v;$('pause').hidden=!v||creating;if(v)renderPortalButtons();{const on=v&&MP.online();$('pause-title').textContent=on?'Menu':'Paused';$('pause-note').hidden=!on;}if(dialOpen)closeDial();
   if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<5;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();}
 }
-function resume(){if(sheetOpen)closeSheet();setPaused(false);Portal.midgame();if(save.settings.autoLock&&!touchOn())requestLock();}
+function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
 function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.swim&&!P.grounded)return; // under water Space just swims you up
   if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}

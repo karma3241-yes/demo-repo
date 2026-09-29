@@ -4,10 +4,11 @@
 // A row of icons under your name, one per menu, each showing its key (like a game launcher's top bar). With the mouse locked,
 // press the key; L frees the mouse to click them. On touch screens tap them. The CrazyGames build adds its rewards here
 // (double XP, refill, try locked powers, cosmetics) instead of in the pause menu.
-// The move list (right side) lists everything your hero can do. It is open for the first 2 minutes of each session;
-// H or its icon shows or hides it, and once you choose it stays that way for the session. It lays out in two columns
+// The move list (right side) lists everything your hero can do. It starts closed, so the first thing you see is the city
+// ("Getting started" teaches the basics and points to it); H or its icon shows or hides it. It lays out in two columns
 // and shrinks to fit (folding "Getting started" down to its next step if it has to), so it never needs scrolling.
 // The leaderboard sits under the icons on the left (the full board opens from it, the main menu or the pause menu).
+// The CrazyGames build has no leaderboard at all: the shared board lives on claude.ai, and pointing players there is cross-promotion.
 const HUDBAR=[
   {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
@@ -18,10 +19,10 @@ const HUDBAR=[
   // CrazyGames build only
   {id:'xp',glyph:'x2',key:'9',code:'Digit9',portal:true,act:()=>Portal.rewardXP(),
     tip:()=>{const l=Portal.boostUntil-time;return l>0?'Double XP active · '+Math.ceil(l/60)+' min left':'Watch an ad: double XP for 5 min';},
-    on:()=>Portal.boostUntil>time,off:()=>!Portal.on()||Portal.boostUntil>time},
+    on:()=>Portal.boostUntil>time,off:()=>!Portal.ads()||Portal.boostUntil>time},
   {id:'refill',glyph:'refill',key:'0',code:'Digit0',portal:true,act:()=>refill(),hide:()=>!refillInfo(),
     tip:()=>{const r=refillInfo();return !r?'':r.need?'Watch an ad: refill your '+r.m.label.toLowerCase():'Your '+r.m.label.toLowerCase()+' is full';},
-    off:()=>{const r=refillInfo();return !Portal.on()||!r||!r.need;}},
+    off:()=>{const r=refillInfo();return !Portal.ads()||!r||!r.need;}},
   {id:'trials',glyph:'unlock',key:',',code:'Comma',portal:true,tip:'Try locked powers',act:()=>sheetToggle('trials'),on:()=>sheetOpen==='trials'},
   {id:'cos',glyph:'sparkle',key:'.',code:'Period',portal:true,tip:'Cosmetics',act:()=>sheetToggle('cos'),on:()=>sheetOpen==='cos'},
 ];
@@ -56,7 +57,7 @@ function lbRows(tab){
 const LB_TABS=[['respected','Respected'],['feared','Feared'],['level','Level']];
 function updateLBMini(force){
   const box=$('lbmini');if(!box)return;
-  if(touchOn()||state!=='play'){box.hidden=true;return;} // touch screens: Leaderboard is in the pause menu
+  if(PBAL||touchOn()||state!=='play'){box.hidden=true;return;} // touch screens: Leaderboard is in the pause menu; CrazyGames: no shared board there
   const bar=$('hudbar'),top=bar.offsetTop+bar.offsetHeight+8,room=innerHeight-top-212; // 212: the minimap below it
   if(room<70){box.hidden=true;return;}box.hidden=false;
   if(top!==lbMiniTop){lbMiniTop=top;box.style.top=top+'px';}
@@ -72,13 +73,10 @@ function updateLBMini(force){
   box.appendChild(ol);
 }
 // ---- move list ----
-let movesUntil=0,movesChosen=false;
 const movesShown=()=>!hud.keys.classList.contains('fade');
-function showMovesForAWhile(){if(movesChosen)return;hud.keys.classList.remove('fade');movesUntil=time+120;fitMoves();}
-function toggleMoves(){movesChosen=true;movesUntil=0;const show=!movesShown();hud.keys.classList.toggle('fade',!show);hud.keys.classList.toggle('pin',show);fitMoves();updateHudbar(true);}
+function toggleMoves(){const show=!movesShown();hud.keys.classList.toggle('fade',!show);hud.keys.classList.toggle('pin',show);fitMoves();updateHudbar(true);}
 let fitT=0;
-function updateMoves(){if(movesUntil&&time>=movesUntil){movesUntil=0;if(!movesChosen){hud.keys.classList.add('fade');fitMoves();updateHudbar(true);}}
-  if(time-fitT>1)fitMoves();}
+function updateMoves(){if(time-fitT>1)fitMoves();}
 // fit the whole list on screen: place it under "Getting started", then fold that down to its next step, then use the tight rows
 function fitMoves(){
   fitT=time;const k=hud.keys,g=$('guide');if(!k)return;

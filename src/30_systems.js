@@ -83,7 +83,7 @@ function playerDown(killer){
 }
 function respawn(){
   const s=SPAWNS[(Math.random()*SPAWNS.length)|0];if(P.alien)revertAlien(true);
-  P.dead=false;P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();clearWanted();P.stun=0;P.lastHit=-99;
+  P.dead=false;P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.12;P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();clearWanted();P.stun=0;P.lastHit=-99;
   $('dead').hidden=true;Portal.midgame();
 }
 

@@ -15,7 +15,7 @@ function applyRoom(d,quiet){
   if(!quiet&&before!==JSON.stringify(ROOM)&&state==='play')feed('Room rules changed',PVP_MODES[ROOM.pvp]+(ROOM.crimes?'':' · no crimes')+(ROOM.police?'':' · no police'));
   if(sheetOpen==='mp')renderSheet();
 }
-function hostSet(k,v){if(!isRoomHost())return;ROOM[k]=v;applyRoom(ROOM,true);P2P.broadcast({t:'rs',d:ROOM},null);if(state==='play')feed('Room rules changed','');}
+function hostSet(k,v){if(!isRoomHost())return;ROOM[k]=v;applyRoom(ROOM,true);P2P.broadcast({t:'rs',d:ROOM},null);if(state==='play')feed('Room rules changed','');Portal.roomChanged();}
 function kickPeer(id){
   if(!isRoomHost())return;const c=P2P.conns.get(id),r=MP.peers.get(id);
   if(c){try{c.send({t:'kick'});}catch(e){}setTimeout(()=>{try{c.close();}catch(e){}},250);}

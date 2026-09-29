@@ -43,6 +43,6 @@ function bountyOnDown(killer){
 function onBountyFx(d,r){
   if(d.to!==MP.myPeer)return;const a=clamp(+d.a||0,0,1e6);if(!a)return;
   const xp=Math.round(a/10),rep=Math.round(Math.min(500,a/100));addXP(xp);addRep(rep);
-  toast('Bounty collected · $'+a.toLocaleString('en-US'),'You took down '+(cleanName(String(d.n||''))||r.name)+' · +'+xp+' XP · +'+rep+' rep','gold');SFX.chime();persist();
+  toast('Bounty collected · $'+a.toLocaleString('en-US'),'You took down '+(safeName(String(d.n||''))||r.name)+' · +'+xp+' XP · +'+rep+' rep','gold');SFX.chime();persist();
 }
 const starText=n=>'★'.repeat(n)+'☆'.repeat(5-n);

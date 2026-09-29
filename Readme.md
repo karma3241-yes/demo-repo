@@ -173,7 +173,7 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 
 **Icon bar.** Under your name (top left) is a row of icons, one for every menu: move list, skills, change powers, appearance, multiplayer and settings. Each icon shows its key; with the mouse locked press the key, or press `L` to free the mouse and click. In the CrazyGames build the rewards are here too: double XP (`9`), refill (`0`), try locked powers (`,`) and cosmetics (`.`).
 
-**Move list.** The panel on the right lists everything your current hero can do: moving, your five powers by name (on CrazyGames, with the level each one unlocks at), fighting, the hero's own keys (for the Ring Bearer: constructs, the wheel, the oath, rebuilding) and the menus. It stays open for your first 2 minutes each session; `H` or its icon shows or hides it, and once you choose, it stays that way. It always fits on screen without scrolling: it lays out in two columns, shrinks its rows if it has to, and folds "Getting started" down to your next step while it's open. Its top row reminds you that `H` hides it. Opening a menu or Change powers frees the mouse, so the cursor is always there to click with.
+**Move list.** The panel on the right lists everything your current hero can do: moving, your five powers by name (on CrazyGames, with the level each one unlocks at), fighting, the hero's own keys (for the Ring Bearer: constructs, the wheel, the oath, rebuilding) and the menus. It starts closed ("Getting started" shows an `H · all moves` hint); `H` or its icon shows or hides it, and once you choose, it stays that way. It always fits on screen without scrolling: it lays out in two columns, shrinks its rows if it has to, and folds "Getting started" down to your next step while it's open. Its top row reminds you that `H` hides it. Opening a menu or Change powers frees the mouse, so the cursor is always there to click with.
 
 **Leaderboard.** A small leaderboard sits on the left, under the icon bar: switch between most respected, most feared and highest level, and click it for the full board (also in the main menu and the pause menu). On touch screens it's in the pause menu only.
 
@@ -249,14 +249,17 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
   - **Refill:** refill your ring charge, battery, calories or lightning.
   - **Double XP** for 5 minutes.
   - **Cosmetics:** 4 glowing suits, 4 trails, 4 capes and 4 auras. Each one is yours for good after one ad, and other players in your room see them.
-- **Short ads** can play after a knockout (you're back in 5 seconds anyway, so there is no "get up now" ad) or when you leave the pause menu. At most once every 3 minutes, and never in the first 3 minutes. The game freezes and the sound is muted while one plays.
-- **Ad break every 20 minutes** if no ad has played for 20 minutes of play (for example, you haven't been knocked out). It waits for a calm moment: not fighting or recently hit, not wanted, no boss, no menu open. Then "Ad break in 5" counts down on screen and the ad plays. From the countdown until the ad ends you can't be hurt, other players included, and you stay where you are. Any other ad restarts the 20 minutes.
+- **Short ads** only play after a knockout, as you come back (you're back in 5 seconds anyway, so there is no "get up now" ad). At most once every 3 minutes, and never in the first 3 minutes. Never on a menu button (CrazyGames forbids that) and never in the middle of play. The game freezes and the sound is muted while one plays.
+- **Ad blockers:** if CrazyGames reports one, the rewarded buttons are greyed out with a short note instead of failing when clicked. The game itself plays normally.
+- **Sound:** CrazyGames' own mute setting always wins over the game's `M` key.
+- **No leaderboard:** the shared board only works on claude.ai, so it's hidden here.
 - **Rewards in the icon bar:** double XP, refill, try locked powers and cosmetics are HUD icons (keys `9`, `0`, `,`, `.`) instead of pause-menu buttons.
 - **Something to do right away:** every session's first crime starts 30–120 m from you a few seconds after you start, instead of 90–420 m away.
-- **Cloud save:** the save is also kept in CrazyGames' own storage, so progress survives the browser clearing its storage and follows a signed-in player to other devices. When the game starts, the newer of the two saves wins.
+- **Cloud save:** CrazyGames' Data module is the save of record (their rule), so progress survives the browser clearing its storage and follows a signed-in player to other devices. When it holds a hero, it replaces the browser's copy on start. A guest who signs in while playing gets their account's save (the game restarts if it differs).
+- **CrazyGames username:** a signed-in player's new hero is named after their username. Other players see it next to the hero name in multiplayer.
 - **Happy time:** level-ups, stopping a heist, beating a boss or a rival hero, and overcharging the ring tell CrazyGames it's a big moment (at most once a minute).
 - **Oath:** the Ring Bearer types the oath by default here (microphones inside a game portal can't be counted on); *Say it out loud* is still in Settings.
-- **Multiplayer** is peer to peer, the same as on the website. Rooms get CrazyGames' invite button, invite links open straight into the room, and "play with friends" starts a room. It only uses free public relays, never this site's Cloudflare TURN, so players on very strict networks may not connect.
+- **Multiplayer** is peer to peer, the same as on the website. Rooms are reported to CrazyGames (room code, and whether friends can still join: not when full or locked), invite links open straight into the room, and "play with friends" starts a room. There is no chat. Other players' names go through a basic word filter. It only uses free public relays, never this site's Cloudflare TURN, so players on very strict networks may not connect.
 
 | Module | Contents |
 | --- | --- |
@@ -274,7 +277,7 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 | `50_npcs.js`, `52_heli.js` | People, traffic, police, helicopters, crimes, heists, rivals |
 | `53_water.js`, `54_ambient.js` | Swimming, diving and splashes; planes, the blimp, birds, pigeons, boats, fountains and ponds |
 | `60_multiplayer.js`, `62_worldsync.js`, `63_host.js` | Players over the claude.ai room or room codes, the shared host city, and room host controls |
-| `64_portal.js`, `65_rewards.js` | CrazyGames build: gameplay events, ad breaks, invite links; power keys by level, trials, refills, cosmetics |
+| `64_portal.js`, `65_rewards.js` | CrazyGames build: gameplay events, ads, mute setting, username, cloud save, room info; power keys by level, trials, refills, cosmetics |
 | `66_icons.js`, `67_hudbar.js`, `68_markers.js` | HUD icons, the icon bar, move list and leaderboard panel; crime and recharge markers |
 | `70_ui.js`, `80_player.js` | HUD, menus, input, driving, player movement |
 | `90_render.js`, `99_main.js` | Camera, models, draw list, main loop |

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Skyline Guardian</title>
+<link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;600;700&display=swap">
@@ -217,6 +218,10 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
 @media (max-width:760px){
   .controls{grid-template-columns:1fr}#menu{background:rgba(3,5,12,.84)}
 }
+/* short screens (CrazyGames' 800x450 / 821x462 frames, phones in landscape): Play must be on screen without scrolling */
+@media (max-height:700px){.menu-inner{gap:12px;padding-block:18px}.pitch{font-size:15px}h1{font-size:clamp(44px,12vh,84px)}}
+@media (max-height:600px){.menu-inner{gap:10px;padding-block:14px}h1{font-size:clamp(36px,11vh,64px)}.pitch{display:none}.controls{font-size:12px;gap:3px 18px}.go{padding:10px 22px}}
+@media (max-height:420px){#menu-controls{display:none}}
 #dmgs{position:absolute;inset:0;overflow:hidden}
 .dmg{position:absolute;left:0;top:0;font:700 16px var(--display);color:#ffe27a;text-shadow:0 2px 0 #3a1a00,0 0 6px rgba(0,0,0,.7);will-change:transform,opacity;white-space:nowrap}
 .toast.purple b{color:#c89bff}
@@ -262,6 +267,7 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #guide li{display:grid;gap:1px;padding-left:20px;position:relative;font-size:13px}
 #guide li::before{content:"";position:absolute;left:0;top:3px;width:10px;height:10px;border:1.5px solid var(--ink-dim);border-radius:3px}
 #guide li.done{opacity:.45}#guide li.done::before{background:#7dffb0;border-color:#7dffb0}
+#guide-more{margin:8px 0 0;font-size:11px;color:var(--ink-dim);letter-spacing:.04em}body.touch #guide-more{display:none}
 #guide li span{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
 #guide.mini li{display:none}#guide.mini li:not(.done){display:grid}#guide.mini li:not(.done)~li{display:none}#guide.mini h4{margin-bottom:4px}
 /* HUD icon bar: every menu one key or click away */
@@ -277,7 +283,27 @@ body.touch #hudbar{top:8px!important;left:auto;right:66px;max-width:calc(100% - 
 .ico{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pick .pico{width:28px;height:28px;margin-bottom:2px}
 body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176px;padding:7px 9px}body.touch #guide li{font-size:11px}
-@media (max-height:520px){body.touch #guide{display:none}}
+/* small desktop frames (CrazyGames 800x450 / 821x462 / 907x510): smaller minimap and hotbar, Getting started shows just the
+   next step, and the feed moves up out of the hotbar's way */
+@media (max-height:560px){
+  body:not(.touch) #map{width:128px;height:128px}
+  body:not(.touch) .slot{padding:3px 8px 2px}body:not(.touch) .slot .nm{font-size:11px}body:not(.touch) .slot small{font-size:9px;letter-spacing:.08em}
+  body:not(.touch) .meters{padding:6px 12px}
+}
+@media (max-height:560px),(max-width:1000px){
+  body:not(.touch) #guide li{display:none}body:not(.touch) #guide li:not(.done){display:grid}body:not(.touch) #guide li:not(.done)~li{display:none}
+  body:not(.touch) #feed{bottom:auto;top:200px;max-width:240px}
+}
+@media (max-height:560px) and (max-width:1000px){body:not(.touch) .hud-bc{left:160px}}
+/* phones in landscape: five smaller columns keep the buttons under the icon bar, and Getting started shows just the next step
+   where the minimap was (the minimap is hidden at this height) */
+@media (max-height:520px){
+  body.touch #tbtns{grid-template-columns:repeat(5,46px);gap:6px;right:10px;bottom:10px}body.touch .tb{width:46px;height:46px;font-size:9px;letter-spacing:.03em}
+  body.touch .tb.wide{grid-column:1/-1;width:auto;height:38px}
+  body.touch #toasts{top:22%}
+  body.touch #guide{top:186px;padding:5px 8px}body.touch #guide h4{margin-bottom:3px;font-size:10px}
+  body.touch #guide li{display:none}body.touch #guide li:not(.done){display:grid}body.touch #guide li:not(.done)~li{display:none}
+}
 .tb.use{background:rgba(125,255,176,.22)}.tb.use.dim{opacity:.35}
 .tb.dn2,.tb.alien{background:rgba(176,108,255,.3)}
 @media (max-width:760px){
@@ -320,7 +346,6 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 #uw{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(ellipse at 50% 0%,rgba(90,190,230,.35),transparent 60%),linear-gradient(180deg,rgba(30,120,170,.5),rgba(4,34,70,.82))}
 #lowhint{padding:4px 12px;border-radius:999px;background:rgba(4,8,18,.72);border:1px solid var(--c,#ff5a3d);font:700 11px var(--hud);letter-spacing:.08em;text-transform:uppercase;color:#fff;text-align:center;animation:lhPulse 1.6s ease-in-out infinite}
 @keyframes lhPulse{50%{box-shadow:0 0 12px var(--c,#ff5a3d)}}
-#adbreak{position:absolute;left:50%;top:22%;transform:translateX(-50%);padding:10px 22px;font:700 18px var(--hud);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border-color:var(--gold)}
 @media (prefers-reduced-motion: reduce){.mk.big .pw,#lowhint{animation:none}}
 </style>
 </head>
@@ -352,11 +377,10 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div id="bossbar" hidden><div class="name" id="bossname">Boss</div><div class="bar boss"><i id="bossb"></i></div></div>
   <div id="toasts"></div>
   <div id="feed"></div>
-  <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol></div>
-  <div id="keys" class="panel"><div id="keys-head"><b>Move list</b><span><kbd>H</kbd> hide</span></div><div id="keys-hero"></div></div>
+  <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol><p id="guide-more"><kbd>H</kbd> all moves</p></div>
+  <div id="keys" class="panel fade"><div id="keys-head"><b>Move list</b><span><kbd>H</kbd> hide</span></div><div id="keys-hero"></div></div>
   <div id="hudbar"></div>
   <div id="lbmini" class="panel" hidden></div>
-  <div id="adbreak" class="panel" hidden></div>
 </div>
 <div id="vig"></div>
 <div id="flash"></div>
@@ -1262,7 +1286,9 @@ for(const list of blockProps)for(const p of list)if(p.type==='tlight')tlights.pu
   for(const r of roofs)orbSpots.push({x:r.x+sr(-2,2),y:r.y+1.4,z:r.z+sr(-2,2),roof:true});
   for(let k=0;k<90;k++){const i=Math.floor(srand()*GX),j=Math.floor(srand()*GZ);if(!isBlock(i,j))continue;const p=pathPos({cx:cellX(i),cz:cellZ(j),u:sr(0,216),dir:1});orbSpots.push({x:p.x,y:1.5,z:p.z,roof:false});}
 })();
-const SPAWNS=[[hospital.x,hospital.z]];
+// [x, z, facing]: out on the pavement past the hospital's entrance canopy (a camera behind you would sit inside it),
+// turned towards the park and the skyline
+const SPAWNS=[[hospital.x,hospital.z-4,0.8]];
 // traffic light phase for an intersection: returns 'g', 'y' or 'r' for traffic travelling along `axis`
 function lightFor(ix,iz,axis){
   const T=16,off=((ix*7+iz*13)%16),t=((time+WS.toff+off)%T+T)%T;
@@ -1590,6 +1616,10 @@ const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
 function cleanName(s){return String(s).replace(/[^\p{L}\p{N} _.'-]/gu,'').replace(/\s+/g,' ').trim().slice(0,16);}
+// other players' names are typed by them: a basic profanity filter (letters, common digit swaps and whole words)
+const BAD_PART=/fuck|fck|fuk|shit|cunt|bitch|nigg|fagg|whore|slut|porn|penis|vagina|asshole|retard|hitler|nazi/,BAD_WORD=/^(rape|fag|dick|cock|kys|sex|anal|cum)$/;
+function safeName(s){const n=cleanName(s);const t=n.toLowerCase().replace(/[0134579@$]/g,c=>({0:'o',1:'i',3:'e',4:'a',5:'s',7:'t',9:'g','@':'a','$':'s'})[c]);
+  return BAD_PART.test(t.replace(/[^a-z]/g,''))||t.split(/[^a-z]+/).some(w=>BAD_WORD.test(w))?'':n;}
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
 function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
@@ -1779,7 +1809,7 @@ function playerDown(killer){
 }
 function respawn(){
   const s=SPAWNS[(Math.random()*SPAWNS.length)|0];if(P.alien)revertAlien(true);
-  P.dead=false;P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();clearWanted();P.stun=0;P.lastHit=-99;
+  P.dead=false;P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.12;P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();clearWanted();P.stun=0;P.lastHit=-99;
   $('dead').hidden=true;Portal.midgame();
 }
 
@@ -4054,7 +4084,7 @@ function renderHeroKeys(){
     if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
     if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
     K('U','Suit up or down');}
-  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('L','Free the mouse to click the icons');K('Esc','Pause');K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
+  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('L','Free the mouse to click the icons');K('Esc','Pause');if(!PBAL)K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
 }
 // ================================================================
 // Wanted level (1-5 stars) and bounty
@@ -4101,7 +4131,7 @@ function bountyOnDown(killer){
 function onBountyFx(d,r){
   if(d.to!==MP.myPeer)return;const a=clamp(+d.a||0,0,1e6);if(!a)return;
   const xp=Math.round(a/10),rep=Math.round(Math.min(500,a/100));addXP(xp);addRep(rep);
-  toast('Bounty collected · $'+a.toLocaleString('en-US'),'You took down '+(cleanName(String(d.n||''))||r.name)+' · +'+xp+' XP · +'+rep+' rep','gold');SFX.chime();persist();
+  toast('Bounty collected · $'+a.toLocaleString('en-US'),'You took down '+(safeName(String(d.n||''))||r.name)+' · +'+xp+' XP · +'+rep+' rep','gold');SFX.chime();persist();
 }
 const starText=n=>'★'.repeat(n)+'☆'.repeat(5-n);
 // ================================================================
@@ -4187,7 +4217,7 @@ function updateMeters(dt){
       if(save.battery>=cap&&was<cap){toast('Battery full','Suit systems online','cyan');SFX.chime();persist();}}
   }else if(m.key==='bolt'){
     const S=P.stormCall;
-    if(S){S.t+=dt;S.next-=dt;P.vel.x*=0.8;P.vel.z*=0.8;P.hammerUpT=time;
+    if(S){S.t+=dt;S.next-=dt;{const f=Math.pow(0.8,dt*60);P.vel.x*=f;P.vel.z*=f;}P.hammerUpT=time;
       if(!tallRoofHere()||P.dead||P.stun>0){P.stormCall=null;}
       else if(S.next<=0){S.next=0.45;const c=center(P);bolt(c.x,c.y+2.2,c.z,false,1);save.bolt=Math.min(100,save.bolt+20);addShake(0.25);
         if(save.bolt>=100){P.stormCall=null;toast('The storm answers','Lightning fully charged','cyan');persist();}}}
@@ -5039,7 +5069,7 @@ function updateRival(r,dt){
     const flung=r.flungT&&time-r.flungT<2.5,spd=flung?Math.hypot(r.vel.x,vyb,r.vel.z):0;
     if(flung){flungSweep(r,spd);if(col.wall&&spd>COMBAT.slamMin)slamWall(r,col.wall,spd,pv);else if(col.grounded&&vyb<-COMBAT.slamMin)slamGround(r,-vyb);}
     if(r.thrown&&(col.grounded||col.wall)){const t=r.thrown;r.thrown=null;Damage.apply(t.by,r,t.dmg,'throw');}
-    if(col.grounded){r.vel.x*=0.8;r.vel.z*=0.8;}
+    if(col.grounded){const f=Math.pow(0.8,dt*60);r.vel.x*=f;r.vel.z*=f;} // same slide at any frame rate
     if(!r.alive){r.tilt=lerp(r.tilt,1.5,damp(3,dt));r.deadT-=dt;if(r.deadT<=0)removeActor(r);}
     else if(r.stun>0)r.stun-=dt;
     return;
@@ -5795,7 +5825,7 @@ function myPresence(){
   if(P.flying)f|=FLAG.fly;if(P.speeding)f|=FLAG.speed;if(P.wall)f|=FLAG.wall;if(P.web)f|=FLAG.web;if(P.charging)f|=FLAG.charge;if(beam)f|=FLAG.fire;
   if(P.shieldOn)f|=FLAG.shield;if(P.metal)f|=FLAG.metal;if(P.dead)f|=FLAG.dead;if(P.invisible>0)f|=FLAG.invis;if(P.car)f|=FLAG.car;if(P.heat>0)f|=FLAG.wanted;if(P.rag)f|=FLAG.rag;
   const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
-  const o={v:1,n:ch.name||'Hero',l:[ch.suit|0,ch.cape|0,ch.accent|0,ch.capeOn===false?0:1],lv:save.level,rep:save.reputation,fac:playerFaction(),al:P.alien?P.alien.id:'',
+  const o={v:1,n:ch.name||'Hero',u:Portal.username||'',l:[ch.suit|0,ch.cape|0,ch.accent|0,ch.capeOn===false?0:1],lv:save.level,rep:save.reputation,fac:playerFaction(),al:P.alien?P.alien.id:'',
     x:r1(P.pos.x),y:r1(P.pos.y),z:r1(P.pos.z),vx:r1(P.vel.x),vy:r1(P.vel.y),vz:r1(P.vel.z),yw:r2(P.heroYaw),tl:r2(P.tilt),bk:r2(P.bank),f,hp:Math.round(P.hp/maxHp()*100)};
   // presence patches merge on the server, so optional fields are always sent (null clears them)
   o.b=beam?(beam.w?[r1(beam.x),r1(beam.y),r1(beam.z),r1(beam.w)]:[r1(beam.x),r1(beam.y),r1(beam.z)]):null;const wp=P.web||P.zip;o.w=wp?[r1(wp.x),r1(wp.y),r1(wp.z)]:null;o.k=P.tk&&P.tk.hold?P.tk.hold.map(r1):null;o.c=null;
@@ -5811,7 +5841,8 @@ function makeRemote(peer){
 }
 function applyPresence(r,p){
   const n=v=>{v=+v;return isFinite(v)?v:0;};
-  r.name=cleanName(String(p.n||''))||'Hero';r.level=clamp(Math.floor(n(p.lv)),1,100);r.faction=['hero','villain','neutral'].includes(p.fac)?p.fac:'neutral';r.rep=n(p.rep);
+  // a signed-in CrazyGames player's username is shown next to their hero name, so friends recognise each other
+  {const h=safeName(String(p.n||''))||'Hero',u=safeName(String(p.u||''));r.name=u&&u!==h?h+' ('+u+')':h;}r.level=clamp(Math.floor(n(p.lv)),1,100);r.faction=['hero','villain','neutral'].includes(p.fac)?p.fac:'neutral';r.rep=n(p.rep);
   const l=Array.isArray(p.l)?p.l:[0,0,0,1];const su=clamp(l[0]|0,0,SUIT_OPTS.length-1),ca=clamp(l[1]|0,0,CAPE_OPTS.length-1),ac=clamp(l[2]|0,0,ACC_OPTS.length-1);
   r.look={suit:c4(SUIT_OPTS[su]),suit2:[...hex(SUIT_OPTS[su],0.6),1],cape:c4(CAPE_OPTS[ca]),acc:c4(ACC_OPTS[ac]),capeOn:!!l[3],metal:false};
   r.flags=n(p.f)|0;r.look.metal=!!(r.flags&FLAG.metal);r.alien=ALIENS[p.al]?p.al:'';
@@ -6195,7 +6226,7 @@ function applyRoom(d,quiet){
   if(!quiet&&before!==JSON.stringify(ROOM)&&state==='play')feed('Room rules changed',PVP_MODES[ROOM.pvp]+(ROOM.crimes?'':' · no crimes')+(ROOM.police?'':' · no police'));
   if(sheetOpen==='mp')renderSheet();
 }
-function hostSet(k,v){if(!isRoomHost())return;ROOM[k]=v;applyRoom(ROOM,true);P2P.broadcast({t:'rs',d:ROOM},null);if(state==='play')feed('Room rules changed','');}
+function hostSet(k,v){if(!isRoomHost())return;ROOM[k]=v;applyRoom(ROOM,true);P2P.broadcast({t:'rs',d:ROOM},null);if(state==='play')feed('Room rules changed','');Portal.roomChanged();}
 function kickPeer(id){
   if(!isRoomHost())return;const c=P2P.conns.get(id),r=MP.peers.get(id);
   if(c){try{c.send({t:'kick'});}catch(e){}setTimeout(()=>{try{c.close();}catch(e){}},250);}
@@ -6226,24 +6257,26 @@ function renderHostControls(B){
 // ================================================================
 // Only the portal build (`node tools/build.mjs crazygames`) sets window.__PORTAL__ and loads the CrazyGames SDK;
 // on the website and in the claude.ai version everything here does nothing.
-// Ads only come at natural breaks: after a knockout and when you leave the pause menu, at most once every 3 minutes,
-// never mid-fight. If none has played for 20 minutes of play (you haven't been knocked out), an ad break waits for a
-// calm moment (no fight, not wanted, no boss, no menu), counts down 5 seconds on screen, then plays; from the countdown
-// until the ad ends you can't be hurt (other players included) and you stay where you are. A rewarded ad (from the pause menu) doubles XP for 5 minutes. Rooms get the portal's invite button.
+// Midgame ads only come at a natural break: after a knockout, on the way back to the hospital, at most once every 3 minutes
+// (CrazyGames forbids them on menu buttons and in the middle of play, so leaving the pause menu never shows one). Rewarded
+// ads are always the player's choice (the HUD icons). The portal's mute setting always wins over the game's own M key.
+// A signed-in CrazyGames player's new hero takes their CrazyGames username. Rooms get the portal's invite button.
 // Big moments (level-ups, heists stopped, bosses and rivals beaten, an overcharged ring) call happytime(), at most once a minute.
 // The save is copied to the portal's cloud storage, so it survives cleared browser storage and follows a signed-in player;
-// on start the newer of the two wins. Every session's first crime starts a short run from you, so there is something to do
+// the portal copy is the save of record, and a guest who signs in mid-game gets their account save. Every session's first crime starts a short run from you, so there is something to do
 // within seconds. The rewards live in the HUD icon bar (67_hudbar.js).
 const PORTAL=window.__PORTAL__||'';
-const PORTAL_AD_GAP=180,AD_BREAK_EVERY=20*60,AD_BREAK_COUNT=5,XP_BOOST={mul:2,time:300};
-const Portal={sdk:null,inAd:false,adAt:0,playing:false,playT:0,adPlayT:0,lastTick:0,breakCd:0,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,
+const PORTAL_AD_GAP=180,XP_BOOST={mul:2,time:300};
+const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,forceMute:false,weMuted:false,username:'',adblock:false,
   on(){return !!this.sdk;},
+  // rewarded buttons are only live when an ad can actually play (an ad blocker leaves them greyed out, never clickable-but-dead)
+  ads(){return !!this.sdk&&!this.adblock;},
   async init(){
     if(PORTAL!=='crazygames')return;const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;
     try{await S.init();}catch(e){return;}
     this.sdk=S;
     try{S.game.loadingStart();S.game.loadingStop();}catch(e){} // the game has finished loading by the time the SDK is ready
-    this.cloudSync(S);
+    this.cloudSync(S);this.watchSettings(S);this.fetchUser(S);this.checkAdblock(S);
     try{const room=S.game.getInviteParam('room');if(room&&P2P.available())P2P.join(room);else if(S.game.isInstantMultiplayer&&P2P.available())P2P.create();}catch(e){}
     if(sheetOpen)renderSheet();renderPortalButtons();
   },
@@ -6251,24 +6284,37 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,playT:0,adPlayT:0,lastTic
   tick(){
     if(this.crimeAt&&time>=this.crimeAt&&state==='play'&&!paused&&!P.dead){this.crimeAt=0;if(ROOM.crimes&&!MP.online())nearCrime();}
     if(!this.sdk)return;const now=state==='play'&&!paused&&!sheetOpen&&!creating&&!P.dead&&!this.inAd;
-    const t=performance.now()/1000,d=Math.min(0.25,t-(this.lastTick||t));this.lastTick=t;if(now)this.playT+=d;this.breakTick(d);
-    if(now===this.playing)return;this.playing=now;try{now?this.sdk.game.gameplayStart():this.sdk.game.gameplayStop();}catch(e){}
+    if(now===this.playing)return;
+    const t=performance.now();if(now&&t-this.stopAt<1100)return; // the SDK rejects a start within 1 s of a stop; this runs every frame, so it just waits
+    this.playing=now;if(!now)this.stopAt=t;try{now?this.sdk.game.gameplayStart():this.sdk.game.gameplayStop();}catch(e){}
   },
-  // the 20-minute ad break: only at a calm moment, after an on-screen countdown, with you safe and still until it ends
-  calm(){return this.playing&&!dialOpen&&!oathOpen&&!P.stars&&!(boss&&!boss.leave)&&time-(P.lastHit||-99)>6&&!voidbornLocked();},
-  breakTick(d){
-    const box=$('adbreak');if(!box)return;
-    if(this.inAd||this.playT-this.adPlayT<AD_BREAK_EVERY||!this.calm()){if(this.breakCd){this.breakCd=0;box.hidden=true;}return;}
-    if(!this.breakCd){this.breakCd=AD_BREAK_COUNT;box.hidden=false;}
-    this.breakCd-=d;P.iframeT=Math.max(P.iframeT||0,0.5);
-    if(this.breakCd<=0){this.breakCd=0;box.hidden=true;P.vel.set(0,0,0);P.iframeT=1e9; // safe for the whole ad
-      this.show('midgame',()=>{P.iframeT=2;P.vel.set(0,0,0);});return;}
-    const txt='Ad break in '+Math.ceil(this.breakCd);if(box.textContent!==txt)box.textContent=txt;
+  // mute while an ad plays; afterwards go back to what the player (or the portal's mute setting) wants
+  quiet(on){if(on){this.muteWas=SFX.muted;if(!SFX.muted)SFX.toggleMute();return;}
+    if(SFX.muted&&!this.muteWas)SFX.toggleMute();this.applyMute();},
+  // CrazyGames' own mute setting (game.settings.muteAudio) overrides the game's sound, now and whenever it changes;
+  // when it is lifted, only the mute it caused is undone (a player who pressed M stays muted)
+  watchSettings(S){
+    const apply=st=>{this.forceMute=!!(st&&st.muteAudio);this.applyMute();};
+    try{apply(S.game.settings);S.game.addSettingsChangeListener(apply);}catch(e){}
   },
-  quiet(on){if(on){this.muteWas=SFX.muted;if(!SFX.muted)SFX.toggleMute();}else if(SFX.muted&&!this.muteWas)SFX.toggleMute();},
+  applyMute(){if(this.inAd)return;
+    if(this.forceMute&&!SFX.muted){SFX.toggleMute();this.weMuted=true;}
+    else if(!this.forceMute&&this.weMuted){this.weMuted=false;if(SFX.muted)SFX.toggleMute();}},
+  // the signed-in player's CrazyGames username names a new hero (guests keep "Guardian 123"). A hero still wearing that
+  // placeholder takes the username once it is known (Play may be pressed before the SDK answers, or the guest signs in later).
+  async fetchUser(S){if(!S.user)return;try{S.user.addAuthListener(u=>this.authChanged(u));}catch(e){}
+    try{if(!S.user.isUserAccountAvailable)return;this.setUser(await S.user.getUser());}catch(e){}},
+  setUser(u){this.username=u&&typeof u.username==='string'?u.username:'';
+    if(this.username&&save.character&&/^Guardian \d+$/.test(save.character.name)){save.character.name=this.username;persist();applyLook();refreshMenu();}},
+  // a guest signed in while playing: the SDK has already swapped in the account's save (or moved the guest's save to the
+  // account). A different save means a restart so the game loads it; the same save just picks up the username.
+  authChanged(u){if(!u)return;const D=this.sdk&&this.sdk.data;let cloud=null;try{cloud=D?JSON.parse(D.getItem(SAVE_KEY)||'null'):null;}catch(e){}
+    if(cloud&&cloud.character&&+cloud.savedAt!==+save.savedAt){persistHook=null;location.reload();return;}
+    this.setUser(u);},
+  async checkAdblock(S){try{this.adblock=!!(await S.ad.hasAdblock());}catch(e){}if(this.adblock)renderPortalButtons();},
   show(kind,done){
     if(!this.sdk||this.inAd){done&&done(false);return;}
-    const end=ok=>{if(!this.inAd)return;this.inAd=false;this.adPlayT=this.playT;this.quiet(false);this.tick();done&&done(ok);};
+    const end=ok=>{if(!this.inAd)return;this.inAd=false;this.quiet(false);this.tick();done&&done(ok);};
     this.inAd=true;this.tick();
     try{this.sdk.ad.requestAd(kind,{adStarted:()=>{this.quiet(true);mouseL=false;for(const k in keys)keys[k]=false;},adFinished:()=>{this.adAt=performance.now()/1000;end(true);},adError:()=>end(false)});}
     catch(e){end(false);}
@@ -6280,21 +6326,28 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,playT:0,adPlayT:0,lastTic
   xpMul(){return time<this.boostUntil?XP_BOOST.mul:1;},
   happy(){if(!this.sdk||time-this.happyAt<60)return;this.happyAt=time;try{this.sdk.game.happytime();}catch(e){}},
   onPlay(){if(PBAL)this.crimeAt=time+4;},
-  // the newer save wins: a cloud copy from another device (or from before the browser cleared its storage) replaces this
-  // one while you are still in the menu; otherwise this one is pushed up. From then on every save goes to both.
+  // CrazyGames' Data module is the save of record (their rule: rely on it, not on local saves): its copy replaces the local one
+  // whenever it holds a hero, so another device's progress or a signed-in account's progress is never overwritten by a stale
+  // browser copy. If Play was pressed before the SDK was ready and the copies differ, the game restarts to load it. A local
+  // hero with nothing in the cloud yet is pushed up. From then on every save goes to both.
   cloudSync(S){
     const D=S.data;if(!D||typeof D.getItem!=='function'||typeof D.setItem!=='function')return;
     let cloud=null;try{cloud=JSON.parse(D.getItem(SAVE_KEY)||'null');}catch(e){cloud=null;}
-    const cAt=cloud&&+cloud.savedAt||0,lAt=+save.savedAt||0;
-    if(cloud&&cloud.character&&cAt>lAt&&state!=='play'&&!creating){
+    const has=!!(cloud&&cloud.character),same=has&&+cloud.savedAt===+save.savedAt;
+    if(has&&!same&&(state==='play'||creating)){location.reload();return;}
+    if(has&&!same){
       const n=loadSave(JSON.stringify(cloud));
       if(n.character){for(const k of Object.keys(save))delete save[k];Object.assign(save,n);kitLvSeen=save.level;
         try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}refreshMenu();applyLook();applyTouchUI();}}
     persistHook=j=>D.setItem(SAVE_KEY,j);
-    if(save.character&&!(cloud&&cAt>=lAt&&cloud.character))persist();
+    if(save.character&&!has)persist();
   },
   inviteLink(code){try{return this.sdk?this.sdk.game.inviteLink({room:code}):'';}catch(e){return '';}},
-  roomChanged(){if(!this.sdk)return;try{if(P2P.state==='open'&&P2P.code)this.sdk.game.showInviteButton({room:P2P.code});else this.sdk.game.hideInviteButton();}catch(e){}},
+  // room info for the portal (its invite button and friends list): which room, and whether friends can still get in
+  roomChanged(){if(!this.sdk)return;const g=this.sdk.game;try{
+    if(P2P.state==='open'&&P2P.code){const full=P2P.host&&P2P.conns.size>=P2P_MAX-1;this.inRoom=true;
+      if(g.updateRoom)g.updateRoom({roomId:P2P.code,isJoinable:!full&&!ROOM.locked,inviteParams:{room:P2P.code}});else g.showInviteButton({room:P2P.code});}
+    else if(this.inRoom){this.inRoom=false;if(g.leftRoom)g.leftRoom();else g.hideInviteButton();}}catch(e){}},
 };
 // the rewards (double XP, refill, try locked powers, cosmetics) are HUD icons now (67_hudbar.js): keep them current
 function renderPortalButtons(){updateHudbar(true);}
@@ -6313,7 +6366,7 @@ const KIT_LV=[1,2,4,6,9];                 // the level each power key (1-5) open
 const TRIAL_MIN=10;
 const slotLocked=i=>PBAL&&save.level<KIT_LV[i]&&!trialOn('key'+i);
 function lockedSlotMsg(i){if(time-(P.lockMsgT||-9)<1)return;P.lockMsgT=time;const id=save.character.abilities[i];
-  feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],Portal.on()?'Pause → Try locked powers to use it now for '+TRIAL_MIN+' min':'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
+  feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],Portal.ads()?'Pause → Try locked powers to use it now for '+TRIAL_MIN+' min':'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
 // ---- timed trials (one rewarded ad = 10 minutes) ----
 function startTrial(k,label){
   Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}
@@ -6331,7 +6384,8 @@ function updateTrials(){ // tell the player when a trial runs out, and redraw wh
 function renderTrials(){
   const B=sheetBody,ch=save.character;if(!ch)return;
   B.append(el('p',{class:'muted',text:'Watch a short ad to use something before you unlock it. Each trial lasts '+TRIAL_MIN+' minutes; levelling up unlocks it for good.'}));
-  const row=(title,sub,k,label)=>{const left=trialLeft(k);const b=el('button',{class:left?'ghost':'go',type:'button',text:left?left+' min left':'Watch ad · '+TRIAL_MIN+' min',onclick:()=>startTrial(k,label)});b.disabled=!!left||!Portal.on();
+  if(!Portal.ads())B.append(el('p',{class:'muted',text:'Ads are not available right now (an ad blocker may be on), so these buttons are off.'}));
+  const row=(title,sub,k,label)=>{const left=trialLeft(k);const b=el('button',{class:left?'ghost':'go',type:'button',text:left?left+' min left':'Watch ad · '+TRIAL_MIN+' min',onclick:()=>startTrial(k,label)});b.disabled=!!left||!Portal.ads();
     B.append(el('div',{class:'upg'},el('b',{text:title}),el('div',{class:'btns'},b),el('p',{text:sub})));};
   B.append(el('h3',{text:'Power keys'}));let any=false;
   ch.abilities.forEach((id,i)=>{if(save.level>=KIT_LV[i])return;any=true;row('Key '+(i+1)+' · '+POWERS[id].name,'Unlocks at LV '+KIT_LV[i],'key'+i,POWERS[id].name);});
@@ -6348,7 +6402,7 @@ function renderTrials(){
     if(locked.length){B.append(el('h3',{text:'Aliens'}));for(const id of locked)row(ALIENS[id].name,'Unlocks at band LV '+ALIENS[id].unlock,'al:'+id,ALIENS[id].name);}}
 }
 // locked dial slots (constructs, suit forms, aliens) offer a trial on click
-function dialTrial(a){if(!PBAL||!a||!a.trialKey)return false;if(!Portal.on()){feed(a.name+' is locked',a.lock);return true;}closeDial();startTrial(a.trialKey,a.name);return true;}
+function dialTrial(a){if(!PBAL||!a||!a.trialKey)return false;if(!Portal.ads()){feed(a.name+' is locked',a.lock);return true;}closeDial();startTrial(a.trialKey,a.name);return true;}
 // ---- refill your hero's meter ----
 function refillInfo(){const m=heroMeter();if(!m)return null;const cap=m.key==='ring'?100:meterCap(m);return {m,cap,need:save[m.key]<cap-0.5};}
 function refill(){const r=refillInfo();if(!r||!r.need)return;
@@ -6373,9 +6427,10 @@ function cosFromPresence(a){if(!Array.isArray(a))return null;const k=['suit','tr
 function renderCosmetics(){
   const B=sheetBody;save.cos=save.cos||cleanCos(null);const C=save.cos;
   B.append(el('p',{class:'muted',text:'Watch a short ad to unlock an item for good, then wear it. Other players in your room see it too.'}));
+  if(!Portal.ads())B.append(el('p',{class:'muted',text:'Ads are not available right now (an ad blocker may be on), so these buttons are off.'}));
   for(const k in COSMETICS){B.append(el('h3',{text:COS_KINDS[k]}));
     for(const it of COSMETICS[k]){const own=C.own.includes(k+':'+it.id),on=C.eq[k]===it.id;
-      const b=el('button',{class:own?(on?'ghost':'go'):'go',type:'button',text:own?(on?'Take off':'Wear'):'Watch ad · unlock'});b.disabled=!own&&!Portal.on();
+      const b=el('button',{class:own?(on?'ghost':'go'):'go',type:'button',text:own?(on?'Take off':'Wear'):'Watch ad · unlock'});b.disabled=!own&&!Portal.ads();
       b.onclick=()=>{if(own){C.eq[k]=on?'':it.id;persist();MP.bump();renderSheet();return;}
         Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}if(!C.own.includes(k+':'+it.id))C.own.push(k+':'+it.id);C.eq[k]=it.id;persist();MP.bump();toast(it.name+' unlocked','It\'s yours to keep','gold');renderSheet();});};
       const sw=el('i',{class:'cos-sw'});const col=it.glow||it.col;sw.style.background=it.rainbow?'linear-gradient(90deg,#f44,#fd4,#4f6,#4cf,#a4f)':'rgb('+col.map(v=>Math.round(v*255)).join(',')+')';
@@ -6487,10 +6542,11 @@ function powerIcon(id){const c=POWERS[id],s=glyph(POWER_GLYPH[id]||'burst','pico
 // A row of icons under your name, one per menu, each showing its key (like a game launcher's top bar). With the mouse locked,
 // press the key; L frees the mouse to click them. On touch screens tap them. The CrazyGames build adds its rewards here
 // (double XP, refill, try locked powers, cosmetics) instead of in the pause menu.
-// The move list (right side) lists everything your hero can do. It is open for the first 2 minutes of each session;
-// H or its icon shows or hides it, and once you choose it stays that way for the session. It lays out in two columns
+// The move list (right side) lists everything your hero can do. It starts closed, so the first thing you see is the city
+// ("Getting started" teaches the basics and points to it); H or its icon shows or hides it. It lays out in two columns
 // and shrinks to fit (folding "Getting started" down to its next step if it has to), so it never needs scrolling.
 // The leaderboard sits under the icons on the left (the full board opens from it, the main menu or the pause menu).
+// The CrazyGames build has no leaderboard at all: the shared board lives on claude.ai, and pointing players there is cross-promotion.
 const HUDBAR=[
   {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
@@ -6501,10 +6557,10 @@ const HUDBAR=[
   // CrazyGames build only
   {id:'xp',glyph:'x2',key:'9',code:'Digit9',portal:true,act:()=>Portal.rewardXP(),
     tip:()=>{const l=Portal.boostUntil-time;return l>0?'Double XP active · '+Math.ceil(l/60)+' min left':'Watch an ad: double XP for 5 min';},
-    on:()=>Portal.boostUntil>time,off:()=>!Portal.on()||Portal.boostUntil>time},
+    on:()=>Portal.boostUntil>time,off:()=>!Portal.ads()||Portal.boostUntil>time},
   {id:'refill',glyph:'refill',key:'0',code:'Digit0',portal:true,act:()=>refill(),hide:()=>!refillInfo(),
     tip:()=>{const r=refillInfo();return !r?'':r.need?'Watch an ad: refill your '+r.m.label.toLowerCase():'Your '+r.m.label.toLowerCase()+' is full';},
-    off:()=>{const r=refillInfo();return !Portal.on()||!r||!r.need;}},
+    off:()=>{const r=refillInfo();return !Portal.ads()||!r||!r.need;}},
   {id:'trials',glyph:'unlock',key:',',code:'Comma',portal:true,tip:'Try locked powers',act:()=>sheetToggle('trials'),on:()=>sheetOpen==='trials'},
   {id:'cos',glyph:'sparkle',key:'.',code:'Period',portal:true,tip:'Cosmetics',act:()=>sheetToggle('cos'),on:()=>sheetOpen==='cos'},
 ];
@@ -6539,7 +6595,7 @@ function lbRows(tab){
 const LB_TABS=[['respected','Respected'],['feared','Feared'],['level','Level']];
 function updateLBMini(force){
   const box=$('lbmini');if(!box)return;
-  if(touchOn()||state!=='play'){box.hidden=true;return;} // touch screens: Leaderboard is in the pause menu
+  if(PBAL||touchOn()||state!=='play'){box.hidden=true;return;} // touch screens: Leaderboard is in the pause menu; CrazyGames: no shared board there
   const bar=$('hudbar'),top=bar.offsetTop+bar.offsetHeight+8,room=innerHeight-top-212; // 212: the minimap below it
   if(room<70){box.hidden=true;return;}box.hidden=false;
   if(top!==lbMiniTop){lbMiniTop=top;box.style.top=top+'px';}
@@ -6555,13 +6611,10 @@ function updateLBMini(force){
   box.appendChild(ol);
 }
 // ---- move list ----
-let movesUntil=0,movesChosen=false;
 const movesShown=()=>!hud.keys.classList.contains('fade');
-function showMovesForAWhile(){if(movesChosen)return;hud.keys.classList.remove('fade');movesUntil=time+120;fitMoves();}
-function toggleMoves(){movesChosen=true;movesUntil=0;const show=!movesShown();hud.keys.classList.toggle('fade',!show);hud.keys.classList.toggle('pin',show);fitMoves();updateHudbar(true);}
+function toggleMoves(){const show=!movesShown();hud.keys.classList.toggle('fade',!show);hud.keys.classList.toggle('pin',show);fitMoves();updateHudbar(true);}
 let fitT=0;
-function updateMoves(){if(movesUntil&&time>=movesUntil){movesUntil=0;if(!movesChosen){hud.keys.classList.add('fade');fitMoves();updateHudbar(true);}}
-  if(time-fitT>1)fitMoves();}
+function updateMoves(){if(time-fitT>1)fitMoves();}
 // fit the whole list on screen: place it under "Getting started", then fold that down to its next step, then use the tight rows
 function fitMoves(){
   fitT=time;const k=hud.keys,g=$('guide');if(!k)return;
@@ -6972,9 +7025,9 @@ function finishCreator(){
 }
 // new players start straight away as the Ring Bearer; the first change of powers (J, or the swap icon) is free
 function startAsRingBearer(){
-  const c=validCharacter({name:'Guardian '+Math.floor(rr(100,1000)),suit:2,cape:4,accent:4,capeOn:true,movement:['powerRing'],abilities:[]});
+  const c=validCharacter({name:Portal.username||'Guardian '+Math.floor(rr(100,1000)),suit:2,cape:4,accent:4,capeOn:true,movement:['powerRing'],abilities:[]});
   if(!c){openCreator();return;}newHero(c,true);
-  feed('You are the Ring Bearer','Press J (the swap icon, top left) to pick other powers · free the first time');
+  feed('You are the Ring Bearer',(touchOn()?'Tap the swap icon (top)':'Press J (the swap icon, top left)')+' to pick other powers · free the first time');
 }
 // the menu's second button, for players who want to pick their powers before they start
 function menuButtons(){let q=$('choose');if(!q){q=el('button',{class:'ghost',id:'choose',type:'button',text:'Choose your powers',onclick:()=>{SFX.init();openCreator();}});$('start').after(q);}q.hidden=!!save.character;}
@@ -7046,7 +7099,7 @@ addEventListener('keydown',e=>{
   {const hb=HUDBAR_KEYS[e.code];if(hb&&!creating&&!(hb.off&&hb.off())&&!(hb.hide&&hb.hide())){hb.act();return;}} // the HUD icon bar's keys
   if(e.code==='KeyP'){setPaused(!paused);return;}
   if(e.code==='KeyL'){toggleLock();return;}
-  if(e.code==='KeyM'){toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
+  if(e.code==='KeyM'){if(Portal.forceMute){toast('Sound is off','Turn it back on with the site\'s sound button','cyan');return;}toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
   if(e.code==='KeyH'){toggleMoves();return;}
   if(paused||P.dead)return;
   if(voidbornLocked()){if(voidbornAway()&&e.code in XQ_CODES)voidbornAnswer(XQ_CODES[e.code]);return;} // Voidborn: only the masks' question can be answered
@@ -7106,7 +7159,7 @@ function setPaused(v){
   paused=v;$('pause').hidden=!v||creating;if(v)renderPortalButtons();{const on=v&&MP.online();$('pause-title').textContent=on?'Menu':'Paused';$('pause-note').hidden=!on;}if(dialOpen)closeDial();
   if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<5;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();}
 }
-function resume(){if(sheetOpen)closeSheet();setPaused(false);Portal.midgame();if(save.settings.autoLock&&!touchOn())requestLock();}
+function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
 function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.swim&&!P.grounded)return; // under water Space just swims you up
   if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
@@ -7990,11 +8043,11 @@ function updateHud(dt){
 // ================================================================
 function refreshMenu(){const b=$('start');menuButtons();b.textContent=save.character?'Continue as '+save.character.name:'Play';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name:'You start as the Ring Bearer · change powers any time';}
 function startPlay(first){
-  if(P.showcase||first||!P.placed){const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.showcase=false;P.placed=true;}
+  if(P.showcase||first||!P.placed){const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.12;P.vel.set(0,0,0);P.showcase=false;P.placed=true;}
   SFX.init();SFX.setVolume(save.settings.volume);state='play';$('menu').hidden=true;hud.root.hidden=false;
   applyLook();buildHotbar();buildTouchButtons();applyTouchUI();
   if(save.settings.autoLock&&!touchOn())requestLock();
-  showMovesForAWhile();P.hp=maxHp();P.en=maxEn();
+  P.hp=maxHp();P.en=maxEn();
   toast(first?'Welcome to Nova Bay':'Welcome back, '+save.character.name,first?'Crimes show up on your minimap. Stop them, or join in.':'LV '+save.level+' · '+repTier(save.reputation).name,'gold');
   syncPlayerDoc(true);renderGuide();Portal.onPlay();
   if(save.migrated)later(3,()=>toast('Powers updated','You now pick one traversal and one body mod. Your hero was converted; Change powers in the pause menu is free right now.','gold'));
@@ -8004,7 +8057,7 @@ $('start').addEventListener('click',()=>{SFX.init();if(!save.character)startAsRi
 $('m-lb').addEventListener('click',()=>openSheet('lb'));$('m-mp').addEventListener('click',()=>openSheet('mp'));$('p-mp').addEventListener('click',()=>openSheet('mp'));$('m-set').addEventListener('click',()=>openSheet('set'));
 $('resume').addEventListener('click',resume);
 $('p-skills').addEventListener('click',()=>openSheet('skills'));$('p-look').addEventListener('click',()=>openSheet('look'));
-$('p-lb').addEventListener('click',()=>openSheet('lb'));$('p-set').addEventListener('click',()=>openSheet('set'));
+$('p-lb').addEventListener('click',()=>openSheet('lb'));if(PBAL)$('m-lb').hidden=$('p-lb').hidden=true; // no leaderboard on CrazyGames (see 67_hudbar.js)$('p-set').addEventListener('click',()=>openSheet('set'));
 $('create-x').addEventListener('click',closeCreator);
 $('p-powers').addEventListener('click',tryRechoose);
 $('dial').addEventListener('click',e=>{if(e.target.id==='dial')closeDial();});
@@ -8040,7 +8093,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
-  Portal,respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
+  Portal,SFX,respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>

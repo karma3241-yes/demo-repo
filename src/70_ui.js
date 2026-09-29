@@ -337,9 +337,9 @@ function finishCreator(){
 }
 // new players start straight away as the Ring Bearer; the first change of powers (J, or the swap icon) is free
 function startAsRingBearer(){
-  const c=validCharacter({name:'Guardian '+Math.floor(rr(100,1000)),suit:2,cape:4,accent:4,capeOn:true,movement:['powerRing'],abilities:[]});
+  const c=validCharacter({name:Portal.username||'Guardian '+Math.floor(rr(100,1000)),suit:2,cape:4,accent:4,capeOn:true,movement:['powerRing'],abilities:[]});
   if(!c){openCreator();return;}newHero(c,true);
-  feed('You are the Ring Bearer','Press J (the swap icon, top left) to pick other powers · free the first time');
+  feed('You are the Ring Bearer',(touchOn()?'Tap the swap icon (top)':'Press J (the swap icon, top left)')+' to pick other powers · free the first time');
 }
 // the menu's second button, for players who want to pick their powers before they start
 function menuButtons(){let q=$('choose');if(!q){q=el('button',{class:'ghost',id:'choose',type:'button',text:'Choose your powers',onclick:()=>{SFX.init();openCreator();}});$('start').after(q);}q.hidden=!!save.character;}

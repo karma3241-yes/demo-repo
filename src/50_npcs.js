@@ -352,7 +352,7 @@ function updateRival(r,dt){
     const flung=r.flungT&&time-r.flungT<2.5,spd=flung?Math.hypot(r.vel.x,vyb,r.vel.z):0;
     if(flung){flungSweep(r,spd);if(col.wall&&spd>COMBAT.slamMin)slamWall(r,col.wall,spd,pv);else if(col.grounded&&vyb<-COMBAT.slamMin)slamGround(r,-vyb);}
     if(r.thrown&&(col.grounded||col.wall)){const t=r.thrown;r.thrown=null;Damage.apply(t.by,r,t.dmg,'throw');}
-    if(col.grounded){r.vel.x*=0.8;r.vel.z*=0.8;}
+    if(col.grounded){const f=Math.pow(0.8,dt*60);r.vel.x*=f;r.vel.z*=f;} // same slide at any frame rate
     if(!r.alive){r.tilt=lerp(r.tilt,1.5,damp(3,dt));r.deadT-=dt;if(r.deadT<=0)removeActor(r);}
     else if(r.stun>0)r.stun-=dt;
     return;

@@ -81,7 +81,7 @@ function updateMeters(dt){
       if(save.battery>=cap&&was<cap){toast('Battery full','Suit systems online','cyan');SFX.chime();persist();}}
   }else if(m.key==='bolt'){
     const S=P.stormCall;
-    if(S){S.t+=dt;S.next-=dt;P.vel.x*=0.8;P.vel.z*=0.8;P.hammerUpT=time;
+    if(S){S.t+=dt;S.next-=dt;{const f=Math.pow(0.8,dt*60);P.vel.x*=f;P.vel.z*=f;}P.hammerUpT=time;
       if(!tallRoofHere()||P.dead||P.stun>0){P.stormCall=null;}
       else if(S.next<=0){S.next=0.45;const c=center(P);bolt(c.x,c.y+2.2,c.z,false,1);save.bolt=Math.min(100,save.bolt+20);addShake(0.25);
         if(save.bolt>=100){P.stormCall=null;toast('The storm answers','Lightning fully charged','cyan');persist();}}}

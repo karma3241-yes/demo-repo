@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Skyline Guardian</title>
+<link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;600;700&display=swap">
@@ -217,6 +218,10 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
 @media (max-width:760px){
   .controls{grid-template-columns:1fr}#menu{background:rgba(3,5,12,.84)}
 }
+/* short screens (CrazyGames' 800x450 / 821x462 frames, phones in landscape): Play must be on screen without scrolling */
+@media (max-height:700px){.menu-inner{gap:12px;padding-block:18px}.pitch{font-size:15px}h1{font-size:clamp(44px,12vh,84px)}}
+@media (max-height:600px){.menu-inner{gap:10px;padding-block:14px}h1{font-size:clamp(36px,11vh,64px)}.pitch{display:none}.controls{font-size:12px;gap:3px 18px}.go{padding:10px 22px}}
+@media (max-height:420px){#menu-controls{display:none}}
 #dmgs{position:absolute;inset:0;overflow:hidden}
 .dmg{position:absolute;left:0;top:0;font:700 16px var(--display);color:#ffe27a;text-shadow:0 2px 0 #3a1a00,0 0 6px rgba(0,0,0,.7);will-change:transform,opacity;white-space:nowrap}
 .toast.purple b{color:#c89bff}
@@ -262,6 +267,7 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #guide li{display:grid;gap:1px;padding-left:20px;position:relative;font-size:13px}
 #guide li::before{content:"";position:absolute;left:0;top:3px;width:10px;height:10px;border:1.5px solid var(--ink-dim);border-radius:3px}
 #guide li.done{opacity:.45}#guide li.done::before{background:#7dffb0;border-color:#7dffb0}
+#guide-more{margin:8px 0 0;font-size:11px;color:var(--ink-dim);letter-spacing:.04em}body.touch #guide-more{display:none}
 #guide li span{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
 #guide.mini li{display:none}#guide.mini li:not(.done){display:grid}#guide.mini li:not(.done)~li{display:none}#guide.mini h4{margin-bottom:4px}
 /* HUD icon bar: every menu one key or click away */
@@ -277,7 +283,27 @@ body.touch #hudbar{top:8px!important;left:auto;right:66px;max-width:calc(100% - 
 .ico{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pick .pico{width:28px;height:28px;margin-bottom:2px}
 body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176px;padding:7px 9px}body.touch #guide li{font-size:11px}
-@media (max-height:520px){body.touch #guide{display:none}}
+/* small desktop frames (CrazyGames 800x450 / 821x462 / 907x510): smaller minimap and hotbar, Getting started shows just the
+   next step, and the feed moves up out of the hotbar's way */
+@media (max-height:560px){
+  body:not(.touch) #map{width:128px;height:128px}
+  body:not(.touch) .slot{padding:3px 8px 2px}body:not(.touch) .slot .nm{font-size:11px}body:not(.touch) .slot small{font-size:9px;letter-spacing:.08em}
+  body:not(.touch) .meters{padding:6px 12px}
+}
+@media (max-height:560px),(max-width:1000px){
+  body:not(.touch) #guide li{display:none}body:not(.touch) #guide li:not(.done){display:grid}body:not(.touch) #guide li:not(.done)~li{display:none}
+  body:not(.touch) #feed{bottom:auto;top:200px;max-width:240px}
+}
+@media (max-height:560px) and (max-width:1000px){body:not(.touch) .hud-bc{left:160px}}
+/* phones in landscape: five smaller columns keep the buttons under the icon bar, and Getting started shows just the next step
+   where the minimap was (the minimap is hidden at this height) */
+@media (max-height:520px){
+  body.touch #tbtns{grid-template-columns:repeat(5,46px);gap:6px;right:10px;bottom:10px}body.touch .tb{width:46px;height:46px;font-size:9px;letter-spacing:.03em}
+  body.touch .tb.wide{grid-column:1/-1;width:auto;height:38px}
+  body.touch #toasts{top:22%}
+  body.touch #guide{top:186px;padding:5px 8px}body.touch #guide h4{margin-bottom:3px;font-size:10px}
+  body.touch #guide li{display:none}body.touch #guide li:not(.done){display:grid}body.touch #guide li:not(.done)~li{display:none}
+}
 .tb.use{background:rgba(125,255,176,.22)}.tb.use.dim{opacity:.35}
 .tb.dn2,.tb.alien{background:rgba(176,108,255,.3)}
 @media (max-width:760px){
@@ -320,7 +346,6 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 #uw{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(ellipse at 50% 0%,rgba(90,190,230,.35),transparent 60%),linear-gradient(180deg,rgba(30,120,170,.5),rgba(4,34,70,.82))}
 #lowhint{padding:4px 12px;border-radius:999px;background:rgba(4,8,18,.72);border:1px solid var(--c,#ff5a3d);font:700 11px var(--hud);letter-spacing:.08em;text-transform:uppercase;color:#fff;text-align:center;animation:lhPulse 1.6s ease-in-out infinite}
 @keyframes lhPulse{50%{box-shadow:0 0 12px var(--c,#ff5a3d)}}
-#adbreak{position:absolute;left:50%;top:22%;transform:translateX(-50%);padding:10px 22px;font:700 18px var(--hud);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border-color:var(--gold)}
 @media (prefers-reduced-motion: reduce){.mk.big .pw,#lowhint{animation:none}}
 </style>
 </head>
@@ -352,11 +377,10 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div id="bossbar" hidden><div class="name" id="bossname">Boss</div><div class="bar boss"><i id="bossb"></i></div></div>
   <div id="toasts"></div>
   <div id="feed"></div>
-  <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol></div>
-  <div id="keys" class="panel"><div id="keys-head"><b>Move list</b><span><kbd>H</kbd> hide</span></div><div id="keys-hero"></div></div>
+  <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol><p id="guide-more"><kbd>H</kbd> all moves</p></div>
+  <div id="keys" class="panel fade"><div id="keys-head"><b>Move list</b><span><kbd>H</kbd> hide</span></div><div id="keys-hero"></div></div>
   <div id="hudbar"></div>
   <div id="lbmini" class="panel" hidden></div>
-  <div id="adbreak" class="panel" hidden></div>
 </div>
 <div id="vig"></div>
 <div id="flash"></div>

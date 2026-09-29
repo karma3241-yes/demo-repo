@@ -99,7 +99,7 @@ function myPresence(){
   if(P.flying)f|=FLAG.fly;if(P.speeding)f|=FLAG.speed;if(P.wall)f|=FLAG.wall;if(P.web)f|=FLAG.web;if(P.charging)f|=FLAG.charge;if(beam)f|=FLAG.fire;
   if(P.shieldOn)f|=FLAG.shield;if(P.metal)f|=FLAG.metal;if(P.dead)f|=FLAG.dead;if(P.invisible>0)f|=FLAG.invis;if(P.car)f|=FLAG.car;if(P.heat>0)f|=FLAG.wanted;if(P.rag)f|=FLAG.rag;
   const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
-  const o={v:1,n:ch.name||'Hero',l:[ch.suit|0,ch.cape|0,ch.accent|0,ch.capeOn===false?0:1],lv:save.level,rep:save.reputation,fac:playerFaction(),al:P.alien?P.alien.id:'',
+  const o={v:1,n:ch.name||'Hero',u:Portal.username||'',l:[ch.suit|0,ch.cape|0,ch.accent|0,ch.capeOn===false?0:1],lv:save.level,rep:save.reputation,fac:playerFaction(),al:P.alien?P.alien.id:'',
     x:r1(P.pos.x),y:r1(P.pos.y),z:r1(P.pos.z),vx:r1(P.vel.x),vy:r1(P.vel.y),vz:r1(P.vel.z),yw:r2(P.heroYaw),tl:r2(P.tilt),bk:r2(P.bank),f,hp:Math.round(P.hp/maxHp()*100)};
   // presence patches merge on the server, so optional fields are always sent (null clears them)
   o.b=beam?(beam.w?[r1(beam.x),r1(beam.y),r1(beam.z),r1(beam.w)]:[r1(beam.x),r1(beam.y),r1(beam.z)]):null;const wp=P.web||P.zip;o.w=wp?[r1(wp.x),r1(wp.y),r1(wp.z)]:null;o.k=P.tk&&P.tk.hold?P.tk.hold.map(r1):null;o.c=null;
@@ -115,7 +115,8 @@ function makeRemote(peer){
 }
 function applyPresence(r,p){
   const n=v=>{v=+v;return isFinite(v)?v:0;};
-  r.name=cleanName(String(p.n||''))||'Hero';r.level=clamp(Math.floor(n(p.lv)),1,100);r.faction=['hero','villain','neutral'].includes(p.fac)?p.fac:'neutral';r.rep=n(p.rep);
+  // a signed-in CrazyGames player's username is shown next to their hero name, so friends recognise each other
+  {const h=safeName(String(p.n||''))||'Hero',u=safeName(String(p.u||''));r.name=u&&u!==h?h+' ('+u+')':h;}r.level=clamp(Math.floor(n(p.lv)),1,100);r.faction=['hero','villain','neutral'].includes(p.fac)?p.fac:'neutral';r.rep=n(p.rep);
   const l=Array.isArray(p.l)?p.l:[0,0,0,1];const su=clamp(l[0]|0,0,SUIT_OPTS.length-1),ca=clamp(l[1]|0,0,CAPE_OPTS.length-1),ac=clamp(l[2]|0,0,ACC_OPTS.length-1);
   r.look={suit:c4(SUIT_OPTS[su]),suit2:[...hex(SUIT_OPTS[su],0.6),1],cape:c4(CAPE_OPTS[ca]),acc:c4(ACC_OPTS[ac]),capeOn:!!l[3],metal:false};
   r.flags=n(p.f)|0;r.look.metal=!!(r.flags&FLAG.metal);r.alien=ALIENS[p.al]?p.al:'';

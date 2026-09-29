@@ -404,7 +404,9 @@ for(const list of blockProps)for(const p of list)if(p.type==='tlight')tlights.pu
   for(const r of roofs)orbSpots.push({x:r.x+sr(-2,2),y:r.y+1.4,z:r.z+sr(-2,2),roof:true});
   for(let k=0;k<90;k++){const i=Math.floor(srand()*GX),j=Math.floor(srand()*GZ);if(!isBlock(i,j))continue;const p=pathPos({cx:cellX(i),cz:cellZ(j),u:sr(0,216),dir:1});orbSpots.push({x:p.x,y:1.5,z:p.z,roof:false});}
 })();
-const SPAWNS=[[hospital.x,hospital.z]];
+// [x, z, facing]: out on the pavement past the hospital's entrance canopy (a camera behind you would sit inside it),
+// turned towards the park and the skyline
+const SPAWNS=[[hospital.x,hospital.z-4,0.8]];
 // traffic light phase for an intersection: returns 'g', 'y' or 'r' for traffic travelling along `axis`
 function lightFor(ix,iz,axis){
   const T=16,off=((ix*7+iz*13)%16),t=((time+WS.toff+off)%T+T)%T;
