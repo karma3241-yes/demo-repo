@@ -6282,6 +6282,8 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0
     try{S.game.loadingStart();S.game.loadingStop();}catch(e){} // the game has finished loading by the time the SDK is ready
     this.cloudSync(S);this.watchSettings(S);this.fetchUser(S);this.checkAdblock(S);
     try{const room=S.game.getInviteParam('room');if(room&&P2P.available())P2P.join(room);else if(S.game.isInstantMultiplayer&&P2P.available())P2P.create();}catch(e){}
+    // a player already in the game who accepts a friend's invite goes straight to that room
+    try{if(typeof S.game.addJoinRoomListener==='function')S.game.addJoinRoomListener(p=>this.joinInvite(p));}catch(e){}
     if(sheetOpen)renderSheet();renderPortalButtons();
   },
   // tell the portal whether the player is actually playing (not in menus, paused, knocked out or watching an ad)
@@ -6346,6 +6348,10 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0
     persistHook=j=>D.setItem(SAVE_KEY,j);
     if(save.character&&!has)persist();
   },
+  joinInvite(p){const room=p&&typeof p.room==='string'?p.room.trim().toUpperCase():'';
+    if(!/^[A-Z0-9]{4,8}$/.test(room)||!P2P.available())return;
+    if(P2P.code===room&&(P2P.state==='open'||P2P.state==='starting'))return; // already there
+    P2P.join(room);if(state==='play')feed('Joining your friend','Room '+room);},
   inviteLink(code){try{return this.sdk?this.sdk.game.inviteLink({room:code}):'';}catch(e){return '';}},
   // room info for the portal (its invite button and friends list): which room, and whether friends can still get in
   roomChanged(){if(!this.sdk)return;const g=this.sdk.game;try{

@@ -1,5 +1,5 @@
 // Short-lived TURN relay credentials for multiplayer (Cloudflare Realtime TURN, logins last 1 hour).
-// Used by this site's own pages and by the CrazyGames build (its pages live on *.crazygames.com).
+// Used by this site's own pages and by the CrazyGames build (its pages live on CrazyGames' domains, see PORTAL_ORIGIN).
 // Set CF_TURN_KEY_ID and CF_TURN_API_TOKEN in the Vercel project; the tokens never reach the browser.
 // Without them this answers 204 and the game falls back to its free public relay list.
 //
@@ -11,7 +11,8 @@
 // /api/turn?usage=1 shows this month's usage and the cap (numbers only), to check the setup.
 //
 // Scripts outside a browser can fake the Origin header; the 1-hour logins and the cap limit what a scraped one is worth.
-const PORTAL_ORIGIN = /^https:\/\/([a-z0-9-]+\.)*crazygames\.com$/;
+// CrazyGames' origins (docs: resources/html5/sitelock): *.crazygames.com, its iOS app, and 1001juegos.com
+const PORTAL_ORIGIN = /^(https:\/\/([a-z0-9-]+\.)*(crazygames\.com|1001juegos\.com)|capacitor:\/\/app\.crazygames\.com)$/;
 const USAGE_TTL = 5 * 60e3;
 let usageCache = { at: 0, gb: null, month: '' };
 
