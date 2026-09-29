@@ -112,11 +112,24 @@ function flyChargeStart(){
 function flyChargeRelease(){
   if(!P.fCharge)return false;P.fCharge=false;const t=P.chargeT||0,on=P.charging&&P.grounded;P.charging=false;
   if(!on||t<0.25){if(!P.flying)toggleFlight();return true;}
-  const k=clamp(t/1.5,0,1);toggleFlight();if(!P.flying)return true;
-  P.vel.set(camF.x*25*k,70+170*k,camF.z*25*k);P.launchT=0.5+1.3*k;P.pos.y+=0.3;P.hammerUpT=time;if(hasPower('stormBody')&&k>0.4&&!boltEmpty()){bolt(P.pos.x,P.pos.y,P.pos.z,true);if(heroMeter())payEn(6,'lightning');}
+  const k=clamp(t/1.5,0,1);
+  if(stormLeap()){hammerLeap(k);return true;}
+  toggleFlight();if(!P.flying)return true;
+  P.vel.set(camF.x*25*k,70+170*k,camF.z*25*k);P.launchT=0.5+1.3*k;launchFx(k);return true;
+}
+// Tempest's Hammer Leap style (V wheel): no hovering, the hammer throws you in a long arc; a tap is a short hop, a full
+// charge clears several blocks. In the air you steer the arc the way you steer any jump.
+const stormLeap=()=>hasTrav('stormFlight')&&!P.alien&&travStyle('stormFlight')==='leap';
+const stormRide=()=>hasTrav('stormFlight')&&!P.alien&&P.flying&&travStyle('stormFlight')==='storm';
+function hammerLeap(k){
+  if(!P.grounded||!canAct())return;const fl=Math.hypot(camF.x,camF.z)||1,h=30+60*k;
+  P.flying=false;P.vel.set(camF.x/fl*h,30+110*k,camF.z/fl*h);P.grounded=false;launchFx(k);
+}
+function launchFx(k){
+  P.pos.y+=0.3;P.hammerUpT=time;if(hasPower('stormBody')&&k>0.4&&!boltEmpty()){bolt(P.pos.x,P.pos.y,P.pos.z,true);if(heroMeter())payEn(6,'lightning');}
   ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,10+22*k,0.5,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,Math.round(30+60*k),14+24*k,0.9,DUST,2.4,-3,2.5);
   if(k>0.5)crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,2+3*k,[.42,.41,.4]);SFX.boom(0.4+0.5*k,0.8);addShake(0.2+0.5*k);hitProps(P.pos.x,P.pos.y,P.pos.z,3+4*k,P,12);
-  addMastery(save.character.movement[0],10*k);return true;
+  addMastery(save.character.movement[0],10*k);
 }
 function flyChargeTick(){
   if(!P.fCharge)return;if(!P.charging||!P.grounded){P.fCharge=false;P.charging=false;return;}
@@ -127,6 +140,7 @@ function flyChargeTick(){
 function toggleFlight(){
   if(!hasPower('flight')||!canAct()||P.car)return;
   if(P.alien)return; // alien forms fly (or not) on their own
+  if(!P.flying&&stormLeap()){hammerLeap(0.25);return;} // Hammer Leap style: F leaps instead of flying
   if(isRing()){if(!P.flying&&save.ring<=0){ringOut();return;}if(P.construct&&CONSTRUCTS[P.construct.id].drive)return;}
   else if(!P.flying&&P.en<5){noEnergy();return;}
   P.flying=!P.flying;P.charging=false;P.web=null;P.wall=null;

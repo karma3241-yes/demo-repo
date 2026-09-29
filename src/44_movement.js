@@ -43,6 +43,8 @@ function webPress(){
       SFX.tone('triangle',1300,500,0.12,0.08);if(a.alive&&!tetherShielded(a))tetherTo(a,d);return;}}
   if(a&&a.kind==='vehicle'&&a.alive){const c=center(a),d=Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z);
     if(d<R*0.6){if(!spend(POWERS.webSwing.energy)){noEnergy();return;}tetherTo(a,d);SFX.tone('triangle',1100,500,0.12,0.08);return;}}
+  // Zip style (V wheel): right click pulls you straight to where you aim instead of swinging
+  if(hasTrav('webSwing')&&travStyle('webSwing')==='zip'){if(!webZip(true)){PS.webSwing.flash=0.3;feed('Nothing to zip to','Aim at a wall or rooftop within '+Math.round(R*0.8)+' m');}return;}
   // aimed surface above you, else the anchor assist
   let pt=null;
   if(aim.hitAny&&aim.surface&&!(aim.ny>0.5&&aim.y<2)&&aim.y>P.pos.y+3){const d=Math.hypot(aim.x-h.x,aim.y-h.y,aim.z-h.z);if(d<=R)pt={x:aim.x,y:aim.y,z:aim.z};}
@@ -92,8 +94,8 @@ function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
     const R=webRange();webRelease(true);webHeld=true;const pt=findAnchor(R);if(pt&&P.en>=POWERS.webSwing.energy*0.5){P.en-=POWERS.webSwing.energy*0.5;attachWeb(pt);}}
 }
 // ---- web zip / point launch: Space in mid-air (web swingers) ----
-function webZip(){
-  if(!hasWeb()||P.zip||P.grounded)return false;
+function webZip(fromGround){
+  if(!hasWeb()||P.zip||(P.grounded&&!fromGround))return false;
   const R=webRange()*0.8;let pt=null;
   if(aim.hitAny&&aim.surface&&!aim.actor){const d=Math.hypot(aim.x-P.pos.x,aim.y-P.pos.y,aim.z-P.pos.z);if(d<R&&d>6)pt={x:aim.x+aim.nx*1.2,y:aim.y+Math.max(aim.ny,0)*0.5+0.5,z:aim.z+aim.nz*1.2};}
   if(!pt){const a=findAnchor(R);if(a)pt=a;}

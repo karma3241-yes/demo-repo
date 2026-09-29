@@ -120,6 +120,8 @@ You start tough: 220 health, and ordinary people and police do half damage to yo
 
 ### Getting around
 
+- **Traversal styles (V):** the Web Runner, the Tempest and the Speedster pick how they get around on a wheel (`V`, or WHEEL on touch). Web Runner: **Swing** (right click swings, as before), **Zip** (right click pulls you straight to where you aim) or **Glide** (web wings open by themselves when you fall; hold `C` to fold them). Tempest: **Fly** (as before), **Hammer Leap** (tap or hold `F` to leap in a long arc and land, no hovering) or **Storm Ride** (flight at full boost on a lightning trail, harder to steer). Speedster: **Walk**, **Jog** (always running at x2), **Run** (half your top speed) or **Top speed**. The choice is saved.
+- **Getting started** includes opening the wheel (`V`) for every hero that has one. The first time you have a construct out, a *Grow it* card asks you to scroll up (or press `]`, or tap GROW) and stays until you do.
 - **Space:** anything that flies can keep climbing. Past the clouds the sky turns black, Earth curves away below, and you can keep flying or press `F` to let go and drift slowly back down; nothing snaps you back. The higher you are, the faster you fly (it slows down again near any surface), so the Moon, Mercury, Venus, Mars, Jupiter, Saturn (with its rings), Uranus, Neptune and a few of their moons are all a short trip away. The planets are solid, so you can land on them. The Sun burns. Past the city the ocean goes on and on: nothing pulls you back, so roam as far as you like. Flying constructs like the Dragon can land too: press `F`. Once you're far from Earth (about 9 km), the city, its lakes and the ocean drop out of view and only the planet is drawn.
 - **Wall running** is for everyone: sprint (hold `Shift`) into a wall to run up it, or hit it at an angle to run along it. `Space` leaps off. The Speedster's wall running gets faster with the speed dial.
 - **Parkour leap:** a quick jump while sprinting carries you much further.
@@ -162,7 +164,7 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `U` | Suit up / suit down |
 | `O` | Ring Bearer: hold up the beacon and say (or type) the oath. While you're saying it, `O` or `Esc` puts it away |
 | `G` | Get in or out of a car, or help an injured person up |
-| `V` | Morph Band dial / change back (Ring Bearer: construct wheel; in a construct, tap to step out, hold for the wheel) |
+| `V` | Morph Band dial / change back (Ring Bearer: construct wheel; in a construct, tap to step out, hold for the wheel; Armored Inventor: suit forms; Web Runner, Tempest, Speedster: traversal styles) |
 | `Tab` or `K` | Skills and upgrades |
 | `J` · `I` | Change powers · Appearance |
 | `6` · `7` | Multiplayer · Settings |
@@ -237,6 +239,7 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 
 **CrazyGames build.** `node tools/build.mjs crazygames` also writes `dist/crazygames/index.html`: the same game with the CrazyGames SDK loaded in front of it. Zip that one file (with `index.html` at the top of the zip) and upload it on the CrazyGames developer portal. The website and the claude.ai version never load the SDK and keep today's balance. The CrazyGames build differs in these ways:
 
+- **Basic launch mode (for now):** CrazyGames doesn't allow ads during a basic launch, so `BASIC_LAUNCH` in `src/20_core.js` turns every ad and the reward icons off, and starts your traversal fully mastered so players see the best of it. Levels, skill points and power keys unlocking by level work as usual. For full launch, set it to `false`: then everything below applies.
 - **Slower, tighter progression:**
   - Your power keys open with level: key 1 at the start, then LV 2, 4, 6 and 9. Locked keys stay off the hotbar and the touch buttons until they open (the move list still shows them).
   - Traversal mastery takes about 6 hours instead of 1.

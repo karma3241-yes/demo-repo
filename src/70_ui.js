@@ -330,7 +330,7 @@ function finishCreator(){
     const old=ownedIds(save.character),now=ownedIds(c);let refund=0;
     for(const id of old)if(!now.includes(id)){const l=save.powerLevels[id]|0;for(let q=1;q<l;q++)refund+=CONFIG.powerUpgradeCost(q);delete save.powerLevels[id];}
     if(P.alien)revertAlien(true);stopAllPowers();save.character=c;save.sp+=refund;save.rechoiceAt=Date.now();save.migrated=false;persist();
-    creating=false;draft=null;creator.hidden=true;applyLook();buildHotbar();buildTouchButtons();setPaused(true);
+    creating=false;draft=null;creator.hidden=true;applyLook();buildHotbar();buildTouchButtons();applyTravStyle(false);setPaused(true);
     toast('Powers changed',refund?'+'+refund+' skill points refunded':'Your new powers are ready','cyan');return;
   }
   newHero(c);
@@ -357,21 +357,34 @@ let dialOpen=false,dialSel=-1,dialVX=0,dialVY=0,dialKind='alien';
 const dialEl=$('dial');
 // the radial picker is shared by the Morph Band (aliens) and the power ring (constructs)
 function dialItems(){
-  if(dialKind==='armor')return ARMOR_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Armored Inventor mastery '+c.unlock+(PBAL?' · click to try':''),glow:'#ff6a3d',info:c.name+' · '+c.attacks,pick:()=>summonConstruct(id)};});
-  if(dialKind==='construct')return CON_PAGES.flat().map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Ring mastery '+c.unlock+(PBAL?' · click to try':''),glow:'#5dff86',cost:c.cost,info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
-  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),trialKey:'al:'+id,lock:'Band LV '+a.unlock+(PBAL?' · click to try':''),glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · ')+(a.xQuiz?' · '+xTime(voidbornDuration())+' if the masks agree (Energy raises it)':''),pick:()=>transformInto(id)};});
+  if(dialKind==='trav'){const id=save.character.movement[0],cur=travStyle(id),glow=TRAV_GLOW[id]||'#4fd8ff';
+    return (TRAV_STYLES[id]||[]).map(([k,n,d])=>({name:n,blurb:k===cur?'In use':d,on:true,glow,info:n+' · '+d,pick:()=>setTravStyle(id,k)}));}
+  if(dialKind==='armor')return ARMOR_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Armored Inventor mastery '+c.unlock+(Portal.ads()?' · click to try':''),glow:'#ff6a3d',info:c.name+' · '+c.attacks,pick:()=>summonConstruct(id)};});
+  if(dialKind==='construct')return CON_PAGES.flat().map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Ring mastery '+c.unlock+(Portal.ads()?' · click to try':''),glow:'#5dff86',cost:c.cost,info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
+  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),trialKey:'al:'+id,lock:'Band LV '+a.unlock+(Portal.ads()?' · click to try':''),glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · ')+(a.xQuiz?' · '+xTime(voidbornDuration())+' if the masks agree (Energy raises it)':''),pick:()=>transformInto(id)};});
+}
+// ---- traversal styles (V wheel for the Web Runner, the Tempest and the Speedster) ----
+const TRAV_GLOW={webSwing:'#e8ecff',stormFlight:'#8fb4ff',superSpeed:'#ffd23c'};
+const hasTravWheel=()=>!!save.character&&!P.alien&&!!TRAV_STYLES[save.character.movement[0]];
+function setTravStyle(id,k){if(!save.settings.travStyle)save.settings.travStyle={};save.settings.travStyle[id]=k;persist();applyTravStyle(true);renderHeroKeys();}
+// puts the chosen style into effect (on picking it, on starting to play and after changing powers)
+function applyTravStyle(announce){
+  if(!hasTravWheel())return;const id=save.character.movement[0],k=travStyle(id),s=TRAV_STYLES[id].find(x=>x[0]===k);
+  if(id==='superSpeed'){P.fastMode=k!=='walk';if(k!=='walk')P.dial=k==='jog'?2:k==='run'?Math.max(2,Math.round(dialMax()/2)):dialMax();}
+  if(id==='stormFlight'&&k==='leap')P.flying=false;
+  if(announce)feed(s[1],s[2]);
 }
 let dialPage=0;
 function dialPageTurn(d){} // every construct is on the wheel at once now: nothing to page through
 function openDial(kind='alien',keepPage){
-  dialKind=kind;const list=dialItems();dialOpen=true;dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');dialEl.classList.toggle('red',kind==='armor');dialEl.classList.toggle('all',kind==='construct');const ring=$('dial-ring');ring.textContent='';
+  dialKind=kind;const list=dialItems();dialOpen=true;guideDone('wheel');dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');dialEl.classList.toggle('red',kind==='armor');dialEl.classList.toggle('all',kind==='construct');const ring=$('dial-ring');ring.textContent='';
   const two=kind==='construct',nIn=two?DIAL_INNER:list.length; // constructs: an inner ring (mechs, flyers, rides, weapons) and an outer ring (everything newer)
   list.forEach((a,i)=>{const inner=i<nIn,k=inner?i:i-nIn,n=inner?nIn:list.length-nIn,ang=k/n*TAU-Math.PI/2,rad=two?(inner?25:43):38;
     const b=el('button',{type:'button',class:'dslot'+(two?' mini':'')+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*rad).toFixed(1)}%;top:${(50+Math.sin(ang)*rad).toFixed(1)}%`,
       onclick:()=>{if(a.on){closeDial();a.pick();}else dialTrial(a);},onmouseenter:()=>setDialSel(i)},two?null:el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:two?(a.on?a.cost+' charge':a.lock):a.on?a.blurb:a.lock}));
     b.style.setProperty('--g',a.glow);ring.appendChild(b);});
   if(kind==='construct')ring.appendChild(el('div',{class:'dpage'},'All '+list.length+' constructs'));
-  $('dial-info').textContent=kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · move toward the centre for the inner ring':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
+  $('dial-info').textContent=kind==='trav'?'Pick how you get around · '+(presetOf(save.character)||{name:'your hero'}).name:kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · move toward the centre for the inner ring':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
 }
 function setDialSel(i){dialSel=i;for(const b of dialEl.querySelectorAll('.dslot'))b.classList.toggle('sel',+b.dataset.i===i);
   const a=dialItems()[i];if(a)$('dial-info').textContent=a.info;}
@@ -383,9 +396,20 @@ function dialMove(dx,dy){dialVX=clamp(dialVX+dx,-120,120);dialVY=clamp(dialVY+dy
 function dialConfirm(){if(dialSel<0)return;const a=dialItems()[dialSel];if(a&&a.on){closeDial();a.pick();}else if(!dialTrial(a))SFX.tone('square',200,150,0.1,0.06);}
 function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----
-const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],['punch','Throw a punch','Click to punch','Tap PUNCH'],
+const hasWheel=()=>!!save.character&&(isRing()||armorForms()||hasPower('morphBand')||hasTravWheel());
+const wheelWhat=()=>isRing()?'pick a construct':armorForms()?'pick a suit form':hasPower('morphBand')?'pick an alien':'pick how you get around';
+const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],
+  ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>(isRing()?'Tap PICK':armorForms()?'Tap FORMS':hasPower('morphBand')?'Use the Morph Band power':'Tap WHEEL')+' to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
   ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
-function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(GUIDE.every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
+function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
-  for(const [k,t,kb,tc] of GUIDE)list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:touchOn()?tc:kb})));fitMoves();}
+  for(const [k,t,kb,tc] of guideList()){const s=touchOn()?tc:kb;list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:typeof s==='function'?s():s})));}fitMoves();}
+// the grow tutorial: whenever a construct is out and you have never grown one, a card tells you how (scroll up, ] or GROW)
+// and stays until you do; bigger rides are faster, so it's worth knowing
+let growTutOn=false;
+function updateGrowTut(){
+  const on=!!P.construct&&!save.guide.grow&&state==='play'&&!paused&&!sheetOpen&&!dialOpen&&!P.dead;if(on===growTutOn)return;growTutOn=on;$('growtut').hidden=!on;
+  if(on){const C=CONSTRUCTS[P.construct.id];$('growtut-t').textContent=(touchOn()?'Tap GROW':'Scroll up (or press ])')+' to make your '+C.name.toLowerCase()+' bigger. Bigger rides go faster and hit harder.';}}
+function growTutDone(){if(save.guide.grow)return;save.guide.grow=true;persist();updateGrowTut();SFX.chime();toast('Nice!',(touchOn()?'Tap GROW':'Scroll up')+' to keep growing it, '+(touchOn()?'SHRINK':'down')+' to shrink it back','gold');}
+const guideList=()=>GUIDE.filter(g=>g[0]!=='wheel'||hasWheel()); // no wheel step for heroes without one
 Bus.on('damaged',e=>{if(e.source===P&&e.type==='punch')guideDone('punch');});

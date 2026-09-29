@@ -49,7 +49,8 @@ function renderHeroKeys(){
   const K=(k,t)=>{grid.appendChild(el('kbd',{text:k}));grid.appendChild(el('span',{text:t}));};
   const m=c&&c.movement[0];
   H('Moving');K('WASD','Move');K('Space','Jump · hold for a super jump');K('C · Space in water','Dive · swim back up');
-  if(m==='webSwing'){K('Right click','Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
+  if(hasTravWheel()&&!hasPower('morphBand'))K('V','Traversal style: '+TRAV_STYLES[m].map(x=>x[1]).join(' · ')+' (now: '+TRAV_STYLES[m].find(x=>x[0]===travStyle(m))[1]+')');
+  if(m==='webSwing'){K('Right click',travStyle(m)==='zip'?'Zip to where you aim':'Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
   else if(m)K('F','Fly · hold on the ground to charge a launch');
   if(c){H('Your powers');c.abilities.forEach((id,i)=>{const p=POWERS[id];if(!p)return;

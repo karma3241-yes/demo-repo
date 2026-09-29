@@ -123,6 +123,12 @@ const CRIMES={maxActive:3,spawnGap:[14,32],minDist:90,maxDist:420,clearXp:100,cl
 const Bus={h:{},on(e,f){(this.h[e]||(this.h[e]=[])).push(f);},emit(e,d){const l=this.h[e];if(l)for(const f of l)f(d);}};
 const SAVE_KEY='skyline-guardian-save',SAVE_VERSION=1;
 const RING_MAX=200; // ring charge tops out at 100; a loud spoken oath overcharges it up to this
+// traversal styles on the V wheel for heroes without constructs: [id, name, what it does]. The first is the default.
+const TRAV_STYLES={
+  webSwing:[['swing','Swing','Hold right click to swing · Space mid-air to web-zip'],['zip','Zip','Right click zips you straight to where you aim'],['glide','Glide','Web wings open by themselves when you fall · hold C to fold them']],
+  stormFlight:[['fly','Fly','F to fly · Shift to boost'],['leap','Hammer Leap','Tap or hold F to leap: you arc through the sky and land, no hovering'],['storm','Storm Ride','Fly at full boost on a trail of lightning · harder to steer']],
+  superSpeed:[['walk','Walk','Normal pace · Shift still runs at the speed dial'],['jog','Jog','Always running at x2'],['run','Run','Always running at half your top speed'],['top','Top speed','Always running at your top speed']],
+};
 const DEFAULT_SETTINGS={oathInput:window.__PORTAL__==='crazygames'?'type':'voice', // portals can't be counted on to allow the mic: typed there, voice still in Settings
   micLoud:0.65,controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
@@ -175,6 +181,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
     if(['auto','touch','kbm'].includes(t.controls))st.controls=t.controls;
     if(['voice','type'].includes(t.oathInput))st.oathInput=t.oathInput;
     for(const k of ['autoLock','invertY','shadows'])if(typeof t[k]==='boolean')st[k]=t[k];
+    if(t.travStyle&&typeof t.travStyle==='object'){st.travStyle={};for(const k in TRAV_STYLES)if(TRAV_STYLES[k].some(x=>x[0]===t.travStyle[k]))st.travStyle[k]=t.travStyle[k];}
     st.sens=num(t.sens,1,0.3,3);st.volume=num(t.volume,0.7,0,1);st.micLoud=num(t.micLoud,0.65,0.2,0.95);}
   f.character=validCharacter(s.character);
   if(!f.character){f.character=migrateCharacter(s.character);if(f.character)f.migrated=true;}
@@ -188,7 +195,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
   f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.savedAt=num(s.savedAt,0,0,1e15);f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
-  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car'])if(s.guide[k]===true)f.guide[k]=true;
+  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
 const save=loadSave();
@@ -206,15 +213,20 @@ const throwMul=()=>1+0.01*pv('strength');
 const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'],armorFlight:['flight'],solarFlight:['flight']};
 const hasPower=id=>{const c=save.character;if(!c)return false;if(c.movement.includes(id)||c.body===id||c.abilities.includes(id))return true;const imp=IMPLIED[c.movement[0]];return !!(imp&&imp.includes(id));};
 const hasTrav=id=>!!save.character&&save.character.movement[0]===id;
+// the chosen V-wheel style of your traversal ('' when it has none)
+const travStyle=id=>{const L=TRAV_STYLES[id];if(!L)return '';const v=save.settings.travStyle&&save.settings.travStyle[id];return L.some(x=>x[0]===v)?v:L[0][0];};
 const LEVEL_OF=id=>POWERS[id]&&POWERS[id].of||id; // signature moves share their body mod's level
 const powerLevel=id=>trialOn('lv:'+LEVEL_OF(id))?CONFIG.powerMax:clamp(save.powerLevels[LEVEL_OF(id)]|0||1,1,CONFIG.powerMax);
 // ---- traversal mastery: grows with use, no skill points ----
 // The CrazyGames build (PBAL) plays slower and tighter: weaker at the start, mastery takes ~6 hours, every size has a cap,
 // and locked things can be tried for 10 minutes with an ad (see 65_rewards.js). The website and claude.ai keep today's balance.
 const PBAL=window.__PORTAL__==='crazygames';
+// CrazyGames basic launch: ads aren't allowed yet, so every ad (and the reward icons) is off, and your traversal starts
+// fully mastered so players see the best of it (levels and skill points work as usual). For full launch set this to false.
+const BASIC_LAUNCH=PBAL&&true;
 const MASTERY_MAX=10,MASTERY_K=PBAL?9000:1500;
 function trialOn(k){return PBAL&&!!save.trials&&save.trials[k]>Date.now();}
-const masteryLevel=id=>trialOn('trav')&&save.character&&id===save.character.movement[0]?MASTERY_MAX:1+(MASTERY_MAX-1)*(1-Math.exp(-(save.mastery[id]||0)/MASTERY_K));
+const masteryLevel=id=>(BASIC_LAUNCH||trialOn('trav'))&&save.character&&id===save.character.movement[0]?MASTERY_MAX:1+(MASTERY_MAX-1)*(1-Math.exp(-(save.mastery[id]||0)/MASTERY_K));
 const mk=id=>(masteryLevel(id)-1)/(MASTERY_MAX-1); // 0 at the start, 1 when mastered
 function addMastery(id,n){if(!save.character||!(n>0))return;const before=Math.floor(masteryLevel(id));save.mastery[id]=(save.mastery[id]||0)+n;const after=Math.floor(masteryLevel(id));
   if(after>before&&typeof feed==='function')feed((PRESETS[id]?PRESETS[id].name:POWERS[id]?POWERS[id].name:'Jumping')+' mastery '+after,MASTERY_NOTES[id]&&MASTERY_NOTES[id][after]||'You can go further, faster');}
