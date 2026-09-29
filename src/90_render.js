@@ -32,7 +32,9 @@ function previewRegion(){
 }
 function updateCamera(dt){
   const preview=creating||sheetOpen==='look';
-  if(preview){
+  const shotCam=window.__SKYLINE_TEST__&&window.__camOverride; // tests and cover art only: a fixed camera {pos,at,fov}
+  if(shotCam){const o=shotCam;camPos.set(o.pos[0],o.pos[1],o.pos[2]);let fx=o.at[0]-o.pos[0],fy=o.at[1]-o.pos[1],fz=o.at[2]-o.pos[2];const l=Math.hypot(fx,fy,fz)||1;camF.set(fx/l,fy/l,fz/l);fov=o.fov||50;}
+  else if(preview){
     const R=previewRegion(),iw=innerWidth,ih=innerHeight,th=Math.tan(25*Math.PI/180),asp=W/H;
     const hx=((R.x0+R.x1)/2)/iw*2-1,hy=1-((R.y0+R.y1)/2)/ih*2,hf=(R.y1-R.y0)/ih,wf=(R.x1-R.x0)/iw;
     const ht=P.height+0.6,d=Math.max(6.6,ht/(2*th*hf*0.62),2.2/(2*th*asp*wf*0.62));
