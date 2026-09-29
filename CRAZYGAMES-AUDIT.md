@@ -52,37 +52,40 @@ Spawn point, closed move list, title-screen and HUD layout on small or short scr
 independent damping, inline favicon, the name filter, and the username field in multiplayer presence (always empty outside
 CrazyGames). Everything else is behind `PBAL` / `Portal.on()`.
 
-## Originality (proposal, nothing changed yet)
+## Originality (names done, visuals waiting on the owner)
 
-CrazyGames hosts close homages (for example "Web Slinging Race" and "Professor Strange"), but names and looks lifted
-straight from Marvel or DC are a rejection risk. Suggested changes, per hero:
+Renamed on the owner's go-ahead, "rename if copyright could be possible". Only display names and text changed; internal ids
+stay the same, so existing saves still load.
 
-| Hero / power | Echoes | Proposed change |
+| Was | Now | Echoed |
 |---|---|---|
-| Ring Bearer: green ring, constructs, oath, "lantern" | Green Lantern | Keep the name. Change the ring's colour from green to another signature colour (for example white-gold "starlight"), make the default suit anything but green and black, and rename "lantern" in the oath UI ("Esc to put the lantern away") to "beacon". The oath text is already original. |
-| Armored Inventor, Repulsor Barrage, Inventor Tower | Iron Man, repulsors, Stark Tower | Repulsor Barrage → Pulse Barrage, Inventor Tower → Forge Tower, and armour colours away from red and gold. |
-| Storm God, Storm Hammer, Hammer Smash | Thor, Mjolnir | Storm God → Tempest. Hammer → a storm staff (a different model), Storm Hammer → Thunder Staff. |
-| Spider Powers, Web-Swinging, Web Strike/Bomb/Whip | Spider-Man | Spider Powers → Wall Crawler, and no red-and-blue suit by default. The web mechanics are genre-standard. |
-| Morph Band (wrist dial, alien forms) | Ben 10's Omnitrix | Morph Band → Shift Sigil, with a chest or palm emblem instead of a wrist watch. The alien names are already original. |
-| Ricochet Shield | Captain America | Ricochet Shield → Rebound Disc, a hex disc with no star or rings. |
-| Sun Titan, Solar Cells, Laser Vision | Superman | Names are fine. Avoid a blue suit with a red cape and a chest crest as the default look. |
-| Speedster: phasing, tornado, time stop | The Flash | Names are fine. Make the trail colour something other than yellow lightning. |
-| Blade Claws, Elastic Body, Titan Growth | Wolverine, Mr. Fantastic, Hulk / Ant-Man | Generic. No change. |
+| Web-Slinger, "Spider-sense" | Web Runner, "a sixth sense" / "Danger sense" | Spider-Man (nickname and power name); the Readme no longer cites the Insomniac games |
+| Storm God, "Fly on a spinning hammer", "Spin your hammer and hurl yourself" | Tempest, "Ride the storm", "Ride a thunderclap into the sky" | Marvel's Thor (the hammer-spin flight is Marvel's, not myth's) |
+| Repulsor Barrage, "palm repulsors", touch label REPULS | Pulse Barrage, "palm blasters", PULSE | Iron Man |
+| Inventor Tower | Forge Tower | Stark Tower |
+| Sun Titan "heat vision, freezing breath" | "laser eyes, an ice cloud" | Superman's signature pair |
+| Speedster "Faster than anything alive" | "Outrun anything" | The Flash's "Fastest Man Alive" |
+| Blade Claws "retractable claws … healing factor" | "Blades spring from your fists, and your wounds close fast" | Wolverine ("healing factor" is Marvel's term) |
+| Ring Bearer "the lantern" (oath UI) | "the beacon" | Green Lantern |
 
-## First five minutes vs. CrazyGames "New games" (observations, nothing changed)
+Left alone: Morph Band (purple band, original alien names; the idea of an alien transformation device isn't protected),
+Ricochet Shield, Spider Powers, Elastic Body, Titan Growth, Storm Hammer (Norse myth).
 
-- The first screen is busy: 11 icons, six hotbar slots (four of them "Unlocks at LV x"), two meters, Getting started,
-  minimap and clock. New releases on CrazyGames usually open with three or four HUD elements. Idea: hide locked slots
-  until they unlock, and bring in the reward icons after the first crime.
-- Sunlit building faces wash out to near-white in the opening view. A slightly lower sun or less ambient light
-  would help.
-- The thumbnails on "New games" are bright, saturated and character-led. The cover art matters as much as the build.
+Visual echoes, not changed (owner to decide): the Ring Bearer's green ring and green/black default suit (Green Lantern),
+and the Armored Inventor's red-and-gold armour and tower (Iron Man).
 
-## Questions for the owner
+## First five minutes (done)
 
-1. Show the CrazyGames avatar (for example next to the name, top left)?
-2. Approve any of the originality changes above?
-3. Keep multiplayer on CrazyGames? It now meets their multiplayer requirements, but it uses free public PeerJS relays, so
-   players on strict networks may not connect.
-4. PEGI 12: is the villain path (mugging, robbing, car theft) OK as it is?
-5. Try the "calmer first screen" idea?
+- Locked power keys are off the hotbar and the touch buttons until they unlock; the reward icons appear after the first
+  crime (or LV 2). The opening HUD went from 11 icons and 6 slots to 6 icons and 2 slots.
+- The menu pitch is one sentence, and the touch hint is one line. Play is on screen without scrolling from 360x640 portrait
+  up to 1920x1080 (checked at 360x640, 375x667, 390x844, 667x375, 844x390 and the ten CrazyGames sizes).
+- Still an idea: sunlit building faces wash out to near-white in the opening view.
+
+## Owner decisions (2026-09-29)
+
+1. Avatar: not required, so left out.
+2. Originality: rename where copyright is possible (done above).
+3. Multiplayer: alternatives offered, waiting on a choice.
+4. PEGI 12: the villain path is fine as it is.
+5. Calmer first screen: yes (done above).

@@ -224,7 +224,7 @@ function special(i,j,cx,cz,list,bi){
     city.box(cx-1.5,h+0.35,cz-1.5+3,cx+1.5,h+0.45,cz+1.5+3,C('#ffc93c'),0);
     hospital={x:cx,z:z0-10};return true;
   }
-  if(i===4&&j===17){ // Inventor Tower (midtown): the Armored Inventor's home base, where the suit recharges. It can't be knocked down.
+  if(i===4&&j===17){ // Forge Tower (midtown): the Armored Inventor's home base, where the suit recharges. It can't be knocked down.
     const RED=C('#b3122f'),GOLD=C('#ffc93c'),GLASS=C('#2a3440'),h=290,x0=cx-15,x1=cx+15,z0=cz-15,z1=cz+15;
     city.box(cx-24,0.25,cz-24,cx+24,12,cz+24,C('#30343c'),1,STYLE.glass*1000+411.5);addCollider({x0:cx-24,x1:cx+24,z0:cz-24,z1:cz+24,y0:0,y1:12.3,col:GLASS},list);
     city.box(cx-24.3,12,cz-24.3,cx+24.3,12.6,cz+24.3,RED,0);city.box(cx-6,0.25,cz-24.4,cx+6,8,cz-24.2,C('#9fe8ff'),6);

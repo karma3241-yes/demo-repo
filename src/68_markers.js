@@ -4,7 +4,7 @@
 // Every active crime gets a floating "!" pin over it with its distance (the nearest six), like the name tags. When it is
 // off screen the pin slides to the edge of the screen and an arrow points the way. Heists get a bigger, pulsing "!!".
 // When a hero meter runs low (under a quarter) a pin marks where to recharge it and a hint above the meters says how:
-// the suit battery at Inventor Tower, lightning on the nearest tall roof, calories at the nearest shop. The ring has no
+// the suit battery at Forge Tower, lightning on the nearest tall roof, calories at the nearest shop. The ring has no
 // place to go, so its hint just says to press O (tap OATH) and say the oath. Plain energy refills by itself.
 const markPool=[];
 function markEl(i){if(!markPool[i]){const b=el('b'),arr=el('i',{class:'arr'}),pin=el('div',{class:'pin'},b),pw=el('div',{class:'pw'},pin,arr),sm=el('small'),t=el('div',{class:'mk'},pw,sm);
@@ -30,8 +30,8 @@ function nearestShop(){let best=null,bd=1e9;for(const s of shops){if(s.prop&&!s.
 function rechargeGoal(){
   const m=heroMeter();if(!m||P.dead||meterFrac(m)>=0.25)return null;
   if(m.key==='ring')return {hint:'Ring low · '+(touchOn()?'tap OATH':'press O')+' and say the oath to recharge',col:'#5dff86'};
-  if(m.key==='battery'){if(atInventorTower())return {hint:'Recharging at Inventor Tower',col:'#ff6a3d'};if(!invTower)return null;
-    return {x:invTower.x,y:invTower.top+8,z:invTower.z,icon:'🔋',label:'Inventor Tower',col:'#ff6a3d',hint:(save.battery<=0?'Suit on standby':'Battery low')+' · fly to Inventor Tower to recharge'};}
+  if(m.key==='battery'){if(atInventorTower())return {hint:'Recharging at Forge Tower',col:'#ff6a3d'};if(!invTower)return null;
+    return {x:invTower.x,y:invTower.top+8,z:invTower.z,icon:'🔋',label:'Forge Tower',col:'#ff6a3d',hint:(save.battery<=0?'Suit on standby':'Battery low')+' · fly to Forge Tower to recharge'};}
   if(m.key==='bolt'){if(tallRoofHere())return {hint:(touchOn()?'Tap USE':'Press G')+' to raise your hammer and call the storm',col:'#8fd8ff'};
     if(time-goalCache.t>1||goalCache.key!=='bolt'){goalCache={t:time,key:'bolt',g:nearestTallRoof()};}const r=goalCache.g;if(!r)return null;
     return {x:r.x,y:r.y+8,z:r.z,icon:'⚡',label:'Tall roof',col:'#8fd8ff',hint:'Lightning low · land on a tall roof and '+(touchOn()?'tap USE':'press G')+' to call the storm'};}

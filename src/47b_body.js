@@ -21,7 +21,7 @@ function metalUp(){
   P.mw=(P.mw+1)%METAL_W.length;const W=METAL_W[P.mw];feed(W.name,W.note);SFX.tone('square',180,90,0.12,0.08);SFX.punch(0.6);
   if(P.hand)burst(P.hand[12],P.hand[13],P.hand[14],14,5,0.3,[[.85,.88,.92],[1,1,1]],0.7,0,2);
 }
-// how far your finishers send people: the armor taps them, the storm god and the sun titan launch them
+// how far your finishers send people: the armor taps them, the tempest and the sun titan launch them
 const heroKnockMul=()=>P.alien?1:hasPower('armorSuit')?0.45:hasPower('stormBody')||hasPower('solarBody')?1.4:1;
 const bodyPunchMul=()=>{const W=metalWeapon();return (W?W.dmg:1)*(P.giantS>1.05?1+P.giantS:1)*(hasPower('solarBody')&&!P.alien?1.5:1);};
 const bodyReach=()=>{const W=metalWeapon();return (W?W.reach:0)+(hasPower('elasticBody')&&!P.alien?pstat('elasticBody','reach')*0.45:0)+(P.giantS>1.05?(P.giantS-1)*1.6:0);};
@@ -82,7 +82,7 @@ function drawBody(){
   if(P.tk&&P.tk.slab){const S=P.tk.slab;queue(MESH.box,at(S.x,S.y,S.z,S.rx,S.ry,S.rz,S.sx,S.sy,S.sz),S.col,F_SH);const g=Math.max(S.sx,S.sz)*0.9;queue(MESH.glowSphere,at(S.x,S.y,S.z,0,0,0,g,g,g),[.6,.35,1,0.18],F_ADD);}
   for(const F of stretches){const c=center(F.a),h=P.hand?{x:P.hand[12],y:P.hand[13],z:P.hand[14]}:handPoint();queue(MESH.box,M4.beam(tmpM(),h.x,h.y,h.z,c.x,c.y,c.z,0.24),LOOK.cape,F_SH);queue(MESH.sphere,at(c.x,c.y,c.z,0,0,0,0.45,0.45,0.45),LOOK.cape,0);}
   if(state!=='play'||P.dead||P.alien||P.rag||!P.hand)return;
-  // preset gear: the storm god's hammer, the armor's thrusters
+  // preset gear: the tempest's hammer, the armor's thrusters
   if(hasPower('stormBody')&&!thrown.some(t=>t.kind==='hammer')&&P.suited!==false){const H=P.hand;
     // charging a launch: whirl the hammer overhead, faster and faster; flying: it spins out ahead of you
     const k=P.fCharge?clamp((P.chargeT||0)/1.5,0,1):0,M=P.fCharge?child(H,0,-0.1,0,0,time*(12+26*k),0):P.flying?child(H,0,-0.05,0,time*16,0,0):H;

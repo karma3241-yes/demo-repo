@@ -219,8 +219,8 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
   .controls{grid-template-columns:1fr}#menu{background:rgba(3,5,12,.84)}
 }
 /* short screens (CrazyGames' 800x450 / 821x462 frames, phones in landscape): Play must be on screen without scrolling */
-@media (max-height:700px){.menu-inner{gap:12px;padding-block:18px}.pitch{font-size:15px}h1{font-size:clamp(44px,12vh,84px)}}
-@media (max-height:600px){.menu-inner{gap:10px;padding-block:14px}h1{font-size:clamp(36px,11vh,64px)}.pitch{display:none}.controls{font-size:12px;gap:3px 18px}.go{padding:10px 22px}}
+@media (max-height:700px){.menu-inner{gap:12px;padding-block:18px}.pitch{font-size:15px}h1{font-size:clamp(40px,min(12vh,13vw),84px)}}
+@media (max-height:600px){.menu-inner{gap:10px;padding-block:14px}h1{font-size:clamp(34px,min(11vh,12vw),64px)}.pitch{display:none}.controls{font-size:12px;gap:3px 18px}.go{padding:10px 22px}}
 @media (max-height:420px){#menu-controls{display:none}}
 #dmgs{position:absolute;inset:0;overflow:hidden}
 .dmg{position:absolute;left:0;top:0;font:700 16px var(--display);color:#ffe27a;text-shadow:0 2px 0 #3a1a00,0 0 6px rgba(0,0,0,.7);will-change:transform,opacity;white-space:nowrap}
@@ -259,7 +259,7 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #xquiz .xq-foot{margin-top:10px;font-size:12px;letter-spacing:.12em;color:var(--ink-dim)}
 #xquiz[data-mode="lock"]{top:max(90px,12vh);bottom:auto;width:auto;min-width:240px;padding:10px 16px;pointer-events:none;border-color:rgba(255,92,110,.5);box-shadow:0 0 30px rgba(255,60,80,.25)}
 #xquiz[data-mode="lock"] .xq-head{color:#ffb3bd}#xquiz[data-mode="lock"] .xq-foot{margin-top:4px;font-size:14px;color:var(--ink)}
-.slot.locked{opacity:.45;filter:grayscale(.8)}.slot.locked small{color:var(--ink-dim)}
+.slot.locked{display:none} /* power keys you haven't unlocked yet stay off the hotbar (the move list still lists them) */.slot.locked small{color:var(--ink-dim)}
 .cos-sw{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:8px;vertical-align:-2px;border:1px solid rgba(255,255,255,.3)}
 #guide{position:absolute;right:16px;top:96px;padding:10px 14px;width:230px;box-sizing:border-box}
 #guide h4{margin:0 0 6px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
@@ -390,14 +390,14 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div class="menu-inner">
     <div class="eyebrow">Nova Bay · Open-world superhero game</div>
     <h1><span class="a">Skyline</span><span class="b">Guardian</span></h1>
-    <p class="pitch">Pick your powers and take to the streets. Stop the robberies, muggings and heists happening all over Nova Bay, or become the reason people lock their doors. Every fight earns XP and skill points, and the city remembers which side you chose.</p>
+    <p class="pitch">Stop the crimes all over Nova Bay, or commit them. Every fight earns XP and new powers.</p>
     <div class="controls" id="menu-controls">
       <div><kbd>WASD</kbd> Move</div><div><kbd>Mouse</kbd> Look</div>
       <div><kbd>Click</kbd> Punch</div><div><kbd>1–5</kbd> Abilities</div>
       <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Skills</div>
       <div><kbd>Z</kbd> Lock on · <kbd>X</kbd> Dash</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
     </div>
-    <p class="muted" id="menu-touch" hidden>Touch controls: drag on the left side to move, drag on the right side to look, and use the buttons for punches, abilities and movement.</p>
+    <p class="muted" id="menu-touch" hidden>Left side: move · right side: look · buttons: fight and fly.</p>
     <div class="cta"><button class="go" id="start" type="button">Play</button><span id="menu-sub"></span></div>
     <p class="note" id="menu-online"></p>
     <div class="menu-btns"><button class="ghost" id="m-mp" type="button">Multiplayer</button><button class="ghost" id="m-lb" type="button">Leaderboard</button><button class="ghost" id="m-set" type="button">Settings</button></div>
@@ -413,7 +413,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
 <div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
 <div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div></div>
-<div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><div id="oath-lvl" class="miclvl" hidden><i></i><b></b></div><small id="oath-note">Esc to put the lantern away</small></div>
+<div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><div id="oath-lvl" class="miclvl" hidden><i></i><b></b></div><small id="oath-note">Esc to put the beacon away</small></div>
 <div id="dead" class="overlay" hidden><div><p class="big">Knocked out</p><p class="sub" id="deads"></p></div></div>
 <div id="nogl" class="overlay" hidden><div><p class="big">No WebGL 2</p><p class="sub">This browser can't run the game. Try a recent Chrome, Edge, Firefox or Safari.</p></div></div>
 

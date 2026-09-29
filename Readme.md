@@ -11,13 +11,13 @@ It works on laptops and phones. The game detects your device and switches betwee
 ## Your hero
 
 - **Start playing right away.** New players press **Play** and start as the **Ring Bearer** (or pick **Choose your powers** first). The first change of powers afterwards is free: press `J` or the swap icon in the top-left icon bar. The change-powers screen is wide, and every power has its own icon.
-- **Build your hero.** When you create a hero you pick **one traversal power**. Six of them are complete hero kits (**presets**: Web-Slinger, Speedster, Storm God, Armored Inventor, Sun Titan and Ring Bearer) that come with their own body and moves. You have **five power keys** (`1`–`5`): a hero kit puts **3 of its own moves on keys 1–3** (you choose which) and you pick **2 more for keys 4–5**, either the rest of your kit or any power from the shared pool (so the Ring Bearer and the Speedster can still carry all five of theirs). The last, **Flight**, lets you build your own: pick **one body mod** (its signature move goes on key 1) and **4 abilities**. Saves from before five keys keep their powers and get the new keys filled in; change them any time. You can swap later with **Change powers** in the pause menu whenever you like. Skill points you spent on powers you drop come back to you.
+- **Build your hero.** When you create a hero you pick **one traversal power**. Six of them are complete hero kits (**presets**: Web Runner, Speedster, Tempest, Armored Inventor, Sun Titan and Ring Bearer) that come with their own body and moves. You have **five power keys** (`1`–`5`): a hero kit puts **3 of its own moves on keys 1–3** (you choose which) and you pick **2 more for keys 4–5**, either the rest of your kit or any power from the shared pool (so the Ring Bearer and the Speedster can still carry all five of theirs). The last, **Flight**, lets you build your own: pick **one body mod** (its signature move goes on key 1) and **4 abilities**. Saves from before five keys keep their powers and get the new keys filled in; change them any time. You can swap later with **Change powers** in the pause menu whenever you like. Skill points you spent on powers you drop come back to you.
 - **Level up by fighting.** You earn XP from fights, from damage you deal, and from glowing orbs around the city (yellow 25 XP, blue 50, red 100; red orbs only appear on rooftops). Each level gives you **3 skill points**.
 - **Spend skill points** to upgrade your abilities and body mod (up to level 10) and four passives: Strength, Vitality, Healing and Energy (up to level 50 each). Upgraded powers look stronger too. For example, Laser Vision starts as a thin orange line and ends as a thick red beam, and Telekinesis lifts more, and heavier things, as it levels up. **Reset skill points** at the bottom of the Skills screen refunds everything you spent.
 - **Traversal grows with use.** Your traversal power has no skill points. It gets better the more you use it (mastery 1–10): flight gets faster, jumps go higher, web swings get faster and unlock new tricks, the speed dial goes higher, and ring constructs get bigger and unlock new shapes.
 - **Suit up** with `U`. You swap between your civilian clothes and your suit, and each kind of hero changes differently.
 - **Reputation** decides your side. Stopping criminals makes you a Hero (Rookie → Vigilante → Protector → Guardian → Legend). Hurting civilians and police, or robbing shops and ATMs, makes you a Villain (Troublemaker → Outlaw → Menace → Supervillain → Nemesis). Villains get chased by police, and at −1500 reputation a bounty puts rival heroes on your trail.
-- **How hard you get hit** depends on your hero: the Armored Inventor barely gets knocked back (×0.45), while the Storm God and the Sun Titan get sent flying further (×1.4).
+- **How hard you get hit** depends on your hero: the Armored Inventor barely gets knocked back (×0.45), while the Tempest and the Sun Titan get sent flying further (×1.4).
 
 Saves from before this update are converted automatically: you keep your level, reputation and upgrades, get the closest new build, and can change powers for free once.
 
@@ -25,13 +25,13 @@ Saves from before this update are converted automatically: you keep your level, 
 
 All of these are original characters inspired by famous hero styles.
 
-**Web-Slinger** (Web-Swinging). A full city-swinging kit inspired by the Insomniac games.
+**Web Runner** (Web-Swinging). A full city-swinging kit.
 - **Swing** with right click. Webs find buildings ahead of you and chain while you hold. Press `Shift` mid-swing for a boost.
 - **Web-zip** by tapping `Space` in the air. Hold `Space` in the air to open **web wings** and glide. Updrafts over tall roofs and parks lift you.
 - **Slingshot launch:** hold `Space` on the ground.
 - **Tricks:** dive by looking down and pressing forward. `C` in the air does a trick; flips unlock as mastery grows. You roll out of hard landings.
 - **Crawl** on any wall.
-- **Spider-sense** sometimes dodges attacks for you.
+- **Danger sense** sometimes dodges attacks for you.
 - **Web tether:** right click on someone yanks them toward you. Keep holding it and you stay webbed on: if they run, drive or fly off, you get dragged along on the rope (it slowly reels you in). It works on people, rival supers, cars and other players. Any shield (Energy Shield, Ring Shield, the Metal Forms shield arm) cuts the web.
 - **Abilities:** Web Strike (yank someone, or swing-kick them from the air), Web Bomb (pins everyone nearby) and Web Whip (knocks back everyone around you).
 
@@ -41,16 +41,16 @@ All of these are original characters inspired by famous hero styles.
 - **Abilities:** Lightning Throw, Phase Strike (vibrates your hand through a target), Speed Tornado and Slow Time. Slow Time slows the world while you move normally, and the dial sets how slow. In multiplayer it speeds you up instead and doesn't touch other players.
 - **Time Stop** freezes everyone for 3 seconds, other players included. Everything you hit in that moment lands at once when time starts again, and your path shows as lightning streaks.
 
-**Storm God** (Storm Flight). Instead of energy he has a **lightning** meter. Only lightning costs charge: Lightning Bolt, the Storm Hammer's lightning strike and the bolt when you blast off. When it runs out he can still fly and fight, and the hammer still flies, just without the lightning. To recharge, land on top of a tall tower and press `G` to raise the hammer and call the storm down into it.
+**Tempest** (Storm Flight). Instead of energy he has a **lightning** meter. Only lightning costs charge: Lightning Bolt, the Storm Hammer's lightning strike and the bolt when you blast off. When it runs out he can still fly and fight, and the hammer still flies, just without the lightning. To recharge, land on top of a tall tower and press `G` to raise the hammer and call the storm down into it.
 
-**Armored Inventor** (Armor Flight). The suit runs on a **battery** instead of energy. Every power uses it, and flying drains it slowly. When it's empty the suit drops into **standby**: you can still fly and punch, but no repulsors, energy blasts, core beam or shield. Recharge at **Inventor Tower** (the red and gold skyscraper marked **I** on the minimap): land on its roof or its landing pad, or walk into the lobby. Upgrade the battery's capacity (100 up to 300) with skill points in the Skills screen.
+**Armored Inventor** (Armor Flight). The suit runs on a **battery** instead of energy. Every power uses it, and flying drains it slowly. When it's empty the suit drops into **standby**: you can still fly and punch, but no pulse blasts, energy blasts, core beam or shield. Recharge at **Forge Tower** (the red and gold skyscraper marked **I** on the minimap): land on its roof or its landing pad, or walk into the lobby. Upgrade the battery's capacity (100 up to 300) with skill points in the Skills screen.
 - **Suit forms:** the armor folds itself into a red and gold **Jet** (Armored Inventor mastery 1), **Bike** (2), **Sports Car** (3) or **Tank** (5). `V` opens the forms wheel (`N` if you also carry the Morph Band) and `B` turns into your last form and back. Forms run on the battery; the tank's turret follows your aim.
 
 **Ring Bearer** (Power Ring). Everything runs on **ring charge**, which never refills by itself.
 - **Say the oath out loud:** by default the game listens (the CrazyGames build defaults to typing it instead; *Say it out loud* is still in Settings there). When you start playing as the Ring Bearer it asks for your microphone; then press `O` and speak the oath. The ring charges line by line as you say it, and small mistakes or misheard words are forgiven. **Settings → Ring oath** switches between *Say it out loud* and *Type it (Tab)*. If the browser can't listen or the microphone is blocked, it falls back to typing, even halfway through an oath.
-  - **You keep moving:** while you speak you can walk, fly (`F`), punch and fight as normal, and your keys aren't typed into the oath. The ring itself is busy, though. Opening the spoken oath releases your construct and drops the Ring Shield, and until you finish, ring powers (`1`–`5`), constructs (`B`, `V`), growing and rebuilding (`Y`) just tell you to *finish the oath first*. `O` again or `Esc` puts the lantern away (tap OATH again on touch screens). On touch screens you can still type the oath while it listens.
+  - **You keep moving:** while you speak you can walk, fly (`F`), punch and fight as normal, and your keys aren't typed into the oath. The ring itself is busy, though. Opening the spoken oath releases your construct and drops the Ring Shield, and until you finish, ring powers (`1`–`5`), constructs (`B`, `V`), growing and rebuilding (`Y`) just tell you to *finish the oath first*. `O` again or `Esc` puts the beacon away (tap OATH again on touch screens). On touch screens you can still type the oath while it listens.
   - **Overcharge:** say it loudly. The oath panel shows your mic level against a white line, and if your voice passes the line at any point during the oath, finishing it overcharges the ring to **200** instead of 100. Said quietly it stops at 100. You can also say it with a full ring just to overcharge it. Above 100 the ring bar glows and fizzes, and a brighter second layer shows the charge from 100 to 200 (a steady glow if your system asks for reduced motion). The overcharge is spent like any other charge and is kept when you save. **Settings → Ring oath → Overcharge loudness** sets the line; *Test your mic* shows a live level so you can see where your voice lands. The mic is only open while the spoken oath or the mic test is running.
-- **Recharging by typing:** in *Type it* mode, press `O` to hold up the lantern and type the oath to recharge. The game doesn't pause and the mouse stays locked: just start typing, and `Enter` or `Esc` puts the lantern away. The first time, the oath shows in the middle of the screen with an explanation. After you've typed it once, it sits as plain text in the bottom-right corner and `Tab` (NEXT WORD on touch screens) fills in each word for you. At 0 charge you can only walk.
+- **Recharging by typing:** in *Type it* mode, press `O` to hold up the beacon and type the oath to recharge. The game doesn't pause and the mouse stays locked: just start typing, and `Enter` or `Esc` puts the beacon away. The first time, the oath shows in the middle of the screen with an explanation. After you've typed it once, it sits as plain text in the bottom-right corner and `Tab` (NEXT WORD on touch screens) fills in each word for you. At 0 charge you can only walk.
 - **Flying:** `F` flies.
 - **Constructs:** `B` builds your default construct and `V` opens the construct wheel. Inside a construct, tap `V` to step out of it, or hold `V` to open the wheel and switch (let go of `V` on a construct to pick it). The choices are a spiked Bubble, a Jet (guns and homing missiles), a Mech and a Huge Mech (punches, guns, missile salvos; the huge one tramples buildings) and a Dragon you ride (claw strike, breath, roar). Inside a construct, left click, right click and `X` are its attacks.
 - **More constructs** on the wheel's second page (`Q`/`E`, the mouse wheel or the page button switch pages):
@@ -64,7 +64,7 @@ All of these are original characters inspired by famous hero styles.
 - **Weapon constructs** (Rifle, Bazooka, Cannon, Sword, War Hammer, Longbow, Minigun, Tower Shield) cost charge only to build and for each shot they fire. Holding them and swinging melee weapons is free.
 - **The typed oath** doesn't take your construct away: you hang in the air where you are, construct and all, until you finish. (The spoken oath leaves you free to move instead, but releases the construct.)
 - **Rebuild the city:** press `Y` (REBUILD on touch) to spend 10 ring charge and rebuild every broken building at once. Green hard-light copies rise first, then the real buildings fill them in.
-- **Grow anything:** in any construct, scroll up (or `]`) to grow it a fifth bigger per step, and scroll down (or `[`) to shrink it back, all the way up to the size of the Earth. Each step up costs 0.9 ring charge; each step down gives back a quarter of that. Bigger constructs hit harder, fire bigger shots and missiles, flatten the buildings they touch, and the camera pulls back to fit. You stay your normal size: a grown ride just lifts your seat, and a grown weapon is held by a giant green hard-light copy of you. On touch screens use GROW and SHRINK.
+- **Grow anything:** in any construct, scroll up (or `]`) to grow it a fifth bigger per step, and scroll down (or `[`) to shrink it back, all the way up to the size of the Earth. Each step up costs 0.9 ring charge; each step down gives back a quarter of that. Bigger constructs hit harder, fire bigger shots and missiles, flatten the buildings they touch, and the camera pulls back to fit. Grown rides (anything you drive, ride or fly) are faster in proportion: a jet 10× its size flies 10× faster, so it never crawls along at car speed. You stay your normal size: a grown ride just lifts your seat, and a grown weapon is held by a giant green hard-light copy of you. On touch screens use GROW and SHRINK.
 - **Grow your powers:** powers like Hammer Smash fire when you let go of their key. While you hold it (`1`–`5`), a ring shows where it lands and how big it is; scroll to change its size, up to 30 times (on touch, hold its button and tap GROW or SHRINK). A bigger power reaches further and hits harder: a bigger Hammer Smash, Black Hole, fireball, blast and so on. The size shows on the power's slot. Growing costs energy (ring charge for the Ring Bearer), shrinking gives a quarter back.
 - **Abilities:** Ring Blast, Hammer Smash, Chain Lasso and Ring Shield.
 - **Ring Shield** has its own health (shown on the HUD shield bar) that grows as you upgrade it. Holding it up barely costs charge, and each hit it takes costs a little more. If it breaks, it takes 4 seconds to rebuild.
@@ -76,7 +76,7 @@ All of these are original characters inspired by famous hero styles.
 | --- | --- |
 | **Metal Skin → Metal Forms**: turn to steel. Tap again to turn your hand into a hammer, a spiked flail, a blade or a shield; hold to turn back | Fireball · Ice Cloud · Lightning Bolt · Energy Blast · Laser Vision |
 | **Blade Claws → Blade Leap**: a slashing lunge, and you heal much faster | Telekinesis · Shockwave · Energy Shield · Morph Band |
-| **Elastic Body → Stretch Strike**: your arm shoots out, grabs someone and slams them down. Your punches reach further and hard landings bounce you back up | Storm Hammer · Repulsor Barrage · Core Beam · Ricochet Shield |
+| **Elastic Body → Stretch Strike**: your arm shoots out, grabs someone and slams them down. Your punches reach further and hard landings bounce you back up | Storm Hammer · Pulse Barrage · Core Beam · Ricochet Shield |
 | **Titan Growth → Giant Form**: grow to three times your size, hit like a giant, and pick up cars with `G` | Blink · Gravity Well · Spirit Wave · Time Dilation |
 
 **Telekinesis:**
@@ -89,7 +89,7 @@ The other abilities:
 | Ability | What it does |
 | --- | --- |
 | Storm Hammer | Throw a hammer that calls lightning where it hits, smashes everything in its path and flies back to your hand |
-| Repulsor Barrage | Hold to fire rapid palm blasts from alternating hands |
+| Pulse Barrage | Hold to fire rapid palm blasts from alternating hands |
 | Core Beam | Wind up, then a chest beam burns through people, cars and buildings for 1.5 s |
 | Ricochet Shield | A disc that bounces between up to 6 targets and comes back |
 | Blink | Teleport to where you aim, knocking back anyone near where you appear |
@@ -100,7 +100,7 @@ The other abilities:
 | Quake Stomp | A line of erupting rock races along the ground and throws everyone in its path into the air |
 | Meteor Strike | A meteor lands where you aim a moment later, with a huge blast that even hurts buildings |
 | Force Push | A wall of force that sends people, cars and debris in front of you flying |
-| Chain Lightning | A bolt that jumps from enemy to enemy (counts as a lightning attack for the Storm God) |
+| Chain Lightning | A bolt that jumps from enemy to enemy (counts as a lightning attack for the Tempest) |
 | Healing Pulse | Heals you and gets injured people around you back on their feet |
 | Invisibility | Toggle: enemies and the police lose track of you while it drains energy |
 | Vine Snare | Thorny vines burst out where you aim and hold everyone there in place |
@@ -160,7 +160,7 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `Space` | Jump. Hold, then release for a super jump. Leap off walls |
 | `F` | Flight on/off. Hold it on the ground to charge, then let go to blast off into the sky |
 | `U` | Suit up / suit down |
-| `O` | Ring Bearer: hold up the lantern and say (or type) the oath. While you're saying it, `O` or `Esc` puts it away |
+| `O` | Ring Bearer: hold up the beacon and say (or type) the oath. While you're saying it, `O` or `Esc` puts it away |
 | `G` | Get in or out of a car, or help an injured person up |
 | `V` | Morph Band dial / change back (Ring Bearer: construct wheel; in a construct, tap to step out, hold for the wheel) |
 | `Tab` or `K` | Skills and upgrades |
@@ -177,7 +177,7 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 
 **Leaderboard.** A small leaderboard sits on the left, under the icon bar: switch between most respected, most feared and highest level, and click it for the full board (also in the main menu and the pause menu). On touch screens it's in the pause menu only.
 
-**Markers.** Every crime has a floating `!` over it with its distance (heists get a bigger, pulsing `!!`); when it's off screen the marker waits at the edge of the screen with an arrow pointing the way. When your hero's meter drops below a quarter, a marker shows where to recharge it and a hint above the meters says how: the suit battery at Inventor Tower, lightning on the nearest tall roof, calories at the nearest shop, and the ring by pressing `O` to say the oath.
+**Markers.** Every crime has a floating `!` over it with its distance (heists get a bigger, pulsing `!!`); when it's off screen the marker waits at the edge of the screen with an arrow pointing the way. When your hero's meter drops below a quarter, a marker shows where to recharge it and a hint above the meters says how: the suit battery at Forge Tower, lightning on the nearest tall roof, calories at the nearest shop, and the ring by pressing `O` to say the oath.
 
 **Driving:** `W` accelerates, `S` brakes and reverses, `A` and `D` steer, `Space` is the handbrake, and `G` gets you out.
 
@@ -185,7 +185,7 @@ On touch screens: drag on the left side to move (or drive), drag on the right si
 
 ## The city
 
-Nova Bay is laid out like Manhattan and Queens, about one and a half times the size of the old city. **Manhattan** is a long, narrow island running north to south: a dense financial district of glass towers at its southern tip (with the bank and police headquarters), a midtown skyscraper cluster (with Inventor Tower), a huge **Central Park** rectangle in the middle with a lake, the reservoir and no roads through it, brick uptown neighborhoods, and piers with cranes along the west shore. Across the **East River**, **Queens** is lower and mostly houses, with a few towers near the water, a main shopping street, and industrial yards and containers along the waterfront. Three suspension **bridges** cross the river, and a road runs along every shoreline. The hospital (where you wake up after being knocked out) is on the east side of the park. The bank, hospital, police headquarters and Inventor Tower are marked on the minimap.
+Nova Bay is laid out like Manhattan and Queens, about one and a half times the size of the old city. **Manhattan** is a long, narrow island running north to south: a dense financial district of glass towers at its southern tip (with the bank and police headquarters), a midtown skyscraper cluster (with Forge Tower), a huge **Central Park** rectangle in the middle with a lake, the reservoir and no roads through it, brick uptown neighborhoods, and piers with cranes along the west shore. Across the **East River**, **Queens** is lower and mostly houses, with a few towers near the water, a main shopping street, and industrial yards and containers along the waterfront. Three suspension **bridges** cross the river, and a road runs along every shoreline. The hospital (where you wake up after being knocked out) is on the east side of the park. The bank, hospital, police headquarters and Forge Tower are marked on the minimap.
 
 - **Traffic** follows lanes and traffic lights, and cars honk and brake for people in the road. You can take any car with `G`. Taking a car that someone is driving is a crime.
 - **Almost everything breaks.** Street lamps, traffic lights, benches, trees, bus stops, mailboxes and hydrants shatter into pieces (and hydrants spray water). Windows break from explosions, lasers and crashes. Cars can be wrecked, and debris bounces off buildings. Broken street furniture comes back after a couple of minutes.
@@ -236,7 +236,7 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 **CrazyGames build.** `node tools/build.mjs crazygames` also writes `dist/crazygames/index.html`: the same game with the CrazyGames SDK loaded in front of it. Zip that one file (with `index.html` at the top of the zip) and upload it on the CrazyGames developer portal. The website and the claude.ai version never load the SDK and keep today's balance. The CrazyGames build differs in these ways:
 
 - **Slower, tighter progression:**
-  - Your power keys open with level: key 1 at the start, then LV 2, 4, 6 and 9.
+  - Your power keys open with level: key 1 at the start, then LV 2, 4, 6 and 9. Locked keys stay off the hotbar and the touch buttons until they open (the move list still shows them).
   - Traversal mastery takes about 6 hours instead of 1.
   - Flight starts at 20 m/s with a small Shift boost, and grows to full speed with mastery.
   - The speed dial starts at ×2, and the space speed-up starts at ×10 (×90 when mastered).
@@ -253,7 +253,7 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 - **Ad blockers:** if CrazyGames reports one, the rewarded buttons are greyed out with a short note instead of failing when clicked. The game itself plays normally.
 - **Sound:** CrazyGames' own mute setting always wins over the game's `M` key.
 - **No leaderboard:** the shared board only works on claude.ai, so it's hidden here.
-- **Rewards in the icon bar:** double XP, refill, try locked powers and cosmetics are HUD icons (keys `9`, `0`, `,`, `.`) instead of pause-menu buttons.
+- **Rewards in the icon bar:** double XP, refill, try locked powers and cosmetics are HUD icons (keys `9`, `0`, `,`, `.`) instead of pause-menu buttons. They appear once you've stopped or committed your first crime (or reached LV 2), so the opening screen stays calm.
 - **Something to do right away:** every session's first crime starts 30–120 m from you a few seconds after you start, instead of 90–420 m away.
 - **Cloud save:** CrazyGames' Data module is the save of record (their rule), so progress survives the browser clearing its storage and follows a signed-in player to other devices. When it holds a hero, it replaces the browser's copy on start. A guest who signs in while playing gets their account's save (the game restarts if it differs).
 - **CrazyGames username:** a signed-in player's new hero is named after their username. Other players see it next to the hero name in multiplayer.

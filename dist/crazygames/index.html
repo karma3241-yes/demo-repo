@@ -219,8 +219,8 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
   .controls{grid-template-columns:1fr}#menu{background:rgba(3,5,12,.84)}
 }
 /* short screens (CrazyGames' 800x450 / 821x462 frames, phones in landscape): Play must be on screen without scrolling */
-@media (max-height:700px){.menu-inner{gap:12px;padding-block:18px}.pitch{font-size:15px}h1{font-size:clamp(44px,12vh,84px)}}
-@media (max-height:600px){.menu-inner{gap:10px;padding-block:14px}h1{font-size:clamp(36px,11vh,64px)}.pitch{display:none}.controls{font-size:12px;gap:3px 18px}.go{padding:10px 22px}}
+@media (max-height:700px){.menu-inner{gap:12px;padding-block:18px}.pitch{font-size:15px}h1{font-size:clamp(40px,min(12vh,13vw),84px)}}
+@media (max-height:600px){.menu-inner{gap:10px;padding-block:14px}h1{font-size:clamp(34px,min(11vh,12vw),64px)}.pitch{display:none}.controls{font-size:12px;gap:3px 18px}.go{padding:10px 22px}}
 @media (max-height:420px){#menu-controls{display:none}}
 #dmgs{position:absolute;inset:0;overflow:hidden}
 .dmg{position:absolute;left:0;top:0;font:700 16px var(--display);color:#ffe27a;text-shadow:0 2px 0 #3a1a00,0 0 6px rgba(0,0,0,.7);will-change:transform,opacity;white-space:nowrap}
@@ -259,7 +259,7 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #xquiz .xq-foot{margin-top:10px;font-size:12px;letter-spacing:.12em;color:var(--ink-dim)}
 #xquiz[data-mode="lock"]{top:max(90px,12vh);bottom:auto;width:auto;min-width:240px;padding:10px 16px;pointer-events:none;border-color:rgba(255,92,110,.5);box-shadow:0 0 30px rgba(255,60,80,.25)}
 #xquiz[data-mode="lock"] .xq-head{color:#ffb3bd}#xquiz[data-mode="lock"] .xq-foot{margin-top:4px;font-size:14px;color:var(--ink)}
-.slot.locked{opacity:.45;filter:grayscale(.8)}.slot.locked small{color:var(--ink-dim)}
+.slot.locked{display:none} /* power keys you haven't unlocked yet stay off the hotbar (the move list still lists them) */.slot.locked small{color:var(--ink-dim)}
 .cos-sw{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:8px;vertical-align:-2px;border:1px solid rgba(255,255,255,.3)}
 #guide{position:absolute;right:16px;top:96px;padding:10px 14px;width:230px;box-sizing:border-box}
 #guide h4{margin:0 0 6px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
@@ -390,14 +390,14 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div class="menu-inner">
     <div class="eyebrow">Nova Bay · Open-world superhero game</div>
     <h1><span class="a">Skyline</span><span class="b">Guardian</span></h1>
-    <p class="pitch">Pick your powers and take to the streets. Stop the robberies, muggings and heists happening all over Nova Bay, or become the reason people lock their doors. Every fight earns XP and skill points, and the city remembers which side you chose.</p>
+    <p class="pitch">Stop the crimes all over Nova Bay, or commit them. Every fight earns XP and new powers.</p>
     <div class="controls" id="menu-controls">
       <div><kbd>WASD</kbd> Move</div><div><kbd>Mouse</kbd> Look</div>
       <div><kbd>Click</kbd> Punch</div><div><kbd>1–5</kbd> Abilities</div>
       <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Skills</div>
       <div><kbd>Z</kbd> Lock on · <kbd>X</kbd> Dash</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
     </div>
-    <p class="muted" id="menu-touch" hidden>Touch controls: drag on the left side to move, drag on the right side to look, and use the buttons for punches, abilities and movement.</p>
+    <p class="muted" id="menu-touch" hidden>Left side: move · right side: look · buttons: fight and fly.</p>
     <div class="cta"><button class="go" id="start" type="button">Play</button><span id="menu-sub"></span></div>
     <p class="note" id="menu-online"></p>
     <div class="menu-btns"><button class="ghost" id="m-mp" type="button">Multiplayer</button><button class="ghost" id="m-lb" type="button">Leaderboard</button><button class="ghost" id="m-set" type="button">Settings</button></div>
@@ -413,7 +413,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
 <div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
 <div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div></div>
-<div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><div id="oath-lvl" class="miclvl" hidden><i></i><b></b></div><small id="oath-note">Esc to put the lantern away</small></div>
+<div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><div id="oath-lvl" class="miclvl" hidden><i></i><b></b></div><small id="oath-note">Esc to put the beacon away</small></div>
 <div id="dead" class="overlay" hidden><div><p class="big">Knocked out</p><p class="sub" id="deads"></p></div></div>
 <div id="nogl" class="overlay" hidden><div><p class="big">No WebGL 2</p><p class="sub">This browser can't run the game. Try a recent Chrome, Edge, Firefox or Safari.</p></div></div>
 
@@ -1106,7 +1106,7 @@ function special(i,j,cx,cz,list,bi){
     city.box(cx-1.5,h+0.35,cz-1.5+3,cx+1.5,h+0.45,cz+1.5+3,C('#ffc93c'),0);
     hospital={x:cx,z:z0-10};return true;
   }
-  if(i===4&&j===17){ // Inventor Tower (midtown): the Armored Inventor's home base, where the suit recharges. It can't be knocked down.
+  if(i===4&&j===17){ // Forge Tower (midtown): the Armored Inventor's home base, where the suit recharges. It can't be knocked down.
     const RED=C('#b3122f'),GOLD=C('#ffc93c'),GLASS=C('#2a3440'),h=290,x0=cx-15,x1=cx+15,z0=cz-15,z1=cz+15;
     city.box(cx-24,0.25,cz-24,cx+24,12,cz+24,C('#30343c'),1,STYLE.glass*1000+411.5);addCollider({x0:cx-24,x1:cx+24,z0:cz-24,z1:cz+24,y0:0,y1:12.3,col:GLASS},list);
     city.box(cx-24.3,12,cz-24.3,cx+24.3,12.6,cz+24.3,RED,0);city.box(cx-6,0.25,cz-24.4,cx+6,8,cz-24.2,C('#9fe8ff'),6);
@@ -1519,13 +1519,13 @@ const POWERS={
   metalSkin:{name:'Metal Skin',cat:'body',sig:'metalForms',desc:'Your body can turn to living steel. Gives you Metal Forms.',drain:3,dr:[0.3,0.7],slow:[0.3,0.1]},
   energyShield:{name:'Energy Shield',cat:'defence',type:'toggle',desc:'Raise a bubble that soaks up damage until it breaks.',energy:25,absorb:[50,400],cooldown:15},
   powerRing:{name:'Ring Bearer',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A ring of pure willpower. Fly, and build anything you can imagine out of hard light. Its charge only comes back when you recite the oath.',speed:[35,110]},
-  stormFlight:{name:'Storm God',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Spin your hammer and hurl yourself into the sky. Lightning answers when you call.',speed:[40,95]},
-  armorFlight:{name:'Armored Inventor',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A flying suit of armor with palm repulsors and a chest beam.',speed:[45,100]},
-  solarFlight:{name:'Sun Titan',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Powered by the sun: flight, heat vision, freezing breath and a thunderclap.',speed:[50,120]},
+  stormFlight:{name:'Tempest',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Ride a thunderclap into the sky. Lightning answers when you call.',speed:[40,95]},
+  armorFlight:{name:'Armored Inventor',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A flying suit of armor with palm blasters and a chest beam.',speed:[45,100]},
+  solarFlight:{name:'Sun Titan',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Powered by the sun: flight, laser eyes, an ice cloud and a thunderclap.',speed:[50,120]},
   stormBody:{name:'Storm Blood',cat:'body',hidden:true,desc:'Lightning barely hurts you and your hammer never leaves your hand for long.'},
   armorSuit:{name:'Power Armor',cat:'body',hidden:true,desc:'Armor plating takes 35% off every hit.'},
   solarBody:{name:'Solar Cells',cat:'body',hidden:true,desc:'Bullets bounce off: you take 40% less damage and punch half again as hard.'},
-  spiderPowers:{name:'Spider Powers',cat:'body',hidden:true,desc:'Stick to any surface, spider-sense warns you of attacks, and your strength is far beyond human.'},
+  spiderPowers:{name:'Spider Powers',cat:'body',hidden:true,desc:'Stick to any surface, a sixth sense warns you of attacks, and your strength is far beyond human.'},
   ringCore:{name:'The Ring',cat:'body',hidden:true,desc:'Everything you do runs on ring charge instead of energy.'},
   surgeSuit:{name:'Speed Surge',cat:'body',hidden:true,desc:'Your body runs on pure speed. Vibrate through walls and outrun time itself.'},
   webStrike:{name:'Web Strike',cat:'preset',type:'instant',desc:'Yank whoever you aim at toward you, or swing-kick them if you are in the air. On objects it pulls them to you.',energy:6,cooldown:0.6,damage:[20,80],range:[30,60]},
@@ -1543,10 +1543,10 @@ const POWERS={
   blackHole:{name:'Black Hole',cat:'preset',type:'instant',ring:95,desc:'Pour almost all of your ring into a black hole. It tears buildings, rubble and people into it. Only the strong or fast escape.',cooldown:30,radius:[40,70],duration:6},
   morphBand:{name:'Morph Band',cat:'special',type:'special',key:'V',desc:'An alien wrist device. Transform into one of seven alien forms, each with its own body and powers. Upgrades unlock more aliens and longer transformations.',duration:[45,150],recharge:[40,12],power:[1,2]},
   stormHammer:{name:'Storm Hammer',cat:'offence',type:'instant',desc:'Hurl an enchanted hammer. It calls lightning down on whatever it hits, smashes everything in its path and flies back to your hand.',energy:18,cooldown:3,damage:[40,170],stun:[0.5,1.2],range:[45,90]},
-  repulsors:{name:'Repulsor Barrage',cat:'offence',type:'channel',desc:'Hold to fire rapid palm blasts from alternating hands. Great for keeping crowds and drones at bay.',energyPerSec:14,damage:[8,30],knock:[5,14]},
+  repulsors:{name:'Pulse Barrage',cat:'offence',type:'channel',desc:'Hold to fire rapid palm blasts from alternating hands. Great for keeping crowds and drones at bay.',energyPerSec:14,damage:[8,30],knock:[5,14]},
   coreBeam:{name:'Core Beam',cat:'offence',type:'instant',desc:'Wind up a blinding beam from your chest. It burns through people, cars and even buildings for a second and a half.',energy:35,cooldown:10,dps:[60,220]},
   ricochetShield:{name:'Ricochet Shield',cat:'offence',type:'instant',desc:'Throw a disc that bounces from target to target before flying back to you.',energy:12,cooldown:2.5,damage:[30,110],bounces:[3,6],stun:[0.5,1]},
-  bladeClaws:{name:'Blade Claws',cat:'body',sig:'bladeLeap',desc:'Retractable claws in your hands and a healing factor that closes wounds fast. Gives you Blade Leap.',damage:[35,140],range:[10,18]},
+  bladeClaws:{name:'Blade Claws',cat:'body',sig:'bladeLeap',desc:'Blades spring from your fists, and your wounds close fast. Gives you Blade Leap.',damage:[35,140],range:[10,18]},
   elasticBody:{name:'Elastic Body',cat:'body',sig:'stretchStrike',desc:'Stretch like rubber: your punches reach much further and hard landings bounce off you. Gives you Stretch Strike.',reach:[6,12],damage:[30,120]},
   titanGrowth:{name:'Titan Growth',cat:'body',sig:'giantForm',desc:'Grow to three times your size for a while. Everything you hit, you hit like a giant. Gives you Giant Form.',duration:[10,25],scale:[2.2,3.2]},
   metalForms:{name:'Metal Forms',cat:'signature',of:'metalSkin',type:'toggle',key:'',desc:'Turn to steel. Press again to cycle your hand into a hammer, a spiked flail, a blade or a shield; hold to turn back.',energy:0},
@@ -1566,7 +1566,7 @@ const POWERS={
   shadowStep:{name:'Shadow Step',cat:'utility',type:'instant',desc:'Vanish and reappear right behind your target (or where you aim), striking as you arrive.',energy:20,cooldown:[6,3],range:[30,60],damage:[40,160]},
   plasmaWhip:{name:'Plasma Whip',cat:'offence',type:'instant',desc:'A crackling whip that sweeps a wide arc around you. Fast and good against crowds.',energy:12,cooldown:[1.6,0.8],damage:[25,100],radius:[6,9]},
   spiritWave:{name:'Spirit Wave',cat:'offence',type:'charge',desc:'Hold to gather energy in your palms, release to unleash a massive wave that tears through anything, buildings included.',energy:40,cooldown:8,damage:[120,420]},
-  suitBattery:{name:'Suit Battery',cat:'upgrade',hidden:true,desc:'How much charge the Armored Inventor\'s suit holds. Every power runs on it, and it only recharges at Inventor Tower.',capacity:[100,300]},
+  suitBattery:{name:'Suit Battery',cat:'upgrade',hidden:true,desc:'How much charge the Armored Inventor\'s suit holds. Every power runs on it, and it only recharges at Forge Tower.',capacity:[100,300]},
   timeDilation:{name:'Time Dilation',cat:'utility',type:'instant',desc:'Slow the world down around you while you move at full speed. In multiplayer it makes you faster instead.',energy:35,cooldown:20,duration:[3,7]},
 };
 const MOVEMENT_POWERS=Object.keys(POWERS).filter(k=>POWERS[k].cat==='movement'&&!POWERS[k].hidden);
@@ -1574,11 +1574,11 @@ const BODY_MODS=Object.keys(POWERS).filter(k=>POWERS[k].cat==='body'&&!POWERS[k]
 const ABILITY_POWERS=Object.keys(POWERS).filter(k=>['offence','defence','utility','special'].includes(POWERS[k].cat));
 // hero presets: picking one of these traversals fixes your body and abilities
 const PRESETS={
-  webSwing:{name:'Web-Slinger',body:'spiderPowers',abilities:['webStrike','webBomb','webWhip'],blurb:'Swing, crawl, glide and flip through the city. Spider-sense and web gadgets.'},
-  superSpeed:{name:'Speedster',body:'surgeSuit',abilities:['lightningThrow','phaseStrike','speedTornado','slowTime','timeStop'],blurb:'Faster than anything alive: phase through walls, bend and stop time.'},
-  stormFlight:{name:'Storm God',body:'stormBody',abilities:['stormHammer','lightning','shockwave','energyShield'],blurb:'Fly on a spinning hammer, call lightning and bring the thunder down.'},
-  armorFlight:{name:'Armored Inventor',body:'armorSuit',abilities:['repulsors','energyBlast','coreBeam','energyShield'],blurb:'A flying suit of armor: repulsors, a chest beam and a force shield.'},
-  solarFlight:{name:'Sun Titan',body:'solarBody',abilities:['laserVision','iceCloud','shockwave','timeDilation'],blurb:'Fly faster than jets, see through heat vision, freeze with your breath.'},
+  webSwing:{name:'Web Runner',body:'spiderPowers',abilities:['webStrike','webBomb','webWhip'],blurb:'Swing, crawl, glide and flip through the city. A sixth sense for danger and web gadgets.'},
+  superSpeed:{name:'Speedster',body:'surgeSuit',abilities:['lightningThrow','phaseStrike','speedTornado','slowTime','timeStop'],blurb:'Outrun anything: phase through walls, bend and stop time.'},
+  stormFlight:{name:'Tempest',body:'stormBody',abilities:['stormHammer','lightning','shockwave','energyShield'],blurb:'Ride the storm, call lightning and bring the thunder down.'},
+  armorFlight:{name:'Armored Inventor',body:'armorSuit',abilities:['repulsors','energyBlast','coreBeam','energyShield'],blurb:'A flying suit of armor: palm blasters, a chest beam and a force shield.'},
+  solarFlight:{name:'Sun Titan',body:'solarBody',abilities:['laserVision','iceCloud','shockwave','timeDilation'],blurb:'Fly faster than jets, burn with laser eyes, freeze with an ice cloud.'},
   powerRing:{name:'Ring Bearer',body:'ringCore',abilities:['ringBlast','hammerSmash','chainLasso','ringShield','blackHole'],blurb:'Build hard-light constructs, from a bubble to a dragon. Runs on ring charge.'},
 };
 const presetOf=c=>c&&PRESETS[c.movement[0]]||null;
@@ -2627,7 +2627,7 @@ function drawRagdoll(a,C){
 function ragColorsHuman(h){const L=h.look;return {torso:L.shirt,arms:L.shirt,hands:L.skin,skin:L.skin,head:L.hat||L.hair||L.skin,legs:L.pants};}
 function ragColorsSuper(m){const suit=m.metal?SILVER:m.suit;return {torso:suit,torso2:m.metal?SILVER2:m.suit2,arms:suit,hands:m.cape,skin:m.metal?SILVER:SKIN_C,head:m.metal?SILVER2:HAIR,legs:suit,shins:m.cape,cape:m.capeOn?m.cape:null};}
 // ================================================================
-// Traversal: Insomniac-style web swinging, web zip, wall running, parkour leaps
+// Traversal: physics-based web swinging, web zip, wall running, parkour leaps
 // ================================================================
 // Swinging: hold right click (or WEB) and the web finds a building above and ahead
 // automatically. Keep holding and it chains to the next anchor after each upswing;
@@ -3285,7 +3285,7 @@ function metalUp(){
   P.mw=(P.mw+1)%METAL_W.length;const W=METAL_W[P.mw];feed(W.name,W.note);SFX.tone('square',180,90,0.12,0.08);SFX.punch(0.6);
   if(P.hand)burst(P.hand[12],P.hand[13],P.hand[14],14,5,0.3,[[.85,.88,.92],[1,1,1]],0.7,0,2);
 }
-// how far your finishers send people: the armor taps them, the storm god and the sun titan launch them
+// how far your finishers send people: the armor taps them, the tempest and the sun titan launch them
 const heroKnockMul=()=>P.alien?1:hasPower('armorSuit')?0.45:hasPower('stormBody')||hasPower('solarBody')?1.4:1;
 const bodyPunchMul=()=>{const W=metalWeapon();return (W?W.dmg:1)*(P.giantS>1.05?1+P.giantS:1)*(hasPower('solarBody')&&!P.alien?1.5:1);};
 const bodyReach=()=>{const W=metalWeapon();return (W?W.reach:0)+(hasPower('elasticBody')&&!P.alien?pstat('elasticBody','reach')*0.45:0)+(P.giantS>1.05?(P.giantS-1)*1.6:0);};
@@ -3346,7 +3346,7 @@ function drawBody(){
   if(P.tk&&P.tk.slab){const S=P.tk.slab;queue(MESH.box,at(S.x,S.y,S.z,S.rx,S.ry,S.rz,S.sx,S.sy,S.sz),S.col,F_SH);const g=Math.max(S.sx,S.sz)*0.9;queue(MESH.glowSphere,at(S.x,S.y,S.z,0,0,0,g,g,g),[.6,.35,1,0.18],F_ADD);}
   for(const F of stretches){const c=center(F.a),h=P.hand?{x:P.hand[12],y:P.hand[13],z:P.hand[14]}:handPoint();queue(MESH.box,M4.beam(tmpM(),h.x,h.y,h.z,c.x,c.y,c.z,0.24),LOOK.cape,F_SH);queue(MESH.sphere,at(c.x,c.y,c.z,0,0,0,0.45,0.45,0.45),LOOK.cape,0);}
   if(state!=='play'||P.dead||P.alien||P.rag||!P.hand)return;
-  // preset gear: the storm god's hammer, the armor's thrusters
+  // preset gear: the tempest's hammer, the armor's thrusters
   if(hasPower('stormBody')&&!thrown.some(t=>t.kind==='hammer')&&P.suited!==false){const H=P.hand;
     // charging a launch: whirl the hammer overhead, faster and faster; flying: it spins out ahead of you
     const k=P.fCharge?clamp((P.chargeT||0)/1.5,0,1):0,M=P.fCharge?child(H,0,-0.1,0,0,time*(12+26*k),0):P.flying?child(H,0,-0.05,0,time*16,0,0):H;
@@ -3435,8 +3435,8 @@ function updatePool(dt){
   if(!P.alien&&P.invisible>0&&!P.cloak)P.invisible=Math.max(0,P.invisible-dt);
 }
 // ================================================================
-// Web-Slinger kit: web wings, updrafts, swing boost, slingshot, dives, air tricks,
-// landing rolls, spider-sense, and the Web Strike / Web Bomb / Web Whip moves
+// Web Runner kit: web wings, updrafts, swing boost, slingshot, dives, air tricks,
+// landing rolls, danger sense, and the Web Strike / Web Bomb / Web Whip moves
 // ================================================================
 const updrafts=[];
 (function(){let q=7;const rnd=()=>(q=(q*16807)%2147483647)/2147483647,rg=(a,b)=>a+(b-a)*rnd(); // own seed: leaves the world generator untouched
@@ -3489,16 +3489,16 @@ function spiderTick(dt){
   if(P.wings&&(!air||!keys.Space))P.wings=false;
   if(P.web){const hs=Math.hypot(P.vel.x,P.vel.z);addMastery('webSwing',hs*dt*0.03);}
 }
-// spider-sense: sometimes you dodge before the hit lands
+// danger sense: sometimes you dodge before the hit lands
 function spiderSense(src,type){
   if(!hasPower('spiderPowers')||!src||src===P||P.dead)return false;
   if(!['bullet','blast','shot','punch','rocket','pvp','throw','shock','hit','fire'].includes(type))return false;
   if(time-(P.senseT||-9)<1.1||Math.random()>0.22+0.3*webMk())return false;
   P.senseT=time;const s=Math.random()<0.5?-1:1,rx=Math.cos(P.yaw)*s,rz=-Math.sin(P.yaw)*s;
-  P.vel.x+=rx*14;P.vel.z+=rz*14;if(P.grounded)P.vel.y=Math.max(P.vel.y,5);P.flip={t:0,dur:0.4,rx:0,ry:TAU*s};feed('Spider-sense','Dodged');SFX.tone('sine',1400,2000,0.08,0.06);
+  P.vel.x+=rx*14;P.vel.z+=rz*14;if(P.grounded)P.vel.y=Math.max(P.vel.y,5);P.flip={t:0,dur:0.4,rx:0,ry:TAU*s};feed('Danger sense','Dodged');SFX.tone('sine',1400,2000,0.08,0.06);
   return true;
 }
-// ---- Web-Slinger moves ----
+// ---- Web Runner moves ----
 Object.assign(POWER_FN,{
   webStrike(){
     const R=pstat('webStrike','range'),t=lockT&&lockT.alive?lockT:aim.actor&&aim.actor.kind!=='prop'&&aim.hitAny?aim.actor:null,h=handPoint();
@@ -3544,7 +3544,7 @@ function updateWebbed(dt){for(const a of actors)if(a.webT>0){a.webT-=dt;a.stun=M
 // Ring Bearer: ring charge, hard-light constructs, ring moves, the black hole and the oath
 // ================================================================
 // Everything the ring does costs charge (save.ring, 0-100). It never refills on its own:
-// press O to hold up the lantern and type the oath. At zero charge you can only walk.
+// press O to hold up the beacon and type the oath. At zero charge you can only walk.
 // Said out loud and loud enough (Settings → Ring oath), the oath overcharges the ring to 200 (RING_MAX).
 // B builds your default construct (the last one you picked), V opens the construct wheel.
 // Inside a construct, left click / right click / X are its attacks.
@@ -3587,7 +3587,10 @@ function conGrowStep(dir){
   SFX.tone('sine',ng>g?220:500,ng>g?120:900,0.25,0.08);if(ng>g)addShake(Math.min(0.6,0.05*Math.log2(ng+1)));MP.bump();return true;
 }
 const titanGrow=conGrowStep;
-const conSpeedMul=()=>{const c=conDef();return c?c.speed:1;};
+// a grown transport construct (anything you ride, drive or fly; not a held weapon) moves in proportion to its size,
+// so an Earth-sized jet doesn't crawl along at a car's speed
+const conSizeK=()=>{const c=conDef();return c&&!c.weapon?Math.max(1,P.construct.grow||1):1;};
+const conSpeedMul=()=>{const c=conDef();return c?c.speed*conSizeK():1;};
 const conCam=()=>{const c=conDef();if(!c)return 1;const b=c.cam?c.cam:P.construct.id==='dragon'?1.8:P.construct.id==='jet'?1.35:P.construct.id==='bubble'?1.2:1;return c.scale?b:b*conGrow(P.construct.id);};
 // constructs run on ring charge, or on the suit battery for the Armored Inventor's suit forms (4 ring points = 1 battery point)
 const armorForms=()=>hasTrav('armorFlight')&&!P.alien;
@@ -3797,8 +3800,8 @@ function openOath(){
   // said out loud: you move and fight freely, but the ring is busy (no ring powers or constructs until you finish)
   oathOpen=true;oathFree=vo;oathStart=save.ring;voicePeak=0;oathIn.value='';oathEl.hidden=false;oathEl.classList.toggle('mini',!!save.oathKnown);renderOath(0);
   const tch=touchOn();oathIn.readOnly=!tch;oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';
-  $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the lantern away')
-    :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the lantern away.');
+  $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the beacon away')
+    :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the beacon away.');
   $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;
   if(!vo){P.charging=false;for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);}
   SFX.tone('sine',200,400,0.6,0.08);
@@ -3817,9 +3820,9 @@ function oathTyped(){
   const tch=touchOn();oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';if(tch)setTimeout(()=>oathIn.focus(),30);
 }
 const ringLocked=()=>oathOpen&&oathFree;
-function oathBusy(){if(time-oathBusyT<1.2)return;oathBusyT=time;feed('Finish the oath first','The ring is busy while you speak · '+(touchOn()?'tap OATH':'O')+' puts the lantern away');SFX.tone('square',220,160,0.08,0.05);}
+function oathBusy(){if(time-oathBusyT<1.2)return;oathBusyT=time;feed('Finish the oath first','The ring is busy while you speak · '+(touchOn()?'tap OATH':'O')+' puts the beacon away');SFX.tone('square',220,160,0.08,0.05);}
 function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathFree=false;voiceOathStop();micOff('oath');$('oath-lvl').hidden=true;oathEl.hidden=true;P.lantern=false;oathIn.blur();}
-// keyboard typing while the lantern is out (called from the main key handler before anything else)
+// keyboard typing while the beacon is out (called from the main key handler before anything else)
 function oathKey(e){
   e.preventDefault();const k=e.key;
   if(e.code==='Escape'||e.code==='Enter'||e.code==='NumpadEnter'){closeOath();return;}
@@ -4020,7 +4023,7 @@ function remoteStreaks(){for(const r of MP.peers.values()){if(!(r.flags&FLAG.spe
 // Suit up: U swaps between your civilian clothes and your suit
 // ================================================================
 // Each kind of hero changes differently: the Ring Bearer's ring builds the suit out of light,
-// the Speedster zig-zags in a blur, the Web-Slinger fades to black and pulls the mask on last,
+// the Speedster zig-zags in a blur, the Web Runner fades to black and pulls the mask on last,
 // Metal Skin heroes flash to steel and everyone else spins into it.
 P.suited=true;
 let suitAnim=null;
@@ -4077,7 +4080,7 @@ function renderHeroKeys(){
   if(m){H(PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Your hero');
     if(m==='powerRing'){K('B','Build your construct (the last one you picked)');K('V','Construct wheel · in a construct: tap to step out, hold to switch');
       K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');K('O','Say or type the oath to recharge the ring');K('Y','Rebuild every broken building');}
-    if(m==='armorFlight'){K('Inventor Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
+    if(m==='armorFlight'){K('Forge Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
     if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');
     if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
     if(hasPower('morphBand'))K('V','Morph Band: pick an alien · tap again to change back');
@@ -4135,11 +4138,11 @@ function onBountyFx(d,r){
 }
 const starText=n=>'★'.repeat(n)+'☆'.repeat(5-n);
 // ================================================================
-// Hero meters: the Armored Inventor's suit battery, the Storm God's lightning and the Speedster's calories
+// Hero meters: the Armored Inventor's suit battery, the Tempest's lightning and the Speedster's calories
 // ================================================================
 // Like the Ring Bearer's ring charge, each of these replaces the energy bar for that hero and never refills on its own.
 // - Battery: every power runs on it. Empty, the suit drops to standby: flying and plain punches only.
-//   Recharge at Inventor Tower (land on its roof or its landing pad, or walk into the lobby).
+//   Recharge at Forge Tower (land on its roof or its landing pad, or walk into the lobby).
 // - Lightning: only lightning attacks use it. Empty, you still fly and fight, and the hammer still flies, without lightning.
 //   Recharge on top of a tall tower: press G to raise the hammer and call the storm down into it.
 // - Calories: running fast and using powers burn them; there is no energy limit otherwise. Empty, the speed dial
@@ -4177,20 +4180,20 @@ function meterBlocks(id){const m=heroMeter();if(!m)return false;
 const cdMul=()=>hungry()?3:1;
 let meterMsgT=-9;
 function meterOut(m){if(m.key==='ring'){ringOut();return;}if(time-meterMsgT<2)return;meterMsgT=time;
-  if(m.key==='battery')feed('Suit on standby','Fly to Inventor Tower to recharge');
+  if(m.key==='battery')feed('Suit on standby','Fly to Forge Tower to recharge');
   else if(m.key==='bolt')feed('No lightning left','Call the storm from the top of a tall tower (G)');
   SFX.tone('square',220,140,0.15,0.06);}
 function meterEmpty(m){meterMsgT=time;if(m.key==='ring'){ringOut();return;}
-  if(m.key==='battery'){toast('Battery empty','Standby mode · flying and punches only. Recharge at Inventor Tower.','red');SFX.tone('sawtooth',400,60,0.8,0.1);}
+  if(m.key==='battery'){toast('Battery empty','Standby mode · flying and punches only. Recharge at Forge Tower.','red');SFX.tone('sawtooth',400,60,0.8,0.1);}
   else if(m.key==='bolt')toast('Out of lightning','Fly to the top of a tall tower and call the storm (G)','cyan');
   else toast('Out of calories','You slow down. Press G at a shop to eat.','gold');}
-// ---- Inventor Tower ----
+// ---- Forge Tower ----
 function atInventorTower(){const T=invTower;if(!T)return false;const x=P.pos.x,y=P.pos.y,z=P.pos.z;
   if(x>T.x0-1&&x<T.x1+1&&z>T.z0-1&&z<T.z1+1&&y>T.top-1.5&&y<T.top+14)return true; // on the roof
   if(Math.hypot(x-T.pad.x,z-T.pad.z)<10&&y>T.pad.y-1&&y<T.pad.y+10)return true;   // on the landing pad
   return Math.hypot(x-T.door.x,z-T.door.z)<9&&y<6;                               // in the lobby doorway
 }
-// ---- the Storm God's tower tops ----
+// ---- the Tempest's tower tops ----
 function tallRoofHere(){if(P.pos.y<TALL_ROOF-2)return null;
   for(const r of roofTops){if(r.y<TALL_ROOF)continue;if(P.pos.x>r.x0-2&&P.pos.x<r.x1+2&&P.pos.z>r.z0-2&&P.pos.z<r.z1+2&&P.pos.y>r.y-1.5&&P.pos.y<r.y+16)return r;}
   return null;}
@@ -4212,7 +4215,7 @@ function updateMeters(dt){
   if(m.key==='battery'){
     if(P.flying&&save.battery>0&&P.suited!==false){save.battery=Math.max(0,save.battery-0.08*dt);if(save.battery<=0)meterEmpty(m);}
     if(atInventorTower()&&save.battery<cap&&!P.dead){const was=save.battery;save.battery=Math.min(cap,save.battery+cap*0.2*dt);
-      if(was<=0||time-(P.chgMsgT||-9)>8){P.chgMsgT=time;feed('Charging at Inventor Tower',save.battery>=cap?'Fully charged':'');}
+      if(was<=0||time-(P.chgMsgT||-9)>8){P.chgMsgT=time;feed('Charging at Forge Tower',save.battery>=cap?'Fully charged':'');}
       if(Math.random()<dt*14){const T=invTower,c=center(P),sx=c.x+rr(-6,6),sz=c.z+rr(-6,6);tracer(sx,c.y+rr(3,8),sz,c.x,c.y,c.z,[.5,.9,1],0.12,0.15);}
       if(save.battery>=cap&&was<cap){toast('Battery full','Suit systems online','cyan');SFX.chime();persist();}}
   }else if(m.key==='bolt'){
@@ -4246,7 +4249,7 @@ for(const id of CON_PAGES[1])if(!CON_IDS.includes(id))CON_IDS.push(id);
 const conDrive=()=>{const c=conDef();return c&&c.drive?c:null;};
 // ---- driving the bike and the race car ----
 function driveConstruct(dt,inF,inR,shift){
-  const K=P.construct,C=CONSTRUCTS[K.id],D=C.drive;K.spd=K.spd||0;
+  const K=P.construct,C=CONSTRUCTS[K.id],g=conSizeK(),D={top:C.drive.top*g,accel:C.drive.accel*g,steer:C.drive.steer};K.spd=K.spd||0; // g: grown vehicles are faster in proportion
   const boost=shift&&(C.free||conFuel()>0.5)&&K.spd>5;if(boost){if(!C.free)conBurn(0.8*dt);if(Math.random()<dt*30){const b=-2.2;emit(P.pos.x+Math.sin(P.heroYaw)*b,P.pos.y+0.6,P.pos.z+Math.cos(P.heroYaw)*b,rr(-2,2),rr(0,2),rr(-2,2),0.35,C.armor?FIRE[1]:RING_C,1.6,0,0);}}
   const top=D.top*(boost?1.5:1)*(K.rideRam>0?1.4:1);
   if(inF>0.1)K.spd+=(K.spd<-0.5?D.accel*2:D.accel*(boost?1.8:1))*inF*dt;
@@ -4636,7 +4639,7 @@ for(const pg of CON_PAGES)for(const id of pg)if(!CON_IDS.includes(id))CON_IDS.pu
 // weapon constructs cost charge to build and for every shot they fire, but nothing to hold and nothing to swing
 for(const id in CONSTRUCTS){const C=CONSTRUCTS[id];if(C.weapon)C.drain=0;}
 // ================================================================
-// Saying the oath out loud: the browser's speech recognition listens while the lantern is up
+// Saying the oath out loud: the browser's speech recognition listens while the beacon is up
 // ================================================================
 // Settings → Ring oath picks "Say it out loud" (the default where the browser can listen) or "Type it".
 // In voice mode the game asks for the microphone when you start playing as the Ring Bearer, and O starts listening.
@@ -4673,7 +4676,7 @@ function voiceOathStart(){
     if(er&&er!=='no-speech'&&er!=='aborted'&&++voiceFails>=3&&!voiceBlocked){voiceBlocked=true;oathTyped();voiceNote('Speech recognition is not working here right now · type the oath instead');feed('Can\'t listen right now','Type the oath instead');return;} // e.g. offline: stop retrying
     if(er==='not-allowed'||er==='service-not-allowed'||er==='audio-capture'){voiceBlocked=true;oathTyped();voiceNote('The microphone is blocked here · type the oath instead ('+(touchOn()?'NEXT WORD':'Tab')+' fills words once you know it)');feed('Microphone blocked','Type the oath instead · allow the mic in your browser to speak it');}};
   voiceRec.onend=()=>{const r=voiceRec;if(!r)return;if(oathOpen&&oathVoice()){voiceBase=voicePtr;setTimeout(()=>{if(voiceRec===r&&oathOpen)try{r.start();}catch(e){}},120);}}; // it stops after a pause: keep listening
-  try{voiceRec.start();voiceNote('🎙 Listening · say the oath out loud, loudly to overcharge the ring'+(touchOn()?' (you can still type it) · tap OATH':' · O or Esc')+' puts the lantern away');}catch(e){voiceRec=null;}
+  try{voiceRec.start();voiceNote('🎙 Listening · say the oath out loud, loudly to overcharge the ring'+(touchOn()?' (you can still type it) · tap OATH':' · O or Esc')+' puts the beacon away');}catch(e){voiceRec=null;}
 }
 function voiceOathStop(){const r=voiceRec;voiceRec=null;if(r)try{r.onend=null;r.abort();}catch(e){}}
 // ask for the microphone up front (once per session) so the first oath is not interrupted by the prompt
@@ -6366,7 +6369,7 @@ const KIT_LV=[1,2,4,6,9];                 // the level each power key (1-5) open
 const TRIAL_MIN=10;
 const slotLocked=i=>PBAL&&save.level<KIT_LV[i]&&!trialOn('key'+i);
 function lockedSlotMsg(i){if(time-(P.lockMsgT||-9)<1)return;P.lockMsgT=time;const id=save.character.abilities[i];
-  feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],Portal.ads()?'Pause → Try locked powers to use it now for '+TRIAL_MIN+' min':'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
+  feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],Portal.ads()&&!rewardsLater()?(touchOn()?'Tap the unlock icon':'Press , (the unlock icon)')+' to try it now for '+TRIAL_MIN+' min':'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
 // ---- timed trials (one rewarded ad = 10 minutes) ----
 function startTrial(k,label){
   Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}
@@ -6547,6 +6550,7 @@ function powerIcon(id){const c=POWERS[id],s=glyph(POWER_GLYPH[id]||'burst','pico
 // and shrinks to fit (folding "Getting started" down to its next step if it has to), so it never needs scrolling.
 // The leaderboard sits under the icons on the left (the full board opens from it, the main menu or the pause menu).
 // The CrazyGames build has no leaderboard at all: the shared board lives on claude.ai, and pointing players there is cross-promotion.
+const rewardsLater=()=>{const st=save.stats||{};return !(st.crimesStopped||st.crimesCommitted||save.level>1);};
 const HUDBAR=[
   {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
@@ -6554,15 +6558,16 @@ const HUDBAR=[
   {id:'look',glyph:'shirt',key:'I',code:'KeyI',tip:'Appearance',act:()=>sheetToggle('look'),on:()=>sheetOpen==='look'},
   {id:'mp',glyph:'people',key:'6',code:'Digit6',tip:'Multiplayer',act:()=>sheetToggle('mp'),on:()=>sheetOpen==='mp'||MP.online()},
   {id:'set',glyph:'gear',key:'7',code:'Digit7',tip:'Settings',act:()=>sheetToggle('set'),on:()=>sheetOpen==='set'},
-  // CrazyGames build only
-  {id:'xp',glyph:'x2',key:'9',code:'Digit9',portal:true,act:()=>Portal.rewardXP(),
+  // CrazyGames build only. The rewards appear once you've dealt with your first crime (or reached LV 2), so the opening
+  // screen stays calm
+  {id:'xp',glyph:'x2',key:'9',code:'Digit9',portal:true,act:()=>Portal.rewardXP(),hide:()=>rewardsLater(),
     tip:()=>{const l=Portal.boostUntil-time;return l>0?'Double XP active · '+Math.ceil(l/60)+' min left':'Watch an ad: double XP for 5 min';},
     on:()=>Portal.boostUntil>time,off:()=>!Portal.ads()||Portal.boostUntil>time},
-  {id:'refill',glyph:'refill',key:'0',code:'Digit0',portal:true,act:()=>refill(),hide:()=>!refillInfo(),
+  {id:'refill',glyph:'refill',key:'0',code:'Digit0',portal:true,act:()=>refill(),hide:()=>rewardsLater()||!refillInfo(),
     tip:()=>{const r=refillInfo();return !r?'':r.need?'Watch an ad: refill your '+r.m.label.toLowerCase():'Your '+r.m.label.toLowerCase()+' is full';},
     off:()=>{const r=refillInfo();return !Portal.ads()||!r||!r.need;}},
-  {id:'trials',glyph:'unlock',key:',',code:'Comma',portal:true,tip:'Try locked powers',act:()=>sheetToggle('trials'),on:()=>sheetOpen==='trials'},
-  {id:'cos',glyph:'sparkle',key:'.',code:'Period',portal:true,tip:'Cosmetics',act:()=>sheetToggle('cos'),on:()=>sheetOpen==='cos'},
+  {id:'trials',glyph:'unlock',key:',',code:'Comma',portal:true,tip:'Try locked powers',act:()=>sheetToggle('trials'),hide:()=>rewardsLater(),on:()=>sheetOpen==='trials'},
+  {id:'cos',glyph:'sparkle',key:'.',code:'Period',portal:true,tip:'Cosmetics',act:()=>sheetToggle('cos'),hide:()=>rewardsLater(),on:()=>sheetOpen==='cos'},
 ];
 const HUDBAR_KEYS={};for(const b of HUDBAR)if(!b.portal||PBAL)HUDBAR_KEYS[b.code]=b;
 const hbVal=(v)=>typeof v==='function'?v():v;
@@ -6635,7 +6640,7 @@ document.getElementById('keys').addEventListener('wheel',e=>{const k=e.currentTa
 // Every active crime gets a floating "!" pin over it with its distance (the nearest six), like the name tags. When it is
 // off screen the pin slides to the edge of the screen and an arrow points the way. Heists get a bigger, pulsing "!!".
 // When a hero meter runs low (under a quarter) a pin marks where to recharge it and a hint above the meters says how:
-// the suit battery at Inventor Tower, lightning on the nearest tall roof, calories at the nearest shop. The ring has no
+// the suit battery at Forge Tower, lightning on the nearest tall roof, calories at the nearest shop. The ring has no
 // place to go, so its hint just says to press O (tap OATH) and say the oath. Plain energy refills by itself.
 const markPool=[];
 function markEl(i){if(!markPool[i]){const b=el('b'),arr=el('i',{class:'arr'}),pin=el('div',{class:'pin'},b),pw=el('div',{class:'pw'},pin,arr),sm=el('small'),t=el('div',{class:'mk'},pw,sm);
@@ -6661,8 +6666,8 @@ function nearestShop(){let best=null,bd=1e9;for(const s of shops){if(s.prop&&!s.
 function rechargeGoal(){
   const m=heroMeter();if(!m||P.dead||meterFrac(m)>=0.25)return null;
   if(m.key==='ring')return {hint:'Ring low · '+(touchOn()?'tap OATH':'press O')+' and say the oath to recharge',col:'#5dff86'};
-  if(m.key==='battery'){if(atInventorTower())return {hint:'Recharging at Inventor Tower',col:'#ff6a3d'};if(!invTower)return null;
-    return {x:invTower.x,y:invTower.top+8,z:invTower.z,icon:'🔋',label:'Inventor Tower',col:'#ff6a3d',hint:(save.battery<=0?'Suit on standby':'Battery low')+' · fly to Inventor Tower to recharge'};}
+  if(m.key==='battery'){if(atInventorTower())return {hint:'Recharging at Forge Tower',col:'#ff6a3d'};if(!invTower)return null;
+    return {x:invTower.x,y:invTower.top+8,z:invTower.z,icon:'🔋',label:'Forge Tower',col:'#ff6a3d',hint:(save.battery<=0?'Suit on standby':'Battery low')+' · fly to Forge Tower to recharge'};}
   if(m.key==='bolt'){if(tallRoofHere())return {hint:(touchOn()?'Tap USE':'Press G')+' to raise your hammer and call the storm',col:'#8fd8ff'};
     if(time-goalCache.t>1||goalCache.key!=='bolt'){goalCache={t:time,key:'bolt',g:nearestTallRoof()};}const r=goalCache.g;if(!r)return null;
     return {x:r.x,y:r.y+8,z:r.z,icon:'⚡',label:'Tall roof',col:'#8fd8ff',hint:'Lightning low · land on a tall roof and '+(touchOn()?'tap USE':'press G')+' to call the storm'};}
@@ -6944,7 +6949,7 @@ function renderSettings(){
       el('div',{class:'lb-tabs'},...modes.map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.controls===k),text:l,onclick:()=>{s.controls=k;persist();applyTouchUI();buildHotbar();renderSheet();}})))),
     el('div',{class:'field'},el('span',{text:'Ring oath · how the Ring Bearer recites it'}),
       el('div',{class:'lb-tabs'},...[['voice','Say it out loud'],['type','Type it (Tab)']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.oathInput===k),disabled:k==='voice'&&!voiceOK(),text:l,onclick:()=>{s.oathInput=k;persist();if(k==='voice')askMic(true);renderSheet();}}))),
-      el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line, and you can keep moving and fighting (no ring powers until you finish). O or Esc puts the lantern away.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
+      el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line, and you can keep moving and fighting (no ring powers until you finish). O or Esc puts the beacon away.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
     ...(s.oathInput==='voice'&&voiceOK()?micSettings(s,rng):[]),
     row('Lock the mouse when you click into the game',chk('autoLock')),
     el('p',{class:'muted',text:'Press L any time to lock or unlock the mouse. While it is unlocked, hold the middle mouse button and drag to look around.'}),
@@ -7163,7 +7168,7 @@ function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.au
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
 function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.swim&&!P.grounded)return; // under water Space just swims you up
   if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
-// web-slingers: tap Space in the air to web-zip, hold it to open the web wings
+// web runners: tap Space in the air to web-zip, hold it to open the web wings
 function releaseJump(){if(P.charging&&canAct())doJump();P.charging=false;
   if(P.spaceT&&!P.wings&&time-P.spaceT<0.22&&!P.grounded&&canAct())webZip();P.spaceT=0;}
 function doJump(){
@@ -7224,18 +7229,18 @@ tl.addEventListener('pointermove',e=>{
   else if(e.pointerId===lookId){look(e.clientX-lx,e.clientY-ly,2.2);lx=e.clientX;ly=e.clientY;}});
 const endTouch=e=>{if(e.pointerId===stickId){stickId=null;touchIn.x=touchIn.y=0;knob.style.transform='';stick.style.left='';stick.style.top='';stick.classList.remove('on');}if(e.pointerId===lookId)lookId=null;};
 tl.addEventListener('pointerup',endTouch);tl.addEventListener('pointercancel',endTouch);
-const SHORT={sonicScream:'SCREAM',quakeStomp:'QUAKE',meteorStrike:'METEOR',forcePush:'PUSH',chainLightning:'CHAIN',healingPulse:'HEAL',invisibility:'CLOAK',vineSnare:'SNARE',shadowStep:'STEP',plasmaWhip:'WHIP',bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'REPULS',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
+const SHORT={sonicScream:'SCREAM',quakeStomp:'QUAKE',meteorStrike:'METEOR',forcePush:'PUSH',chainLightning:'CHAIN',healingPulse:'HEAL',invisibility:'CLOAK',vineSnare:'SNARE',shadowStep:'STEP',plasmaWhip:'WHIP',bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'PULSE',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
 function bindTouchBtn(b,act){
   b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{b.setPointerCapture(e.pointerId);}catch(err){}b.classList.add('down');touchAct(act,true);});
   const up=()=>{if(!b.classList.contains('down'))return;b.classList.remove('down');touchAct(act,false);};
   b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('contextmenu',e=>e.preventDefault());
 }
 bindTouchBtn($('tpause'),'pause');
-function buildTouchButtons(){
+function buildTouchButtons(){ // on CrazyGames a locked power key gets its button when it unlocks (level-ups rebuild these)
   tbtns.textContent='';if(!save.character)return;
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
-  else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
+  else{save.character.abilities.forEach((id,i)=>{if(!(PBAL&&slotLocked(i)))B(SHORT[id]||'A'+(i+1),'a'+i,'ab');});B('PUNCH','punch','big');
     for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');B('REBUILD','rebuild');}}}
   if(!P.alien){B('GROW','grow');B('SHRINK','shrink');} // hold a power button (or sit in a construct) and tap these to change its size
   if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
@@ -7460,7 +7465,7 @@ function updatePlayer(dt){
   else{if(P.vel.y>0){al=-2.7;ar=-2.7;el=er=-0.1;tl=0.5;tr=-0.3;kl=0.9;kr=0.3;cape=0.4;}else{al=-1.2;ar=-1.2;alz=-0.9;arz=0.9;el=er=-0.4;tl=0.3;tr=-0.2;kl=0.5;kr=0.4;cape=clamp(-P.vel.y/35,0.3,2.6);}
     if(P.slam){al=-3;ar=-3;alz=-0.2;arz=0.2;tl=0.9;tr=0.9;kl=kr=1.5;cape=2.8;}}
   if(P.tk){ar=-1.7;al=-1.7;alz=-0.3;arz=0.3;el=er=-0.2;}
-  if(hasPower('stormBody')&&!P.alien&&P.suited!==false&&!thrown.some(t=>t.kind==='hammer')){ // the storm god's hammer arm
+  if(hasPower('stormBody')&&!P.alien&&P.suited!==false&&!thrown.some(t=>t.kind==='hammer')){ // the tempest's hammer arm
     if(P.fCharge){ar=-2.9;arz=0.25;er=0;al=-0.6;}else if(time-(P.hammerUpT||-9)<0.6){ar=-3.1;arz=0.05;er=0;}else if(P.flying&&sp3>12){ar=-2.95;er=0;arz=0.05;}}
   if(time-castT<0.25&&!beam){ar=-1.6;er=0;}
   const k=damp(14,dt);a.legL=lerp(a.legL,tl,k);a.legR=lerp(a.legR,tr,k);a.kneeL=lerp(a.kneeL||0,kl,k);a.kneeR=lerp(a.kneeR||0,kr,k);a.armL=lerp(a.armL,al,k);a.armR=lerp(a.armR,ar,k);

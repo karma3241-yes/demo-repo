@@ -15,7 +15,7 @@ for(const id of CON_PAGES[1])if(!CON_IDS.includes(id))CON_IDS.push(id);
 const conDrive=()=>{const c=conDef();return c&&c.drive?c:null;};
 // ---- driving the bike and the race car ----
 function driveConstruct(dt,inF,inR,shift){
-  const K=P.construct,C=CONSTRUCTS[K.id],D=C.drive;K.spd=K.spd||0;
+  const K=P.construct,C=CONSTRUCTS[K.id],g=conSizeK(),D={top:C.drive.top*g,accel:C.drive.accel*g,steer:C.drive.steer};K.spd=K.spd||0; // g: grown vehicles are faster in proportion
   const boost=shift&&(C.free||conFuel()>0.5)&&K.spd>5;if(boost){if(!C.free)conBurn(0.8*dt);if(Math.random()<dt*30){const b=-2.2;emit(P.pos.x+Math.sin(P.heroYaw)*b,P.pos.y+0.6,P.pos.z+Math.cos(P.heroYaw)*b,rr(-2,2),rr(0,2),rr(-2,2),0.35,C.armor?FIRE[1]:RING_C,1.6,0,0);}}
   const top=D.top*(boost?1.5:1)*(K.rideRam>0?1.4:1);
   if(inF>0.1)K.spd+=(K.spd<-0.5?D.accel*2:D.accel*(boost?1.8:1))*inF*dt;

@@ -1,5 +1,5 @@
 // ================================================================
-// Saying the oath out loud: the browser's speech recognition listens while the lantern is up
+// Saying the oath out loud: the browser's speech recognition listens while the beacon is up
 // ================================================================
 // Settings → Ring oath picks "Say it out loud" (the default where the browser can listen) or "Type it".
 // In voice mode the game asks for the microphone when you start playing as the Ring Bearer, and O starts listening.
@@ -36,7 +36,7 @@ function voiceOathStart(){
     if(er&&er!=='no-speech'&&er!=='aborted'&&++voiceFails>=3&&!voiceBlocked){voiceBlocked=true;oathTyped();voiceNote('Speech recognition is not working here right now · type the oath instead');feed('Can\'t listen right now','Type the oath instead');return;} // e.g. offline: stop retrying
     if(er==='not-allowed'||er==='service-not-allowed'||er==='audio-capture'){voiceBlocked=true;oathTyped();voiceNote('The microphone is blocked here · type the oath instead ('+(touchOn()?'NEXT WORD':'Tab')+' fills words once you know it)');feed('Microphone blocked','Type the oath instead · allow the mic in your browser to speak it');}};
   voiceRec.onend=()=>{const r=voiceRec;if(!r)return;if(oathOpen&&oathVoice()){voiceBase=voicePtr;setTimeout(()=>{if(voiceRec===r&&oathOpen)try{r.start();}catch(e){}},120);}}; // it stops after a pause: keep listening
-  try{voiceRec.start();voiceNote('🎙 Listening · say the oath out loud, loudly to overcharge the ring'+(touchOn()?' (you can still type it) · tap OATH':' · O or Esc')+' puts the lantern away');}catch(e){voiceRec=null;}
+  try{voiceRec.start();voiceNote('🎙 Listening · say the oath out loud, loudly to overcharge the ring'+(touchOn()?' (you can still type it) · tap OATH':' · O or Esc')+' puts the beacon away');}catch(e){voiceRec=null;}
 }
 function voiceOathStop(){const r=voiceRec;voiceRec=null;if(r)try{r.onend=null;r.abort();}catch(e){}}
 // ask for the microphone up front (once per session) so the first oath is not interrupted by the prompt

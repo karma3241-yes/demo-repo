@@ -2,7 +2,7 @@
 // Ring Bearer: ring charge, hard-light constructs, ring moves, the black hole and the oath
 // ================================================================
 // Everything the ring does costs charge (save.ring, 0-100). It never refills on its own:
-// press O to hold up the lantern and type the oath. At zero charge you can only walk.
+// press O to hold up the beacon and type the oath. At zero charge you can only walk.
 // Said out loud and loud enough (Settings → Ring oath), the oath overcharges the ring to 200 (RING_MAX).
 // B builds your default construct (the last one you picked), V opens the construct wheel.
 // Inside a construct, left click / right click / X are its attacks.
@@ -45,7 +45,10 @@ function conGrowStep(dir){
   SFX.tone('sine',ng>g?220:500,ng>g?120:900,0.25,0.08);if(ng>g)addShake(Math.min(0.6,0.05*Math.log2(ng+1)));MP.bump();return true;
 }
 const titanGrow=conGrowStep;
-const conSpeedMul=()=>{const c=conDef();return c?c.speed:1;};
+// a grown transport construct (anything you ride, drive or fly; not a held weapon) moves in proportion to its size,
+// so an Earth-sized jet doesn't crawl along at a car's speed
+const conSizeK=()=>{const c=conDef();return c&&!c.weapon?Math.max(1,P.construct.grow||1):1;};
+const conSpeedMul=()=>{const c=conDef();return c?c.speed*conSizeK():1;};
 const conCam=()=>{const c=conDef();if(!c)return 1;const b=c.cam?c.cam:P.construct.id==='dragon'?1.8:P.construct.id==='jet'?1.35:P.construct.id==='bubble'?1.2:1;return c.scale?b:b*conGrow(P.construct.id);};
 // constructs run on ring charge, or on the suit battery for the Armored Inventor's suit forms (4 ring points = 1 battery point)
 const armorForms=()=>hasTrav('armorFlight')&&!P.alien;
@@ -255,8 +258,8 @@ function openOath(){
   // said out loud: you move and fight freely, but the ring is busy (no ring powers or constructs until you finish)
   oathOpen=true;oathFree=vo;oathStart=save.ring;voicePeak=0;oathIn.value='';oathEl.hidden=false;oathEl.classList.toggle('mini',!!save.oathKnown);renderOath(0);
   const tch=touchOn();oathIn.readOnly=!tch;oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';
-  $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the lantern away')
-    :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the lantern away.');
+  $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the beacon away')
+    :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the beacon away.');
   $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;
   if(!vo){P.charging=false;for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);}
   SFX.tone('sine',200,400,0.6,0.08);
@@ -275,9 +278,9 @@ function oathTyped(){
   const tch=touchOn();oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';if(tch)setTimeout(()=>oathIn.focus(),30);
 }
 const ringLocked=()=>oathOpen&&oathFree;
-function oathBusy(){if(time-oathBusyT<1.2)return;oathBusyT=time;feed('Finish the oath first','The ring is busy while you speak · '+(touchOn()?'tap OATH':'O')+' puts the lantern away');SFX.tone('square',220,160,0.08,0.05);}
+function oathBusy(){if(time-oathBusyT<1.2)return;oathBusyT=time;feed('Finish the oath first','The ring is busy while you speak · '+(touchOn()?'tap OATH':'O')+' puts the beacon away');SFX.tone('square',220,160,0.08,0.05);}
 function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathFree=false;voiceOathStop();micOff('oath');$('oath-lvl').hidden=true;oathEl.hidden=true;P.lantern=false;oathIn.blur();}
-// keyboard typing while the lantern is out (called from the main key handler before anything else)
+// keyboard typing while the beacon is out (called from the main key handler before anything else)
 function oathKey(e){
   e.preventDefault();const k=e.key;
   if(e.code==='Escape'||e.code==='Enter'||e.code==='NumpadEnter'){closeOath();return;}
