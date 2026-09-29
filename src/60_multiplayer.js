@@ -153,8 +153,8 @@ function updateRemotes(dt){
 const P2P_LIB=['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'];
 // how two players find a path to each other: STUN finds a direct route; when a network blocks direct connections
 // (mobile data, school or work wifi, some routers, VPNs) a TURN relay carries the traffic instead.
-// The site's /api/turn hands out short-lived Cloudflare TURN credentials when the Vercel project has its two
-// Cloudflare variables set (see Readme); the free public relay below is only a best-effort fallback.
+// The site's /api/turn hands out short-lived Cloudflare TURN credentials when the Vercel project has its
+// Cloudflare variables set (see Readme), up to a monthly cap; the free public relay below is only a best-effort fallback.
 const P2P_ICE=[{urls:['stun:stun.cloudflare.com:3478','stun:stun.l.google.com:19302']},
   {urls:['turn:freestun.net:3478'],username:'free',credential:'free'}];
 const P2P_PREFIX='skyline-guardian-v1-',P2P_MAX=8,P2P_TOPICS=['hit','down','fx','dx'],P2P_HOST_TOPICS=['nh','tk','tg','tt'];
@@ -164,9 +164,10 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
   // relay credentials from the site (cached until they are close to expiring); falls back to the public list
   async loadIce(){
     if(this.ice&&performance.now()<this.iceUntil)return;
-    if(PORTAL){this.ice=P2P_ICE;this.iceUntil=1e15;return;} // portal builds only use the free relays, never the site's Cloudflare TURN
+    // the CrazyGames build asks the website for them (its pages are on crazygames.com); the site stops handing them out
+    // at a monthly usage cap, and then both builds just use the free list
     try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),4000);
-      const r=await fetch('/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
+      const r=await fetch((PORTAL?SITE_URL:'')+'/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
       const d=r.ok?await r.json():null,list=d&&(Array.isArray(d.iceServers)?d.iceServers:d.iceServers?[d.iceServers]:null);
       if(list&&list.length){this.ice=list.concat(P2P_ICE);this.iceUntil=performance.now()+50*60e3;return;}}catch(e){}
     this.ice=P2P_ICE;this.iceUntil=performance.now()+60e3;

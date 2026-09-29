@@ -86,6 +86,8 @@ and the Armored Inventor's red-and-gold armour and tower (Iron Man).
 
 1. Avatar: not required, so left out.
 2. Originality: rename where copyright is possible (done above).
-3. Multiplayer: alternatives offered, waiting on a choice.
+3. Multiplayer: keep it, and let the CrazyGames build use the site's Cloudflare relay (`api/turn.js`), with a hard
+   monthly cap (`TURN_CAP_GB`, set to 950) so it never leaves the free 1000 GB. Measured: about 0.13 GB per relayed
+   player-hour.
 4. PEGI 12: the villain path is fine as it is.
 5. Calmer first screen: yes (done above).
