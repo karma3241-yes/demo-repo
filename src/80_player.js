@@ -28,7 +28,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
-  if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else if(P.construct)vHoldStart(e.timeStamp);else openDial('construct');}else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
+  if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else if(P.construct)vHoldStart(e.timeStamp);else openDial('construct');}else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else if(hasTravWheel()&&!hasPower('morphBand'))openDial('trav');else bandPress();return;}
   if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
   if(e.code==='KeyO'&&isRing()){if(ringLocked())closeOath();else openOath();return;}
   if(e.code==='KeyY'&&isRing()){ringRebuild();return;}
@@ -157,7 +157,7 @@ function buildTouchButtons(){ // on CrazyGames a locked power key gets its butto
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>{if(!(PBAL&&slotLocked(i)))B(SHORT[id]||'A'+(i+1),'a'+i,'ab');});B('PUNCH','punch','big');
-    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');B('REBUILD','rebuild');}}}
+    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');B('REBUILD','rebuild');}if(TRAV_STYLES[id])B('WHEEL','travdial');}}
   if(!P.alien){B('GROW','grow');B('SHRINK','shrink');} // hold a power button (or sit in a construct) and tap these to change its size
   if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
   if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
@@ -184,6 +184,7 @@ function touchAct(a,down){
   else if(a==='web'){if(down)webPress();else webRelease();}
   else if(a==='use'){if(down)interact();}
   else if(a==='band'){if(down)bandPress();}
+  else if(a==='travdial'){if(down&&hasTravWheel())openDial('trav');}
   else if(a==='fast'){if(down)toggleFastMode();}
   else if(a==='tkmore'){if(down)tkGrabMore();}
   else if(a==='suit'){if(down)suitToggle();}
@@ -305,9 +306,11 @@ function updatePlayer(dt){
     else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(conDrive()&&!P.flying)driveConstruct(dt,inF,inR,shift);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
       let tx=fwdX*cp*inF+rX*inR,ty=sp*inF+((keys.Space?1:0)-(keys.KeyC?1:0)),tz=fwdZ*cp*inF+rZ*inR;const l=Math.hypot(tx,ty,tz);if(l>1){tx/=l;ty/=l;tz/=l;}
-      const base=(AL&&AL.flies?AL.flySpeed:flySpeed()*conSpeedMul())*slowMul*spaceSpeedMul(),spd=shift?base*(AL&&AL.flies?1.5:flyBoost()):base,k=damp(shift?1.8:3,dt);
+      const boost=shift||stormRide(); // Tempest's Storm Ride style flies at full boost all the time
+      const base=(AL&&AL.flies?AL.flySpeed:flySpeed()*conSpeedMul())*slowMul*spaceSpeedMul(),spd=boost?base*(AL&&AL.flies?1.5:flyBoost()):base,k=damp(boost?1.8:3,dt);
       const lk=P.launchT>0?k*0.06:k;if(P.launchT>0)P.launchT-=dt; // a charged launch keeps its momentum for a moment
       P.vel.x+=(tx*spd-P.vel.x)*lk;P.vel.y+=(ty*spd-P.vel.y)*lk;P.vel.z+=(tz*spd-P.vel.z)*lk;
+      if(stormRide()&&Math.random()<0.6){const c=center(P),q=0.06;tracer(c.x,c.y,c.z,c.x-P.vel.x*q+rr(-1,1),c.y-P.vel.y*q+rr(-1,1),c.z-P.vel.z*q+rr(-1,1),Math.random()<0.5?[.6,.75,1]:[1,1,1],0.08,0.3);}
     }else{
       let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
       const am=AL?AL.speed:P.construct&&!P.flying?conSpeedMul():1;

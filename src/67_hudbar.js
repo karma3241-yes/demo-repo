@@ -9,7 +9,7 @@
 // and shrinks to fit (folding "Getting started" down to its next step if it has to), so it never needs scrolling.
 // The leaderboard sits under the icons on the left (the full board opens from it, the main menu or the pause menu).
 // The CrazyGames build has no leaderboard at all: the shared board lives on claude.ai, and pointing players there is cross-promotion.
-const rewardsLater=()=>{const st=save.stats||{};return !(st.crimesStopped||st.crimesCommitted||save.level>1);};
+const rewardsLater=()=>{const st=save.stats||{};return BASIC_LAUNCH||!(st.crimesStopped||st.crimesCommitted||save.level>1);};
 const HUDBAR=[
   {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},

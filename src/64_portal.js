@@ -16,7 +16,7 @@ const PORTAL_AD_GAP=180,XP_BOOST={mul:2,time:300};
 const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,forceMute:false,weMuted:false,username:'',adblock:false,
   on(){return !!this.sdk;},
   // rewarded buttons are only live when an ad can actually play (an ad blocker leaves them greyed out, never clickable-but-dead)
-  ads(){return !!this.sdk&&!this.adblock;},
+  ads(){return !!this.sdk&&!this.adblock&&!BASIC_LAUNCH;}, // basic launch: no ads at all (20_core.js)
   async init(){
     if(PORTAL!=='crazygames')return;const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;
     try{await S.init();}catch(e){return;}
@@ -24,6 +24,8 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0
     try{S.game.loadingStart();S.game.loadingStop();}catch(e){} // the game has finished loading by the time the SDK is ready
     this.cloudSync(S);this.watchSettings(S);this.fetchUser(S);this.checkAdblock(S);
     try{const room=S.game.getInviteParam('room');if(room&&P2P.available())P2P.join(room);else if(S.game.isInstantMultiplayer&&P2P.available())P2P.create();}catch(e){}
+    // a player already in the game who accepts a friend's invite goes straight to that room
+    try{if(typeof S.game.addJoinRoomListener==='function')S.game.addJoinRoomListener(p=>this.joinInvite(p));}catch(e){}
     if(sheetOpen)renderSheet();renderPortalButtons();
   },
   // tell the portal whether the player is actually playing (not in menus, paused, knocked out or watching an ad)
@@ -59,14 +61,14 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0
     this.setUser(u);},
   async checkAdblock(S){try{this.adblock=!!(await S.ad.hasAdblock());}catch(e){}if(this.adblock)renderPortalButtons();},
   show(kind,done){
-    if(!this.sdk||this.inAd){done&&done(false);return;}
+    if(!this.sdk||this.inAd||BASIC_LAUNCH){done&&done(false);return;}
     const end=ok=>{if(!this.inAd)return;this.inAd=false;this.quiet(false);this.tick();done&&done(ok);};
     this.inAd=true;this.tick();
     try{this.sdk.ad.requestAd(kind,{adStarted:()=>{this.quiet(true);mouseL=false;for(const k in keys)keys[k]=false;},adFinished:()=>{this.adAt=performance.now()/1000;end(true);},adError:()=>end(false)});}
     catch(e){end(false);}
   },
   // a short ad at a natural break, if the last one was long enough ago
-  midgame(){if(!this.sdk||performance.now()/1000-this.adAt<PORTAL_AD_GAP)return;this.show('midgame');},
+  midgame(){if(BASIC_LAUNCH||!this.sdk||performance.now()/1000-this.adAt<PORTAL_AD_GAP)return;this.show('midgame');},
   rewardXP(){this.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}
     this.boostUntil=time+XP_BOOST.time;toast('Double XP','For the next 5 minutes of play','gold');renderPortalButtons();});},
   xpMul(){return time<this.boostUntil?XP_BOOST.mul:1;},
@@ -88,6 +90,10 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0
     persistHook=j=>D.setItem(SAVE_KEY,j);
     if(save.character&&!has)persist();
   },
+  joinInvite(p){const room=p&&typeof p.room==='string'?p.room.trim().toUpperCase():'';
+    if(!/^[A-Z0-9]{4,8}$/.test(room)||!P2P.available())return;
+    if(P2P.code===room&&(P2P.state==='open'||P2P.state==='starting'))return; // already there
+    P2P.join(room);if(state==='play')feed('Joining your friend','Room '+room);},
   inviteLink(code){try{return this.sdk?this.sdk.game.inviteLink({room:code}):'';}catch(e){return '';}},
   // room info for the portal (its invite button and friends list): which room, and whether friends can still get in
   roomChanged(){if(!this.sdk)return;const g=this.sdk.game;try{

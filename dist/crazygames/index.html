@@ -267,6 +267,12 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #guide li{display:grid;gap:1px;padding-left:20px;position:relative;font-size:13px}
 #guide li::before{content:"";position:absolute;left:0;top:3px;width:10px;height:10px;border:1.5px solid var(--ink-dim);border-radius:3px}
 #guide li.done{opacity:.45}#guide li.done::before{background:#7dffb0;border-color:#7dffb0}
+/* grow tutorial: shown until the player first grows a construct (it can't be closed) */
+#growtut{position:absolute;left:50%;top:22%;transform:translateX(-50%);padding:12px 18px;text-align:center;max-width:min(360px,calc(100% - 32px));box-sizing:border-box;border-color:#5dff86;box-shadow:0 0 24px rgba(93,255,134,.35);animation:gtpulse 1.6s ease-in-out infinite}
+#growtut h4{margin:0 0 4px;font:400 20px var(--display);letter-spacing:.06em;color:#5dff86}#growtut p{margin:0;font-size:14px;line-height:1.4}
+.gt-wheel{width:22px;height:34px;margin:8px auto 0;border:2px solid var(--ink);border-radius:12px;position:relative}.gt-wheel i{position:absolute;left:50%;top:6px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:#5dff86;animation:gtscroll 1s ease-in-out infinite}
+body.touch .gt-wheel{display:none}
+@keyframes gtpulse{50%{box-shadow:0 0 40px rgba(93,255,134,.6)}}@keyframes gtscroll{0%{transform:translateY(10px);opacity:0}40%{opacity:1}100%{transform:translateY(-4px);opacity:0}}
 #guide-more{margin:8px 0 0;font-size:11px;color:var(--ink-dim);letter-spacing:.04em}body.touch #guide-more{display:none}
 #guide li span{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
 #guide.mini li{display:none}#guide.mini li:not(.done){display:grid}#guide.mini li:not(.done)~li{display:none}#guide.mini h4{margin-bottom:4px}
@@ -377,6 +383,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div id="bossbar" hidden><div class="name" id="bossname">Boss</div><div class="bar boss"><i id="bossb"></i></div></div>
   <div id="toasts"></div>
   <div id="feed"></div>
+  <div id="growtut" class="panel" hidden><h4>Grow it</h4><p id="growtut-t"></p><div class="gt-wheel"><i></i></div></div>
   <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol><p id="guide-more"><kbd>H</kbd> all moves</p></div>
   <div id="keys" class="panel fade"><div id="keys-head"><b>Move list</b><span><kbd>H</kbd> hide</span></div><div id="keys-hero"></div></div>
   <div id="hudbar"></div>
@@ -1610,6 +1617,12 @@ const CRIMES={maxActive:3,spawnGap:[14,32],minDist:90,maxDist:420,clearXp:100,cl
 const Bus={h:{},on(e,f){(this.h[e]||(this.h[e]=[])).push(f);},emit(e,d){const l=this.h[e];if(l)for(const f of l)f(d);}};
 const SAVE_KEY='skyline-guardian-save',SAVE_VERSION=1;
 const RING_MAX=200; // ring charge tops out at 100; a loud spoken oath overcharges it up to this
+// traversal styles on the V wheel for heroes without constructs: [id, name, what it does]. The first is the default.
+const TRAV_STYLES={
+  webSwing:[['swing','Swing','Hold right click to swing · Space mid-air to web-zip'],['zip','Zip','Right click zips you straight to where you aim'],['glide','Glide','Web wings open by themselves when you fall · hold C to fold them']],
+  stormFlight:[['fly','Fly','F to fly · Shift to boost'],['leap','Hammer Leap','Tap or hold F to leap: you arc through the sky and land, no hovering'],['storm','Storm Ride','Fly at full boost on a trail of lightning · harder to steer']],
+  superSpeed:[['walk','Walk','Normal pace · Shift still runs at the speed dial'],['jog','Jog','Always running at x2'],['run','Run','Always running at half your top speed'],['top','Top speed','Always running at your top speed']],
+};
 const DEFAULT_SETTINGS={oathInput:window.__PORTAL__==='crazygames'?'type':'voice', // portals can't be counted on to allow the mic: typed there, voice still in Settings
   micLoud:0.65,controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
@@ -1662,6 +1675,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
     if(['auto','touch','kbm'].includes(t.controls))st.controls=t.controls;
     if(['voice','type'].includes(t.oathInput))st.oathInput=t.oathInput;
     for(const k of ['autoLock','invertY','shadows'])if(typeof t[k]==='boolean')st[k]=t[k];
+    if(t.travStyle&&typeof t.travStyle==='object'){st.travStyle={};for(const k in TRAV_STYLES)if(TRAV_STYLES[k].some(x=>x[0]===t.travStyle[k]))st.travStyle[k]=t.travStyle[k];}
     st.sens=num(t.sens,1,0.3,3);st.volume=num(t.volume,0.7,0,1);st.micLoud=num(t.micLoud,0.65,0.2,0.95);}
   f.character=validCharacter(s.character);
   if(!f.character){f.character=migrateCharacter(s.character);if(f.character)f.migrated=true;}
@@ -1675,7 +1689,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
   f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.savedAt=num(s.savedAt,0,0,1e15);f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
-  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car'])if(s.guide[k]===true)f.guide[k]=true;
+  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
 const save=loadSave();
@@ -1693,15 +1707,20 @@ const throwMul=()=>1+0.01*pv('strength');
 const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'],armorFlight:['flight'],solarFlight:['flight']};
 const hasPower=id=>{const c=save.character;if(!c)return false;if(c.movement.includes(id)||c.body===id||c.abilities.includes(id))return true;const imp=IMPLIED[c.movement[0]];return !!(imp&&imp.includes(id));};
 const hasTrav=id=>!!save.character&&save.character.movement[0]===id;
+// the chosen V-wheel style of your traversal ('' when it has none)
+const travStyle=id=>{const L=TRAV_STYLES[id];if(!L)return '';const v=save.settings.travStyle&&save.settings.travStyle[id];return L.some(x=>x[0]===v)?v:L[0][0];};
 const LEVEL_OF=id=>POWERS[id]&&POWERS[id].of||id; // signature moves share their body mod's level
 const powerLevel=id=>trialOn('lv:'+LEVEL_OF(id))?CONFIG.powerMax:clamp(save.powerLevels[LEVEL_OF(id)]|0||1,1,CONFIG.powerMax);
 // ---- traversal mastery: grows with use, no skill points ----
 // The CrazyGames build (PBAL) plays slower and tighter: weaker at the start, mastery takes ~6 hours, every size has a cap,
 // and locked things can be tried for 10 minutes with an ad (see 65_rewards.js). The website and claude.ai keep today's balance.
 const PBAL=window.__PORTAL__==='crazygames';
+// CrazyGames basic launch: ads aren't allowed yet, so every ad (and the reward icons) is off, and your traversal starts
+// fully mastered so players see the best of it (levels and skill points work as usual). For full launch set this to false.
+const BASIC_LAUNCH=PBAL&&true;
 const MASTERY_MAX=10,MASTERY_K=PBAL?9000:1500;
 function trialOn(k){return PBAL&&!!save.trials&&save.trials[k]>Date.now();}
-const masteryLevel=id=>trialOn('trav')&&save.character&&id===save.character.movement[0]?MASTERY_MAX:1+(MASTERY_MAX-1)*(1-Math.exp(-(save.mastery[id]||0)/MASTERY_K));
+const masteryLevel=id=>(BASIC_LAUNCH||trialOn('trav'))&&save.character&&id===save.character.movement[0]?MASTERY_MAX:1+(MASTERY_MAX-1)*(1-Math.exp(-(save.mastery[id]||0)/MASTERY_K));
 const mk=id=>(masteryLevel(id)-1)/(MASTERY_MAX-1); // 0 at the start, 1 when mastered
 function addMastery(id,n){if(!save.character||!(n>0))return;const before=Math.floor(masteryLevel(id));save.mastery[id]=(save.mastery[id]||0)+n;const after=Math.floor(masteryLevel(id));
   if(after>before&&typeof feed==='function')feed((PRESETS[id]?PRESETS[id].name:POWERS[id]?POWERS[id].name:'Jumping')+' mastery '+after,MASTERY_NOTES[id]&&MASTERY_NOTES[id][after]||'You can go further, faster');}
@@ -2165,11 +2184,24 @@ function flyChargeStart(){
 function flyChargeRelease(){
   if(!P.fCharge)return false;P.fCharge=false;const t=P.chargeT||0,on=P.charging&&P.grounded;P.charging=false;
   if(!on||t<0.25){if(!P.flying)toggleFlight();return true;}
-  const k=clamp(t/1.5,0,1);toggleFlight();if(!P.flying)return true;
-  P.vel.set(camF.x*25*k,70+170*k,camF.z*25*k);P.launchT=0.5+1.3*k;P.pos.y+=0.3;P.hammerUpT=time;if(hasPower('stormBody')&&k>0.4&&!boltEmpty()){bolt(P.pos.x,P.pos.y,P.pos.z,true);if(heroMeter())payEn(6,'lightning');}
+  const k=clamp(t/1.5,0,1);
+  if(stormLeap()){hammerLeap(k);return true;}
+  toggleFlight();if(!P.flying)return true;
+  P.vel.set(camF.x*25*k,70+170*k,camF.z*25*k);P.launchT=0.5+1.3*k;launchFx(k);return true;
+}
+// Tempest's Hammer Leap style (V wheel): no hovering, the hammer throws you in a long arc; a tap is a short hop, a full
+// charge clears several blocks. In the air you steer the arc the way you steer any jump.
+const stormLeap=()=>hasTrav('stormFlight')&&!P.alien&&travStyle('stormFlight')==='leap';
+const stormRide=()=>hasTrav('stormFlight')&&!P.alien&&P.flying&&travStyle('stormFlight')==='storm';
+function hammerLeap(k){
+  if(!P.grounded||!canAct())return;const fl=Math.hypot(camF.x,camF.z)||1,h=30+60*k;
+  P.flying=false;P.vel.set(camF.x/fl*h,30+110*k,camF.z/fl*h);P.grounded=false;launchFx(k);
+}
+function launchFx(k){
+  P.pos.y+=0.3;P.hammerUpT=time;if(hasPower('stormBody')&&k>0.4&&!boltEmpty()){bolt(P.pos.x,P.pos.y,P.pos.z,true);if(heroMeter())payEn(6,'lightning');}
   ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,10+22*k,0.5,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,Math.round(30+60*k),14+24*k,0.9,DUST,2.4,-3,2.5);
   if(k>0.5)crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,2+3*k,[.42,.41,.4]);SFX.boom(0.4+0.5*k,0.8);addShake(0.2+0.5*k);hitProps(P.pos.x,P.pos.y,P.pos.z,3+4*k,P,12);
-  addMastery(save.character.movement[0],10*k);return true;
+  addMastery(save.character.movement[0],10*k);
 }
 function flyChargeTick(){
   if(!P.fCharge)return;if(!P.charging||!P.grounded){P.fCharge=false;P.charging=false;return;}
@@ -2180,6 +2212,7 @@ function flyChargeTick(){
 function toggleFlight(){
   if(!hasPower('flight')||!canAct()||P.car)return;
   if(P.alien)return; // alien forms fly (or not) on their own
+  if(!P.flying&&stormLeap()){hammerLeap(0.25);return;} // Hammer Leap style: F leaps instead of flying
   if(isRing()){if(!P.flying&&save.ring<=0){ringOut();return;}if(P.construct&&CONSTRUCTS[P.construct.id].drive)return;}
   else if(!P.flying&&P.en<5){noEnergy();return;}
   P.flying=!P.flying;P.charging=false;P.web=null;P.wall=null;
@@ -2671,6 +2704,8 @@ function webPress(){
       SFX.tone('triangle',1300,500,0.12,0.08);if(a.alive&&!tetherShielded(a))tetherTo(a,d);return;}}
   if(a&&a.kind==='vehicle'&&a.alive){const c=center(a),d=Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z);
     if(d<R*0.6){if(!spend(POWERS.webSwing.energy)){noEnergy();return;}tetherTo(a,d);SFX.tone('triangle',1100,500,0.12,0.08);return;}}
+  // Zip style (V wheel): right click pulls you straight to where you aim instead of swinging
+  if(hasTrav('webSwing')&&travStyle('webSwing')==='zip'){if(!webZip(true)){PS.webSwing.flash=0.3;feed('Nothing to zip to','Aim at a wall or rooftop within '+Math.round(R*0.8)+' m');}return;}
   // aimed surface above you, else the anchor assist
   let pt=null;
   if(aim.hitAny&&aim.surface&&!(aim.ny>0.5&&aim.y<2)&&aim.y>P.pos.y+3){const d=Math.hypot(aim.x-h.x,aim.y-h.y,aim.z-h.z);if(d<=R)pt={x:aim.x,y:aim.y,z:aim.z};}
@@ -2720,8 +2755,8 @@ function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
     const R=webRange();webRelease(true);webHeld=true;const pt=findAnchor(R);if(pt&&P.en>=POWERS.webSwing.energy*0.5){P.en-=POWERS.webSwing.energy*0.5;attachWeb(pt);}}
 }
 // ---- web zip / point launch: Space in mid-air (web swingers) ----
-function webZip(){
-  if(!hasWeb()||P.zip||P.grounded)return false;
+function webZip(fromGround){
+  if(!hasWeb()||P.zip||(P.grounded&&!fromGround))return false;
   const R=webRange()*0.8;let pt=null;
   if(aim.hitAny&&aim.surface&&!aim.actor){const d=Math.hypot(aim.x-P.pos.x,aim.y-P.pos.y,aim.z-P.pos.z);if(d<R&&d>6)pt={x:aim.x+aim.nx*1.2,y:aim.y+Math.max(aim.ny,0)*0.5+0.5,z:aim.z+aim.nz*1.2};}
   if(!pt){const a=findAnchor(R);if(a)pt=a;}
@@ -3485,8 +3520,9 @@ function spiderTick(dt){
   if(P.flip){P.flip.t+=dt;if(P.flip.t>=P.flip.dur)P.flip=null;}
   if(!hasWeb()){P.wings=false;return;}
   const air=!P.grounded&&!P.flying&&!P.web&&!P.wall&&!P.wallRun&&!P.zip;
-  if(air&&keys.Space&&P.spaceT&&time-P.spaceT>0.22&&!P.wings){P.wings=true;SFX.tone('triangle',300,500,0.2,0.05);}
-  if(P.wings&&(!air||!keys.Space))P.wings=false;
+  const glide=hasTrav('webSwing')&&travStyle('webSwing')==='glide'; // Glide style (V wheel): wings open by themselves when you fall, C folds them
+  if(air&&!P.wings&&((keys.Space&&P.spaceT&&time-P.spaceT>0.22)||(glide&&P.vel.y<-6&&!keys.KeyC))){P.wings=true;SFX.tone('triangle',300,500,0.2,0.05);}
+  if(P.wings&&(!air||(glide?keys.KeyC:!keys.Space)))P.wings=false;
   if(P.web){const hs=Math.hypot(P.vel.x,P.vel.z);addMastery('webSwing',hs*dt*0.03);}
 }
 // danger sense: sometimes you dodge before the hit lands
@@ -3582,7 +3618,7 @@ function conGrowStep(dir){
   if(Math.abs(ng-g)<1e-6){if(time-(K.maxMsg||-9)>3){K.maxMsg=time;feed(dir>0?(PBAL?C.name+' is as big as your mastery allows (×'+Math.round(mx*10)/10+')':C.name+' is as big as the Earth'):C.name+' is back to normal size','');}return true;}
   if(ng>g){if(conFuel()<CON_GROW.cost+0.5){ringOut();return true;}conBurn(CON_GROW.cost);}
   else if(armorForms())save.battery=Math.min(meterCap(METERS.armorFlight),save.battery+CON_GROW.cost*CON_GROW.refund*0.25);else save.ring=Math.min(Math.max(100,save.ring),save.ring+CON_GROW.cost*CON_GROW.refund);
-  K.grow=ng;conBody();const c=center(P),sz=conBase(K.id)*ng;ringFx(c.x,P.pos.y+0.3,c.z,1,Math.min(4*sz,CON_GROW.earth),0.4,C.armor?ARMOR_FX:RING_C);
+  K.grow=ng;conBody();if(ng>g)growTutDone();const c=center(P),sz=conBase(K.id)*ng;ringFx(c.x,P.pos.y+0.3,c.z,1,Math.min(4*sz,CON_GROW.earth),0.4,C.armor?ARMOR_FX:RING_C);
   if(time-(K.sizeMsg||-9)>0.4){K.sizeMsg=time;feed(C.name+' · '+sizeLabel(sz),dir>0?'Scroll up to keep growing':'Shrinking gives back a quarter of the charge');}
   SFX.tone('sine',ng>g?220:500,ng>g?120:900,0.25,0.08);if(ng>g)addShake(Math.min(0.6,0.05*Math.log2(ng+1)));MP.bump();return true;
 }
@@ -4070,7 +4106,8 @@ function renderHeroKeys(){
   const K=(k,t)=>{grid.appendChild(el('kbd',{text:k}));grid.appendChild(el('span',{text:t}));};
   const m=c&&c.movement[0];
   H('Moving');K('WASD','Move');K('Space','Jump · hold for a super jump');K('C · Space in water','Dive · swim back up');
-  if(m==='webSwing'){K('Right click','Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
+  if(hasTravWheel()&&!hasPower('morphBand'))K('V','Traversal style: '+TRAV_STYLES[m].map(x=>x[1]).join(' · ')+' (now: '+TRAV_STYLES[m].find(x=>x[0]===travStyle(m))[1]+')');
+  if(m==='webSwing'){K('Right click',travStyle(m)==='zip'?'Zip to where you aim':'Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
   else if(m)K('F','Fly · hold on the ground to charge a launch');
   if(c){H('Your powers');c.abilities.forEach((id,i)=>{const p=POWERS[id];if(!p)return;
@@ -6274,7 +6311,7 @@ const PORTAL_AD_GAP=180,XP_BOOST={mul:2,time:300};
 const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,forceMute:false,weMuted:false,username:'',adblock:false,
   on(){return !!this.sdk;},
   // rewarded buttons are only live when an ad can actually play (an ad blocker leaves them greyed out, never clickable-but-dead)
-  ads(){return !!this.sdk&&!this.adblock;},
+  ads(){return !!this.sdk&&!this.adblock&&!BASIC_LAUNCH;}, // basic launch: no ads at all (20_core.js)
   async init(){
     if(PORTAL!=='crazygames')return;const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;
     try{await S.init();}catch(e){return;}
@@ -6282,6 +6319,8 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0
     try{S.game.loadingStart();S.game.loadingStop();}catch(e){} // the game has finished loading by the time the SDK is ready
     this.cloudSync(S);this.watchSettings(S);this.fetchUser(S);this.checkAdblock(S);
     try{const room=S.game.getInviteParam('room');if(room&&P2P.available())P2P.join(room);else if(S.game.isInstantMultiplayer&&P2P.available())P2P.create();}catch(e){}
+    // a player already in the game who accepts a friend's invite goes straight to that room
+    try{if(typeof S.game.addJoinRoomListener==='function')S.game.addJoinRoomListener(p=>this.joinInvite(p));}catch(e){}
     if(sheetOpen)renderSheet();renderPortalButtons();
   },
   // tell the portal whether the player is actually playing (not in menus, paused, knocked out or watching an ad)
@@ -6317,14 +6356,14 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0
     this.setUser(u);},
   async checkAdblock(S){try{this.adblock=!!(await S.ad.hasAdblock());}catch(e){}if(this.adblock)renderPortalButtons();},
   show(kind,done){
-    if(!this.sdk||this.inAd){done&&done(false);return;}
+    if(!this.sdk||this.inAd||BASIC_LAUNCH){done&&done(false);return;}
     const end=ok=>{if(!this.inAd)return;this.inAd=false;this.quiet(false);this.tick();done&&done(ok);};
     this.inAd=true;this.tick();
     try{this.sdk.ad.requestAd(kind,{adStarted:()=>{this.quiet(true);mouseL=false;for(const k in keys)keys[k]=false;},adFinished:()=>{this.adAt=performance.now()/1000;end(true);},adError:()=>end(false)});}
     catch(e){end(false);}
   },
   // a short ad at a natural break, if the last one was long enough ago
-  midgame(){if(!this.sdk||performance.now()/1000-this.adAt<PORTAL_AD_GAP)return;this.show('midgame');},
+  midgame(){if(BASIC_LAUNCH||!this.sdk||performance.now()/1000-this.adAt<PORTAL_AD_GAP)return;this.show('midgame');},
   rewardXP(){this.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}
     this.boostUntil=time+XP_BOOST.time;toast('Double XP','For the next 5 minutes of play','gold');renderPortalButtons();});},
   xpMul(){return time<this.boostUntil?XP_BOOST.mul:1;},
@@ -6346,6 +6385,10 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0
     persistHook=j=>D.setItem(SAVE_KEY,j);
     if(save.character&&!has)persist();
   },
+  joinInvite(p){const room=p&&typeof p.room==='string'?p.room.trim().toUpperCase():'';
+    if(!/^[A-Z0-9]{4,8}$/.test(room)||!P2P.available())return;
+    if(P2P.code===room&&(P2P.state==='open'||P2P.state==='starting'))return; // already there
+    P2P.join(room);if(state==='play')feed('Joining your friend','Room '+room);},
   inviteLink(code){try{return this.sdk?this.sdk.game.inviteLink({room:code}):'';}catch(e){return '';}},
   // room info for the portal (its invite button and friends list): which room, and whether friends can still get in
   roomChanged(){if(!this.sdk)return;const g=this.sdk.game;try{
@@ -6551,7 +6594,7 @@ function powerIcon(id){const c=POWERS[id],s=glyph(POWER_GLYPH[id]||'burst','pico
 // and shrinks to fit (folding "Getting started" down to its next step if it has to), so it never needs scrolling.
 // The leaderboard sits under the icons on the left (the full board opens from it, the main menu or the pause menu).
 // The CrazyGames build has no leaderboard at all: the shared board lives on claude.ai, and pointing players there is cross-promotion.
-const rewardsLater=()=>{const st=save.stats||{};return !(st.crimesStopped||st.crimesCommitted||save.level>1);};
+const rewardsLater=()=>{const st=save.stats||{};return BASIC_LAUNCH||!(st.crimesStopped||st.crimesCommitted||save.level>1);};
 const HUDBAR=[
   {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
@@ -7024,7 +7067,7 @@ function finishCreator(){
     const old=ownedIds(save.character),now=ownedIds(c);let refund=0;
     for(const id of old)if(!now.includes(id)){const l=save.powerLevels[id]|0;for(let q=1;q<l;q++)refund+=CONFIG.powerUpgradeCost(q);delete save.powerLevels[id];}
     if(P.alien)revertAlien(true);stopAllPowers();save.character=c;save.sp+=refund;save.rechoiceAt=Date.now();save.migrated=false;persist();
-    creating=false;draft=null;creator.hidden=true;applyLook();buildHotbar();buildTouchButtons();setPaused(true);
+    creating=false;draft=null;creator.hidden=true;applyLook();buildHotbar();buildTouchButtons();applyTravStyle(false);setPaused(true);
     toast('Powers changed',refund?'+'+refund+' skill points refunded':'Your new powers are ready','cyan');return;
   }
   newHero(c);
@@ -7051,21 +7094,34 @@ let dialOpen=false,dialSel=-1,dialVX=0,dialVY=0,dialKind='alien';
 const dialEl=$('dial');
 // the radial picker is shared by the Morph Band (aliens) and the power ring (constructs)
 function dialItems(){
-  if(dialKind==='armor')return ARMOR_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Armored Inventor mastery '+c.unlock+(PBAL?' · click to try':''),glow:'#ff6a3d',info:c.name+' · '+c.attacks,pick:()=>summonConstruct(id)};});
-  if(dialKind==='construct')return CON_PAGES.flat().map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Ring mastery '+c.unlock+(PBAL?' · click to try':''),glow:'#5dff86',cost:c.cost,info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
-  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),trialKey:'al:'+id,lock:'Band LV '+a.unlock+(PBAL?' · click to try':''),glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · ')+(a.xQuiz?' · '+xTime(voidbornDuration())+' if the masks agree (Energy raises it)':''),pick:()=>transformInto(id)};});
+  if(dialKind==='trav'){const id=save.character.movement[0],cur=travStyle(id),glow=TRAV_GLOW[id]||'#4fd8ff';
+    return (TRAV_STYLES[id]||[]).map(([k,n,d])=>({name:n,blurb:k===cur?'In use':d,on:true,glow,info:n+' · '+d,pick:()=>setTravStyle(id,k)}));}
+  if(dialKind==='armor')return ARMOR_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Armored Inventor mastery '+c.unlock+(Portal.ads()?' · click to try':''),glow:'#ff6a3d',info:c.name+' · '+c.attacks,pick:()=>summonConstruct(id)};});
+  if(dialKind==='construct')return CON_PAGES.flat().map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Ring mastery '+c.unlock+(Portal.ads()?' · click to try':''),glow:'#5dff86',cost:c.cost,info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
+  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),trialKey:'al:'+id,lock:'Band LV '+a.unlock+(Portal.ads()?' · click to try':''),glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · ')+(a.xQuiz?' · '+xTime(voidbornDuration())+' if the masks agree (Energy raises it)':''),pick:()=>transformInto(id)};});
+}
+// ---- traversal styles (V wheel for the Web Runner, the Tempest and the Speedster) ----
+const TRAV_GLOW={webSwing:'#e8ecff',stormFlight:'#8fb4ff',superSpeed:'#ffd23c'};
+const hasTravWheel=()=>!!save.character&&!P.alien&&!!TRAV_STYLES[save.character.movement[0]];
+function setTravStyle(id,k){if(!save.settings.travStyle)save.settings.travStyle={};save.settings.travStyle[id]=k;persist();applyTravStyle(true);renderHeroKeys();}
+// puts the chosen style into effect (on picking it, on starting to play and after changing powers)
+function applyTravStyle(announce){
+  if(!hasTravWheel())return;const id=save.character.movement[0],k=travStyle(id),s=TRAV_STYLES[id].find(x=>x[0]===k);
+  if(id==='superSpeed'){P.fastMode=k!=='walk';if(k!=='walk')P.dial=k==='jog'?2:k==='run'?Math.max(2,Math.round(dialMax()/2)):dialMax();}
+  if(id==='stormFlight'&&k==='leap')P.flying=false;
+  if(announce)feed(s[1],s[2]);
 }
 let dialPage=0;
 function dialPageTurn(d){} // every construct is on the wheel at once now: nothing to page through
 function openDial(kind='alien',keepPage){
-  dialKind=kind;const list=dialItems();dialOpen=true;dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');dialEl.classList.toggle('red',kind==='armor');dialEl.classList.toggle('all',kind==='construct');const ring=$('dial-ring');ring.textContent='';
+  dialKind=kind;const list=dialItems();dialOpen=true;guideDone('wheel');dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');dialEl.classList.toggle('red',kind==='armor');dialEl.classList.toggle('all',kind==='construct');const ring=$('dial-ring');ring.textContent='';
   const two=kind==='construct',nIn=two?DIAL_INNER:list.length; // constructs: an inner ring (mechs, flyers, rides, weapons) and an outer ring (everything newer)
   list.forEach((a,i)=>{const inner=i<nIn,k=inner?i:i-nIn,n=inner?nIn:list.length-nIn,ang=k/n*TAU-Math.PI/2,rad=two?(inner?25:43):38;
     const b=el('button',{type:'button',class:'dslot'+(two?' mini':'')+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*rad).toFixed(1)}%;top:${(50+Math.sin(ang)*rad).toFixed(1)}%`,
       onclick:()=>{if(a.on){closeDial();a.pick();}else dialTrial(a);},onmouseenter:()=>setDialSel(i)},two?null:el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:two?(a.on?a.cost+' charge':a.lock):a.on?a.blurb:a.lock}));
     b.style.setProperty('--g',a.glow);ring.appendChild(b);});
   if(kind==='construct')ring.appendChild(el('div',{class:'dpage'},'All '+list.length+' constructs'));
-  $('dial-info').textContent=kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · move toward the centre for the inner ring':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
+  $('dial-info').textContent=kind==='trav'?'Pick how you get around · '+(presetOf(save.character)||{name:'your hero'}).name:kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · move toward the centre for the inner ring':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
 }
 function setDialSel(i){dialSel=i;for(const b of dialEl.querySelectorAll('.dslot'))b.classList.toggle('sel',+b.dataset.i===i);
   const a=dialItems()[i];if(a)$('dial-info').textContent=a.info;}
@@ -7077,11 +7133,22 @@ function dialMove(dx,dy){dialVX=clamp(dialVX+dx,-120,120);dialVY=clamp(dialVY+dy
 function dialConfirm(){if(dialSel<0)return;const a=dialItems()[dialSel];if(a&&a.on){closeDial();a.pick();}else if(!dialTrial(a))SFX.tone('square',200,150,0.1,0.06);}
 function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----
-const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],['punch','Throw a punch','Click to punch','Tap PUNCH'],
+const hasWheel=()=>!!save.character&&(isRing()||armorForms()||hasPower('morphBand')||hasTravWheel());
+const wheelWhat=()=>isRing()?'pick a construct':armorForms()?'pick a suit form':hasPower('morphBand')?'pick an alien':'pick how you get around';
+const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],
+  ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>(isRing()?'Tap PICK':armorForms()?'Tap FORMS':hasPower('morphBand')?'Use the Morph Band power':'Tap WHEEL')+' to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
   ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
-function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(GUIDE.every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
+function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
-  for(const [k,t,kb,tc] of GUIDE)list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:touchOn()?tc:kb})));fitMoves();}
+  for(const [k,t,kb,tc] of guideList()){const s=touchOn()?tc:kb;list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:typeof s==='function'?s():s})));}fitMoves();}
+// the grow tutorial: whenever a construct is out and you have never grown one, a card tells you how (scroll up, ] or GROW)
+// and stays until you do; bigger rides are faster, so it's worth knowing
+let growTutOn=false;
+function updateGrowTut(){
+  const on=!!P.construct&&!save.guide.grow&&state==='play'&&!paused&&!sheetOpen&&!dialOpen&&!P.dead;if(on===growTutOn)return;growTutOn=on;$('growtut').hidden=!on;
+  if(on){const C=CONSTRUCTS[P.construct.id];$('growtut-t').textContent=(touchOn()?'Tap GROW':'Scroll up (or press ])')+' to make your '+C.name.toLowerCase()+' bigger. Bigger rides go faster and hit harder.';}}
+function growTutDone(){if(save.guide.grow)return;save.guide.grow=true;persist();updateGrowTut();SFX.chime();toast('Nice!',(touchOn()?'Tap GROW':'Scroll up')+' to keep growing it, '+(touchOn()?'SHRINK':'down')+' to shrink it back','gold');}
+const guideList=()=>GUIDE.filter(g=>g[0]!=='wheel'||hasWheel()); // no wheel step for heroes without one
 Bus.on('damaged',e=>{if(e.source===P&&e.type==='punch')guideDone('punch');});
 // ================================================================
 // Input: keyboard, mouse, pointer lock, touch
@@ -7113,7 +7180,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
-  if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else if(P.construct)vHoldStart(e.timeStamp);else openDial('construct');}else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else bandPress();return;}
+  if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else if(P.construct)vHoldStart(e.timeStamp);else openDial('construct');}else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else if(hasTravWheel()&&!hasPower('morphBand'))openDial('trav');else bandPress();return;}
   if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
   if(e.code==='KeyO'&&isRing()){if(ringLocked())closeOath();else openOath();return;}
   if(e.code==='KeyY'&&isRing()){ringRebuild();return;}
@@ -7242,7 +7309,7 @@ function buildTouchButtons(){ // on CrazyGames a locked power key gets its butto
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
   else{save.character.abilities.forEach((id,i)=>{if(!(PBAL&&slotLocked(i)))B(SHORT[id]||'A'+(i+1),'a'+i,'ab');});B('PUNCH','punch','big');
-    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');B('REBUILD','rebuild');}}}
+    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');B('REBUILD','rebuild');}if(TRAV_STYLES[id])B('WHEEL','travdial');}}
   if(!P.alien){B('GROW','grow');B('SHRINK','shrink');} // hold a power button (or sit in a construct) and tap these to change its size
   if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
   if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
@@ -7269,6 +7336,7 @@ function touchAct(a,down){
   else if(a==='web'){if(down)webPress();else webRelease();}
   else if(a==='use'){if(down)interact();}
   else if(a==='band'){if(down)bandPress();}
+  else if(a==='travdial'){if(down&&hasTravWheel())openDial('trav');}
   else if(a==='fast'){if(down)toggleFastMode();}
   else if(a==='tkmore'){if(down)tkGrabMore();}
   else if(a==='suit'){if(down)suitToggle();}
@@ -7390,9 +7458,11 @@ function updatePlayer(dt){
     else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(conDrive()&&!P.flying)driveConstruct(dt,inF,inR,shift);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
       let tx=fwdX*cp*inF+rX*inR,ty=sp*inF+((keys.Space?1:0)-(keys.KeyC?1:0)),tz=fwdZ*cp*inF+rZ*inR;const l=Math.hypot(tx,ty,tz);if(l>1){tx/=l;ty/=l;tz/=l;}
-      const base=(AL&&AL.flies?AL.flySpeed:flySpeed()*conSpeedMul())*slowMul*spaceSpeedMul(),spd=shift?base*(AL&&AL.flies?1.5:flyBoost()):base,k=damp(shift?1.8:3,dt);
+      const boost=shift||stormRide(); // Tempest's Storm Ride style flies at full boost all the time
+      const base=(AL&&AL.flies?AL.flySpeed:flySpeed()*conSpeedMul())*slowMul*spaceSpeedMul(),spd=boost?base*(AL&&AL.flies?1.5:flyBoost()):base,k=damp(boost?1.8:3,dt);
       const lk=P.launchT>0?k*0.06:k;if(P.launchT>0)P.launchT-=dt; // a charged launch keeps its momentum for a moment
       P.vel.x+=(tx*spd-P.vel.x)*lk;P.vel.y+=(ty*spd-P.vel.y)*lk;P.vel.z+=(tz*spd-P.vel.z)*lk;
+      if(stormRide()&&Math.random()<0.6){const c=center(P),q=0.06;tracer(c.x,c.y,c.z,c.x-P.vel.x*q+rr(-1,1),c.y-P.vel.y*q+rr(-1,1),c.z-P.vel.z*q+rr(-1,1),Math.random()<0.5?[.6,.75,1]:[1,1,1],0.08,0.3);}
     }else{
       let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
       const am=AL?AL.speed:P.construct&&!P.flying?conSpeedMul():1;
@@ -8038,6 +8108,7 @@ function updateHud(dt){
   hud.flash.style.opacity=flashWhite.toFixed(3);
   if(boss&&!boss.leave){hud.bossbar.hidden=false;setText(hud.bossname,'bn',boss.name);setW(hud.bossb,'boss',boss.hp/boss.maxHp);}else hud.bossbar.hidden=true;
   updateMoves();
+  updateGrowTut();
   const tb=$('touch');if(!tb.hidden){const dn=tbtns.querySelector('.dn');if(dn)dn.hidden=!P.flying;const u=tbtns.querySelector('.use');if(u){u.classList.toggle('dim',!it);const t=it?it.kind==='exit'?'EXIT':it.kind==='car'?'CAR':'HELP':'USE';if(u.textContent!==t)u.textContent=t;}}
   if(lastHud.alien!==(P.alien?P.alien.id:'')){lastHud.alien=P.alien?P.alien.id:'';buildHotbar();buildTouchButtons();}
   setText($('online'),'online',MP.status());
@@ -8051,7 +8122,7 @@ function refreshMenu(){const b=$('start');menuButtons();b.textContent=save.chara
 function startPlay(first){
   if(P.showcase||first||!P.placed){const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.12;P.vel.set(0,0,0);P.showcase=false;P.placed=true;}
   SFX.init();SFX.setVolume(save.settings.volume);state='play';$('menu').hidden=true;hud.root.hidden=false;
-  applyLook();buildHotbar();buildTouchButtons();applyTouchUI();
+  applyLook();buildHotbar();buildTouchButtons();applyTouchUI();applyTravStyle(false);
   if(save.settings.autoLock&&!touchOn())requestLock();
   P.hp=maxHp();P.en=maxEn();
   toast(first?'Welcome to Nova Bay':'Welcome back, '+save.character.name,first?'Crimes show up on your minimap. Stop them, or join in.':'LV '+save.level+' · '+repTier(save.reputation).name,'gold');
@@ -8099,7 +8170,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
-  Portal,SFX,respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
+  Portal,SFX,travStyle,setTravStyle,hasTravWheel,masteryLevel,PRESETS,get growTutOn(){return growTutOn;},respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>

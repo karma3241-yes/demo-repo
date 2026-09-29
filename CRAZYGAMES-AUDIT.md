@@ -82,6 +82,14 @@ and the Armored Inventor's red-and-gold armour and tower (Iron Man).
   up to 1920x1080 (checked at 360x640, 375x667, 390x844, 667x375, 844x390 and the ten CrazyGames sizes).
 - Still an idea: sunlit building faces wash out to near-white in the opening view.
 
+## Basic launch mode (2026-09-29)
+
+CrazyGames doesn't allow ads during a basic launch. `BASIC_LAUNCH` in `src/20_core.js` (CrazyGames build only) turns
+every ad off (no midgame on knockout, no rewarded requests, reward icons hidden, no "click to try" on locked wheel slots)
+and makes your current traversal fully mastered. Levels, skill points and power keys by level are unchanged. Mastery still
+builds up underneath, so switching it off at full launch gives players their real progress back. **At full launch: set it
+to `false`, rebuild, re-upload.**
+
 ## Owner decisions (2026-09-29)
 
 1. Avatar: not required, so left out.

@@ -49,8 +49,9 @@ function spiderTick(dt){
   if(P.flip){P.flip.t+=dt;if(P.flip.t>=P.flip.dur)P.flip=null;}
   if(!hasWeb()){P.wings=false;return;}
   const air=!P.grounded&&!P.flying&&!P.web&&!P.wall&&!P.wallRun&&!P.zip;
-  if(air&&keys.Space&&P.spaceT&&time-P.spaceT>0.22&&!P.wings){P.wings=true;SFX.tone('triangle',300,500,0.2,0.05);}
-  if(P.wings&&(!air||!keys.Space))P.wings=false;
+  const glide=hasTrav('webSwing')&&travStyle('webSwing')==='glide'; // Glide style (V wheel): wings open by themselves when you fall, C folds them
+  if(air&&!P.wings&&((keys.Space&&P.spaceT&&time-P.spaceT>0.22)||(glide&&P.vel.y<-6&&!keys.KeyC))){P.wings=true;SFX.tone('triangle',300,500,0.2,0.05);}
+  if(P.wings&&(!air||(glide?keys.KeyC:!keys.Space)))P.wings=false;
   if(P.web){const hs=Math.hypot(P.vel.x,P.vel.z);addMastery('webSwing',hs*dt*0.03);}
 }
 // danger sense: sometimes you dodge before the hit lands

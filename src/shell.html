@@ -267,6 +267,12 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #guide li{display:grid;gap:1px;padding-left:20px;position:relative;font-size:13px}
 #guide li::before{content:"";position:absolute;left:0;top:3px;width:10px;height:10px;border:1.5px solid var(--ink-dim);border-radius:3px}
 #guide li.done{opacity:.45}#guide li.done::before{background:#7dffb0;border-color:#7dffb0}
+/* grow tutorial: shown until the player first grows a construct (it can't be closed) */
+#growtut{position:absolute;left:50%;top:22%;transform:translateX(-50%);padding:12px 18px;text-align:center;max-width:min(360px,calc(100% - 32px));box-sizing:border-box;border-color:#5dff86;box-shadow:0 0 24px rgba(93,255,134,.35);animation:gtpulse 1.6s ease-in-out infinite}
+#growtut h4{margin:0 0 4px;font:400 20px var(--display);letter-spacing:.06em;color:#5dff86}#growtut p{margin:0;font-size:14px;line-height:1.4}
+.gt-wheel{width:22px;height:34px;margin:8px auto 0;border:2px solid var(--ink);border-radius:12px;position:relative}.gt-wheel i{position:absolute;left:50%;top:6px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:#5dff86;animation:gtscroll 1s ease-in-out infinite}
+body.touch .gt-wheel{display:none}
+@keyframes gtpulse{50%{box-shadow:0 0 40px rgba(93,255,134,.6)}}@keyframes gtscroll{0%{transform:translateY(10px);opacity:0}40%{opacity:1}100%{transform:translateY(-4px);opacity:0}}
 #guide-more{margin:8px 0 0;font-size:11px;color:var(--ink-dim);letter-spacing:.04em}body.touch #guide-more{display:none}
 #guide li span{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
 #guide.mini li{display:none}#guide.mini li:not(.done){display:grid}#guide.mini li:not(.done)~li{display:none}#guide.mini h4{margin-bottom:4px}
@@ -377,6 +383,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div id="bossbar" hidden><div class="name" id="bossname">Boss</div><div class="bar boss"><i id="bossb"></i></div></div>
   <div id="toasts"></div>
   <div id="feed"></div>
+  <div id="growtut" class="panel" hidden><h4>Grow it</h4><p id="growtut-t"></p><div class="gt-wheel"><i></i></div></div>
   <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol><p id="guide-more"><kbd>H</kbd> all moves</p></div>
   <div id="keys" class="panel fade"><div id="keys-head"><b>Move list</b><span><kbd>H</kbd> hide</span></div><div id="keys-hero"></div></div>
   <div id="hudbar"></div>
