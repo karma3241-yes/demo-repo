@@ -2,7 +2,7 @@
 // Suit up: U swaps between your civilian clothes and your suit
 // ================================================================
 // Each kind of hero changes differently: the Ring Bearer's ring builds the suit out of light,
-// the Speedster zig-zags in a blur, the Web-Slinger fades to black and pulls the mask on last,
+// the Speedster zig-zags in a blur, the Web Runner fades to black and pulls the mask on last,
 // Metal Skin heroes flash to steel and everyone else spins into it.
 P.suited=true;
 let suitAnim=null;
@@ -41,20 +41,30 @@ function drawSuit(){
     queue(MESH.glowBox,at(P.pos.x,P.pos.y+k*1.5,P.pos.z,0,P.heroYaw,0,1.1,k*3,0.7),[RING_C[0],RING_C[1],RING_C[2],0.2],F_ADD);}
   else if(A.st==='metal'){const y=P.pos.y+k*2.9;queue(MESH.ring,M4.alignY(tmpM(),P.pos.x,y,P.pos.z,0,1,0,1),[.9,.92,.95,1],F_ADD);}
 }
-// the keys panel shows the controls for the hero you are playing
+// the move list (right side, H) shows everything the hero you are playing can do
 function renderHeroKeys(){
-  const box=$('keys-hero');if(!box)return;box.textContent='';const c=save.character;if(!c)return;
-  const K=(k,t)=>{box.appendChild(el('kbd',{text:k}));box.appendChild(el('span',{text:t}));};
-  const m=c.movement[0];
+  const box=$('keys-hero');if(!box)return;box.textContent='';const c=save.character;
+  let grid=null; // each heading starts a section that the two-column layout keeps in one piece
+  const H=t=>{const s=el('section',{class:'ks'},el('h4',{text:t}));grid=el('div',{class:'kg'});s.appendChild(grid);box.appendChild(s);};
+  const K=(k,t)=>{grid.appendChild(el('kbd',{text:k}));grid.appendChild(el('span',{text:t}));};
+  const m=c&&c.movement[0];
+  H('Moving');K('WASD','Move');K('Space','Jump · hold for a super jump');K('C · Space in water','Dive · swim back up');
   if(m==='webSwing'){K('Right click','Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
-  else if(m==='powerRing'){K('F','Fly · hold on the ground to charge a launch');K('B · V','Build a construct · pick one');K('O','Recite the oath to recharge the ring');K('Y','Rebuild every broken building');K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');}
-  else if(m==='flight'||m==='stormFlight'||m==='armorFlight'||m==='solarFlight'){K('F','Fly · hold on the ground to charge a launch');
-    if(m==='armorFlight'){K('Inventor Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
-    if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');}
-  if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
-  if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
-  if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
-  K('Hold 1–5 · wheel','Size a power (up to ×30), let go to use it');
-  K('U','Suit up or down');
+  else if(m)K('F','Fly · hold on the ground to charge a launch');
+  if(c){H('Your powers');c.abilities.forEach((id,i)=>{const p=POWERS[id];if(!p)return;
+      K(String(i+1)+(i<3?' · '+'QER'[i]:''),p.name+(PBAL&&typeof slotLocked==='function'&&slotLocked(i)?' · unlocks at LV '+KIT_LV[i]:''));});
+    K('Hold 1–5 · wheel','Size a power (up to ×30), let go to use it');}
+  H('Fighting');K('Click','Punch · hold to keep swinging');K('Z · X','Lock on · dash');K('G','Get in a car · help someone up');
+  if(m){H(PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Your hero');
+    if(m==='powerRing'){K('B','Build your construct (the last one you picked)');K('V','Construct wheel · in a construct: tap to step out, hold to switch');
+      K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');K('O','Say or type the oath to recharge the ring');K('Y','Rebuild every broken building');}
+    if(m==='armorFlight'){K('Forge Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
+    if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');
+    if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
+    if(hasPower('morphBand'))K('V','Morph Band: pick an alien · tap again to change back');
+    if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
+    if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
+    K('U','Suit up or down');}
+  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('L','Free the mouse to click the icons');K('Esc','Pause');if(!PBAL)K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
 }

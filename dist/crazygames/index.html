@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Skyline Guardian</title>
+<link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;600;700&display=swap">
@@ -108,8 +109,13 @@ kbd:empty{display:none}
 #bossbar{position:absolute;left:50%;top:18px;transform:translateX(-50%);width:min(440px,calc(100% - 520px));display:grid;gap:4px}
 #bossbar .name{font-family:var(--display);font-size:12px;letter-spacing:.2em;color:#ff8a70;text-align:center;text-shadow:0 1px 3px #000}
 #bossbar .bar{height:10px}
-#keys{position:absolute;right:16px;top:96px;padding:10px 12px;display:grid;grid-template-columns:auto auto;gap:4px 12px;font-size:12px;color:var(--ink-dim);transition:opacity .6s}
-#keys.fade{opacity:0}
+#keys{position:absolute;right:16px;top:96px;padding:8px 12px 6px;width:min(600px,48vw);box-sizing:border-box;max-height:calc(100% - 96px - 150px);overflow:auto;overscroll-behavior:contain;font-size:11px;line-height:1.3;color:var(--ink-dim);transition:opacity .6s;pointer-events:auto}
+#keys.fade{opacity:0;pointer-events:none}#keys.fade *{pointer-events:none}
+#keys-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:5px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700}#keys-head span{letter-spacing:.08em;color:var(--ink-dim)}#keys-head kbd{font-size:10px;padding:0 5px}
+#keys-hero{column-count:2;column-gap:16px}#keys .ks{break-inside:avoid;margin-bottom:7px}#keys .kg{display:grid;grid-template-columns:max-content 1fr;gap:3px 8px}
+#keys kbd{justify-self:start;align-self:start;font-size:10px;padding:0 5px}#keys h4{margin:0 0 3px;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700}
+#keys.tight{font-size:10px;line-height:1.2;padding:6px 10px 4px}#keys.tight .ks{margin-bottom:4px}#keys.tight .kg{gap:1px 6px}#keys.tight kbd{font-size:9px;padding:0 4px}
+@media (max-width:900px){#keys-hero{column-count:1}#keys{width:min(360px,60vw)}}
 #vig{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,20,50,.55) 100%)}
 #flash{position:fixed;inset:0;pointer-events:none;opacity:0;background:#eef6ff}
 .overlay{position:fixed;inset:0;display:grid;align-items:center;padding-inline:16px;z-index:4}
@@ -144,7 +150,7 @@ button:disabled{cursor:default}
 #dead .big{color:var(--health)}
 #sheet,#create{position:fixed;inset:0;z-index:5;display:grid;place-items:center;padding-inline:16px;background:rgba(3,5,12,.55)}
 #sheet.side,#create{justify-items:start;padding-inline:clamp(16px,4vw,64px);background:linear-gradient(90deg,rgba(3,5,12,.9),rgba(3,5,12,.25) 50%,transparent 70%)}
-#sheet.side .sheet-card,#create .sheet-card{width:min(520px,52vw)}
+#sheet.side .sheet-card{width:min(520px,52vw)}#create .sheet-card{width:min(900px,72vw)}
 .sheet-card{width:min(580px,100%);max-height:calc(100% - 40px);overflow:hidden;display:grid;grid-template-rows:auto 1fr;gap:12px;padding:18px 20px;box-sizing:border-box;background:rgba(7,11,24,.92)}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .sheet-head h2{margin:0;font-family:var(--display);font-weight:400;font-size:24px;letter-spacing:.03em}
@@ -176,7 +182,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--energy);flex:none
 .lb td small{display:block;color:var(--ink-dim);font-size:11px;letter-spacing:.08em}
 .lb td:last-child{text-align:right;font-weight:700}
 .lb tr.me td{color:var(--gold)}
-.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
 .pick{display:grid;gap:4px;align-content:start;text-align:left;color:var(--ink);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:10px}
 .pick b{font-size:14px}.pick span{font-size:12px;line-height:1.4;color:var(--ink-dim)}
 .pick .cat{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--energy)}
@@ -207,11 +213,15 @@ body.touch .toast b{font-size:15px}body.touch .toast span{font-size:10px}
 body.touch #feed{right:12px;top:72px;transform:none;max-width:200px}
 body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 290px))}
 @media (max-height:520px){body.touch #map{display:none}}
-@media (max-width:1100px){#keys{display:none}}
+@media (max-width:1100px){#keys:not(.pin){display:none}}
 @media (max-width:1000px){body:not(.touch) .hud-bc{left:212px;right:16px;transform:none;width:auto;justify-items:start}body:not(.touch) #bossbar{width:min(440px,calc(100% - 340px))}}
 @media (max-width:760px){
   .controls{grid-template-columns:1fr}#menu{background:rgba(3,5,12,.84)}
 }
+/* short screens (CrazyGames' 800x450 / 821x462 frames, phones in landscape): Play must be on screen without scrolling */
+@media (max-height:700px){.menu-inner{gap:12px;padding-block:18px}.pitch{font-size:15px}h1{font-size:clamp(40px,min(12vh,13vw),84px)}}
+@media (max-height:600px){.menu-inner{gap:10px;padding-block:14px}h1{font-size:clamp(34px,min(11vh,12vw),64px)}.pitch{display:none}.controls{font-size:12px;gap:3px 18px}.go{padding:10px 22px}}
+@media (max-height:420px){#menu-controls{display:none}}
 #dmgs{position:absolute;inset:0;overflow:hidden}
 .dmg{position:absolute;left:0;top:0;font:700 16px var(--display);color:#ffe27a;text-shadow:0 2px 0 #3a1a00,0 0 6px rgba(0,0,0,.7);will-change:transform,opacity;white-space:nowrap}
 .toast.purple b{color:#c89bff}
@@ -249,7 +259,7 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #xquiz .xq-foot{margin-top:10px;font-size:12px;letter-spacing:.12em;color:var(--ink-dim)}
 #xquiz[data-mode="lock"]{top:max(90px,12vh);bottom:auto;width:auto;min-width:240px;padding:10px 16px;pointer-events:none;border-color:rgba(255,92,110,.5);box-shadow:0 0 30px rgba(255,60,80,.25)}
 #xquiz[data-mode="lock"] .xq-head{color:#ffb3bd}#xquiz[data-mode="lock"] .xq-foot{margin-top:4px;font-size:14px;color:var(--ink)}
-.slot.locked{opacity:.45;filter:grayscale(.8)}.slot.locked small{color:var(--ink-dim)}
+.slot.locked{display:none} /* power keys you haven't unlocked yet stay off the hotbar (the move list still lists them) */.slot.locked small{color:var(--ink-dim)}
 .cos-sw{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:8px;vertical-align:-2px;border:1px solid rgba(255,255,255,.3)}
 #guide{position:absolute;right:16px;top:96px;padding:10px 14px;width:230px;box-sizing:border-box}
 #guide h4{margin:0 0 6px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
@@ -257,10 +267,43 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #guide li{display:grid;gap:1px;padding-left:20px;position:relative;font-size:13px}
 #guide li::before{content:"";position:absolute;left:0;top:3px;width:10px;height:10px;border:1.5px solid var(--ink-dim);border-radius:3px}
 #guide li.done{opacity:.45}#guide li.done::before{background:#7dffb0;border-color:#7dffb0}
+#guide-more{margin:8px 0 0;font-size:11px;color:var(--ink-dim);letter-spacing:.04em}body.touch #guide-more{display:none}
 #guide li span{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
-#guide:not([hidden])~#keys{top:312px}
+#guide.mini li{display:none}#guide.mini li:not(.done){display:grid}#guide.mini li:not(.done)~li{display:none}#guide.mini h4{margin-bottom:4px}
+/* HUD icon bar: every menu one key or click away */
+#hudbar{position:absolute;left:16px;top:122px;display:flex;flex-wrap:wrap;gap:6px;max-width:330px;pointer-events:none}
+.hbtn{pointer-events:auto;position:relative;width:40px;height:40px;padding:0;display:grid;place-items:center;color:var(--ink);background:var(--panel);border:1px solid var(--edge);border-radius:10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;transition:border-color .15s,background .15s}
+.hbtn:hover{background:rgba(79,216,255,.16);border-color:var(--energy)}.hbtn:focus-visible{outline:2px solid var(--energy);outline-offset:2px}
+.hbtn.on{border-color:var(--gold);box-shadow:0 0 10px rgba(255,201,60,.35) inset}.hbtn:disabled{opacity:.4;cursor:default}
+.hbtn .ico{width:22px;height:22px}.hbtn kbd{position:absolute;right:-4px;bottom:-5px;padding:0 4px;font-size:9px;line-height:14px;background:#0b1224;border-radius:4px;border-width:1px}
+.hbtn .dot{position:absolute;right:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);display:none}.hbtn.badge .dot{display:block}
+.hbtn:hover::after{content:attr(data-tip);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);white-space:nowrap;padding:4px 8px;font:600 12px var(--hud);color:var(--ink);background:rgba(4,8,18,.92);border:1px solid var(--edge);border-radius:6px;pointer-events:none;z-index:3}
+#hb-xp{color:var(--gold)}#hb-refill{color:#7dffb0}#hb-trials{color:#c89bff}#hb-cos{color:#ff9bd2}
+body.touch #hudbar{top:8px!important;left:auto;right:66px;max-width:calc(100% - 290px);justify-content:flex-end}body.touch .hbtn{width:36px;height:36px}body.touch .hbtn kbd,body.touch .hbtn.kbm{display:none}
+.ico{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pick .pico{width:28px;height:28px;margin-bottom:2px}
 body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176px;padding:7px 9px}body.touch #guide li{font-size:11px}
-@media (max-height:520px){body.touch #guide{display:none}}
+/* small desktop frames (CrazyGames 800x450 / 821x462 / 907x510): smaller minimap and hotbar, Getting started shows just the
+   next step, and the feed moves up out of the hotbar's way */
+@media (max-height:560px){
+  body:not(.touch) #map{width:128px;height:128px}
+  body:not(.touch) .slot{padding:3px 8px 2px}body:not(.touch) .slot .nm{font-size:11px}body:not(.touch) .slot small{font-size:9px;letter-spacing:.08em}
+  body:not(.touch) .meters{padding:6px 12px}
+}
+@media (max-height:560px),(max-width:1000px){
+  body:not(.touch) #guide li{display:none}body:not(.touch) #guide li:not(.done){display:grid}body:not(.touch) #guide li:not(.done)~li{display:none}
+  body:not(.touch) #feed{bottom:auto;top:200px;max-width:240px}
+}
+@media (max-height:560px) and (max-width:1000px){body:not(.touch) .hud-bc{left:160px}}
+/* phones in landscape: five smaller columns keep the buttons under the icon bar, and Getting started shows just the next step
+   where the minimap was (the minimap is hidden at this height) */
+@media (max-height:520px){
+  body.touch #tbtns{grid-template-columns:repeat(5,46px);gap:6px;right:10px;bottom:10px}body.touch .tb{width:46px;height:46px;font-size:9px;letter-spacing:.03em}
+  body.touch .tb.wide{grid-column:1/-1;width:auto;height:38px}
+  body.touch #toasts{top:22%}
+  body.touch #guide{top:186px;padding:5px 8px}body.touch #guide h4{margin-bottom:3px;font-size:10px}
+  body.touch #guide li{display:none}body.touch #guide li:not(.done){display:grid}body.touch #guide li:not(.done)~li{display:none}
+}
 .tb.use{background:rgba(125,255,176,.22)}.tb.use.dim{opacity:.35}
 .tb.dn2,.tb.alien{background:rgba(176,108,255,.3)}
 @media (max-width:760px){
@@ -278,10 +321,37 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 .sitelink{color:var(--gold);font-weight:700;font-size:16px}
 .plist{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
 @media (prefers-reduced-motion: reduce){.toast,.fline{animation:none}}
+/* leaderboard panel (left, under the icon bar) */
+#lbmini{position:absolute;left:16px;top:180px;width:220px;box-sizing:border-box;padding:7px 9px 6px;pointer-events:auto;font-size:11px}
+#lbmini .lbm-head{display:flex;align-items:center;gap:6px;width:100%;padding:0;margin:0 0 5px;background:none;border:0;color:var(--gold);font:700 10px var(--hud);letter-spacing:.22em;text-transform:uppercase;cursor:pointer;text-align:left}
+#lbmini .lbm-head .ico{width:14px;height:14px}#lbmini .lbm-head:hover b{text-decoration:underline}
+#lbmini .lbm-tabs{display:flex;gap:4px;margin-bottom:5px}
+#lbmini .lbm-tabs button{flex:1;padding:2px 0;font:600 10px var(--hud);color:var(--ink-dim);background:rgba(255,255,255,.05);border:1px solid var(--edge);border-radius:4px;cursor:pointer}
+#lbmini .lbm-tabs button[aria-pressed="true"]{color:var(--ink);border-color:var(--gold)}
+#lbmini ol{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+#lbmini li{display:grid;grid-template-columns:14px 1fr auto;gap:6px;align-items:baseline;line-height:17px}
+#lbmini li i{font-style:normal;color:var(--ink-dim)}#lbmini li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#lbmini li.me span{color:var(--gold)}
+#lbmini .lbm-none{margin:0;color:var(--ink-dim)}
+/* markers over crimes and recharge spots (like the name tags, but clamped to the screen edge with an arrow) */
+#marks{position:absolute;inset:0;overflow:hidden}
+.mk{position:absolute;left:0;top:0;display:grid;justify-items:center;gap:3px;will-change:transform;--c:#ff5a3d}
+.mk .pw{position:relative;width:28px;height:28px}
+.mk .pin{position:absolute;inset:0;display:grid;place-items:center;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--c);box-shadow:0 0 12px var(--c),0 2px 5px rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.85)}
+.mk .pin b{transform:rotate(45deg);font:800 15px var(--hud);color:#0b0f1a;line-height:1}
+.mk .arr{position:absolute;left:50%;top:50%;width:0;height:0;margin-top:-7px;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:11px solid var(--c);transform-origin:0 50%;display:none;filter:drop-shadow(0 0 3px rgba(0,0,0,.7))}
+.mk.edge .pin{border-radius:50%;transform:none}.mk.edge .pin b{transform:none}.mk.edge .arr{display:block}
+.mk small{font:700 11px var(--hud);letter-spacing:.04em;color:#fff;text-shadow:0 1px 3px #000,0 0 2px #000;white-space:nowrap}
+.mk.big .pw{animation:mkPulse 1s ease-in-out infinite}@keyframes mkPulse{50%{transform:scale(1.18)}}
+.mk.goal .pin b{font-size:14px}
+#uw{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(ellipse at 50% 0%,rgba(90,190,230,.35),transparent 60%),linear-gradient(180deg,rgba(30,120,170,.5),rgba(4,34,70,.82))}
+#lowhint{padding:4px 12px;border-radius:999px;background:rgba(4,8,18,.72);border:1px solid var(--c,#ff5a3d);font:700 11px var(--hud);letter-spacing:.08em;text-transform:uppercase;color:#fff;text-align:center;animation:lhPulse 1.6s ease-in-out infinite}
+@keyframes lhPulse{50%{box-shadow:0 0 12px var(--c,#ff5a3d)}}
+@media (prefers-reduced-motion: reduce){.mk.big .pw,#lowhint{animation:none}}
 </style>
 </head>
 <body>
 <canvas id="gl"></canvas>
+<div id="uw"></div>
 <div id="hud" hidden>
   <div class="hud-tl panel">
     <div class="who"><b id="hname">Hero</b><span id="htier" class="tier">Unknown</span></div>
@@ -290,6 +360,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   </div>
   <div class="hud-tr panel"><div id="clock">17:00</div><div id="mode">On foot</div><div id="online"></div></div>
   <div class="hud-bc">
+    <div id="lowhint" hidden></div>
     <div class="meters panel">
       <div class="meter"><span>HEALTH <b id="hpt">100</b></span><div class="bar hp"><i id="hpb"></i></div><div class="bar shield" id="shbar" hidden><i id="shb"></i></div></div>
       <div class="meter" id="enm"><span>ENERGY <b id="ent">100</b></span><div class="bar en"><i id="enb"></i><i id="enb2"></i></div></div>
@@ -298,6 +369,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   </div>
   <canvas id="map" width="360" height="360"></canvas>
   <div id="tags"></div>
+  <div id="marks"></div>
   <div id="dmgs"></div>
   <div id="cross"></div>
   <div id="prompt"></div>
@@ -305,22 +377,10 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div id="bossbar" hidden><div class="name" id="bossname">Boss</div><div class="bar boss"><i id="bossb"></i></div></div>
   <div id="toasts"></div>
   <div id="feed"></div>
-  <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol></div>
-  <div id="keys" class="panel">
-    <kbd>WASD</kbd><span>Move</span>
-    <kbd>Click</kbd><span>Punch (hold to keep swinging)</span>
-    <kbd>1 – 5</kbd><span>Your abilities (also Q E R)</span>
-    <kbd>Space</kbd><span>Jump · hold for a super jump</span>
-    <kbd>F · Shift · Right click</kbd><span>Movement powers</span>
-    <kbd>Z · X</kbd><span>Lock on · dash</span>
-    <kbd>G</kbd><span>Enter a car · help someone up</span>
-    <kbd>V</kbd><span>Morph Band (if you have it)</span>
-    <div id="keys-hero" style="display:contents"></div>
-    <kbd>Tab</kbd><span>Skills and upgrades</span>
-    <kbd>L</kbd><span>Lock or unlock the mouse</span>
-    <kbd>Esc</kbd><span>Pause</span>
-    <kbd>H</kbd><span>Hide this help</span>
-  </div>
+  <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol><p id="guide-more"><kbd>H</kbd> all moves</p></div>
+  <div id="keys" class="panel fade"><div id="keys-head"><b>Move list</b><span><kbd>H</kbd> hide</span></div><div id="keys-hero"></div></div>
+  <div id="hudbar"></div>
+  <div id="lbmini" class="panel" hidden></div>
 </div>
 <div id="vig"></div>
 <div id="flash"></div>
@@ -330,15 +390,15 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
   <div class="menu-inner">
     <div class="eyebrow">Nova Bay · Open-world superhero game</div>
     <h1><span class="a">Skyline</span><span class="b">Guardian</span></h1>
-    <p class="pitch">Pick your powers and take to the streets. Stop the robberies, muggings and heists happening all over Nova Bay, or become the reason people lock their doors. Every fight earns XP and skill points, and the city remembers which side you chose.</p>
+    <p class="pitch">Stop the crimes all over Nova Bay, or commit them. Every fight earns XP and new powers.</p>
     <div class="controls" id="menu-controls">
       <div><kbd>WASD</kbd> Move</div><div><kbd>Mouse</kbd> Look</div>
       <div><kbd>Click</kbd> Punch</div><div><kbd>1–5</kbd> Abilities</div>
       <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Skills</div>
       <div><kbd>Z</kbd> Lock on · <kbd>X</kbd> Dash</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
     </div>
-    <p class="muted" id="menu-touch" hidden>Touch controls: drag on the left side to move, drag on the right side to look, and use the buttons for punches, abilities and movement.</p>
-    <div class="cta"><button class="go" id="start" type="button">Create your hero</button><span id="menu-sub"></span></div>
+    <p class="muted" id="menu-touch" hidden>Left side: move · right side: look · buttons: fight and fly.</p>
+    <div class="cta"><button class="go" id="start" type="button">Play</button><span id="menu-sub"></span></div>
     <p class="note" id="menu-online"></p>
     <div class="menu-btns"><button class="ghost" id="m-mp" type="button">Multiplayer</button><button class="ghost" id="m-lb" type="button">Leaderboard</button><button class="ghost" id="m-set" type="button">Settings</button></div>
   </div>
@@ -353,7 +413,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
 <div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
 <div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div></div>
-<div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><div id="oath-lvl" class="miclvl" hidden><i></i><b></b></div><small id="oath-note">Esc to put the lantern away</small></div>
+<div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><div id="oath-lvl" class="miclvl" hidden><i></i><b></b></div><small id="oath-note">Esc to put the beacon away</small></div>
 <div id="dead" class="overlay" hidden><div><p class="big">Knocked out</p><p class="sub" id="deads"></p></div></div>
 <div id="nogl" class="overlay" hidden><div><p class="big">No WebGL 2</p><p class="sub">This browser can't run the game. Try a recent Chrome, Edge, Firefox or Safari.</p></div></div>
 
@@ -849,7 +909,7 @@ const cellI=x=>Math.floor((x-X0)/CELL),cellJ=z=>Math.floor((z-Z0)/CELL);
 // road edges on the grid lines: along z (axis 0) at x line k between z nodes m and m+1; along x (axis 1) at z line m between x nodes k and k+1
 function zEdge(k,m){if(m<0||m>=GZ)return false;const a=cellAt(k-1,m),b=cellAt(k,m);return !!(a||b)&&!(a===2&&b===2);}
 function xEdge(m,k){if(k<0||k>=GX)return false;const a=cellAt(k,m-1),b=cellAt(k,m);if(BRIDGES.includes(m)&&RIVER.includes(k))return true;return !!(a||b)&&!(a===2&&b===2);}
-const colliders=[],blockCols=[],extraCols=[],roofTops=[],mapRects=[],parks=[],shops=[],atms=[],alleys=[],curbSpots=[],orbSpots=[],lakes=[];
+const colliders=[],blockCols=[],extraCols=[],roofTops=[],mapRects=[],parks=[],shops=[],atms=[],alleys=[],curbSpots=[],orbSpots=[],lakes=[],fountainSpots=[];
 const blockProps=[],tlights=[];
 let bank=null,hospital=null,policeHQ=null,invTower=null;
 const city=new Geo();
@@ -1046,7 +1106,7 @@ function special(i,j,cx,cz,list,bi){
     city.box(cx-1.5,h+0.35,cz-1.5+3,cx+1.5,h+0.45,cz+1.5+3,C('#ffc93c'),0);
     hospital={x:cx,z:z0-10};return true;
   }
-  if(i===4&&j===17){ // Inventor Tower (midtown): the Armored Inventor's home base, where the suit recharges. It can't be knocked down.
+  if(i===4&&j===17){ // Forge Tower (midtown): the Armored Inventor's home base, where the suit recharges. It can't be knocked down.
     const RED=C('#b3122f'),GOLD=C('#ffc93c'),GLASS=C('#2a3440'),h=290,x0=cx-15,x1=cx+15,z0=cz-15,z1=cz+15;
     city.box(cx-24,0.25,cz-24,cx+24,12,cz+24,C('#30343c'),1,STYLE.glass*1000+411.5);addCollider({x0:cx-24,x1:cx+24,z0:cz-24,z1:cz+24,y0:0,y1:12.3,col:GLASS},list);
     city.box(cx-24.3,12,cz-24.3,cx+24.3,12.6,cz+24.3,RED,0);city.box(cx-6,0.25,cz-24.4,cx+6,8,cz-24.2,C('#9fe8ff'),6);
@@ -1077,9 +1137,8 @@ function parkBlock(i,j,cx,cz,list,bi,big){
   city.box(cx-28,0.25,cz-28,cx+28,0.4,cz+28,GRASS,5);parks.push({cx,cz});rect(cx-28,cz-28,cx+28,cz+28,-1);
   city.box(cx-28,0.4,cz-1.5,cx+28,0.45,cz+1.5,PATHC,0);city.box(cx-1.5,0.4,cz-28,cx+1.5,0.45,cz+28,PATHC,0);
   if(big&&i===7&&j===3){ // lake
-    lakes.push({x:cx+10,z:cz+10,r:14});city.prim(PRIM.cyl,cx+10,0.3,cz+10,0,0,0,15,0.3,15,C('#6b6456'),0);
-    for(let k=0;k<10;k++){const a=k/10*TAU;city.prim(PRIM.sphere,cx+10+Math.cos(a)*15,0.6,cz+10+Math.sin(a)*15,0,a,0,sr(0.8,1.4),sr(0.5,0.9),sr(0.8,1.4),C('#7a7a74'),0);}
-  }else{city.prim(PRIM.cyl,cx,0.9,cz,0,0,0,6,1,6,C('#8d9199'),0);city.prim(PRIM.cyl,cx,1.35,cz,0,0,0,5.4,0.1,5.4,C('#1f6fa8'),0);}
+    const L={x:cx+10,z:cz+10,r:14};lakes.push(L);lakeRim(L,10);
+  }else parkFountain(cx,cz);
   if(big&&i===8&&j===4){city.box(cx+8,0.4,cz+8,cx+18,0.8,cz+18,STONE,0);for(const [a,b] of [[8.5,8.5],[17.5,8.5],[8.5,17.5],[17.5,17.5]])city.prim(PRIM.cyl,cx+a,3,cz+b,0,0,0,0.3,4.4,0.3,STONE,0);
     city.prim(PRIM.cone,cx+13,6.4,cz+13,0,0,0,7.5,2.6,7.5,C('#5c3b30'),0);}
   const nt=big?18:12;
@@ -1107,7 +1166,35 @@ function centralPark(i,j,cx,cz,list,bi){
   addProp(bi,'lamp',cx+3,cz+3,0,{y:0.4});addProp(bi,'bench',cx+4,cz-3,Math.PI,{y:0.4});addProp(bi,'bench',cx-4,cz+3,0,{y:0.4});
   orbSpots.push({x:cx+14,y:1.6,z:cz,roof:false});
 }
-for(const l of lakes){city.prim(PRIM.cyl,l.x,0.3,l.z,0,0,0,l.r+1,0.3,l.r+1,C('#6b6456'),0);for(let k=0;k<12;k++){const a=k/12*TAU;city.prim(PRIM.sphere,l.x+Math.cos(a)*(l.r+1),0.6,l.z+Math.sin(a)*(l.r+1),0,a,0,sr(0.8,1.4),sr(0.5,0.9),sr(0.8,1.4),C('#7a7a74'),0);}}
+// ponds are irregular, not circles: the shore wobbles inside the old circle (so nothing planted around it ends up in the water)
+function lakeR(l,a){const h=l.x*0.137+l.z*0.071;return l.r*(0.8+0.07*Math.sin(2*a+h)+0.06*Math.sin(3*a+h*2.3+1)+0.04*Math.sin(5*a+h*3.7+2)+0.03*Math.sin(7*a+h*1.9));}
+const inLake=(x,z,pad=0)=>{for(const l of lakes){const dx=x-l.x,dz=z-l.z;if(dx*dx+dz*dz<(l.r+pad)*(l.r+pad)&&Math.hypot(dx,dz)<lakeR(l,Math.atan2(dz,dx))+pad)return l;}return null;};
+// a flat slab whose outline follows the shore (pad metres out), from y0 to y1
+function lakeSlab(l,pad,y0,y1,N=40){
+  const pos=[],nor=[],idx=[];pos.push(l.x,y1,l.z);nor.push(0,1,0);
+  for(let i=0;i<=N;i++){const a=i/N*TAU,r=lakeR(l,a)+pad;pos.push(l.x+Math.cos(a)*r,y1,l.z+Math.sin(a)*r);nor.push(0,1,0);}
+  for(let i=0;i<N;i++)idx.push(0,i+2,i+1);
+  const b=pos.length/3;
+  for(let i=0;i<=N;i++){const a=i/N*TAU,r=lakeR(l,a)+pad,c=Math.cos(a),sn=Math.sin(a);pos.push(l.x+c*r,y1,l.z+sn*r,l.x+c*r,y0,l.z+sn*r);nor.push(c,0,sn,c,0,sn);}
+  for(let i=0;i<N;i++){const t0=b+i*2;idx.push(t0,t0+3,t0+1,t0,t0+2,t0+3);}
+  return {pos,nor,idx};
+}
+const IDM=M4.create();
+// the stone shore and the rocks around a pond (same random draws as the old round rim, so the rest of the city is unchanged)
+function lakeRim(l,n){city.add(lakeSlab(l,1,0.15,0.45),IDM,C('#6b6456'),0);
+  for(let k=0;k<n;k++){const a=k/n*TAU,r=lakeR(l,a)+1;city.prim(PRIM.sphere,l.x+Math.cos(a)*r,0.6,l.z+Math.sin(a)*r,0,a,0,sr(0.8,1.4),sr(0.5,0.9),sr(0.8,1.4),C('#7a7a74'),0);}}
+// the fountain in each small square park: a stone basin with a raised lip, a column, an upper bowl and a spout.
+// Both water surfaces sit a few cm above the stone under them (the old disc sat level with the basin top and flickered).
+function parkFountain(x,z){const ST=C('#8d9199'),ST2=C('#a7abb2'),W=[1,1,1];
+  city.prim(PRIM.cyl,x,0.8,z,0,0,0,6,0.8,6,ST,0);            // basin, 0.4 to 1.2
+  city.prim(PRIM.cyl,x,1.23,z,0,0,0,5.3,0.06,5.3,W,4);        // its water, up to 1.26
+  city.prim(PRIM.torus,x,1.26,z,0,0,0,5.75,2.4,5.75,ST2,0);   // the raised lip
+  city.prim(PRIM.cyl,x,2.3,z,0,0,0,0.55,2.2,0.55,ST,0);       // column
+  city.prim(PRIM.cyl,x,3.5,z,0,0,0,1.9,0.3,1.9,ST2,0);        // upper bowl, 3.35 to 3.65
+  city.prim(PRIM.cyl,x,3.68,z,0,0,0,1.6,0.06,1.6,W,4);        // its water
+  city.prim(PRIM.cyl,x,4.1,z,0,0,0,0.22,0.8,0.22,ST,0);city.prim(PRIM.sphere,x,4.55,z,0,0,0,0.32,0.32,0.32,ST2,0);
+  fountainSpots.push({x,z});}
+for(const l of lakes)lakeRim(l,12);
 for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++){
   const bi=i*GZ+j,cx=cellX(i),cz=cellZ(j),list=[],dist=districtOf(i,j);blockCols[bi]=list;blockProps[bi]=[];
   const lv=cellAt(i,j);if(!lv)continue;
@@ -1191,7 +1278,7 @@ for(const b of extraCols)if(!colliders.includes(b))colliders.push(b);
 const cityMesh=city.mesh();
 const groundMesh=groundGeo.mesh();
 const waterMesh=new Geo().prim(PRIM.quad,0,-1.2,0,0,0,0,9000,1,9000,[1,1,1],4).mesh();
-const lakeMesh=(()=>{const g=new Geo();for(const l of lakes)g.prim(PRIM.cyl,l.x,0.46,l.z,0,0,0,l.r,0.02,l.r,[1,1,1],4);return g.mesh();})();
+const lakeMesh=(()=>{const g=new Geo();for(const l of lakes)g.add(lakeSlab(l,0,0.45,0.47),IDM,[1,1,1],4);return g.mesh();})();
 for(let bi=0;bi<GX*GZ;bi++)if(blockProps[bi])buildBlockProps(bi);
 for(const list of blockProps)for(const p of list)if(p.type==='tlight')tlights.push(p);
 (function(){
@@ -1199,7 +1286,9 @@ for(const list of blockProps)for(const p of list)if(p.type==='tlight')tlights.pu
   for(const r of roofs)orbSpots.push({x:r.x+sr(-2,2),y:r.y+1.4,z:r.z+sr(-2,2),roof:true});
   for(let k=0;k<90;k++){const i=Math.floor(srand()*GX),j=Math.floor(srand()*GZ);if(!isBlock(i,j))continue;const p=pathPos({cx:cellX(i),cz:cellZ(j),u:sr(0,216),dir:1});orbSpots.push({x:p.x,y:1.5,z:p.z,roof:false});}
 })();
-const SPAWNS=[[hospital.x,hospital.z]];
+// [x, z, facing]: out on the pavement past the hospital's entrance canopy (a camera behind you would sit inside it),
+// turned towards the park and the skyline
+const SPAWNS=[[hospital.x,hospital.z-4,0.8]];
 // traffic light phase for an intersection: returns 'g', 'y' or 'r' for traffic travelling along `axis`
 function lightFor(ix,iz,axis){
   const T=16,off=((ix*7+iz*13)%16),t=((time+WS.toff+off)%T+T)%T;
@@ -1294,8 +1383,8 @@ function raySphere(ox,oy,oz,dx,dy,dz,cx,cy,cz,r,ys=1){
 }
 // body vs buildings: resolves penetration, reports ground and the wall that was hit
 const COL={grounded:false,wall:null};
-function collideBody(pos,vel,prevY,R,HT){
-  COL.grounded=false;COL.wall=null;const gb=baseY(pos.x,pos.z);
+function collideBody(pos,vel,prevY,R,HT,floor){ // floor: override the ground height (the player swimming over open water)
+  COL.grounded=false;COL.wall=null;const gb=floor===undefined?baseY(pos.x,pos.z):floor;
   if(pos.y<=gb){pos.y=gb;if(vel.y<0)vel.y=0;COL.grounded=true;}
   for(const b of nearCols(pos.x,pos.z)){
     if(pos.x>b.x0-R&&pos.x<b.x1+R&&pos.z>b.z0-R&&pos.z<b.z1+R&&pos.y<b.y1&&pos.y+HT>b.y0){
@@ -1430,13 +1519,13 @@ const POWERS={
   metalSkin:{name:'Metal Skin',cat:'body',sig:'metalForms',desc:'Your body can turn to living steel. Gives you Metal Forms.',drain:3,dr:[0.3,0.7],slow:[0.3,0.1]},
   energyShield:{name:'Energy Shield',cat:'defence',type:'toggle',desc:'Raise a bubble that soaks up damage until it breaks.',energy:25,absorb:[50,400],cooldown:15},
   powerRing:{name:'Ring Bearer',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A ring of pure willpower. Fly, and build anything you can imagine out of hard light. Its charge only comes back when you recite the oath.',speed:[35,110]},
-  stormFlight:{name:'Storm God',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Spin your hammer and hurl yourself into the sky. Lightning answers when you call.',speed:[40,95]},
-  armorFlight:{name:'Armored Inventor',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A flying suit of armor with palm repulsors and a chest beam.',speed:[45,100]},
-  solarFlight:{name:'Sun Titan',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Powered by the sun: flight, heat vision, freezing breath and a thunderclap.',speed:[50,120]},
+  stormFlight:{name:'Tempest',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Ride a thunderclap into the sky. Lightning answers when you call.',speed:[40,95]},
+  armorFlight:{name:'Armored Inventor',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A flying suit of armor with palm blasters and a chest beam.',speed:[45,100]},
+  solarFlight:{name:'Sun Titan',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Powered by the sun: flight, laser eyes, an ice cloud and a thunderclap.',speed:[50,120]},
   stormBody:{name:'Storm Blood',cat:'body',hidden:true,desc:'Lightning barely hurts you and your hammer never leaves your hand for long.'},
   armorSuit:{name:'Power Armor',cat:'body',hidden:true,desc:'Armor plating takes 35% off every hit.'},
   solarBody:{name:'Solar Cells',cat:'body',hidden:true,desc:'Bullets bounce off: you take 40% less damage and punch half again as hard.'},
-  spiderPowers:{name:'Spider Powers',cat:'body',hidden:true,desc:'Stick to any surface, spider-sense warns you of attacks, and your strength is far beyond human.'},
+  spiderPowers:{name:'Spider Powers',cat:'body',hidden:true,desc:'Stick to any surface, a sixth sense warns you of attacks, and your strength is far beyond human.'},
   ringCore:{name:'The Ring',cat:'body',hidden:true,desc:'Everything you do runs on ring charge instead of energy.'},
   surgeSuit:{name:'Speed Surge',cat:'body',hidden:true,desc:'Your body runs on pure speed. Vibrate through walls and outrun time itself.'},
   webStrike:{name:'Web Strike',cat:'preset',type:'instant',desc:'Yank whoever you aim at toward you, or swing-kick them if you are in the air. On objects it pulls them to you.',energy:6,cooldown:0.6,damage:[20,80],range:[30,60]},
@@ -1454,10 +1543,10 @@ const POWERS={
   blackHole:{name:'Black Hole',cat:'preset',type:'instant',ring:95,desc:'Pour almost all of your ring into a black hole. It tears buildings, rubble and people into it. Only the strong or fast escape.',cooldown:30,radius:[40,70],duration:6},
   morphBand:{name:'Morph Band',cat:'special',type:'special',key:'V',desc:'An alien wrist device. Transform into one of seven alien forms, each with its own body and powers. Upgrades unlock more aliens and longer transformations.',duration:[45,150],recharge:[40,12],power:[1,2]},
   stormHammer:{name:'Storm Hammer',cat:'offence',type:'instant',desc:'Hurl an enchanted hammer. It calls lightning down on whatever it hits, smashes everything in its path and flies back to your hand.',energy:18,cooldown:3,damage:[40,170],stun:[0.5,1.2],range:[45,90]},
-  repulsors:{name:'Repulsor Barrage',cat:'offence',type:'channel',desc:'Hold to fire rapid palm blasts from alternating hands. Great for keeping crowds and drones at bay.',energyPerSec:14,damage:[8,30],knock:[5,14]},
+  repulsors:{name:'Pulse Barrage',cat:'offence',type:'channel',desc:'Hold to fire rapid palm blasts from alternating hands. Great for keeping crowds and drones at bay.',energyPerSec:14,damage:[8,30],knock:[5,14]},
   coreBeam:{name:'Core Beam',cat:'offence',type:'instant',desc:'Wind up a blinding beam from your chest. It burns through people, cars and even buildings for a second and a half.',energy:35,cooldown:10,dps:[60,220]},
   ricochetShield:{name:'Ricochet Shield',cat:'offence',type:'instant',desc:'Throw a disc that bounces from target to target before flying back to you.',energy:12,cooldown:2.5,damage:[30,110],bounces:[3,6],stun:[0.5,1]},
-  bladeClaws:{name:'Blade Claws',cat:'body',sig:'bladeLeap',desc:'Retractable claws in your hands and a healing factor that closes wounds fast. Gives you Blade Leap.',damage:[35,140],range:[10,18]},
+  bladeClaws:{name:'Blade Claws',cat:'body',sig:'bladeLeap',desc:'Blades spring from your fists, and your wounds close fast. Gives you Blade Leap.',damage:[35,140],range:[10,18]},
   elasticBody:{name:'Elastic Body',cat:'body',sig:'stretchStrike',desc:'Stretch like rubber: your punches reach much further and hard landings bounce off you. Gives you Stretch Strike.',reach:[6,12],damage:[30,120]},
   titanGrowth:{name:'Titan Growth',cat:'body',sig:'giantForm',desc:'Grow to three times your size for a while. Everything you hit, you hit like a giant. Gives you Giant Form.',duration:[10,25],scale:[2.2,3.2]},
   metalForms:{name:'Metal Forms',cat:'signature',of:'metalSkin',type:'toggle',key:'',desc:'Turn to steel. Press again to cycle your hand into a hammer, a spiked flail, a blade or a shield; hold to turn back.',energy:0},
@@ -1477,7 +1566,7 @@ const POWERS={
   shadowStep:{name:'Shadow Step',cat:'utility',type:'instant',desc:'Vanish and reappear right behind your target (or where you aim), striking as you arrive.',energy:20,cooldown:[6,3],range:[30,60],damage:[40,160]},
   plasmaWhip:{name:'Plasma Whip',cat:'offence',type:'instant',desc:'A crackling whip that sweeps a wide arc around you. Fast and good against crowds.',energy:12,cooldown:[1.6,0.8],damage:[25,100],radius:[6,9]},
   spiritWave:{name:'Spirit Wave',cat:'offence',type:'charge',desc:'Hold to gather energy in your palms, release to unleash a massive wave that tears through anything, buildings included.',energy:40,cooldown:8,damage:[120,420]},
-  suitBattery:{name:'Suit Battery',cat:'upgrade',hidden:true,desc:'How much charge the Armored Inventor\'s suit holds. Every power runs on it, and it only recharges at Inventor Tower.',capacity:[100,300]},
+  suitBattery:{name:'Suit Battery',cat:'upgrade',hidden:true,desc:'How much charge the Armored Inventor\'s suit holds. Every power runs on it, and it only recharges at Forge Tower.',capacity:[100,300]},
   timeDilation:{name:'Time Dilation',cat:'utility',type:'instant',desc:'Slow the world down around you while you move at full speed. In multiplayer it makes you faster instead.',energy:35,cooldown:20,duration:[3,7]},
 };
 const MOVEMENT_POWERS=Object.keys(POWERS).filter(k=>POWERS[k].cat==='movement'&&!POWERS[k].hidden);
@@ -1485,11 +1574,11 @@ const BODY_MODS=Object.keys(POWERS).filter(k=>POWERS[k].cat==='body'&&!POWERS[k]
 const ABILITY_POWERS=Object.keys(POWERS).filter(k=>['offence','defence','utility','special'].includes(POWERS[k].cat));
 // hero presets: picking one of these traversals fixes your body and abilities
 const PRESETS={
-  webSwing:{name:'Web-Slinger',body:'spiderPowers',abilities:['webStrike','webBomb','webWhip'],blurb:'Swing, crawl, glide and flip through the city. Spider-sense and web gadgets.'},
-  superSpeed:{name:'Speedster',body:'surgeSuit',abilities:['lightningThrow','phaseStrike','speedTornado','slowTime','timeStop'],blurb:'Faster than anything alive: phase through walls, bend and stop time.'},
-  stormFlight:{name:'Storm God',body:'stormBody',abilities:['stormHammer','lightning','shockwave','energyShield'],blurb:'Fly on a spinning hammer, call lightning and bring the thunder down.'},
-  armorFlight:{name:'Armored Inventor',body:'armorSuit',abilities:['repulsors','energyBlast','coreBeam','energyShield'],blurb:'A flying suit of armor: repulsors, a chest beam and a force shield.'},
-  solarFlight:{name:'Sun Titan',body:'solarBody',abilities:['laserVision','iceCloud','shockwave','timeDilation'],blurb:'Fly faster than jets, see through heat vision, freeze with your breath.'},
+  webSwing:{name:'Web Runner',body:'spiderPowers',abilities:['webStrike','webBomb','webWhip'],blurb:'Swing, crawl, glide and flip through the city. A sixth sense for danger and web gadgets.'},
+  superSpeed:{name:'Speedster',body:'surgeSuit',abilities:['lightningThrow','phaseStrike','speedTornado','slowTime','timeStop'],blurb:'Outrun anything: phase through walls, bend and stop time.'},
+  stormFlight:{name:'Tempest',body:'stormBody',abilities:['stormHammer','lightning','shockwave','energyShield'],blurb:'Ride the storm, call lightning and bring the thunder down.'},
+  armorFlight:{name:'Armored Inventor',body:'armorSuit',abilities:['repulsors','energyBlast','coreBeam','energyShield'],blurb:'A flying suit of armor: palm blasters, a chest beam and a force shield.'},
+  solarFlight:{name:'Sun Titan',body:'solarBody',abilities:['laserVision','iceCloud','shockwave','timeDilation'],blurb:'Fly faster than jets, burn with laser eyes, freeze with an ice cloud.'},
   powerRing:{name:'Ring Bearer',body:'ringCore',abilities:['ringBlast','hammerSmash','chainLasso','ringShield','blackHole'],blurb:'Build hard-light constructs, from a bubble to a dragon. Runs on ring charge.'},
 };
 const presetOf=c=>c&&PRESETS[c.movement[0]]||null;
@@ -1521,11 +1610,16 @@ const CRIMES={maxActive:3,spawnGap:[14,32],minDist:90,maxDist:420,clearXp:100,cl
 const Bus={h:{},on(e,f){(this.h[e]||(this.h[e]=[])).push(f);},emit(e,d){const l=this.h[e];if(l)for(const f of l)f(d);}};
 const SAVE_KEY='skyline-guardian-save',SAVE_VERSION=1;
 const RING_MAX=200; // ring charge tops out at 100; a loud spoken oath overcharges it up to this
-const DEFAULT_SETTINGS={oathInput:'voice',micLoud:0.65,controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
+const DEFAULT_SETTINGS={oathInput:window.__PORTAL__==='crazygames'?'type':'voice', // portals can't be counted on to allow the mic: typed there, voice still in Settings
+  micLoud:0.65,controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
 function cleanName(s){return String(s).replace(/[^\p{L}\p{N} _.'-]/gu,'').replace(/\s+/g,' ').trim().slice(0,16);}
+// other players' names are typed by them: a basic profanity filter (letters, common digit swaps and whole words)
+const BAD_PART=/fuck|fck|fuk|shit|cunt|bitch|nigg|fagg|whore|slut|porn|penis|vagina|asshole|retard|hitler|nazi/,BAD_WORD=/^(rape|fag|dick|cock|kys|sex|anal|cum)$/;
+function safeName(s){const n=cleanName(s);const t=n.toLowerCase().replace(/[0134579@$]/g,c=>({0:'o',1:'i',3:'e',4:'a',5:'s',7:'t',9:'g','@':'a','$':'s'})[c]);
+  return BAD_PART.test(t.replace(/[^a-z]/g,''))||t.split(/[^a-z]+/).some(w=>BAD_WORD.test(w))?'':n;}
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
 function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
@@ -1560,8 +1654,8 @@ function migrateCharacter(c){
   const pool=[...ab.filter(id=>ABILITY_POWERS.includes(id)),'energyBlast','fireball','shockwave'];
   return validCharacter(Object.assign({},c,{movement:[trav],body,abilities:[...new Set(pool)].slice(0,2)}));
 }
-function loadSave(){
-  let s=null;try{s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){s=null;}
+function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy); otherwise the one in this browser
+  let s=null;try{s=JSON.parse((raw!==undefined?raw:localStorage.getItem(SAVE_KEY))||'null');}catch(e){s=null;}
   const f=freshSave();if(!s||typeof s!=='object'||s.version!==SAVE_VERSION)return f;
   const num=(v,d,a,b)=>typeof v==='number'&&isFinite(v)?clamp(v,a,b):d;
   if(s.settings&&typeof s.settings==='object'){const t=s.settings,st=f.settings;
@@ -1579,13 +1673,14 @@ function loadSave(){
   if(s.stats&&typeof s.stats==='object')for(const k in f.stats)f.stats[k]=Math.floor(num(s.stats[k],0,0,1e9));
   f.rechoiceAt=f.migrated?0:num(s.rechoiceAt,0,0,1e15);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
-  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
+  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.savedAt=num(s.savedAt,0,0,1e15);f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
 const save=loadSave();
-function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}}
+let persistHook=null; // the CrazyGames build also copies every save to the portal's cloud storage (64_portal.js)
+function persist(){save.savedAt=Date.now();const j=JSON.stringify(save);try{localStorage.setItem(SAVE_KEY,j);}catch(e){}if(persistHook)try{persistHook(j);}catch(e){}}
 const touchOn=()=>save.settings.controls==='touch'||(save.settings.controls==='auto'&&IS_TOUCH_DEVICE);
 
 const pv=k=>save.passives[k]|0;
@@ -1707,14 +1802,14 @@ const Damage={
 let hitMarkT=-9;
 function breakShield(){P.shield=0;P.shieldOn=false;PS.energyShield.cd=POWERS.energyShield.cooldown;ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,2,6,0.4,[.4,.85,1]);SFX.tone('square',900,200,0.3,0.12);feed('Shield broken','Recharging for '+POWERS.energyShield.cooldown+' s');}
 function playerDown(killer){
-  P.dead=true;P.deadT=CONFIG.health.respawn;stopAllPowers();downBy=killer||null;
+  P.dead=true;P.deadT=CONFIG.health.respawn;stopAllPowers();
   explode(P.pos.x,P.pos.y+1.2,P.pos.z,0.8);
   $('dead').hidden=false;$('deads').textContent=(killer&&killer.name?killer.name+' took you down. ':'')+'Back in '+CONFIG.health.respawn+' seconds. You keep your level, powers and reputation.';
-  reviveOffer();MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
+  MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
 }
 function respawn(){
   const s=SPAWNS[(Math.random()*SPAWNS.length)|0];if(P.alien)revertAlien(true);
-  P.dead=false;P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();clearWanted();P.stun=0;P.lastHit=-99;
+  P.dead=false;P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.12;P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();clearWanted();P.stun=0;P.lastHit=-99;
   $('dead').hidden=true;Portal.midgame();
 }
 
@@ -2532,7 +2627,7 @@ function drawRagdoll(a,C){
 function ragColorsHuman(h){const L=h.look;return {torso:L.shirt,arms:L.shirt,hands:L.skin,skin:L.skin,head:L.hat||L.hair||L.skin,legs:L.pants};}
 function ragColorsSuper(m){const suit=m.metal?SILVER:m.suit;return {torso:suit,torso2:m.metal?SILVER2:m.suit2,arms:suit,hands:m.cape,skin:m.metal?SILVER:SKIN_C,head:m.metal?SILVER2:HAIR,legs:suit,shins:m.cape,cape:m.capeOn?m.cape:null};}
 // ================================================================
-// Traversal: Insomniac-style web swinging, web zip, wall running, parkour leaps
+// Traversal: physics-based web swinging, web zip, wall running, parkour leaps
 // ================================================================
 // Swinging: hold right click (or WEB) and the web finds a building above and ahead
 // automatically. Keep holding and it chains to the next anchor after each upswing;
@@ -3190,7 +3285,7 @@ function metalUp(){
   P.mw=(P.mw+1)%METAL_W.length;const W=METAL_W[P.mw];feed(W.name,W.note);SFX.tone('square',180,90,0.12,0.08);SFX.punch(0.6);
   if(P.hand)burst(P.hand[12],P.hand[13],P.hand[14],14,5,0.3,[[.85,.88,.92],[1,1,1]],0.7,0,2);
 }
-// how far your finishers send people: the armor taps them, the storm god and the sun titan launch them
+// how far your finishers send people: the armor taps them, the tempest and the sun titan launch them
 const heroKnockMul=()=>P.alien?1:hasPower('armorSuit')?0.45:hasPower('stormBody')||hasPower('solarBody')?1.4:1;
 const bodyPunchMul=()=>{const W=metalWeapon();return (W?W.dmg:1)*(P.giantS>1.05?1+P.giantS:1)*(hasPower('solarBody')&&!P.alien?1.5:1);};
 const bodyReach=()=>{const W=metalWeapon();return (W?W.reach:0)+(hasPower('elasticBody')&&!P.alien?pstat('elasticBody','reach')*0.45:0)+(P.giantS>1.05?(P.giantS-1)*1.6:0);};
@@ -3251,7 +3346,7 @@ function drawBody(){
   if(P.tk&&P.tk.slab){const S=P.tk.slab;queue(MESH.box,at(S.x,S.y,S.z,S.rx,S.ry,S.rz,S.sx,S.sy,S.sz),S.col,F_SH);const g=Math.max(S.sx,S.sz)*0.9;queue(MESH.glowSphere,at(S.x,S.y,S.z,0,0,0,g,g,g),[.6,.35,1,0.18],F_ADD);}
   for(const F of stretches){const c=center(F.a),h=P.hand?{x:P.hand[12],y:P.hand[13],z:P.hand[14]}:handPoint();queue(MESH.box,M4.beam(tmpM(),h.x,h.y,h.z,c.x,c.y,c.z,0.24),LOOK.cape,F_SH);queue(MESH.sphere,at(c.x,c.y,c.z,0,0,0,0.45,0.45,0.45),LOOK.cape,0);}
   if(state!=='play'||P.dead||P.alien||P.rag||!P.hand)return;
-  // preset gear: the storm god's hammer, the armor's thrusters
+  // preset gear: the tempest's hammer, the armor's thrusters
   if(hasPower('stormBody')&&!thrown.some(t=>t.kind==='hammer')&&P.suited!==false){const H=P.hand;
     // charging a launch: whirl the hammer overhead, faster and faster; flying: it spins out ahead of you
     const k=P.fCharge?clamp((P.chargeT||0)/1.5,0,1):0,M=P.fCharge?child(H,0,-0.1,0,0,time*(12+26*k),0):P.flying?child(H,0,-0.05,0,time*16,0,0):H;
@@ -3340,8 +3435,8 @@ function updatePool(dt){
   if(!P.alien&&P.invisible>0&&!P.cloak)P.invisible=Math.max(0,P.invisible-dt);
 }
 // ================================================================
-// Web-Slinger kit: web wings, updrafts, swing boost, slingshot, dives, air tricks,
-// landing rolls, spider-sense, and the Web Strike / Web Bomb / Web Whip moves
+// Web Runner kit: web wings, updrafts, swing boost, slingshot, dives, air tricks,
+// landing rolls, danger sense, and the Web Strike / Web Bomb / Web Whip moves
 // ================================================================
 const updrafts=[];
 (function(){let q=7;const rnd=()=>(q=(q*16807)%2147483647)/2147483647,rg=(a,b)=>a+(b-a)*rnd(); // own seed: leaves the world generator untouched
@@ -3394,16 +3489,16 @@ function spiderTick(dt){
   if(P.wings&&(!air||!keys.Space))P.wings=false;
   if(P.web){const hs=Math.hypot(P.vel.x,P.vel.z);addMastery('webSwing',hs*dt*0.03);}
 }
-// spider-sense: sometimes you dodge before the hit lands
+// danger sense: sometimes you dodge before the hit lands
 function spiderSense(src,type){
   if(!hasPower('spiderPowers')||!src||src===P||P.dead)return false;
   if(!['bullet','blast','shot','punch','rocket','pvp','throw','shock','hit','fire'].includes(type))return false;
   if(time-(P.senseT||-9)<1.1||Math.random()>0.22+0.3*webMk())return false;
   P.senseT=time;const s=Math.random()<0.5?-1:1,rx=Math.cos(P.yaw)*s,rz=-Math.sin(P.yaw)*s;
-  P.vel.x+=rx*14;P.vel.z+=rz*14;if(P.grounded)P.vel.y=Math.max(P.vel.y,5);P.flip={t:0,dur:0.4,rx:0,ry:TAU*s};feed('Spider-sense','Dodged');SFX.tone('sine',1400,2000,0.08,0.06);
+  P.vel.x+=rx*14;P.vel.z+=rz*14;if(P.grounded)P.vel.y=Math.max(P.vel.y,5);P.flip={t:0,dur:0.4,rx:0,ry:TAU*s};feed('Danger sense','Dodged');SFX.tone('sine',1400,2000,0.08,0.06);
   return true;
 }
-// ---- Web-Slinger moves ----
+// ---- Web Runner moves ----
 Object.assign(POWER_FN,{
   webStrike(){
     const R=pstat('webStrike','range'),t=lockT&&lockT.alive?lockT:aim.actor&&aim.actor.kind!=='prop'&&aim.hitAny?aim.actor:null,h=handPoint();
@@ -3449,7 +3544,7 @@ function updateWebbed(dt){for(const a of actors)if(a.webT>0){a.webT-=dt;a.stun=M
 // Ring Bearer: ring charge, hard-light constructs, ring moves, the black hole and the oath
 // ================================================================
 // Everything the ring does costs charge (save.ring, 0-100). It never refills on its own:
-// press O to hold up the lantern and type the oath. At zero charge you can only walk.
+// press O to hold up the beacon and type the oath. At zero charge you can only walk.
 // Said out loud and loud enough (Settings → Ring oath), the oath overcharges the ring to 200 (RING_MAX).
 // B builds your default construct (the last one you picked), V opens the construct wheel.
 // Inside a construct, left click / right click / X are its attacks.
@@ -3492,7 +3587,10 @@ function conGrowStep(dir){
   SFX.tone('sine',ng>g?220:500,ng>g?120:900,0.25,0.08);if(ng>g)addShake(Math.min(0.6,0.05*Math.log2(ng+1)));MP.bump();return true;
 }
 const titanGrow=conGrowStep;
-const conSpeedMul=()=>{const c=conDef();return c?c.speed:1;};
+// a grown transport construct (anything you ride, drive or fly; not a held weapon) moves in proportion to its size,
+// so an Earth-sized jet doesn't crawl along at a car's speed
+const conSizeK=()=>{const c=conDef();return c&&!c.weapon?Math.max(1,P.construct.grow||1):1;};
+const conSpeedMul=()=>{const c=conDef();return c?c.speed*conSizeK():1;};
 const conCam=()=>{const c=conDef();if(!c)return 1;const b=c.cam?c.cam:P.construct.id==='dragon'?1.8:P.construct.id==='jet'?1.35:P.construct.id==='bubble'?1.2:1;return c.scale?b:b*conGrow(P.construct.id);};
 // constructs run on ring charge, or on the suit battery for the Armored Inventor's suit forms (4 ring points = 1 battery point)
 const armorForms=()=>hasTrav('armorFlight')&&!P.alien;
@@ -3702,8 +3800,8 @@ function openOath(){
   // said out loud: you move and fight freely, but the ring is busy (no ring powers or constructs until you finish)
   oathOpen=true;oathFree=vo;oathStart=save.ring;voicePeak=0;oathIn.value='';oathEl.hidden=false;oathEl.classList.toggle('mini',!!save.oathKnown);renderOath(0);
   const tch=touchOn();oathIn.readOnly=!tch;oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';
-  $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the lantern away')
-    :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the lantern away.');
+  $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the beacon away')
+    :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the beacon away.');
   $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;
   if(!vo){P.charging=false;for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);}
   SFX.tone('sine',200,400,0.6,0.08);
@@ -3722,9 +3820,9 @@ function oathTyped(){
   const tch=touchOn();oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';if(tch)setTimeout(()=>oathIn.focus(),30);
 }
 const ringLocked=()=>oathOpen&&oathFree;
-function oathBusy(){if(time-oathBusyT<1.2)return;oathBusyT=time;feed('Finish the oath first','The ring is busy while you speak · '+(touchOn()?'tap OATH':'O')+' puts the lantern away');SFX.tone('square',220,160,0.08,0.05);}
+function oathBusy(){if(time-oathBusyT<1.2)return;oathBusyT=time;feed('Finish the oath first','The ring is busy while you speak · '+(touchOn()?'tap OATH':'O')+' puts the beacon away');SFX.tone('square',220,160,0.08,0.05);}
 function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathFree=false;voiceOathStop();micOff('oath');$('oath-lvl').hidden=true;oathEl.hidden=true;P.lantern=false;oathIn.blur();}
-// keyboard typing while the lantern is out (called from the main key handler before anything else)
+// keyboard typing while the beacon is out (called from the main key handler before anything else)
 function oathKey(e){
   e.preventDefault();const k=e.key;
   if(e.code==='Escape'||e.code==='Enter'||e.code==='NumpadEnter'){closeOath();return;}
@@ -3738,7 +3836,7 @@ oathIn.addEventListener('input',()=>{
   renderOath(n);const k=n/want.length;save.ring=Math.max(save.ring,oathStart+Math.max(0,100-oathStart)*k);
   if(n<got.length){oathIn.style.borderColor='#ff4d5e';}else oathIn.style.borderColor='';
   if(n>=want.length){const over=oathLoud(),said=oathVoice();save.ring=Math.max(save.ring,over?RING_MAX:100);closeOath();const c=center(P);flashWhite=0.5;ringFx(c.x,c.y,c.z,1,24,0.7,RING_C);ringFx(c.x,c.y,c.z,1,12,0.5,[1,1,1]);
-    if(over){ringFx(c.x,c.y,c.z,1,48,0.9,[1,1,1]);addShake(0.3);}
+    if(over){ringFx(c.x,c.y,c.z,1,48,0.9,[1,1,1]);addShake(0.3);Portal.happy();}
     burst(c.x,c.y,c.z,120,24,1,[RING_C,[1,1,1]],1.8,0,2);SFX.transform();addShake(0.4);
     toast(over?'Ring overcharged':'Ring fully charged',over?'Your voice carried it past every limit · '+Math.round(save.ring)+'%':said?'Say it louder to overcharge it to 200':'Your will is the only limit','cyan');MP.fx('rg',{g:'o'});save.oathKnown=true;persist();}
 });
@@ -3925,7 +4023,7 @@ function remoteStreaks(){for(const r of MP.peers.values()){if(!(r.flags&FLAG.spe
 // Suit up: U swaps between your civilian clothes and your suit
 // ================================================================
 // Each kind of hero changes differently: the Ring Bearer's ring builds the suit out of light,
-// the Speedster zig-zags in a blur, the Web-Slinger fades to black and pulls the mask on last,
+// the Speedster zig-zags in a blur, the Web Runner fades to black and pulls the mask on last,
 // Metal Skin heroes flash to steel and everyone else spins into it.
 P.suited=true;
 let suitAnim=null;
@@ -3964,22 +4062,32 @@ function drawSuit(){
     queue(MESH.glowBox,at(P.pos.x,P.pos.y+k*1.5,P.pos.z,0,P.heroYaw,0,1.1,k*3,0.7),[RING_C[0],RING_C[1],RING_C[2],0.2],F_ADD);}
   else if(A.st==='metal'){const y=P.pos.y+k*2.9;queue(MESH.ring,M4.alignY(tmpM(),P.pos.x,y,P.pos.z,0,1,0,1),[.9,.92,.95,1],F_ADD);}
 }
-// the keys panel shows the controls for the hero you are playing
+// the move list (right side, H) shows everything the hero you are playing can do
 function renderHeroKeys(){
-  const box=$('keys-hero');if(!box)return;box.textContent='';const c=save.character;if(!c)return;
-  const K=(k,t)=>{box.appendChild(el('kbd',{text:k}));box.appendChild(el('span',{text:t}));};
-  const m=c.movement[0];
+  const box=$('keys-hero');if(!box)return;box.textContent='';const c=save.character;
+  let grid=null; // each heading starts a section that the two-column layout keeps in one piece
+  const H=t=>{const s=el('section',{class:'ks'},el('h4',{text:t}));grid=el('div',{class:'kg'});s.appendChild(grid);box.appendChild(s);};
+  const K=(k,t)=>{grid.appendChild(el('kbd',{text:k}));grid.appendChild(el('span',{text:t}));};
+  const m=c&&c.movement[0];
+  H('Moving');K('WASD','Move');K('Space','Jump · hold for a super jump');K('C · Space in water','Dive · swim back up');
   if(m==='webSwing'){K('Right click','Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
-  else if(m==='powerRing'){K('F','Fly · hold on the ground to charge a launch');K('B · V','Build a construct · pick one');K('O','Recite the oath to recharge the ring');K('Y','Rebuild every broken building');K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');}
-  else if(m==='flight'||m==='stormFlight'||m==='armorFlight'||m==='solarFlight'){K('F','Fly · hold on the ground to charge a launch');
-    if(m==='armorFlight'){K('Inventor Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
-    if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');}
-  if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
-  if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
-  if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
-  K('Hold 1–5 · wheel','Size a power (up to ×30), let go to use it');
-  K('U','Suit up or down');
+  else if(m)K('F','Fly · hold on the ground to charge a launch');
+  if(c){H('Your powers');c.abilities.forEach((id,i)=>{const p=POWERS[id];if(!p)return;
+      K(String(i+1)+(i<3?' · '+'QER'[i]:''),p.name+(PBAL&&typeof slotLocked==='function'&&slotLocked(i)?' · unlocks at LV '+KIT_LV[i]:''));});
+    K('Hold 1–5 · wheel','Size a power (up to ×30), let go to use it');}
+  H('Fighting');K('Click','Punch · hold to keep swinging');K('Z · X','Lock on · dash');K('G','Get in a car · help someone up');
+  if(m){H(PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Your hero');
+    if(m==='powerRing'){K('B','Build your construct (the last one you picked)');K('V','Construct wheel · in a construct: tap to step out, hold to switch');
+      K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');K('O','Say or type the oath to recharge the ring');K('Y','Rebuild every broken building');}
+    if(m==='armorFlight'){K('Forge Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
+    if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');
+    if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
+    if(hasPower('morphBand'))K('V','Morph Band: pick an alien · tap again to change back');
+    if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
+    if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
+    K('U','Suit up or down');}
+  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('L','Free the mouse to click the icons');K('Esc','Pause');if(!PBAL)K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
 }
 // ================================================================
 // Wanted level (1-5 stars) and bounty
@@ -4026,15 +4134,15 @@ function bountyOnDown(killer){
 function onBountyFx(d,r){
   if(d.to!==MP.myPeer)return;const a=clamp(+d.a||0,0,1e6);if(!a)return;
   const xp=Math.round(a/10),rep=Math.round(Math.min(500,a/100));addXP(xp);addRep(rep);
-  toast('Bounty collected · $'+a.toLocaleString('en-US'),'You took down '+(cleanName(String(d.n||''))||r.name)+' · +'+xp+' XP · +'+rep+' rep','gold');SFX.chime();persist();
+  toast('Bounty collected · $'+a.toLocaleString('en-US'),'You took down '+(safeName(String(d.n||''))||r.name)+' · +'+xp+' XP · +'+rep+' rep','gold');SFX.chime();persist();
 }
 const starText=n=>'★'.repeat(n)+'☆'.repeat(5-n);
 // ================================================================
-// Hero meters: the Armored Inventor's suit battery, the Storm God's lightning and the Speedster's calories
+// Hero meters: the Armored Inventor's suit battery, the Tempest's lightning and the Speedster's calories
 // ================================================================
 // Like the Ring Bearer's ring charge, each of these replaces the energy bar for that hero and never refills on its own.
 // - Battery: every power runs on it. Empty, the suit drops to standby: flying and plain punches only.
-//   Recharge at Inventor Tower (land on its roof or its landing pad, or walk into the lobby).
+//   Recharge at Forge Tower (land on its roof or its landing pad, or walk into the lobby).
 // - Lightning: only lightning attacks use it. Empty, you still fly and fight, and the hammer still flies, without lightning.
 //   Recharge on top of a tall tower: press G to raise the hammer and call the storm down into it.
 // - Calories: running fast and using powers burn them; there is no energy limit otherwise. Empty, the speed dial
@@ -4072,20 +4180,20 @@ function meterBlocks(id){const m=heroMeter();if(!m)return false;
 const cdMul=()=>hungry()?3:1;
 let meterMsgT=-9;
 function meterOut(m){if(m.key==='ring'){ringOut();return;}if(time-meterMsgT<2)return;meterMsgT=time;
-  if(m.key==='battery')feed('Suit on standby','Fly to Inventor Tower to recharge');
+  if(m.key==='battery')feed('Suit on standby','Fly to Forge Tower to recharge');
   else if(m.key==='bolt')feed('No lightning left','Call the storm from the top of a tall tower (G)');
   SFX.tone('square',220,140,0.15,0.06);}
 function meterEmpty(m){meterMsgT=time;if(m.key==='ring'){ringOut();return;}
-  if(m.key==='battery'){toast('Battery empty','Standby mode · flying and punches only. Recharge at Inventor Tower.','red');SFX.tone('sawtooth',400,60,0.8,0.1);}
+  if(m.key==='battery'){toast('Battery empty','Standby mode · flying and punches only. Recharge at Forge Tower.','red');SFX.tone('sawtooth',400,60,0.8,0.1);}
   else if(m.key==='bolt')toast('Out of lightning','Fly to the top of a tall tower and call the storm (G)','cyan');
   else toast('Out of calories','You slow down. Press G at a shop to eat.','gold');}
-// ---- Inventor Tower ----
+// ---- Forge Tower ----
 function atInventorTower(){const T=invTower;if(!T)return false;const x=P.pos.x,y=P.pos.y,z=P.pos.z;
   if(x>T.x0-1&&x<T.x1+1&&z>T.z0-1&&z<T.z1+1&&y>T.top-1.5&&y<T.top+14)return true; // on the roof
   if(Math.hypot(x-T.pad.x,z-T.pad.z)<10&&y>T.pad.y-1&&y<T.pad.y+10)return true;   // on the landing pad
   return Math.hypot(x-T.door.x,z-T.door.z)<9&&y<6;                               // in the lobby doorway
 }
-// ---- the Storm God's tower tops ----
+// ---- the Tempest's tower tops ----
 function tallRoofHere(){if(P.pos.y<TALL_ROOF-2)return null;
   for(const r of roofTops){if(r.y<TALL_ROOF)continue;if(P.pos.x>r.x0-2&&P.pos.x<r.x1+2&&P.pos.z>r.z0-2&&P.pos.z<r.z1+2&&P.pos.y>r.y-1.5&&P.pos.y<r.y+16)return r;}
   return null;}
@@ -4107,12 +4215,12 @@ function updateMeters(dt){
   if(m.key==='battery'){
     if(P.flying&&save.battery>0&&P.suited!==false){save.battery=Math.max(0,save.battery-0.08*dt);if(save.battery<=0)meterEmpty(m);}
     if(atInventorTower()&&save.battery<cap&&!P.dead){const was=save.battery;save.battery=Math.min(cap,save.battery+cap*0.2*dt);
-      if(was<=0||time-(P.chgMsgT||-9)>8){P.chgMsgT=time;feed('Charging at Inventor Tower',save.battery>=cap?'Fully charged':'');}
+      if(was<=0||time-(P.chgMsgT||-9)>8){P.chgMsgT=time;feed('Charging at Forge Tower',save.battery>=cap?'Fully charged':'');}
       if(Math.random()<dt*14){const T=invTower,c=center(P),sx=c.x+rr(-6,6),sz=c.z+rr(-6,6);tracer(sx,c.y+rr(3,8),sz,c.x,c.y,c.z,[.5,.9,1],0.12,0.15);}
       if(save.battery>=cap&&was<cap){toast('Battery full','Suit systems online','cyan');SFX.chime();persist();}}
   }else if(m.key==='bolt'){
     const S=P.stormCall;
-    if(S){S.t+=dt;S.next-=dt;P.vel.x*=0.8;P.vel.z*=0.8;P.hammerUpT=time;
+    if(S){S.t+=dt;S.next-=dt;{const f=Math.pow(0.8,dt*60);P.vel.x*=f;P.vel.z*=f;}P.hammerUpT=time;
       if(!tallRoofHere()||P.dead||P.stun>0){P.stormCall=null;}
       else if(S.next<=0){S.next=0.45;const c=center(P);bolt(c.x,c.y+2.2,c.z,false,1);save.bolt=Math.min(100,save.bolt+20);addShake(0.25);
         if(save.bolt>=100){P.stormCall=null;toast('The storm answers','Lightning fully charged','cyan');persist();}}}
@@ -4141,7 +4249,7 @@ for(const id of CON_PAGES[1])if(!CON_IDS.includes(id))CON_IDS.push(id);
 const conDrive=()=>{const c=conDef();return c&&c.drive?c:null;};
 // ---- driving the bike and the race car ----
 function driveConstruct(dt,inF,inR,shift){
-  const K=P.construct,C=CONSTRUCTS[K.id],D=C.drive;K.spd=K.spd||0;
+  const K=P.construct,C=CONSTRUCTS[K.id],g=conSizeK(),D={top:C.drive.top*g,accel:C.drive.accel*g,steer:C.drive.steer};K.spd=K.spd||0; // g: grown vehicles are faster in proportion
   const boost=shift&&(C.free||conFuel()>0.5)&&K.spd>5;if(boost){if(!C.free)conBurn(0.8*dt);if(Math.random()<dt*30){const b=-2.2;emit(P.pos.x+Math.sin(P.heroYaw)*b,P.pos.y+0.6,P.pos.z+Math.cos(P.heroYaw)*b,rr(-2,2),rr(0,2),rr(-2,2),0.35,C.armor?FIRE[1]:RING_C,1.6,0,0);}}
   const top=D.top*(boost?1.5:1)*(K.rideRam>0?1.4:1);
   if(inF>0.1)K.spd+=(K.spd<-0.5?D.accel*2:D.accel*(boost?1.8:1))*inF*dt;
@@ -4531,7 +4639,7 @@ for(const pg of CON_PAGES)for(const id of pg)if(!CON_IDS.includes(id))CON_IDS.pu
 // weapon constructs cost charge to build and for every shot they fire, but nothing to hold and nothing to swing
 for(const id in CONSTRUCTS){const C=CONSTRUCTS[id];if(C.weapon)C.drain=0;}
 // ================================================================
-// Saying the oath out loud: the browser's speech recognition listens while the lantern is up
+// Saying the oath out loud: the browser's speech recognition listens while the beacon is up
 // ================================================================
 // Settings → Ring oath picks "Say it out loud" (the default where the browser can listen) or "Type it".
 // In voice mode the game asks for the microphone when you start playing as the Ring Bearer, and O starts listening.
@@ -4568,7 +4676,7 @@ function voiceOathStart(){
     if(er&&er!=='no-speech'&&er!=='aborted'&&++voiceFails>=3&&!voiceBlocked){voiceBlocked=true;oathTyped();voiceNote('Speech recognition is not working here right now · type the oath instead');feed('Can\'t listen right now','Type the oath instead');return;} // e.g. offline: stop retrying
     if(er==='not-allowed'||er==='service-not-allowed'||er==='audio-capture'){voiceBlocked=true;oathTyped();voiceNote('The microphone is blocked here · type the oath instead ('+(touchOn()?'NEXT WORD':'Tab')+' fills words once you know it)');feed('Microphone blocked','Type the oath instead · allow the mic in your browser to speak it');}};
   voiceRec.onend=()=>{const r=voiceRec;if(!r)return;if(oathOpen&&oathVoice()){voiceBase=voicePtr;setTimeout(()=>{if(voiceRec===r&&oathOpen)try{r.start();}catch(e){}},120);}}; // it stops after a pause: keep listening
-  try{voiceRec.start();voiceNote('🎙 Listening · say the oath out loud, loudly to overcharge the ring'+(touchOn()?' (you can still type it) · tap OATH':' · O or Esc')+' puts the lantern away');}catch(e){voiceRec=null;}
+  try{voiceRec.start();voiceNote('🎙 Listening · say the oath out loud, loudly to overcharge the ring'+(touchOn()?' (you can still type it) · tap OATH':' · O or Esc')+' puts the beacon away');}catch(e){voiceRec=null;}
 }
 function voiceOathStop(){const r=voiceRec;voiceRec=null;if(r)try{r.onend=null;r.abort();}catch(e){}}
 // ask for the microphone up front (once per session) so the first oath is not interrupted by the prompt
@@ -4964,7 +5072,7 @@ function updateRival(r,dt){
     const flung=r.flungT&&time-r.flungT<2.5,spd=flung?Math.hypot(r.vel.x,vyb,r.vel.z):0;
     if(flung){flungSweep(r,spd);if(col.wall&&spd>COMBAT.slamMin)slamWall(r,col.wall,spd,pv);else if(col.grounded&&vyb<-COMBAT.slamMin)slamGround(r,-vyb);}
     if(r.thrown&&(col.grounded||col.wall)){const t=r.thrown;r.thrown=null;Damage.apply(t.by,r,t.dmg,'throw');}
-    if(col.grounded){r.vel.x*=0.8;r.vel.z*=0.8;}
+    if(col.grounded){const f=Math.pow(0.8,dt*60);r.vel.x*=f;r.vel.z*=f;} // same slide at any frame rate
     if(!r.alive){r.tilt=lerp(r.tilt,1.5,damp(3,dt));r.deadT-=dt;if(r.deadT<=0)removeActor(r);}
     else if(r.stun>0)r.stun-=dt;
     return;
@@ -5180,7 +5288,7 @@ function updateCrimes(dt){
     if(r==='cleared'||r==='escaped'){crimes.splice(i,1);c.cleanup&&c.cleanup(r==='escaped');
       for(const a of c.actors)if(a.crime===c&&a.kind!=='boss'){a.crime=null;if(a.kind==='drone'&&a.alive)a.leave=true;}
       if(r==='cleared'&&c.helped){const xp=c.heist?CRIMES.clearXp*3:CRIMES.clearXp;addXP(xp);addRep(c.heist?CRIMES.clearRep*3:CRIMES.clearRep);save.stats.crimesStopped++;guideDone('crime');
-        if(c.heist)toast('Heist stopped','+'+xp+' XP · '+c.label.replace(/^The /,'the '),'gold');else feed('+'+xp+' XP','Crime stopped: '+c.label);persist();}
+        if(c.heist){toast('Heist stopped','+'+xp+' XP · '+c.label.replace(/^The /,'the '),'gold');Portal.happy();}else feed('+'+xp+' XP','Crime stopped: '+c.label);persist();}
       if(r==='cleared'&&WS.host)WS.crimeReward(c);}}
   if(state!=='play')return;
   const small=crimes.filter(c=>!c.heist).length;
@@ -5228,7 +5336,7 @@ function updateWorld(dt){
   updateHunters(dt);
   for(const r of rivals.slice())updateRival(r,dt);
   if(boss){if(boss.type==='ship')updateShip(boss,dt);else updateMech(boss,dt);}
-  updateProps(dt);updateStreetProps(dt);updateCrimes(dt);managePopulation(dt);manageRivals(dt);updatePolice(dt);updateHelis(dt);updateAliens(dt);
+  updateProps(dt);updateStreetProps(dt);updateCrimes(dt);managePopulation(dt);manageRivals(dt);updatePolice(dt);updateHelis(dt);updateAmbient(dt);updateAliens(dt);
   SFX.setSiren(Math.max(0,...vehicles.filter(v=>v.siren).map(v=>SFX.vol(v.pos.x,1,v.pos.z)),0));
 }
 function seedTraffic(){
@@ -5411,6 +5519,215 @@ function drawHelis(){
         queue(MESH.disc,M4.alignY(tmpM(),c.x,gy+0.1,c.z,0,1,0,5),[1,.97,.85,0.18*env.night],F_ADD);}}}
 }
 // ================================================================
+// Water: swimming, diving and splashes
+// ================================================================
+// Off the island the player swims instead of standing on the sea: you float with your head above the surface, move
+// at swimming pace, hold C to dive and let go (or hold Space) to come back up. Space at the surface jumps out as
+// before (hold it for a super jump), and swimming into the shore climbs you out. Crossing the surface splashes (bigger
+// the faster you hit it), a blue tint covers the screen while the camera is under, and bubbles rise as you swim.
+// Cars, constructs, giants and a speedster running fast still skim the surface like before. Park ponds are shallow:
+// walking through one splashes and slows you down.
+const SEA_Y=-1.2,SWIM_Y=-3.0,SEABED=-18; // the sea surface, where your feet float, and the sea floor
+const seabedMesh=new Geo().prim(PRIM.quad,0,SEABED,0,0,0,0,9000,1,9000,[.16,.21,.18],5).mesh();
+SFX.water=function(v=1){if(!this.ctx||v<=0.02)return;const c=this.ctx,t=c.currentTime,len=0.3+0.5*Math.min(1,v);
+  const s=c.createBufferSource();s.buffer=this.noise;const f=c.createBiquadFilter();f.type='bandpass';f.Q.value=0.9;
+  f.frequency.setValueAtTime(2600,t);f.frequency.exponentialRampToValueAtTime(320,t+len);
+  const g=c.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.55*Math.min(1.4,v),t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+len);
+  s.connect(f).connect(g).connect(this.master);s.start(t,Math.random());s.stop(t+len+0.05);this.tone('sine',700,160,0.14,0.06*Math.min(1,v));};
+function splashAt(x,y,z,k){ // k: 0.2 a ripple ... 1 a big dive
+  const n=Math.round(10+k*40),s=0.5+k;
+  for(let i=0;i<n;i++){const a=rr(0,TAU),o=rr(0.2,1.2)*s;emit(x+Math.cos(a)*o,y+0.1,z+Math.sin(a)*o,Math.cos(a)*rr(1,4)*s,rr(5,13)*s,Math.sin(a)*rr(1,4)*s,rr(0.5,1.1),WATER[(Math.random()*2)|0],rr(0.5,1.3)*(0.7+k*0.5),22,0.3);}
+  ringFx(x,y+0.05,z,0.4,3+k*7,0.9,[.75,.9,1]);SFX.water(SFX.vol(x,y,z)*(0.35+k*0.8));
+}
+// can the player swim here at all (else the old sea "floor" holds them up)
+function swimOk(shift){
+  if(P.car||P.construct||P.dead||inSpace())return false;const AL=alienDef();if(AL&&AL.scale>2)return false; // giants wade
+  if(!AL&&hasPower('superSpeed')&&(shift||P.fastMode)&&P.pos.y>SWIM_Y-0.5)return false; // a speedster at speed runs across the water
+  return true;
+}
+let swimShift=false;
+const swimFloor=()=>!onIsland(P.pos.x,P.pos.z)&&swimOk(swimShift)?SEABED:undefined;
+// the camera may follow you under once you dive; floating at the surface it stays above the water
+function camFloorY(x,z){if(state!=='play'||swimFloor()===undefined)return baseY(x,z)+0.6;return P.pos.y<SWIM_Y-0.8?SEABED+1:SEA_Y+0.3;}
+function swimCheck(shift,phasing){
+  swimShift=shift;const was=P.swim,wet=!onIsland(P.pos.x,P.pos.z);
+  P.swim=wet&&!phasing&&!P.flying&&!P.wall&&P.pos.y<SEA_Y+0.4&&swimOk(shift);
+  if(P.swim&&!was){if(P.web)webRelease(false);P.zip=null;P.wings=false;P.wallRun=null;}
+  const under=wet&&!P.car&&P.pos.y<SEA_Y;
+  if(under!==!!P.wetFeet){P.wetFeet=under;
+    if(under&&!phasing)splashAt(P.pos.x,SEA_Y,P.pos.z,clamp(-P.vel.y/40,0.25,1));
+    else if(!under&&P.vel.y>4)splashAt(P.pos.x,SEA_Y,P.pos.z,0.2);}
+  const wade=!P.swim&&!P.flying&&!P.car&&P.pos.y<0.9&&!!inLake(P.pos.x,P.pos.z);
+  if(wade&&!P.wade)splashAt(P.pos.x,0.47,P.pos.z,clamp(-P.vel.y/40,0.15,0.8));
+  P.wade=wade;
+  if(wade&&Math.hypot(P.vel.x,P.vel.z)>2&&Math.random()<0.3)emit(P.pos.x+rr(-.5,.5),0.5,P.pos.z+rr(-.5,.5),rr(-1.5,1.5),rr(2,4),rr(-1.5,1.5),0.5,WATER[0],0.8,15,1);
+}
+const wadeMul=()=>P.wade?0.55:1;
+function swimStep(dt,inF,inR,fwdX,fwdZ,rX,rZ,slowMul,shift){
+  let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
+  const AL=alienDef(),spd=(AL?AL.speed:1)*CONFIG.move.run*(shift?0.62:0.4)*slowMul,k=damp(2.5,dt);
+  P.vel.x+=(tx*spd-P.vel.x)*k;P.vel.z+=(tz*spd-P.vel.z)*k;
+  const depth=SWIM_Y-P.pos.y,dive=!!keys.KeyC,up=!!keys.Space;
+  if(dive)P.vel.y+=(-6-P.vel.y)*damp(3,dt);
+  else if(depth>0.3)P.vel.y+=((up?8:Math.min(4.5,1.5+depth*0.6))-P.vel.y)*damp(P.vel.y<-3?5:2.5,dt); // the water brakes a dive, then floats you up
+  else if(depth<-0.05||P.vel.y>1.5)P.vel.y-=CONFIG.move.gravity*dt;           // jumping out, or dropping in from above
+  else P.vel.y+=(depth*5-P.vel.y)*damp(6,dt);                                // bobbing at the surface
+  if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
+  if(depth>1.5&&Math.random()<dt*6)emit(P.pos.x+rr(-.3,.3),P.pos.y+2.2,P.pos.z+rr(-.3,.3),rr(-.3,.3),rr(1.5,2.5),rr(-.3,.3),rr(0.8,1.4),[.75,.9,1],rr(0.15,0.3),-4,0.5); // bubbles
+}
+// floating at the surface counts as standing (so Space jumps out, and holding it charges a super jump)
+const swimFloats=()=>Math.abs(SWIM_Y-P.pos.y)<0.45&&!keys.KeyC&&Math.abs(P.vel.y)<3;
+// deep down the shore is a wall; at the surface swimming into it climbs you out
+function swimShore(px,pz){
+  if(!onIsland(P.pos.x,P.pos.z))return;
+  if(P.pos.y<SWIM_Y-1){P.pos.x=px;P.pos.z=pz;P.vel.x=0;P.vel.z=0;return;}
+  if(P.pos.y<-0.3){P.pos.x=px;P.pos.z=pz;if(P.vel.y<5){P.vel.y=22;splashAt(P.pos.x,SEA_Y,P.pos.z,0.3);}}
+}
+let uwOn=false;
+function updateUnderwater(){const on=state==='play'&&camPos.y<SEA_Y&&!onIsland(camPos.x,camPos.z);if(on!==uwOn){uwOn=on;$('uw').style.opacity=on?'1':'0';}}
+// ================================================================
+// City life: planes, a blimp, birds, pigeons, boats, fountains and ponds
+// ================================================================
+// All of it is decoration: nothing here collides, fights or syncs to other players, and everything is only
+// updated in detail and drawn when it is near the camera (like the helicopters, a handful of boxes each).
+// - Airliners cross high over the city now and then, leaving contrails by day and blinking lights by night.
+// - A blimp circles the city; at night its side panels light up.
+// - Flocks of gulls circle over the parks and rooftops near you.
+// - Pigeons sit on roof edges and park paths nearby and scatter when you come close.
+// - Boats cruise the water around you: speedboats, ferries and sailboats, each with a wake.
+// - The small parks' fountains spray, pour from the upper bowl and ripple; the ponds ripple and glint.
+const LITE=IS_TOUCH_DEVICE;
+const planes=[],boats=[],flocks=[],pigeonGroups=[],ripples=[];let planeT=rr(5,15);
+const blimp={a:rr(0,TAU),R:560,y:190,x:0,z:0,yaw:0};
+const AMB={white:[.93,.94,.96,1],grey:[.72,.74,.78,1],dark:[.2,.22,.26,1],fin:[.18,.34,.7,1],red:[1,.15,.12,1],green:[.2,1,.35,1],strobe:[1,1,1,1],
+  gull:[.9,.9,.92,1],gullW:[.78,.8,.84,1],pigeon:[.45,.47,.53,1],pigeonW:[.38,.4,.46,1],silver:[.84,.85,.89,1],stripe:[.78,.14,.18,1],
+  curtain:[.72,.88,1,.24],ripple:[.75,.9,1,1],glint:[1,1,.92]};
+// ---- airliners ----
+function spawnPlane(){const a=rr(0,TAU),R=2400,ta=a+Math.PI+rr(-0.5,0.5),hx=Math.cos(ta),hz=Math.sin(ta);
+  planes.push({x:camPos.x+Math.cos(a)*R,y:rr(380,470),z:camPos.z+Math.sin(a)*R,hx,hz,yaw:Math.atan2(hx,hz),spd:rr(75,95),life:0,max:2*R/85+10,trail:0,side:1});}
+function updatePlanes(dt){
+  planeT-=dt;if(planeT<=0&&planes.length<2){planeT=rr(25,50);spawnPlane();}
+  for(let i=planes.length-1;i>=0;i--){const p=planes[i];p.x+=p.hx*p.spd*dt;p.z+=p.hz*p.spd*dt;p.life+=dt;if(p.life>p.max){planes.splice(i,1);continue;}
+    p.trail-=dt;if(p.trail<=0&&env.night<0.5&&Math.hypot(p.x-camPos.x,p.z-camPos.z)<1600){p.trail=0.1;p.side=-p.side;
+      const c=Math.cos(p.yaw),s=Math.sin(p.yaw),ox=p.side*7,oz=-2;SMOKE.emit(p.x+ox*c+oz*s,p.y-1.4,p.z-ox*s+oz*c,0,0,0,6,[.95,.95,.97],rr(5,8),0,0.2);}}
+}
+function drawPlanes(){
+  for(const p of planes){if(inView(p.x,p.z,3200,400)<0)continue;const root=at(p.x,p.y,p.z,0,p.yaw,0);
+    queue(MESH.sphere,child(root,0,0,0,0,0,0,2,2,19),AMB.white,0);
+    queue(MESH.box,child(root,0,-0.5,1,0,0,0,32,0.5,5),AMB.grey,0);
+    queue(MESH.box,child(root,0,0.4,-16,0,0,0,11,0.4,3),AMB.grey,0);queue(MESH.box,child(root,0,3.3,-16.5,0,0,0,0.5,6,4),AMB.fin,0);
+    for(const sx of [-7,7])queue(MESH.cyl,child(root,sx,-1.5,2.5,Math.PI/2,0,0,0.9,4,0.9),AMB.dark,0);
+    const on=Math.sin(time*6+p.x)>0.6;
+    queue(MESH.glowBox,child(root,-16,-0.4,1,0,0,0,0.5,0.5,0.5),AMB.red,0);queue(MESH.glowBox,child(root,16,-0.4,1,0,0,0,0.5,0.5,0.5),AMB.green,0);
+    if(on)queue(MESH.glowBox,child(root,0,0.6,-18.5,0,0,0,0.6,0.6,0.6),AMB.strobe,0);}
+}
+// ---- the blimp ----
+function updateBlimp(dt){const b=blimp;b.a+=dt*11/b.R;b.x=Math.cos(b.a)*b.R;b.z=Math.sin(b.a)*b.R;b.yaw=Math.atan2(-Math.sin(b.a),Math.cos(b.a));}
+function drawBlimp(){const b=blimp;if(inView(b.x,b.z,2600,300)<0)return;const y=b.y+Math.sin(time*0.4)*2,root=at(b.x,y,b.z,0,b.yaw,Math.sin(time*0.3)*0.03);
+  queue(MESH.sphere,child(root,0,0,0,0,0,0,8,8,26),AMB.silver,0);queue(MESH.sphere,child(root,0,0,0,0,0,0,8.1,2.2,24),AMB.stripe,0);
+  queue(MESH.box,child(root,0,-8.4,2,0,0,0,2.6,2,8),AMB.dark,0);
+  queue(MESH.box,child(root,0,5,-21,0,0,0,0.4,6,6),AMB.stripe,0);queue(MESH.box,child(root,0,-5,-21,0,0,0,0.4,6,6),AMB.stripe,0);
+  queue(MESH.box,child(root,5,0,-21,0,0,0,6,0.4,6),AMB.stripe,0);queue(MESH.box,child(root,-5,0,-21,0,0,0,6,0.4,6),AMB.stripe,0);
+  if(env.night>0.3){const h=(time*0.1)%1,c=[0.5+0.5*Math.sin(h*TAU),0.5+0.5*Math.sin(h*TAU+2),0.5+0.5*Math.sin(h*TAU+4),env.night];
+    queue(MESH.glowBox,child(root,8.05,0,2,0,0,0,0.1,3,12),c,0);queue(MESH.glowBox,child(root,-8.05,0,2,0,0,0,0.1,3,12),c,0);}
+  if(Math.sin(time*3)>0.7)queue(MESH.glowBox,child(root,0,-9.6,2,0,0,0,0.4,0.4,0.4),AMB.red,0);
+}
+// ---- gulls circling over the parks and rooftops near you ----
+function homeFlock(f){const pk=parks.filter(p=>Math.hypot(p.cx-P.pos.x,p.cz-P.pos.z)<350);
+  if(pk.length&&Math.random()<0.6){const p=pick(pk);f.hx=p.cx;f.hz=p.cz;}else{const a=rr(0,TAU),d=rr(100,280);f.hx=P.pos.x+Math.cos(a)*d;f.hz=P.pos.z+Math.sin(a)*d;}
+  f.hy=Math.max(groundY(f.hx,f.hz)+rr(25,45),rr(35,80));f.R=rr(18,40);}
+for(let i=0;i<(LITE?2:3);i++)flocks.push({hx:1e9,hz:1e9,hy:50,R:30,ph:rr(0,TAU),w:rr(0.25,0.4)*(i%2?1:-1),n:7+i*2});
+function updateFlocks(dt){for(const f of flocks){f.ph+=f.w*dt;if(Math.hypot(f.hx-P.pos.x,f.hz-P.pos.z)>450)homeFlock(f);}}
+function drawBird(x,y,z,yaw,flap,s,body,wing){const root=at(x,y,z,0,yaw,0);
+  queue(MESH.box,child(root,0,0,0,0,0,0,0.3*s,0.25*s,0.9*s),body,0);
+  queue(MESH.box,child(child(root,0,0.05*s,0,0,0,flap),0.6*s,0,0,0,0,0,1.2*s,0.05*s,0.4*s),wing,0);
+  queue(MESH.box,child(child(root,0,0.05*s,0,0,0,-flap),-0.6*s,0,0,0,0,0,1.2*s,0.05*s,0.4*s),wing,0);}
+function drawFlocks(){
+  for(const f of flocks){const cx=f.hx+Math.cos(f.ph)*f.R,cz=f.hz+Math.sin(f.ph)*f.R;if(inView(cx,cz,320,60)<0)continue;
+    const d=Math.sign(f.w),tx=-Math.sin(f.ph)*d,tz=Math.cos(f.ph)*d,yaw=Math.atan2(tx,tz);
+    for(let j=0;j<f.n;j++){const ox=Math.sin(time*0.7+j*1.7)*5,oy=Math.sin(time*0.9+j)*1.8,oz=Math.cos(time*0.6+j*2.3)*5,glide=Math.sin(time*0.5+j)>0.3;
+      drawBird(cx+ox,f.hy+oy,cz+oz,yaw-d*0.35,glide?0.1:Math.sin(time*11+j*2)*0.6,1.3,AMB.gull,AMB.gullW);}}
+}
+// ---- pigeons: they sit on a roof edge or a park path near you, and scatter when you come close ----
+function pigeonSpot(g){
+  const px=P.pos.x,pz=P.pos.z,opts=[];
+  for(const p of parks){const d=Math.hypot(p.cx-px,p.cz-pz);if(d>30&&d<200)opts.push({x:p.cx+rr(-20,20),z:p.cz+(Math.random()<0.5?-1:1)*rr(6,20),y:0.45});}
+  for(const r of roofTops){if(r.y>90||r.x1-r.x0<8||r.z1-r.z0<8)continue;const d=Math.hypot(r.x-px,r.z-pz);if(d<30||d>170)continue;
+    if(opts.length<60||Math.random()<0.2)opts.push({x:rr(r.x0+2,r.x1-2),z:Math.random()<0.5?r.z0+0.8:r.z1-0.8,y:r.y});}
+  if(!opts.length){g.state='gone';g.t=-5;return;}
+  const s=pick(opts);g.x=s.x;g.y=s.y;g.z=s.z;g.state='sit';g.t=0;
+  g.birds=[];for(let i=0;i<(LITE?4:6);i++)g.birds.push({x:s.x+rr(-2.5,2.5),y:s.y,z:s.z+rr(-0.5,0.5),yaw:rr(0,TAU),vx:0,vy:0,vz:0,ph:rr(0,TAU)});
+}
+for(let i=0;i<2;i++)pigeonGroups.push({state:'gone',t:-rr(1,4),x:0,y:0,z:0,birds:[]});
+function scatterPigeons(g){g.state='fly';g.t=0;SFX.tone('triangle',900,1400,0.12,0.03*SFX.vol(g.x,g.y,g.z));
+  for(const b of g.birds){const a=Math.atan2(b.z-P.pos.z,b.x-P.pos.x)+rr(-0.8,0.8),s=rr(5,9);b.vx=Math.cos(a)*s;b.vz=Math.sin(a)*s;b.vy=rr(3,6);b.yaw=Math.atan2(b.vx,b.vz);}}
+function updatePigeons(dt){
+  for(const g of pigeonGroups){g.t+=dt;
+    if(g.state==='gone'){if(g.t>0&&state==='play')pigeonSpot(g);continue;}
+    const d=Math.hypot(g.x-P.pos.x,g.z-P.pos.z);
+    if(g.state==='sit'){if(d>260){g.state='gone';g.t=-2;continue;}
+      if(state==='play'&&(Math.hypot(d,g.y-P.pos.y)<11||(d<30&&P.vel.len()>30)))scatterPigeons(g);}
+    else{for(const b of g.birds){b.x+=b.vx*dt;b.y+=b.vy*dt;b.z+=b.vz*dt;b.vy=Math.min(b.vy+2*dt,8);}if(g.t>8){g.state='gone';g.t=-rr(4,10);}}}
+}
+function drawPigeons(){
+  for(const g of pigeonGroups){if(g.state==='gone'||inView(g.x,g.z,160,20)<0)continue;
+    for(const b of g.birds){
+      if(g.state==='sit'){const peck=Math.max(0,Math.sin(time*3+b.ph*5))*0.5,root=at(b.x,b.y+0.18,b.z,0,b.yaw+Math.sin(time*0.5+b.ph)*0.4,0);
+        queue(MESH.box,child(root,0,0,0,0,0,0,0.22,0.22,0.4),AMB.pigeon,0);queue(MESH.box,child(root,0,0.12,0.2,peck,0,0,0.13,0.13,0.16),AMB.pigeonW,0);}
+      else drawBird(b.x,b.y+0.2,b.z,b.yaw,Math.sin(time*18+b.ph)*0.8,0.55,AMB.pigeon,AMB.pigeonW);}}
+}
+// ---- boats on the water near you ----
+const BOATS=[{L:8,W:2.6,spd:15,hull:[.95,.95,.97,1],cab:[.18,.28,.45,1]},{L:24,W:7,spd:6,hull:[.96,.78,.18,1],cab:[.95,.95,.95,1],ferry:true},{L:10,W:3,spd:5,hull:[.9,.9,.92,1],cab:[.55,.35,.22,1],sail:true}];
+const openWater=(x,z)=>!onIsland(x,z)&&!onIsland(x+18,z)&&!onIsland(x-18,z)&&!onIsland(x,z+18)&&!onIsland(x,z-18);
+function spawnBoat(b){
+  for(let k=0;k<14;k++){const a=rr(0,TAU),d=rr(140,420),x=P.pos.x+Math.cos(a)*d,z=P.pos.z+Math.sin(a)*d;if(!openWater(x,z))continue;
+    Object.assign(b,{x,z,yaw:rr(0,TAU),kind:BOATS[Math.floor(Math.random()*3)],turn:0,seed:rr(0,9),on:true});return;}
+  b.on=false;
+}
+for(let i=0;i<(LITE?3:5);i++)boats.push({on:false,wait:rr(0,3)});
+function updateBoats(dt){
+  for(const b of boats){
+    if(!b.on){b.wait-=dt;if(b.wait<=0){b.wait=4;spawnBoat(b);}continue;}
+    if(Math.hypot(b.x-P.pos.x,b.z-P.pos.z)>650){b.on=false;b.wait=rr(1,4);continue;}
+    const K=b.kind,s=Math.sin(b.yaw),c=Math.cos(b.yaw);
+    if(onIsland(b.x+s*30,b.z+c*30)||onIsland(b.x+s*15,b.z+c*15)){if(!b.turn)b.turn=onIsland(b.x+Math.sin(b.yaw+0.8)*30,b.z+Math.cos(b.yaw+0.8)*30)?-1:1;b.yaw+=b.turn*0.9*dt;}
+    else{b.turn=0;b.yaw+=Math.sin(time*0.1+b.seed)*0.05*dt;}
+    const v=onIsland(b.x+s*8,b.z+c*8)?0:K.spd;b.x+=s*v*dt;b.z+=c*v*dt;
+    if(v>0&&Math.random()<dt*20&&inView(b.x,b.z,260,30)>=0)emit(b.x-s*K.L*0.5+rr(-1,1),SEA_Y+0.2,b.z-c*K.L*0.5+rr(-1,1),-s*rr(1,3)+rr(-1.5,1.5),rr(0.5,2),-c*rr(1,3)+rr(-1.5,1.5),rr(0.8,1.6),WATER[(Math.random()*2)|0],rr(0.6,1.2)*(K.ferry?1.8:1),6,1);}
+}
+function drawBoats(){
+  for(const b of boats){if(!b.on)continue;const q=inView(b.x,b.z,700,40);if(q<0)continue;const K=b.kind,fl=q<150*150?F_SH:0;
+    const root=at(b.x,SEA_Y+0.15+Math.sin(time*1.3+b.seed)*0.12,b.z,Math.sin(time*0.9+b.seed)*0.03,b.yaw,Math.sin(time*1.1+b.seed)*0.04);
+    queue(MESH.box,child(root,0,0.5,-K.W*0.3,0,0,0,K.W,1.3,K.L-K.W*0.6),K.hull,fl);
+    queue(MESH.box,child(root,0,0.5,K.L*0.5-K.W*0.5,0,Math.PI/4,0,K.W*0.707,1.3,K.W*0.707),K.hull,fl);
+    if(K.ferry){queue(MESH.box,child(root,0,2.2,-2,0,0,0,K.W*0.8,2.2,K.L*0.6),K.cab,fl);queue(MESH.box,child(root,0,4.2,-3,0,0,0,K.W*0.6,1.8,K.L*0.35),K.cab,fl);
+      queue(MESH.box,child(root,0,5.6,-6,0,0,0,1.2,1.5,1.2),AMB.dark,fl);}
+    else if(K.sail){queue(MESH.cyl,child(root,0,6,0.5,0,0,0,0.12,10,0.12),AMB.dark,fl);queue(MESH.roof,child(root,0,6.4,-1.3,0,0,0,0.06,8.6,3.6),AMB.white,fl);
+      queue(MESH.box,child(root,0,1.5,-2.8,0,0,0,K.W*0.6,0.8,2.6),K.cab,fl);}
+    else queue(MESH.box,child(root,0,1.5,-0.8,0,0,0,K.W*0.8,0.9,2.6),K.cab,fl);
+    if(env.night>0.4){queue(MESH.glowBox,child(root,0,K.ferry?6.6:K.sail?11:2.4,0,0,0,0,0.3,0.3,0.3),AMB.strobe,0);}}
+}
+// ---- the small parks' fountains and the ponds ----
+function updateWaterLife(dt){
+  for(const f of fountainSpots){if(inView(f.x,f.z,110,20)<0)continue;
+    f.acc=(f.acc||0)+dt*(LITE?50:90);while(f.acc>=1){f.acc--;
+      if(Math.random()<0.55)emit(f.x+rr(-.1,.1),4.8,f.z+rr(-.1,.1),rr(-1.1,1.1),rr(6,8.5),rr(-1.1,1.1),rr(0.9,1.2),WATER[(Math.random()*2)|0],rr(0.4,0.8),22,0.2); // the spout
+      else{const a=Math.floor(rr(0,8))/8*TAU+time*0.05,cx=Math.cos(a),cz=Math.sin(a);                                                   // eight jets from the lip
+        emit(f.x+cx*5.2,1.5,f.z+cz*5.2,-cx*rr(2.6,3.2),rr(5.5,6.5),-cz*rr(2.6,3.2),rr(0.8,1),WATER[(Math.random()*2)|0],rr(0.35,0.6),22,0.1);}}}
+  for(const l of lakes){if(inView(l.x,l.z,300,l.r+10)<0)continue;
+    if(ripples.length<(LITE?16:36)&&Math.random()<dt*l.r*0.12){const a=rr(0,TAU),r=lakeR(l,a)*Math.sqrt(Math.random())*0.85;ripples.push({x:l.x+Math.cos(a)*r,z:l.z+Math.sin(a)*r,t:0,dur:rr(2,3.2),r:rr(2,4)});}
+    if(env.night<0.5&&Math.random()<dt*l.r*0.25){const a=rr(0,TAU),r=lakeR(l,a)*Math.sqrt(Math.random())*0.9;emit(l.x+Math.cos(a)*r,0.5,l.z+Math.sin(a)*r,0,0.2,0,rr(0.25,0.45),AMB.glint,rr(0.2,0.4),0,0);}}
+  for(let i=ripples.length-1;i>=0;i--){const r=ripples[i];r.t+=dt;if(r.t>r.dur)ripples.splice(i,1);}
+}
+function drawWaterLife(){
+  for(const f of fountainSpots){if(inView(f.x,f.z,110,20)<0)continue;
+    queue(MESH.tube,at(f.x,2.47,f.z,0,time*0.4,0,1.72,2.3,1.72),[AMB.curtain[0],AMB.curtain[1],AMB.curtain[2],AMB.curtain[3]+Math.sin(time*7+f.x)*0.05],F_BL);
+    for(let k=0;k<2;k++){const u=((time*0.7+k*0.5)%1),r=1+u*4;queue(MESH.ring,M4.alignY(tmpM(),f.x,1.275,f.z,0,1,0,r),[.8,.95,1,0.3*(1-u)],F_ADD);}}
+  for(const r of ripples){const k=r.t/r.dur;queue(MESH.ring,M4.alignY(tmpM(),r.x,0.48,r.z,0,1,0,0.3+k*r.r),[AMB.ripple[0],AMB.ripple[1],AMB.ripple[2],0.35*(1-k)],F_ADD);}
+}
+function updateAmbient(dt){if(!cityVisible())return;updatePlanes(dt);updateBlimp(dt);updateFlocks(dt);updatePigeons(dt);updateBoats(dt);updateWaterLife(dt);}
+function drawAmbient(){if(!cityVisible())return;drawPlanes();drawBlimp();drawFlocks();drawPigeons();drawBoats();drawWaterLife();}
+// ================================================================
 // Multiplayer: other players via the claude.ai room capability
 // ================================================================
 // Everyone playing the claude.ai version at the same time sees each other.
@@ -5511,7 +5828,7 @@ function myPresence(){
   if(P.flying)f|=FLAG.fly;if(P.speeding)f|=FLAG.speed;if(P.wall)f|=FLAG.wall;if(P.web)f|=FLAG.web;if(P.charging)f|=FLAG.charge;if(beam)f|=FLAG.fire;
   if(P.shieldOn)f|=FLAG.shield;if(P.metal)f|=FLAG.metal;if(P.dead)f|=FLAG.dead;if(P.invisible>0)f|=FLAG.invis;if(P.car)f|=FLAG.car;if(P.heat>0)f|=FLAG.wanted;if(P.rag)f|=FLAG.rag;
   const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
-  const o={v:1,n:ch.name||'Hero',l:[ch.suit|0,ch.cape|0,ch.accent|0,ch.capeOn===false?0:1],lv:save.level,rep:save.reputation,fac:playerFaction(),al:P.alien?P.alien.id:'',
+  const o={v:1,n:ch.name||'Hero',u:Portal.username||'',l:[ch.suit|0,ch.cape|0,ch.accent|0,ch.capeOn===false?0:1],lv:save.level,rep:save.reputation,fac:playerFaction(),al:P.alien?P.alien.id:'',
     x:r1(P.pos.x),y:r1(P.pos.y),z:r1(P.pos.z),vx:r1(P.vel.x),vy:r1(P.vel.y),vz:r1(P.vel.z),yw:r2(P.heroYaw),tl:r2(P.tilt),bk:r2(P.bank),f,hp:Math.round(P.hp/maxHp()*100)};
   // presence patches merge on the server, so optional fields are always sent (null clears them)
   o.b=beam?(beam.w?[r1(beam.x),r1(beam.y),r1(beam.z),r1(beam.w)]:[r1(beam.x),r1(beam.y),r1(beam.z)]):null;const wp=P.web||P.zip;o.w=wp?[r1(wp.x),r1(wp.y),r1(wp.z)]:null;o.k=P.tk&&P.tk.hold?P.tk.hold.map(r1):null;o.c=null;
@@ -5527,7 +5844,8 @@ function makeRemote(peer){
 }
 function applyPresence(r,p){
   const n=v=>{v=+v;return isFinite(v)?v:0;};
-  r.name=cleanName(String(p.n||''))||'Hero';r.level=clamp(Math.floor(n(p.lv)),1,100);r.faction=['hero','villain','neutral'].includes(p.fac)?p.fac:'neutral';r.rep=n(p.rep);
+  // a signed-in CrazyGames player's username is shown next to their hero name, so friends recognise each other
+  {const h=safeName(String(p.n||''))||'Hero',u=safeName(String(p.u||''));r.name=u&&u!==h?h+' ('+u+')':h;}r.level=clamp(Math.floor(n(p.lv)),1,100);r.faction=['hero','villain','neutral'].includes(p.fac)?p.fac:'neutral';r.rep=n(p.rep);
   const l=Array.isArray(p.l)?p.l:[0,0,0,1];const su=clamp(l[0]|0,0,SUIT_OPTS.length-1),ca=clamp(l[1]|0,0,CAPE_OPTS.length-1),ac=clamp(l[2]|0,0,ACC_OPTS.length-1);
   r.look={suit:c4(SUIT_OPTS[su]),suit2:[...hex(SUIT_OPTS[su],0.6),1],cape:c4(CAPE_OPTS[ca]),acc:c4(ACC_OPTS[ac]),capeOn:!!l[3],metal:false};
   r.flags=n(p.f)|0;r.look.metal=!!(r.flags&FLAG.metal);r.alien=ALIENS[p.al]?p.al:'';
@@ -5579,7 +5897,7 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
     try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),4000);
       const r=await fetch('/api/turn',{signal:ac.signal,cache:'no-store'});clearTimeout(t);
       const d=r.ok?await r.json():null,list=d&&(Array.isArray(d.iceServers)?d.iceServers:d.iceServers?[d.iceServers]:null);
-      if(list&&list.length){this.ice=list.concat(P2P_ICE);this.iceUntil=performance.now()+6*3600e3;return;}}catch(e){}
+      if(list&&list.length){this.ice=list.concat(P2P_ICE);this.iceUntil=performance.now()+50*60e3;return;}}catch(e){}
     this.ice=P2P_ICE;this.iceUntil=performance.now()+60e3;
   },
   loadLib(){
@@ -5821,7 +6139,7 @@ const WS={mirror:false,host:false,seq:0,byId:new Map(),sendT:0,slowT:0,applying:
     if(d.k==='kill'){const t={kind:String(d.kind),role:NPCS[d.role]?d.role:'thug',type:d.type==='ship'?'ship':'mech',level:clamp(+d.level||1,1,100),faction:d.faction==='hero'?'hero':'villain',bounty:!!d.bounty,name:String(d.name||'').slice(0,30),crime:null,pos:P.pos};
       if(['human','drone','rival','boss'].includes(t.kind))Bus.emit('defeated',{target:t,killer:P});}
     else if(d.k==='crime'){const xp=clamp(+d.xp||0,0,1000),rep=clamp(+d.rep||0,0,500);addXP(xp);addRep(rep);save.stats.crimesStopped++;guideDone('crime');
-      if(d.heist)toast('Heist stopped','+'+xp+' XP · '+String(d.label||'').slice(0,40),'gold');else feed('+'+xp+' XP','Crime stopped: '+String(d.label||'').slice(0,40));persist();}
+      if(d.heist){toast('Heist stopped','+'+xp+' XP · '+String(d.label||'').slice(0,40),'gold');Portal.happy();}else feed('+'+xp+' XP','Crime stopped: '+String(d.label||'').slice(0,40));persist();}
   },
   onTkGrab(peer,d){if(!this.host||!d)return;const a=this.find(+d.id),r=MP.peers.get(peer);if(!a||!r||a.held||a.kind==='boss'||a.kind==='heli')return;
     a.held=true;a.heldBy=r;a.heldT=time;if(a.kind==='vehicle'){a.state='held';if(a.driver)ejectDriver(a);}if(a.kind==='human')a.air=false;},
@@ -5911,7 +6229,7 @@ function applyRoom(d,quiet){
   if(!quiet&&before!==JSON.stringify(ROOM)&&state==='play')feed('Room rules changed',PVP_MODES[ROOM.pvp]+(ROOM.crimes?'':' · no crimes')+(ROOM.police?'':' · no police'));
   if(sheetOpen==='mp')renderSheet();
 }
-function hostSet(k,v){if(!isRoomHost())return;ROOM[k]=v;applyRoom(ROOM,true);P2P.broadcast({t:'rs',d:ROOM},null);if(state==='play')feed('Room rules changed','');}
+function hostSet(k,v){if(!isRoomHost())return;ROOM[k]=v;applyRoom(ROOM,true);P2P.broadcast({t:'rs',d:ROOM},null);if(state==='play')feed('Room rules changed','');Portal.roomChanged();}
 function kickPeer(id){
   if(!isRoomHost())return;const c=P2P.conns.get(id),r=MP.peers.get(id);
   if(c){try{c.send({t:'kick'});}catch(e){}setTimeout(()=>{try{c.close();}catch(e){}},250);}
@@ -5938,29 +6256,65 @@ function renderHostControls(B){
     for(const [id,r] of MP.peers)B.append(el('div',{class:'row'},el('span',{text:r.name+' · LV '+r.level}),el('button',{class:'ghost',type:'button',text:'Remove',onclick:()=>kickPeer(id)})));}
 }
 // ================================================================
-// Game portals (CrazyGames): ads, gameplay events and invite links
+// Game portals (CrazyGames): ads, gameplay events, invite links, happy time, cloud save and a quick start
 // ================================================================
 // Only the portal build (`node tools/build.mjs crazygames`) sets window.__PORTAL__ and loads the CrazyGames SDK;
 // on the website and in the claude.ai version everything here does nothing.
-// Ads only come at natural breaks: after a knockout and when you leave the pause menu, at most once every 3 minutes,
-// never mid-fight. A rewarded ad (from the pause menu) doubles XP for 5 minutes. Rooms get the portal's invite button.
+// Midgame ads only come at a natural break: after a knockout, on the way back to the hospital, at most once every 3 minutes
+// (CrazyGames forbids them on menu buttons and in the middle of play, so leaving the pause menu never shows one). Rewarded
+// ads are always the player's choice (the HUD icons). The portal's mute setting always wins over the game's own M key.
+// A signed-in CrazyGames player's new hero takes their CrazyGames username. Rooms get the portal's invite button.
+// Big moments (level-ups, heists stopped, bosses and rivals beaten, an overcharged ring) call happytime(), at most once a minute.
+// The save is copied to the portal's cloud storage, so it survives cleared browser storage and follows a signed-in player;
+// the portal copy is the save of record, and a guest who signs in mid-game gets their account save. Every session's first crime starts a short run from you, so there is something to do
+// within seconds. The rewards live in the HUD icon bar (67_hudbar.js).
 const PORTAL=window.__PORTAL__||'';
 const PORTAL_AD_GAP=180,XP_BOOST={mul:2,time:300};
-const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:false,
+const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,forceMute:false,weMuted:false,username:'',adblock:false,
   on(){return !!this.sdk;},
+  // rewarded buttons are only live when an ad can actually play (an ad blocker leaves them greyed out, never clickable-but-dead)
+  ads(){return !!this.sdk&&!this.adblock;},
   async init(){
     if(PORTAL!=='crazygames')return;const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;
     try{await S.init();}catch(e){return;}
     this.sdk=S;
+    try{S.game.loadingStart();S.game.loadingStop();}catch(e){} // the game has finished loading by the time the SDK is ready
+    this.cloudSync(S);this.watchSettings(S);this.fetchUser(S);this.checkAdblock(S);
     try{const room=S.game.getInviteParam('room');if(room&&P2P.available())P2P.join(room);else if(S.game.isInstantMultiplayer&&P2P.available())P2P.create();}catch(e){}
     if(sheetOpen)renderSheet();renderPortalButtons();
   },
   // tell the portal whether the player is actually playing (not in menus, paused, knocked out or watching an ad)
   tick(){
+    if(this.crimeAt&&time>=this.crimeAt&&state==='play'&&!paused&&!P.dead){this.crimeAt=0;if(ROOM.crimes&&!MP.online())nearCrime();}
     if(!this.sdk)return;const now=state==='play'&&!paused&&!sheetOpen&&!creating&&!P.dead&&!this.inAd;
-    if(now===this.playing)return;this.playing=now;try{now?this.sdk.game.gameplayStart():this.sdk.game.gameplayStop();}catch(e){}
+    if(now===this.playing)return;
+    const t=performance.now();if(now&&t-this.stopAt<1100)return; // the SDK rejects a start within 1 s of a stop; this runs every frame, so it just waits
+    this.playing=now;if(!now)this.stopAt=t;try{now?this.sdk.game.gameplayStart():this.sdk.game.gameplayStop();}catch(e){}
   },
-  quiet(on){if(on){this.muteWas=SFX.muted;if(!SFX.muted)SFX.toggleMute();}else if(SFX.muted&&!this.muteWas)SFX.toggleMute();},
+  // mute while an ad plays; afterwards go back to what the player (or the portal's mute setting) wants
+  quiet(on){if(on){this.muteWas=SFX.muted;if(!SFX.muted)SFX.toggleMute();return;}
+    if(SFX.muted&&!this.muteWas)SFX.toggleMute();this.applyMute();},
+  // CrazyGames' own mute setting (game.settings.muteAudio) overrides the game's sound, now and whenever it changes;
+  // when it is lifted, only the mute it caused is undone (a player who pressed M stays muted)
+  watchSettings(S){
+    const apply=st=>{this.forceMute=!!(st&&st.muteAudio);this.applyMute();};
+    try{apply(S.game.settings);S.game.addSettingsChangeListener(apply);}catch(e){}
+  },
+  applyMute(){if(this.inAd)return;
+    if(this.forceMute&&!SFX.muted){SFX.toggleMute();this.weMuted=true;}
+    else if(!this.forceMute&&this.weMuted){this.weMuted=false;if(SFX.muted)SFX.toggleMute();}},
+  // the signed-in player's CrazyGames username names a new hero (guests keep "Guardian 123"). A hero still wearing that
+  // placeholder takes the username once it is known (Play may be pressed before the SDK answers, or the guest signs in later).
+  async fetchUser(S){if(!S.user)return;try{S.user.addAuthListener(u=>this.authChanged(u));}catch(e){}
+    try{if(!S.user.isUserAccountAvailable)return;this.setUser(await S.user.getUser());}catch(e){}},
+  setUser(u){this.username=u&&typeof u.username==='string'?u.username:'';
+    if(this.username&&save.character&&/^Guardian \d+$/.test(save.character.name)){save.character.name=this.username;persist();applyLook();refreshMenu();}},
+  // a guest signed in while playing: the SDK has already swapped in the account's save (or moved the guest's save to the
+  // account). A different save means a restart so the game loads it; the same save just picks up the username.
+  authChanged(u){if(!u)return;const D=this.sdk&&this.sdk.data;let cloud=null;try{cloud=D?JSON.parse(D.getItem(SAVE_KEY)||'null'):null;}catch(e){}
+    if(cloud&&cloud.character&&+cloud.savedAt!==+save.savedAt){persistHook=null;location.reload();return;}
+    this.setUser(u);},
+  async checkAdblock(S){try{this.adblock=!!(await S.ad.hasAdblock());}catch(e){}if(this.adblock)renderPortalButtons();},
   show(kind,done){
     if(!this.sdk||this.inAd){done&&done(false);return;}
     const end=ok=>{if(!this.inAd)return;this.inAd=false;this.quiet(false);this.tick();done&&done(ok);};
@@ -5973,31 +6327,49 @@ const Portal={sdk:null,inAd:false,adAt:0,playing:false,boostUntil:0,muteWas:fals
   rewardXP(){this.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}
     this.boostUntil=time+XP_BOOST.time;toast('Double XP','For the next 5 minutes of play','gold');renderPortalButtons();});},
   xpMul(){return time<this.boostUntil?XP_BOOST.mul:1;},
+  happy(){if(!this.sdk||time-this.happyAt<60)return;this.happyAt=time;try{this.sdk.game.happytime();}catch(e){}},
+  onPlay(){if(PBAL)this.crimeAt=time+4;},
+  // CrazyGames' Data module is the save of record (their rule: rely on it, not on local saves): its copy replaces the local one
+  // whenever it holds a hero, so another device's progress or a signed-in account's progress is never overwritten by a stale
+  // browser copy. If Play was pressed before the SDK was ready and the copies differ, the game restarts to load it. A local
+  // hero with nothing in the cloud yet is pushed up. From then on every save goes to both.
+  cloudSync(S){
+    const D=S.data;if(!D||typeof D.getItem!=='function'||typeof D.setItem!=='function')return;
+    let cloud=null;try{cloud=JSON.parse(D.getItem(SAVE_KEY)||'null');}catch(e){cloud=null;}
+    const has=!!(cloud&&cloud.character),same=has&&+cloud.savedAt===+save.savedAt;
+    if(has&&!same&&(state==='play'||creating)){location.reload();return;}
+    if(has&&!same){
+      const n=loadSave(JSON.stringify(cloud));
+      if(n.character){for(const k of Object.keys(save))delete save[k];Object.assign(save,n);kitLvSeen=save.level;
+        try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}refreshMenu();applyLook();applyTouchUI();}}
+    persistHook=j=>D.setItem(SAVE_KEY,j);
+    if(save.character&&!has)persist();
+  },
   inviteLink(code){try{return this.sdk?this.sdk.game.inviteLink({room:code}):'';}catch(e){return '';}},
-  roomChanged(){if(!this.sdk)return;try{if(P2P.state==='open'&&P2P.code)this.sdk.game.showInviteButton({room:P2P.code});else this.sdk.game.hideInviteButton();}catch(e){}},
+  // room info for the portal (its invite button and friends list): which room, and whether friends can still get in
+  roomChanged(){if(!this.sdk)return;const g=this.sdk.game;try{
+    if(P2P.state==='open'&&P2P.code){const full=P2P.host&&P2P.conns.size>=P2P_MAX-1;this.inRoom=true;
+      if(g.updateRoom)g.updateRoom({roomId:P2P.code,isJoinable:!full&&!ROOM.locked,inviteParams:{room:P2P.code}});else g.showInviteButton({room:P2P.code});}
+    else if(this.inRoom){this.inRoom=false;if(g.leftRoom)g.leftRoom();else g.hideInviteButton();}}catch(e){}},
 };
-// the pause menu's "watch an ad" button (portal build only)
-// the pause menu's portal buttons: double XP, refill, trials and cosmetics (portal build only)
-function renderPortalButtons(){
-  if(!PBAL)return;let row=$('p-portal');
-  if(!row){row=el('div',{class:'pause-btns',id:'p-portal'},
-      el('button',{class:'ghost',id:'p-ad',type:'button',onclick:()=>Portal.rewardXP()}),el('button',{class:'ghost',id:'p-refill',type:'button',onclick:()=>refill()}),
-      el('button',{class:'ghost',id:'p-trials',type:'button',text:'Try locked powers',onclick:()=>openSheet('trials')}),el('button',{class:'ghost',id:'p-cos',type:'button',text:'Cosmetics',onclick:()=>openSheet('cos')}));
-    $('resume').parentNode.after(row);}
-  const on=Portal.on(),left=Portal.boostUntil-time,b=$('p-ad');b.disabled=!on||left>0;b.textContent=left>0?'Double XP active · '+Math.ceil(left/60)+' min left':'Watch an ad: double XP for 5 min';
-  const r=refillInfo(),f=$('p-refill');f.hidden=!r;if(r){f.disabled=!on||!r.need;f.textContent=r.need?'Watch an ad: refill '+r.m.label.toLowerCase():r.m.label.charAt(0)+r.m.label.slice(1).toLowerCase()+' is full';}
-}
+// the rewards (double XP, refill, try locked powers, cosmetics) are HUD icons now (67_hudbar.js): keep them current
+function renderPortalButtons(){updateHudbar(true);}
+// the first crime of a session starts close by (30-120 m) instead of 90-420 m away
+function nearCrime(){const a=CRIMES.minDist,b=CRIMES.maxDist;CRIMES.minDist=30;CRIMES.maxDist=120;
+  try{if(!startShopRobbery()&&!startAtmHack())startRandomCrime();}finally{CRIMES.minDist=a;CRIMES.maxDist=b;}}
+Bus.on('levelUp',()=>Portal.happy());
+Bus.on('defeated',({target,killer})=>{if(killer===P&&(target.kind==='boss'||target.kind==='rival'||(target.kind==='human'&&target.role==='boss')))Portal.happy();});
 Portal.init();
 // ================================================================
-// CrazyGames rewards: power keys by level, 10-minute trials, revive, refills and cosmetics
+// CrazyGames rewards: power keys by level, 10-minute trials, refills and cosmetics
 // ================================================================
 // Everything here is for the CrazyGames build (PBAL); the website and claude.ai never lock a key or show an ad button.
 // Rewarded ads are always optional: nothing is out of reach without them, they only get you there sooner.
 const KIT_LV=[1,2,4,6,9];                 // the level each power key (1-5) opens at
-const TRIAL_MIN=10,REVIVE_GAP=180;
+const TRIAL_MIN=10;
 const slotLocked=i=>PBAL&&save.level<KIT_LV[i]&&!trialOn('key'+i);
 function lockedSlotMsg(i){if(time-(P.lockMsgT||-9)<1)return;P.lockMsgT=time;const id=save.character.abilities[i];
-  feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],Portal.on()?'Pause → Try locked powers to use it now for '+TRIAL_MIN+' min':'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
+  feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],Portal.ads()&&!rewardsLater()?(touchOn()?'Tap the unlock icon':'Press , (the unlock icon)')+' to try it now for '+TRIAL_MIN+' min':'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
 // ---- timed trials (one rewarded ad = 10 minutes) ----
 function startTrial(k,label){
   Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}
@@ -6015,7 +6387,8 @@ function updateTrials(){ // tell the player when a trial runs out, and redraw wh
 function renderTrials(){
   const B=sheetBody,ch=save.character;if(!ch)return;
   B.append(el('p',{class:'muted',text:'Watch a short ad to use something before you unlock it. Each trial lasts '+TRIAL_MIN+' minutes; levelling up unlocks it for good.'}));
-  const row=(title,sub,k,label)=>{const left=trialLeft(k);const b=el('button',{class:left?'ghost':'go',type:'button',text:left?left+' min left':'Watch ad · '+TRIAL_MIN+' min',onclick:()=>startTrial(k,label)});b.disabled=!!left||!Portal.on();
+  if(!Portal.ads())B.append(el('p',{class:'muted',text:'Ads are not available right now (an ad blocker may be on), so these buttons are off.'}));
+  const row=(title,sub,k,label)=>{const left=trialLeft(k);const b=el('button',{class:left?'ghost':'go',type:'button',text:left?left+' min left':'Watch ad · '+TRIAL_MIN+' min',onclick:()=>startTrial(k,label)});b.disabled=!!left||!Portal.ads();
     B.append(el('div',{class:'upg'},el('b',{text:title}),el('div',{class:'btns'},b),el('p',{text:sub})));};
   B.append(el('h3',{text:'Power keys'}));let any=false;
   ch.abilities.forEach((id,i)=>{if(save.level>=KIT_LV[i])return;any=true;row('Key '+(i+1)+' · '+POWERS[id].name,'Unlocks at LV '+KIT_LV[i],'key'+i,POWERS[id].name);});
@@ -6032,17 +6405,7 @@ function renderTrials(){
     if(locked.length){B.append(el('h3',{text:'Aliens'}));for(const id of locked)row(ALIENS[id].name,'Unlocks at band LV '+ALIENS[id].unlock,'al:'+id,ALIENS[id].name);}}
 }
 // locked dial slots (constructs, suit forms, aliens) offer a trial on click
-function dialTrial(a){if(!PBAL||!a||!a.trialKey)return false;if(!Portal.on()){feed(a.name+' is locked',a.lock);return true;}closeDial();startTrial(a.trialKey,a.name);return true;}
-// ---- revive where you fell ----
-let reviveAt=-1e9,downBy=null;
-const reviveReady=()=>PBAL&&Portal.on()&&P.dead&&!(downBy&&downBy.kind==='remote')&&performance.now()/1000-reviveAt>=REVIVE_GAP;
-function reviveOffer(){ // the knockout screen's revive button (R, or tap it), made the first time it's needed
-  let b=$('revive');if(!b){if(!PBAL)return;const box=$('dead').firstElementChild;b=el('button',{class:'go',id:'revive',type:'button',text:'Watch an ad: get up right here (R)',onclick:revive});b.style.marginTop='14px';box.appendChild(b);}
-  b.hidden=!reviveReady();}
-function revive(){if(!reviveReady())return;
-  Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}if(!P.dead)return;
-    reviveAt=performance.now()/1000;P.dead=false;P.hp=maxHp();P.en=maxEn();P.stun=0;P.lastHit=-99;P.iframeT=2;$('dead').hidden=true;
-    const c=center(P);ringFx(c.x,c.y,c.z,1,8,0.5,[1,.9,.5]);burst(c.x,c.y,c.z,50,12,0.8,GOLD,1.4,0,2);toast('Back on your feet','Right where you fell','gold');});}
+function dialTrial(a){if(!PBAL||!a||!a.trialKey)return false;if(!Portal.ads()){feed(a.name+' is locked',a.lock);return true;}closeDial();startTrial(a.trialKey,a.name);return true;}
 // ---- refill your hero's meter ----
 function refillInfo(){const m=heroMeter();if(!m)return null;const cap=m.key==='ring'?100:meterCap(m);return {m,cap,need:save[m.key]<cap-0.5};}
 function refill(){const r=refillInfo();if(!r||!r.need)return;
@@ -6067,9 +6430,10 @@ function cosFromPresence(a){if(!Array.isArray(a))return null;const k=['suit','tr
 function renderCosmetics(){
   const B=sheetBody;save.cos=save.cos||cleanCos(null);const C=save.cos;
   B.append(el('p',{class:'muted',text:'Watch a short ad to unlock an item for good, then wear it. Other players in your room see it too.'}));
+  if(!Portal.ads())B.append(el('p',{class:'muted',text:'Ads are not available right now (an ad blocker may be on), so these buttons are off.'}));
   for(const k in COSMETICS){B.append(el('h3',{text:COS_KINDS[k]}));
     for(const it of COSMETICS[k]){const own=C.own.includes(k+':'+it.id),on=C.eq[k]===it.id;
-      const b=el('button',{class:own?(on?'ghost':'go'):'go',type:'button',text:own?(on?'Take off':'Wear'):'Watch ad · unlock'});b.disabled=!own&&!Portal.on();
+      const b=el('button',{class:own?(on?'ghost':'go'):'go',type:'button',text:own?(on?'Take off':'Wear'):'Watch ad · unlock'});b.disabled=!own&&!Portal.ads();
       b.onclick=()=>{if(own){C.eq[k]=on?'':it.id;persist();MP.bump();renderSheet();return;}
         Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}if(!C.own.includes(k+':'+it.id))C.own.push(k+':'+it.id);C.eq[k]=it.id;persist();MP.bump();toast(it.name+' unlocked','It\'s yours to keep','gold');renderSheet();});};
       const sw=el('i',{class:'cos-sw'});const col=it.glow||it.col;sw.style.background=it.rainbow?'linear-gradient(90deg,#f44,#fd4,#4f6,#4cf,#a4f)':'rgb('+col.map(v=>Math.round(v*255)).join(',')+')';
@@ -6097,6 +6461,236 @@ save.cos=cleanCos(save.cos);
 // new power keys open as you level up
 let kitLvSeen=save.level;
 Bus.on('levelUp',lv=>{if(!PBAL)return;KIT_LV.forEach((l,i)=>{if(l>kitLvSeen&&l<=lv&&save.character){const id=save.character.abilities[i];toast('Key '+(i+1)+' unlocked',(POWERS[id]?POWERS[id].name:'A new power')+' is ready','gold');}});kitLvSeen=lv;buildHotbar();buildTouchButtons();});
+// ================================================================
+// Icons: small line drawings for the HUD icon bar and the power cards
+// ================================================================
+// Every glyph is drawn on a 24×24 grid with round 2px strokes in the current text colour, so CSS picks the colour.
+const GLYPHS={
+  // HUD icon bar
+  moves:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/>',
+  skills:'<path d="M12 3l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.4 6.7 19.3l1.1-5.9L3.4 9.3l6-.8z"/>',
+  swap:'<path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/>',
+  shirt:'<path d="M8 3l-5 3 2 4 3-1.5V21h8V8.5l3 1.5 2-4-5-3c-.5 1.8-2 3-4 3s-3.5-1.2-4-3z"/>',
+  people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.7-6 6-6s6 2.4 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2c2.9.3 5 2.5 5 5.8"/>',
+  gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+  trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8M9.5 18h5"/>',
+  x2:'<path d="M4 8l6 8M10 8l-6 8"/><path d="M13.5 9.5a3 3 0 0 1 6 0c0 2.5-6 4-6 6.5h6"/>',
+  refill:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M11 9.5v5M8.5 12h5"/>',
+  unlock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.6-1.7"/><path d="M12 15v2"/>',
+  sparkle:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.8 2.2 2.2.8-2.2.8L19 22l-.8-2.2-2.2-.8 2.2-.8z"/>',
+  // powers
+  wing:'<path d="M3 17c4-1 7-4 9-9 1 4 4 7 9 9"/><path d="M6 20c2-.5 4-2 6-4 2 2 4 3.5 6 4"/><path d="M12 8V3"/>',
+  run:'<path d="M3 8h7M2 12h6M4 16h5"/><path d="M13 5l6 7-6 7"/>',
+  climb:'<path d="M4 4h16v16H4zM4 9.3h16M4 14.6h16M9 4v5.3M15 9.3v5.3M9 14.6V20"/>',
+  web:'<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><path d="M12 7l3.5 1.5L17 12l-1.5 3.5L12 17l-3.5-1.5L7 12l1.5-3.5z"/>',
+  flame:'<path d="M12 21a6 6 0 0 0 6-6c0-4-3-6-4-10-1.5 2-2 3.5-2 5-1-1-1.8-2-2.2-3.5C7.5 9 6 11.5 6 15a6 6 0 0 0 6 6z"/><path d="M12 21a2.5 2.5 0 0 0 2.5-2.5c0-2-2.5-3.5-2.5-3.5s-2.5 1.5-2.5 3.5A2.5 2.5 0 0 0 12 21z"/>',
+  snow:'<path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7"/><path d="M9.5 3.5L12 6l2.5-2.5M9.5 20.5L12 18l2.5 2.5"/>',
+  bolt:'<path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/>',
+  burst:'<circle cx="12" cy="12" r="3.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.8 2.8M16.2 16.2L19 19M5 19l2.8-2.8M16.2 7.8L19 5"/>',
+  eye:'<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  orbit:'<circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-25 12 12)"/>',
+  wave:'<path d="M8 8a5.5 5.5 0 0 0 0 8M5 5a10 10 0 0 0 0 14"/><path d="M16 8a5.5 5.5 0 0 1 0 8M19 5a10 10 0 0 1 0 14"/><circle cx="12" cy="12" r="1.5"/>',
+  metal:'<path d="M12 2l8.5 5v10L12 22l-8.5-5V7z"/><path d="M12 2v20M3.5 7L12 12l8.5-5"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+  ring:'<circle cx="12" cy="13" r="6.5"/><circle cx="12" cy="13" r="3"/><path d="M9 5.5L12 3l3 2.5"/>',
+  storm:'<path d="M6.5 15.5a4.5 4.5 0 0 1 .5-9 6 6 0 0 1 11.3 2A3.5 3.5 0 0 1 17.5 15.5"/><path d="M13 12l-3 5h4l-2 5"/>',
+  helmet:'<path d="M5 13a7 7 0 0 1 14 0v5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/><path d="M8 13h8l-1 3H9z"/>',
+  sun:'<circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/>',
+  spider:'<circle cx="12" cy="13" r="3.5"/><circle cx="12" cy="7.5" r="2"/><path d="M8.5 11L4 8l-1-3M8.5 13.5H3.5M8.5 15.5L5 19l-.5 2M15.5 11L20 8l1-3M15.5 13.5h5M15.5 15.5L19 19l.5 2"/>',
+  bomb:'<circle cx="11" cy="14" r="6.5"/><path d="M15.5 9.5L18 7M18 7l1-3M18 7l3-1"/>',
+  whip:'<path d="M4 20l3-3"/><path d="M7 17c2-2 1-5 4-7s6 1 8-2 0-5-2-5"/>',
+  phase:'<path d="M12 3a5 5 0 0 1 5 5v11l-2.5-2-2.5 2-2.5-2L7 19V8a5 5 0 0 1 5-5z" stroke-dasharray="3 2.4"/><circle cx="10" cy="9" r=".8"/><circle cx="14" cy="9" r=".8"/>',
+  tornado:'<path d="M3 4h18M5 8h14M7.5 12h9M9.5 16h5M11 20h2"/>',
+  clock:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9.5 2.5h5"/>',
+  clockStop:'<circle cx="12" cy="12" r="9"/><path d="M10 8.5v7M14 8.5v7"/>',
+  hammer:'<path d="M4 4h10v6H4zM9 10v11"/><path d="M14 7h4"/>',
+  chain:'<rect x="2.5" y="8.5" width="10" height="7" rx="3.5" transform="rotate(-35 7.5 12)"/><rect x="11.5" y="8.5" width="10" height="7" rx="3.5" transform="rotate(-35 16.5 12)"/>',
+  spiral:'<path d="M12 12a1.5 1.5 0 1 1 1.5 1.5A3 3 0 0 1 10.5 10.5a4.5 4.5 0 0 1 6 -1.5A6 6 0 0 1 18 16.5a7.5 7.5 0 0 1-12 1A8.5 8.5 0 0 1 8 5"/>',
+  band:'<rect x="6" y="7" width="12" height="10" rx="3"/><path d="M8.5 7V3h7v4M8.5 17v4h7v-4"/><circle cx="12" cy="12" r="2"/>',
+  beam:'<circle cx="5" cy="12" r="3"/><path d="M8 10.5h14M8 13.5h14"/>',
+  roundShield:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4"/>',
+  claw:'<path d="M5 20L15 4M9.5 21L19 6M14 21.5l6-10"/>',
+  stretch:'<path d="M3 12h2l2-5 3 10 3-10 3 10 2-5h3"/>',
+  giant:'<circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M8 11h8M12 15l-3 6M12 15l3 6"/><path d="M3 9V3m0 0L1 5m2-2 2 2M21 9V3m0 0-2 2m2-2 2 2"/>',
+  blink:'<path d="M3 12h3M9 12h3M15 12h3" /><path d="M18 8l4 4-4 4"/><circle cx="4" cy="6" r="1"/><circle cx="8" cy="18" r="1"/>',
+  gravity:'<circle cx="12" cy="8" r="4.5"/><path d="M6 16l6 5 6-5M12 13v8"/>',
+  quake:'<path d="M2 12h5l2-3 3 6 2-4 1 1h7"/><path d="M4 19h16"/>',
+  meteor:'<circle cx="15.5" cy="15.5" r="5"/><path d="M11.5 11.5L3 3M13 9L7 3M9 13L3 7"/>',
+  push:'<path d="M3 12h11M3 7h8M3 17h8"/><path d="M15 5l6 7-6 7"/>',
+  heal:'<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>',
+  eyeOff:'<path d="M2 12s3.5-6 10-6c2 0 3.7.6 5.1 1.4M22 12s-1.2 2.1-3.4 3.8M6.3 16.7C3.6 15 2 12 2 12"/><path d="M9.5 14.5a3 3 0 0 0 4.2-4.2M3 21L21 3"/>',
+  vine:'<path d="M12 21V11c0-3 2-6 6-7 0 4-2 6-6 7M12 14c0-2.5-2-4.5-6-5 0 3.5 2 5.5 6 5"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  wisp:'<path d="M6 20c-2-3-1-7 3-9s5-5 3-8c4 1 7 5 6 9s-5 5-6 8"/><circle cx="12.5" cy="13" r="1.5"/>',
+  battery:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M6.5 10v4M10 10v4M13.5 10v4"/>',
+};
+// which glyph each power uses (anything missing falls back to a burst)
+const POWER_GLYPH={flight:'wing',superSpeed:'run',wallClimb:'climb',webSwing:'web',fireball:'flame',iceCloud:'snow',lightning:'bolt',energyBlast:'burst',
+  laserVision:'eye',telekinesis:'orbit',shockwave:'wave',metalSkin:'metal',energyShield:'shield',powerRing:'ring',stormFlight:'storm',armorFlight:'helmet',
+  solarFlight:'sun',stormBody:'storm',armorSuit:'helmet',solarBody:'sun',spiderPowers:'spider',ringCore:'ring',surgeSuit:'run',webStrike:'web',webBomb:'bomb',
+  webWhip:'whip',lightningThrow:'bolt',phaseStrike:'phase',speedTornado:'tornado',slowTime:'clock',timeStop:'clockStop',ringBlast:'burst',hammerSmash:'hammer',
+  chainLasso:'chain',ringShield:'shield',blackHole:'spiral',morphBand:'band',stormHammer:'hammer',repulsors:'burst',coreBeam:'beam',ricochetShield:'roundShield',
+  bladeClaws:'claw',elasticBody:'stretch',titanGrowth:'giant',metalForms:'metal',bladeLeap:'claw',stretchStrike:'stretch',giantForm:'giant',blink:'blink',
+  gravityWell:'gravity',sonicScream:'wave',quakeStomp:'quake',meteorStrike:'meteor',forcePush:'push',chainLightning:'bolt',healingPulse:'heal',
+  invisibility:'eyeOff',vineSnare:'vine',shadowStep:'moon',plasmaWhip:'whip',spiritWave:'wisp',suitBattery:'battery',timeDilation:'clock'};
+// a power's colour follows what kind of power it is (hero kit moves in gold, the Ring Bearer's in ring green)
+const GLYPH_COL={movement:'#4fd8ff',offence:'#ff8a5c',body:'#c9d7ea',defence:'#8fe3ff',preset:'#ffc93c',signature:'#ffc93c',special:'#c89bff',utility:'#7dffb0',upgrade:'#bff4ff'};
+const RING_KIT=new Set(['powerRing','ringCore','ringBlast','hammerSmash','chainLasso','ringShield','blackHole']);
+function glyph(name,cls){const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('aria-hidden','true');
+  s.setAttribute('class','ico'+(cls?' '+cls:''));s.innerHTML=GLYPHS[name]||GLYPHS.burst;return s;}
+function powerIcon(id){const c=POWERS[id],s=glyph(POWER_GLYPH[id]||'burst','pico');s.style.color=RING_KIT.has(id)?'#6dff95':GLYPH_COL[c&&c.cat]||'#e9f3ff';return s;}
+// ================================================================
+// HUD icon bar and the move list
+// ================================================================
+// A row of icons under your name, one per menu, each showing its key (like a game launcher's top bar). With the mouse locked,
+// press the key; L frees the mouse to click them. On touch screens tap them. The CrazyGames build adds its rewards here
+// (double XP, refill, try locked powers, cosmetics) instead of in the pause menu.
+// The move list (right side) lists everything your hero can do. It starts closed, so the first thing you see is the city
+// ("Getting started" teaches the basics and points to it); H or its icon shows or hides it. It lays out in two columns
+// and shrinks to fit (folding "Getting started" down to its next step if it has to), so it never needs scrolling.
+// The leaderboard sits under the icons on the left (the full board opens from it, the main menu or the pause menu).
+// The CrazyGames build has no leaderboard at all: the shared board lives on claude.ai, and pointing players there is cross-promotion.
+const rewardsLater=()=>{const st=save.stats||{};return !(st.crimesStopped||st.crimesCommitted||save.level>1);};
+const HUDBAR=[
+  {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
+  {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
+  {id:'powers',glyph:'swap',key:'J',code:'KeyJ',tip:()=>'Change powers'+(save.rechoiceAt?'':' · free the first time'),act:()=>{if(sheetOpen)closeSheet();tryRechoose();}},
+  {id:'look',glyph:'shirt',key:'I',code:'KeyI',tip:'Appearance',act:()=>sheetToggle('look'),on:()=>sheetOpen==='look'},
+  {id:'mp',glyph:'people',key:'6',code:'Digit6',tip:'Multiplayer',act:()=>sheetToggle('mp'),on:()=>sheetOpen==='mp'||MP.online()},
+  {id:'set',glyph:'gear',key:'7',code:'Digit7',tip:'Settings',act:()=>sheetToggle('set'),on:()=>sheetOpen==='set'},
+  // CrazyGames build only. The rewards appear once you've dealt with your first crime (or reached LV 2), so the opening
+  // screen stays calm
+  {id:'xp',glyph:'x2',key:'9',code:'Digit9',portal:true,act:()=>Portal.rewardXP(),hide:()=>rewardsLater(),
+    tip:()=>{const l=Portal.boostUntil-time;return l>0?'Double XP active · '+Math.ceil(l/60)+' min left':'Watch an ad: double XP for 5 min';},
+    on:()=>Portal.boostUntil>time,off:()=>!Portal.ads()||Portal.boostUntil>time},
+  {id:'refill',glyph:'refill',key:'0',code:'Digit0',portal:true,act:()=>refill(),hide:()=>rewardsLater()||!refillInfo(),
+    tip:()=>{const r=refillInfo();return !r?'':r.need?'Watch an ad: refill your '+r.m.label.toLowerCase():'Your '+r.m.label.toLowerCase()+' is full';},
+    off:()=>{const r=refillInfo();return !Portal.ads()||!r||!r.need;}},
+  {id:'trials',glyph:'unlock',key:',',code:'Comma',portal:true,tip:'Try locked powers',act:()=>sheetToggle('trials'),hide:()=>rewardsLater(),on:()=>sheetOpen==='trials'},
+  {id:'cos',glyph:'sparkle',key:'.',code:'Period',portal:true,tip:'Cosmetics',act:()=>sheetToggle('cos'),hide:()=>rewardsLater(),on:()=>sheetOpen==='cos'},
+];
+const HUDBAR_KEYS={};for(const b of HUDBAR)if(!b.portal||PBAL)HUDBAR_KEYS[b.code]=b;
+const hbVal=(v)=>typeof v==='function'?v():v;
+function sheetToggle(name){if(sheetOpen===name)closeSheet();else openSheet(name);}
+let hudbarT=0;
+function buildHudbar(){
+  const bar=$('hudbar');if(!bar||bar.childElementCount)return;
+  for(const b of HUDBAR){if(b.portal&&!PBAL)continue;
+    const btn=el('button',{class:'hbtn',type:'button',id:'hb-'+b.id,onclick:e=>{e.stopPropagation();if(state==='play')b.act();}});
+    btn.appendChild(glyph(b.glyph));btn.appendChild(el('kbd',{text:b.key}));btn.appendChild(el('i',{class:'dot'}));
+    if(b.touch===false)btn.classList.add('kbm');bar.appendChild(btn);b.el=btn;}
+  updateHudbar(true);
+}
+function updateHudbar(force){
+  if(!force&&time-hudbarT<0.25)return;hudbarT=time;
+  for(const b of HUDBAR){const e=b.el;if(!e)continue;const tip=hbVal(b.tip)||'';
+    if(e.dataset.tip!==tip){e.dataset.tip=tip;e.setAttribute('aria-label',tip+' ('+b.key+')');}
+    e.hidden=!!(b.hide&&b.hide());e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));}
+  // sit just under the name panel, whatever its height
+  const tl=document.querySelector('.hud-tl'),bar=$('hudbar');if(tl&&bar&&!touchOn()){const top=(tl.offsetTop+tl.offsetHeight+8)+'px';if(bar.style.top!==top)bar.style.top=top;}
+  updateLBMini();
+}
+// ---- the leaderboard panel (left, under the icons) ----
+let lbMiniKey='',lbMiniTop=-1;
+function lbRows(tab){
+  if(LB.db)return LB.lists[tab]||[];
+  let rows=save.character?[{id:'me',name:save.character.name,level:save.level,rep:save.reputation}]:[];
+  if(tab==='respected')rows=rows.filter(r=>r.rep>0);if(tab==='feared')rows=rows.filter(r=>r.rep<0);return rows;
+}
+const LB_TABS=[['respected','Respected'],['feared','Feared'],['level','Level']];
+function updateLBMini(force){
+  const box=$('lbmini');if(!box)return;
+  if(PBAL||touchOn()||state!=='play'){box.hidden=true;return;} // touch screens: Leaderboard is in the pause menu; CrazyGames: no shared board there
+  const bar=$('hudbar'),top=bar.offsetTop+bar.offsetHeight+8,room=innerHeight-top-212; // 212: the minimap below it
+  if(room<70){box.hidden=true;return;}box.hidden=false;
+  if(top!==lbMiniTop){lbMiniTop=top;box.style.top=top+'px';}
+  const max=clamp(Math.floor((room-52)/19),1,5),rows=lbRows(lbTab).slice(0,max);
+  const key=lbTab+'|'+max+'|'+rows.map(r=>r.id+':'+r.name+':'+r.level+':'+r.rep).join(',')+'|'+(LB.uid||'');
+  if(!force&&key===lbMiniKey)return;lbMiniKey=key;box.textContent='';
+  const open=e=>{e.stopPropagation();if(state==='play')openSheet('lb');};
+  box.appendChild(el('button',{type:'button',class:'lbm-head',onclick:open,title:'Open the full leaderboard'},glyph('trophy'),el('b',{text:'Leaderboard'})));
+  box.appendChild(el('div',{class:'lbm-tabs'},...LB_TABS.map(([k,l])=>el('button',{type:'button','aria-pressed':String(lbTab===k),text:l,onclick:e=>{e.stopPropagation();lbTab=k;updateLBMini(true);}}))));
+  if(!rows.length){box.appendChild(el('p',{class:'lbm-none',text:LB.db?'Nobody here yet':'Shared board on claude.ai'}));return;}
+  const ol=el('ol');rows.forEach((r,i)=>ol.appendChild(el('li',{class:(r.id===LB.uid||r.id==='me')?'me':''},el('i',{text:String(i+1)}),el('span',{text:r.name}),
+    el('b',{text:lbTab==='level'?'LV '+r.level:(r.rep>0?'+':'')+r.rep.toLocaleString('en-US')}))));
+  box.appendChild(ol);
+}
+// ---- move list ----
+const movesShown=()=>!hud.keys.classList.contains('fade');
+function toggleMoves(){const show=!movesShown();hud.keys.classList.toggle('fade',!show);hud.keys.classList.toggle('pin',show);fitMoves();updateHudbar(true);}
+let fitT=0;
+function updateMoves(){if(time-fitT>1)fitMoves();}
+// fit the whole list on screen: place it under "Getting started", then fold that down to its next step, then use the tight rows
+function fitMoves(){
+  fitT=time;const k=hud.keys,g=$('guide');if(!k)return;
+  const shown=movesShown()&&getComputedStyle(k).display!=='none';
+  if(!shown){if(g.classList.contains('mini'))g.classList.remove('mini');return;}
+  const place=()=>{const top=g.hidden?96:g.offsetTop+g.offsetHeight+8;k.style.top=top+'px';k.style.maxHeight=Math.max(120,innerHeight-top-150)+'px';};
+  const over=()=>k.scrollHeight>k.clientHeight+1;
+  g.classList.remove('mini');k.classList.remove('tight');place();
+  if(over()&&!g.hidden){g.classList.add('mini');place();}
+  if(over())k.classList.add('tight');
+}
+addEventListener('resize',()=>fitMoves());
+// if it still can't fit (a very small window), the wheel scrolls it while the mouse is free, without also resizing a power
+document.getElementById('keys').addEventListener('wheel',e=>{const k=e.currentTarget;if(k.scrollHeight>k.clientHeight+1)e.stopPropagation();},{passive:true});
+// ================================================================
+// Markers in the world: crimes, and where to recharge
+// ================================================================
+// Every active crime gets a floating "!" pin over it with its distance (the nearest six), like the name tags. When it is
+// off screen the pin slides to the edge of the screen and an arrow points the way. Heists get a bigger, pulsing "!!".
+// When a hero meter runs low (under a quarter) a pin marks where to recharge it and a hint above the meters says how:
+// the suit battery at Forge Tower, lightning on the nearest tall roof, calories at the nearest shop. The ring has no
+// place to go, so its hint just says to press O (tap OATH) and say the oath. Plain energy refills by itself.
+const markPool=[];
+function markEl(i){if(!markPool[i]){const b=el('b'),arr=el('i',{class:'arr'}),pin=el('div',{class:'pin'},b),pw=el('div',{class:'pw'},pin,arr),sm=el('small'),t=el('div',{class:'mk'},pw,sm);
+  $('marks').appendChild(t);markPool[i]={t,b,arr,sm,key:''};}return markPool[i];}
+const fmtDist=d=>d<1000?Math.round(d)+' m':(d/1000).toFixed(1)+' km';
+function placeMark(n,x,y,z,icon,col,label,cls,short){
+  const m=markEl(n),W=innerWidth,H=innerHeight,dx=x-camPos.x,dy=y-camPos.y,dz=z-camPos.z;
+  const fz=dx*camF.x+dy*camF.y+dz*camF.z,rx=dx*camR.x+dy*camR.y+dz*camR.z,uy=dx*camU.x+dy*camU.y+dz*camU.z;
+  const p=fz>0.5?project(x,y,z):null;let sx,sy,edge=false,ang=0;
+  if(p&&p[0]>36&&p[0]<W-36&&p[1]>60&&p[1]<H-40){sx=p[0];sy=p[1];}
+  else{edge=true;ang=Math.atan2(-uy,rx);if(fz<=0&&Math.abs(rx)<Math.abs(uy)*0.2)ang=Math.PI/2; // straight behind you: point down
+    const hw=W/2-40,hh=H/2-64,ux=Math.cos(ang),vy=Math.sin(ang),t=Math.min(hw/Math.max(Math.abs(ux),1e-4),hh/Math.max(Math.abs(vy),1e-4));sx=W/2+ux*t;sy=H/2+vy*t;}
+  m.t.hidden=false;m.t.style.transform=`translate(${sx.toFixed(1)}px,${sy.toFixed(1)}px) translate(-50%,${edge?'-14px':'-100%'})`;
+  const key=icon+'|'+col+'|'+cls+'|'+edge;if(m.key!==key){m.key=key;m.b.textContent=icon;m.t.style.setProperty('--c',col);m.t.className='mk'+(cls?' '+cls:'')+(edge?' edge':'');}
+  if(edge)label=short; // at the screen edge only the distance, so it never runs off the screen
+  if(m.label!==label){m.label=label;m.sm.textContent=label;}
+  if(edge)m.arr.style.transform=`rotate(${ang.toFixed(3)}rad) translateX(16px)`;
+}
+// ---- where to recharge ----
+let goalCache={t:-9,key:'',g:null};
+function nearestTallRoof(){let best=null,bd=1e9;for(const r of roofTops){if(r.y<TALL_ROOF)continue;const d=Math.hypot(r.x-P.pos.x,r.z-P.pos.z);if(d<bd){bd=d;best=r;}}return best;}
+function nearestShop(){let best=null,bd=1e9;for(const s of shops){if(s.prop&&!s.prop.alive)continue;const d=Math.hypot(s.x-P.pos.x,s.z-P.pos.z);if(d<bd){bd=d;best=s;}}return best;}
+function rechargeGoal(){
+  const m=heroMeter();if(!m||P.dead||meterFrac(m)>=0.25)return null;
+  if(m.key==='ring')return {hint:'Ring low · '+(touchOn()?'tap OATH':'press O')+' and say the oath to recharge',col:'#5dff86'};
+  if(m.key==='battery'){if(atInventorTower())return {hint:'Recharging at Forge Tower',col:'#ff6a3d'};if(!invTower)return null;
+    return {x:invTower.x,y:invTower.top+8,z:invTower.z,icon:'🔋',label:'Forge Tower',col:'#ff6a3d',hint:(save.battery<=0?'Suit on standby':'Battery low')+' · fly to Forge Tower to recharge'};}
+  if(m.key==='bolt'){if(tallRoofHere())return {hint:(touchOn()?'Tap USE':'Press G')+' to raise your hammer and call the storm',col:'#8fd8ff'};
+    if(time-goalCache.t>1||goalCache.key!=='bolt'){goalCache={t:time,key:'bolt',g:nearestTallRoof()};}const r=goalCache.g;if(!r)return null;
+    return {x:r.x,y:r.y+8,z:r.z,icon:'⚡',label:'Tall roof',col:'#8fd8ff',hint:'Lightning low · land on a tall roof and '+(touchOn()?'tap USE':'press G')+' to call the storm'};}
+  if(m.key==='cal'){if(nearestShopToEat())return {hint:(touchOn()?'Tap USE':'Press G')+' to eat here',col:'#ffc93c'};
+    if(time-goalCache.t>1||goalCache.key!=='cal'){goalCache={t:time,key:'cal',g:nearestShop()};}const s=goalCache.g;if(!s)return null;
+    return {x:s.x,y:5,z:s.z,icon:'🍔',label:s.name,col:'#ffc93c',hint:'Calories low · '+(touchOn()?'tap USE':'press G')+' at a shop to eat'};}
+  return null;
+}
+let hintKey='';
+function updateMarkers(){
+  let n=0;
+  const on=state==='play'&&!creating&&!P.dead&&!inSpace()&&!voidbornAway();
+  if(on){
+    const list=[];for(const c of crimes){const d=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);list.push([d,c]);}list.sort((a,b)=>a[0]-b[0]);
+    for(const [d,c] of list.slice(0,6)){const big=c.heist||c.type==='vault'||c.type==='truck';
+      placeMark(n++,c.x,groundY(c.x,c.z)+(big?9:5.5),c.z,big?'!!':'!',CRIME_COL[c.type]||'#ff5a3d',d<250?c.label+' · '+fmtDist(d):fmtDist(d),big?'big':'',fmtDist(d));}
+  }
+  const g=on?rechargeGoal():null;
+  if(g&&g.x!==undefined){const d=fmtDist(Math.hypot(g.x-P.pos.x,g.z-P.pos.z));placeMark(n++,g.x,g.y,g.z,g.icon,g.col,g.label+' · '+d,'goal',d);}
+  for(let i=n;i<markPool.length;i++)if(!markPool[i].t.hidden)markPool[i].t.hidden=true;
+  const h=$('lowhint'),k=g?g.hint+'|'+g.col:'';
+  if(k!==hintKey){hintKey=k;h.hidden=!g;if(g){h.textContent=g.hint;h.style.setProperty('--c',g.col);}}
+}
 // ================================================================
 // HUD
 // ================================================================
@@ -6126,7 +6720,7 @@ function feed(title,sub=''){
 const SLOT_KEYS=['1','2','3','4','5'],SLOT_ALT=['Q','E','R','',''];
 let slotEls=[];
 function buildHotbar(){
-  hud.hotbar.textContent='';slotEls=[];renderHeroKeys();if(!save.character)return;
+  hud.hotbar.textContent='';slotEls=[];renderHeroKeys();fitMoves();if(!save.character)return;
   if(P.alien){const a=ALIENS[P.alien.id];
     a.abilities.forEach((ab,i)=>{const cd=el('i',{class:'cd'});const s=el('div',{class:'slot alien'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:ab.name}),el('small',{text:a.name}));hud.hotbar.appendChild(s);slotEls.push({alien:i,s,cd});});
     const tb=el('i');const s=el('div',{class:'slot move band'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Revert'}),el('div',{class:'bar tbar'},tb));hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});
@@ -6150,7 +6744,7 @@ const MAPO=EDGE+130,mapCv=document.createElement('canvas');mapCv.width=mapCv.hei
   for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++){if(!isBlock(i,j))continue;c.fillStyle='#161b25';c.fillRect(X(cellX(i)-30),X(cellZ(j)-30),60*s,60*s);}
   for(const r of mapRects){if(r.col===-1)c.fillStyle='#1f4d2c';else if(r.col===-2)c.fillStyle='#4a3c30';else{const l=Math.round(26+clamp(r.col/260,0,1)*46);c.fillStyle=`hsl(212,22%,${l}%)`;}
     c.fillRect(X(r.x0),X(r.z0),Math.max(1,(r.x1-r.x0)*s),Math.max(1,(r.z1-r.z0)*s));}
-  c.fillStyle='#1d5f8a';for(const l of lakes){c.beginPath();c.arc(X(l.x),X(l.z),l.r*s,0,TAU);c.fill();}
+  c.fillStyle='#1d5f8a';for(const l of lakes){c.beginPath();for(let i=0;i<=32;i++){const a=i/32*TAU,r=lakeR(l,a);c.lineTo(X(l.x+Math.cos(a)*r),X(l.z+Math.sin(a)*r));}c.fill();}
   if(bank){c.fillStyle='#b8953a';c.fillRect(X(bank.x0),X(bank.z0),(bank.x1-bank.x0)*s,(bank.z1-bank.z0)*s);}
 })();
 const mapEl=$('map'),mctx=mapEl.getContext('2d');
@@ -6289,9 +6883,9 @@ let lbTab='respected';
     if(user){try{if(await user.can('data.write')===false)LB.ro=true;}catch(e){}}
     LB.db=db;LB.uid=uid;
     const clean=s=>s.docs.map(d=>{const v=d.data()||{};return {id:d.id,name:typeof v.name==='string'?v.name.slice(0,16):'Hero',level:Math.floor(+v.level||1),rep:Math.round(+v.rep||0)};});
-    db.collection('players').orderBy('rep','desc').limit(10).onSnapshot(s=>{LB.lists.respected=clean(s).filter(r=>r.rep>0);if(sheetOpen==='lb')renderSheet();},()=>{});
-    db.collection('players').orderBy('rep','asc').limit(10).onSnapshot(s=>{LB.lists.feared=clean(s).filter(r=>r.rep<0);if(sheetOpen==='lb')renderSheet();},()=>{});
-    db.collection('players').orderBy('level','desc').limit(10).onSnapshot(s=>{LB.lists.level=clean(s);if(sheetOpen==='lb')renderSheet();},()=>{});
+    db.collection('players').orderBy('rep','desc').limit(10).onSnapshot(s=>{LB.lists.respected=clean(s).filter(r=>r.rep>0);if(sheetOpen==='lb')renderSheet();updateLBMini(true);},()=>{});
+    db.collection('players').orderBy('rep','asc').limit(10).onSnapshot(s=>{LB.lists.feared=clean(s).filter(r=>r.rep<0);if(sheetOpen==='lb')renderSheet();updateLBMini(true);},()=>{});
+    db.collection('players').orderBy('level','desc').limit(10).onSnapshot(s=>{LB.lists.level=clean(s);if(sheetOpen==='lb')renderSheet();updateLBMini(true);},()=>{});
     syncPlayerDoc(true);
   }catch(e){}
 })();
@@ -6355,7 +6949,7 @@ function renderSettings(){
       el('div',{class:'lb-tabs'},...modes.map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.controls===k),text:l,onclick:()=>{s.controls=k;persist();applyTouchUI();buildHotbar();renderSheet();}})))),
     el('div',{class:'field'},el('span',{text:'Ring oath · how the Ring Bearer recites it'}),
       el('div',{class:'lb-tabs'},...[['voice','Say it out loud'],['type','Type it (Tab)']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.oathInput===k),disabled:k==='voice'&&!voiceOK(),text:l,onclick:()=>{s.oathInput=k;persist();if(k==='voice')askMic(true);renderSheet();}}))),
-      el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line, and you can keep moving and fighting (no ring powers until you finish). O or Esc puts the lantern away.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
+      el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line, and you can keep moving and fighting (no ring powers until you finish). O or Esc puts the beacon away.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
     ...(s.oathInput==='voice'&&voiceOK()?micSettings(s,rng):[]),
     row('Lock the mouse when you click into the game',chk('autoLock')),
     el('p',{class:'muted',text:'Press L any time to lock or unlock the mouse. While it is unlocked, hold the middle mouse button and drag to look around.'}),
@@ -6377,13 +6971,14 @@ const creator=$('create'),creatorBody=$('create-body');
 let creatorMode='new';
 function openCreator(mode='new'){
   creatorMode=mode;creating=true;
+  if(locked)document.exitPointerLock(); // the creator is clicked with the mouse, so give the cursor back (creating keeps this from pausing)
   if(mode==='new'&&state!=='play'){const pk=parks.find(q=>Math.abs(q.cx-40)<1&&Math.abs(q.cz+360)<1)||parks[0];P.pos.set(pk.cx,1.4,pk.cz);P.vel.set(0,0,0);P.showcase=true;}
   if(mode==='rechoose'&&save.character){const c=save.character,pre=presetOf(c);draft={name:c.name,suit:c.suit,cape:c.cape,accent:c.accent,capeOn:c.capeOn,movement:c.movement.slice(),body:pre?null:c.body,abilities:pre?[]:c.abilities.filter(id=>ABILITY_POWERS.includes(id)),kit:pre?c.abilities.slice(0,CONFIG.picks.kit):[],free:pre?c.abilities.slice(CONFIG.picks.kit):[],confirm:false};}
   else draft={name:'Guardian '+Math.floor(rr(100,1000)),suit:(Math.random()*SUIT_OPTS.length)|0,cape:(Math.random()*CAPE_OPTS.length)|0,accent:0,capeOn:true,movement:[],body:null,abilities:[],confirm:false};
   applyLook();creator.hidden=false;$('menu').hidden=true;$('pause').hidden=true;$('create-title').textContent=mode==='rechoose'?'Change your powers':'Create your hero';renderCreator();
 }
 function pickCard(id,on,onclick,tag,extra){const c=POWERS[id];
-  return el('button',{type:'button',class:'pick'+(on?' on':'')+(tag?' special':''),'aria-pressed':String(on),onclick},el('b',{text:PRESETS[id]?PRESETS[id].name:c.name}),
+  return el('button',{type:'button',class:'pick'+(on?' on':'')+(tag?' special':''),'aria-pressed':String(on),onclick},powerIcon(id),el('b',{text:PRESETS[id]?PRESETS[id].name:c.name}),
     el('span',{class:'cat',text:tag||(c.cat==='defence'?'Defence':c.cat==='special'?'Transformation':c.cat==='utility'?'Utility':c.type==='charge'?'Attack · hold':c.cat==='body'?'Body mod':'Attack')}),
     el('span',{text:PRESETS[id]?PRESETS[id].blurb:c.desc}),extra?el('span',{class:'cat',text:extra}):null);}
 function renderCreator(){
@@ -6431,7 +7026,18 @@ function finishCreator(){
     creating=false;draft=null;creator.hidden=true;applyLook();buildHotbar();buildTouchButtons();setPaused(true);
     toast('Powers changed',refund?'+'+refund+' skill points refunded':'Your new powers are ready','cyan');return;
   }
-  save.character=c;save.level=1;save.xp=0;save.sp=CONFIG.progression.startSP;save.powerLevels={};save.passives=freshPassives();save.reputation=0;save.rechoiceAt=Date.now();save.mastery={};save.ring=100;save.battery=300;save.bolt=100;save.cal=100;
+  newHero(c);
+}
+// new players start straight away as the Ring Bearer; the first change of powers (J, or the swap icon) is free
+function startAsRingBearer(){
+  const c=validCharacter({name:Portal.username||'Guardian '+Math.floor(rr(100,1000)),suit:2,cape:4,accent:4,capeOn:true,movement:['powerRing'],abilities:[]});
+  if(!c){openCreator();return;}newHero(c,true);
+  feed('You are the Ring Bearer',(touchOn()?'Tap the swap icon (top)':'Press J (the swap icon, top left)')+' to pick other powers · free the first time');
+}
+// the menu's second button, for players who want to pick their powers before they start
+function menuButtons(){let q=$('choose');if(!q){q=el('button',{class:'ghost',id:'choose',type:'button',text:'Choose your powers',onclick:()=>{SFX.init();openCreator();}});$('start').after(q);}q.hidden=!!save.character;}
+function newHero(c,freeChange){
+  save.character=c;save.level=1;save.xp=0;save.sp=CONFIG.progression.startSP;save.powerLevels={};save.passives=freshPassives();save.reputation=0;save.rechoiceAt=freeChange?0:Date.now();save.mastery={};save.ring=100;save.battery=300;save.bolt=100;save.cal=100;
   persist();creating=false;draft=null;creator.hidden=true;applyLook();startPlay(true);
 }
 function tryRechoose(){
@@ -6471,10 +7077,10 @@ function dialConfirm(){if(dialSel<0)return;const a=dialItems()[dialSel];if(a&&a.
 function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----
 const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],['punch','Throw a punch','Click to punch','Tap PUNCH'],
-  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Head for an icon on your minimap','Head for an icon on your minimap']];
+  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
 function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(GUIDE.every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
-  for(const [k,t,kb,tc] of GUIDE)list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:touchOn()?tc:kb})));}
+  for(const [k,t,kb,tc] of GUIDE)list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:touchOn()?tc:kb})));fitMoves();}
 Bus.on('damaged',e=>{if(e.source===P&&e.type==='punch')guideDone('punch');});
 // ================================================================
 // Input: keyboard, mouse, pointer lock, touch
@@ -6495,13 +7101,14 @@ addEventListener('keydown',e=>{
   if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(ringLocked()&&state==='play'&&!paused){closeOath();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
   if(state!=='play')return;
   if(e.code==='Tab'||e.code==='KeyK'){if(sheetOpen==='skills')closeSheet();else openSheet('skills');return;}
+  {const hb=HUDBAR_KEYS[e.code];if(hb&&!creating&&!(hb.off&&hb.off())&&!(hb.hide&&hb.hide())){hb.act();return;}} // the HUD icon bar's keys
   if(e.code==='KeyP'){setPaused(!paused);return;}
   if(e.code==='KeyL'){toggleLock();return;}
-  if(e.code==='KeyM'){toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
-  if(e.code==='KeyH'){hud.keys.classList.toggle('fade');return;}
-  if(P.dead&&!paused&&e.code==='KeyR'&&reviveReady()){revive();return;}
+  if(e.code==='KeyM'){if(Portal.forceMute){toast('Sound is off','Turn it back on with the site\'s sound button','cyan');return;}toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
+  if(e.code==='KeyH'){toggleMoves();return;}
   if(paused||P.dead)return;
   if(voidbornLocked()){if(voidbornAway()&&e.code in XQ_CODES)voidbornAnswer(XQ_CODES[e.code]);return;} // Voidborn: only the masks' question can be answered
+  if(P.swim&&e.code==='KeyC')return; // C dives while swimming
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
@@ -6557,10 +7164,11 @@ function setPaused(v){
   paused=v;$('pause').hidden=!v||creating;if(v)renderPortalButtons();{const on=v&&MP.online();$('pause-title').textContent=on?'Menu':'Paused';$('pause-note').hidden=!on;}if(dialOpen)closeDial();
   if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<5;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();}
 }
-function resume(){if(sheetOpen)closeSheet();setPaused(false);Portal.midgame();if(save.settings.autoLock&&!touchOn())requestLock();}
+function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
-function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
-// web-slingers: tap Space in the air to web-zip, hold it to open the web wings
+function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.swim&&!P.grounded)return; // under water Space just swims you up
+  if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
+// web runners: tap Space in the air to web-zip, hold it to open the web wings
 function releaseJump(){if(P.charging&&canAct())doJump();P.charging=false;
   if(P.spaceT&&!P.wings&&time-P.spaceT<0.22&&!P.grounded&&canAct())webZip();P.spaceT=0;}
 function doJump(){
@@ -6621,18 +7229,18 @@ tl.addEventListener('pointermove',e=>{
   else if(e.pointerId===lookId){look(e.clientX-lx,e.clientY-ly,2.2);lx=e.clientX;ly=e.clientY;}});
 const endTouch=e=>{if(e.pointerId===stickId){stickId=null;touchIn.x=touchIn.y=0;knob.style.transform='';stick.style.left='';stick.style.top='';stick.classList.remove('on');}if(e.pointerId===lookId)lookId=null;};
 tl.addEventListener('pointerup',endTouch);tl.addEventListener('pointercancel',endTouch);
-const SHORT={sonicScream:'SCREAM',quakeStomp:'QUAKE',meteorStrike:'METEOR',forcePush:'PUSH',chainLightning:'CHAIN',healingPulse:'HEAL',invisibility:'CLOAK',vineSnare:'SNARE',shadowStep:'STEP',plasmaWhip:'WHIP',bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'REPULS',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
+const SHORT={sonicScream:'SCREAM',quakeStomp:'QUAKE',meteorStrike:'METEOR',forcePush:'PUSH',chainLightning:'CHAIN',healingPulse:'HEAL',invisibility:'CLOAK',vineSnare:'SNARE',shadowStep:'STEP',plasmaWhip:'WHIP',bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'PULSE',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
 function bindTouchBtn(b,act){
   b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{b.setPointerCapture(e.pointerId);}catch(err){}b.classList.add('down');touchAct(act,true);});
   const up=()=>{if(!b.classList.contains('down'))return;b.classList.remove('down');touchAct(act,false);};
   b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('contextmenu',e=>e.preventDefault());
 }
 bindTouchBtn($('tpause'),'pause');
-function buildTouchButtons(){
+function buildTouchButtons(){ // on CrazyGames a locked power key gets its button when it unlocks (level-ups rebuild these)
   tbtns.textContent='';if(!save.character)return;
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
-  else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
+  else{save.character.abilities.forEach((id,i)=>{if(!(PBAL&&slotLocked(i)))B(SHORT[id]||'A'+(i+1),'a'+i,'ab');});B('PUNCH','punch','big');
     for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');B('REBUILD','rebuild');}}}
   if(!P.alien){B('GROW','grow');B('SHRINK','shrink');} // hold a power button (or sit in a construct) and tap these to change its size
   if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
@@ -6760,7 +7368,7 @@ function updatePlayer(dt){
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
   const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=(P.alien&&P.alien.phase>0)||P.phasing;
-  P.speeding=false;
+  P.speeding=false;swimCheck(shift,phasing);
   if(P.wallRun)wallRunStep(dt,inF,inR);
   else if(P.wall){
     const w=P.wall,cs=(AL&&AL.climb?18:pstat('wallClimb','speed'))*slowMul;let tx=-w.nz,tz=w.nx;if(tx*camR.x+tz*camR.z<0){tx=-tx;tz=-tz;}
@@ -6776,6 +7384,7 @@ function updatePlayer(dt){
     if(P.dashT>0){P.dashT-=dt;const m=alienMul();for(const q of actors){if(!q.alive||q.kind==='prop'||time-(q.dashHit||-9)<0.5)continue;const c=center(q);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1,c.z-P.pos.z)<3.5){q.dashHit=time;Damage.apply(P,q,25*m,'wind',{knock:20});}}
       if(Math.random()<0.8)emit(P.pos.x,P.pos.y+1.3,P.pos.z,0,0,0,0.4,[.8,1,1],1.4,0,0);}
     else if(P.burstT>0){P.burstT-=dt;if(!P.flying&&!P.grounded)P.vel.y-=CONFIG.move.gravity*0.35*dt;}
+    else if(P.swim)swimStep(dt,inF,inR,fwdX,fwdZ,rX,rZ,slowMul,shift);
     else if(P.zip)zipStep(dt);
     else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(conDrive()&&!P.flying)driveConstruct(dt,inF,inR,shift);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
@@ -6787,7 +7396,7 @@ function updatePlayer(dt){
       let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
       const am=AL?AL.speed:P.construct&&!P.flying?conSpeedMul():1;
       const canSpeed=hasPower('superSpeed')&&(shift||P.fastMode)&&P.grounded&&l>0.1&&P.en>1;P.speeding=canSpeed;
-      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*speedMult():shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul;
+      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*speedMult():shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul*(canSpeed?1:wadeMul());
       const hsp=Math.hypot(P.vel.x,P.vel.z);
       if(!P.grounded&&hsp>spd+2){ // keep swing / leap momentum: steer it instead of braking
         if(l>0.1){const turn=damp(1.8,dt),nx=P.vel.x+(tx*hsp-P.vel.x)*turn,nz=P.vel.z+(tz*hsp-P.vel.z)*turn,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hsp;P.vel.z=nz/nl*hsp;}
@@ -6796,11 +7405,11 @@ function updatePlayer(dt){
       if(hasWeb()&&!P.grounded&&P.pitch<-0.5&&inF>0){P.vel.y-=30*dt;P.vel.x+=fwdX*12*dt;P.vel.z+=fwdZ*12*dt;} // dive
       if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
     }
-    const prevY=P.pos.y;P.pos.addS(P.vel,dt);
+    const prevY=P.pos.y,prevX=P.pos.x,prevZ=P.pos.z;P.pos.addS(P.vel,dt);if(P.swim)swimShore(prevX,prevZ);
     if(P.web){const W=P.web;let dx=P.pos.x-W.x,dy=P.pos.y+1.6-W.y,dz=P.pos.z-W.z;const d=Math.hypot(dx,dy,dz)||1;
       if(d>W.L){dx/=d;dy/=d;dz/=d;P.pos.x-=dx*(d-W.L);P.pos.y-=dy*(d-W.L);P.pos.z-=dz*(d-W.L);const vr=P.vel.x*dx+P.vel.y*dy+P.vel.z*dz;if(vr>0){P.vel.x-=dx*vr;P.vel.y-=dy*vr;P.vel.z-=dz*vr;}}}
     if(phasing){const gb=baseY(P.pos.x,P.pos.z);P.grounded=false;if(P.pos.y<=gb){P.pos.y=gb;if(P.vel.y<0)P.vel.y=0;P.grounded=true;}}
-    else{const pvx=P.vel.x,pvy=P.vel.y,pvz=P.vel.z,vpre=Math.hypot(pvx,pvy,pvz);const col=collideBody(P.pos,P.vel,prevY,P.radius,P.height);P.grounded=col.grounded;
+    else{const pvx=P.vel.x,pvy=P.vel.y,pvz=P.vel.z,vpre=Math.hypot(pvx,pvy,pvz);const col=collideBody(P.pos,P.vel,prevY,P.radius,P.height,swimFloor());P.grounded=col.grounded||(!!P.swim&&swimFloats());
       if(col.wall&&(P.flying||P.rush||(P.alien&&P.alien.dashing))&&vpre>70&&!P.car){const w=col.wall;
         if(damageBuilding(w.b.bld,vpre*vpre*0.08*(P.rush?3:1),P.pos.x,P.pos.y+1,P.pos.z,-(w.nx||0),-(w.nz||0))){P.vel.set(pvx*0.85,pvy*0.85,pvz*0.85);addShake(0.5);}
         else if(time-(P.wallHitT||-9)>0.5){P.wallHitT=time;crater(P.pos.x,P.pos.y+1.2,P.pos.z,w.nx||0,0,w.nz||0,clamp(vpre*0.025,1.5,4),w.b.col);}}
@@ -6856,7 +7465,7 @@ function updatePlayer(dt){
   else{if(P.vel.y>0){al=-2.7;ar=-2.7;el=er=-0.1;tl=0.5;tr=-0.3;kl=0.9;kr=0.3;cape=0.4;}else{al=-1.2;ar=-1.2;alz=-0.9;arz=0.9;el=er=-0.4;tl=0.3;tr=-0.2;kl=0.5;kr=0.4;cape=clamp(-P.vel.y/35,0.3,2.6);}
     if(P.slam){al=-3;ar=-3;alz=-0.2;arz=0.2;tl=0.9;tr=0.9;kl=kr=1.5;cape=2.8;}}
   if(P.tk){ar=-1.7;al=-1.7;alz=-0.3;arz=0.3;el=er=-0.2;}
-  if(hasPower('stormBody')&&!P.alien&&P.suited!==false&&!thrown.some(t=>t.kind==='hammer')){ // the storm god's hammer arm
+  if(hasPower('stormBody')&&!P.alien&&P.suited!==false&&!thrown.some(t=>t.kind==='hammer')){ // the tempest's hammer arm
     if(P.fCharge){ar=-2.9;arz=0.25;er=0;al=-0.6;}else if(time-(P.hammerUpT||-9)<0.6){ar=-3.1;arz=0.05;er=0;}else if(P.flying&&sp3>12){ar=-2.95;er=0;arz=0.05;}}
   if(time-castT<0.25&&!beam){ar=-1.6;er=0;}
   const k=damp(14,dt);a.legL=lerp(a.legL,tl,k);a.legR=lerp(a.legR,tr,k);a.kneeL=lerp(a.kneeL||0,kl,k);a.kneeR=lerp(a.kneeR||0,kr,k);a.armL=lerp(a.armL,al,k);a.armR=lerp(a.armR,ar,k);
@@ -6940,7 +7549,7 @@ function updateCamera(dt){
     let dx=cx-tx,dy=cy-ty,dz=cz-tz;const L=Math.hypot(dx,dy,dz)||1;dx/=L;dy/=L;dz/=L;
     const t=L>250?L+1:rayCity(tx,ty,tz,dx,dy,dz,L+0.5),dist=Math.max(1.2,Math.min(L,t-0.6));
     camDist=dist<camDist?dist:lerp(camDist,dist,damp(5,dt));
-    camPos.set(tx+dx*camDist,Math.max(ty+dy*camDist,baseY(tx,tz)+0.6),tz+dz*camDist);
+    camPos.set(tx+dx*camDist,Math.max(ty+dy*camDist,camFloorY(tx,tz)),tz+dz*camDist);
     if(shake>0){const s=shake*shake*0.8;camPos.x+=rr(-s,s);camPos.y+=rr(-s,s);camPos.z+=rr(-s,s);}
     fov=lerp(fov,70+spN*24+(P.speeding?10:0)+(P.car?clamp(Math.abs(P.car.spd||0)/42,0,1)*8:0),damp(4,dt));
   }
@@ -7274,7 +7883,7 @@ function buildDrawList(){
     const hc=crimes.find(c=>c.type==='vault');if(hc&&hc.boss&&hc.boss.alive){const b=hc.boss,mid=(vaultY+b.pos.y)/2,len=b.pos.y-vaultY;const p=0.5+Math.sin(time*5)*0.2;
       queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,time,0,8,len,8),[.4,1,.7,0.18*p],F_ADD);queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,0,0,4,len,4),[.6,1,.8,0.25*p],F_ADD);}}
   for(const c of crimes)if(c.type==='shop'&&c.shop&&Math.sin(time*10)>0)queue(MESH.glowBox,at(c.shop.fx,5.8,c.shop.fz,0,0,0,0.5,0.5,0.5),[1,.1,.1,1],0);
-  drawProps();drawRubble();drawHelis();drawHeroAbilities();drawSpider();drawRing();drawBody();drawSuit();
+  drawProps();drawRubble();drawHelis();drawAmbient();drawHeroAbilities();drawSpider();drawRing();drawBody();drawSuit();
   for(const w of windows){if(inView(w.x,w.z,320)<0)continue;const ax=w.nx!==0;
     queue(MESH.box,at(w.x,w.y,w.z,0,0,0,ax?0.06:2.1,2.3,ax?2.1:0.06),[.02,.02,.025,1],F_UN);
     for(const [u,v,s] of [[-0.8,0.9,0.5],[0.85,-0.8,0.4],[0.7,0.95,0.3]])queue(MESH.box,at(w.x+(ax?w.nx*0.02:u),w.y+v,w.z+(ax?u:w.nz*0.02),0,0,u*0.8,ax?0.04:s,s*0.8,ax?s:0.04),[.55,.7,.8,1],0);}
@@ -7368,7 +7977,7 @@ function render(){
   gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);
-  if(camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
+  if(camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);if(camPos.y<SEA_Y)drawItem(seabedMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
   if(cityVisible()){drawItem(groundMesh,ID,WHITE,false,0);drawItem(lakeMesh,ID,WHITE,false,0);drawItem(cityMesh,ID,WHITE,false,0);}
   for(let i=0;i<dlN;i++){const d=drawList[i];if(d.flags&(F_ADD|F_BL))continue;drawItem(d.mesh,d.M,d.tint,d.flags&F_UN,d.emis);}
   gl.enable(gl.BLEND);gl.depthMask(false);gl.disable(gl.CULL_FACE);
@@ -7389,6 +7998,7 @@ function setText(e,k,v){if(lastHud[k]!==v){lastHud[k]=v;e.textContent=v;}}
 function setW(e,k,v){v=Math.round(clamp(v,0,1)*1000)/10;if(lastHud[k]!==v){lastHud[k]=v;e.style.width=v+'%';}}
 function updateHud(dt){
   if(state!=='play')return;
+  buildHudbar();updateHudbar();
   const t=repTier(save.reputation);
   setText(hud.htier,'tier',t.name);if(lastHud.tf!==t.faction){lastHud.tf=t.faction;hud.htier.style.color=FACTION_COL[t.faction];}
   setText(hud.lvl,'lvl','LV '+save.level);setW(hud.xpb,'xp',save.xp/xpNeed());
@@ -7402,7 +8012,7 @@ function updateHud(dt){
   hud.shbar.hidden=!P.shieldOn&&!P.ringShield;if(P.shieldOn)setW(hud.shb,'sh',P.shield/pstat('energyShield','absorb'));else if(P.ringShield)setW(hud.shb,'sh',P.rsHp/pstat('ringShield','absorb'));
   const mins=Math.floor(tod*24*60);setText(hud.clock,'clock',String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0'));
   const sp=P.vel.len();
-  setText(hud.mode,'mode',P.dead?'Down':inSpace()?spaceMode():P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.phasing?'Phasing':timeStopT>0?'Time stopped':frozenT>0?'Frozen in time':P.speeding?'Super speed x'+Math.min(P.dial,dialMax()):isSpeed()?'On foot · dial x'+Math.min(P.dial,dialMax())+(P.fastMode?' · fast mode':''):P.charging?'Charging':P.grounded?'On foot':'Airborne');
+  setText(hud.mode,'mode',P.dead?'Down':inSpace()?spaceMode():P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.phasing?'Phasing':timeStopT>0?'Time stopped':frozenT>0?'Frozen in time':P.speeding?'Super speed x'+Math.min(P.dial,dialMax()):isSpeed()?'On foot · dial x'+Math.min(P.dial,dialMax())+(P.fastMode?' · fast mode':''):P.charging?'Charging':P.swim?(P.pos.y<SWIM_Y-1?'Diving':'Swimming'):P.wade?'Wading':P.grounded?'On foot':'Airborne');
   for(const s of slotEls){
     if(s.bandTimer){setW(s.bandTimer,'bt',P.alien?P.alien.t/P.alien.max:0);s.s.classList.toggle('bad',!!P.alien&&P.alien.t<5);continue;}
     if(s.alien!==undefined){if(!P.alien)continue;const ab=ALIENS[P.alien.id].abilities[s.alien],f=ab.cd?P.alien.cds[s.alien]/ab.cd:0,v=Math.round(f*100);
@@ -7426,7 +8036,7 @@ function updateHud(dt){
   hud.vig.style.opacity=(hurtFlash*0.9+(P.hp/maxHp()<0.3?0.35+Math.sin(time*6)*0.1:0)).toFixed(3);
   hud.flash.style.opacity=flashWhite.toFixed(3);
   if(boss&&!boss.leave){hud.bossbar.hidden=false;setText(hud.bossname,'bn',boss.name);setW(hud.bossb,'boss',boss.hp/boss.maxHp);}else hud.bossbar.hidden=true;
-  if(helpTimer>0){helpTimer-=dt;if(helpTimer<=0)hud.keys.classList.add('fade');}
+  updateMoves();
   const tb=$('touch');if(!tb.hidden){const dn=tbtns.querySelector('.dn');if(dn)dn.hidden=!P.flying;const u=tbtns.querySelector('.use');if(u){u.classList.toggle('dim',!it);const t=it?it.kind==='exit'?'EXIT':it.kind==='car'?'CAR':'HELP':'USE';if(u.textContent!==t)u.textContent=t;}}
   if(lastHud.alien!==(P.alien?P.alien.id:'')){lastHud.alien=P.alien?P.alien.id:'';buildHotbar();buildTouchButtons();}
   setText($('online'),'online',MP.status());
@@ -7436,23 +8046,23 @@ function updateHud(dt){
 // ================================================================
 // Main loop
 // ================================================================
-function refreshMenu(){const b=$('start');b.textContent=save.character?'Continue as '+save.character.name:'Create your hero';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name:'Pick your powers, then take the city.';}
+function refreshMenu(){const b=$('start');menuButtons();b.textContent=save.character?'Continue as '+save.character.name:'Play';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name:'You start as the Ring Bearer · change powers any time';}
 function startPlay(first){
-  if(P.showcase||first||!P.placed){const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.showcase=false;P.placed=true;}
+  if(P.showcase||first||!P.placed){const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.12;P.vel.set(0,0,0);P.showcase=false;P.placed=true;}
   SFX.init();SFX.setVolume(save.settings.volume);state='play';$('menu').hidden=true;hud.root.hidden=false;
   applyLook();buildHotbar();buildTouchButtons();applyTouchUI();
   if(save.settings.autoLock&&!touchOn())requestLock();
-  helpTimer=18;P.hp=maxHp();P.en=maxEn();
+  P.hp=maxHp();P.en=maxEn();
   toast(first?'Welcome to Nova Bay':'Welcome back, '+save.character.name,first?'Crimes show up on your minimap. Stop them, or join in.':'LV '+save.level+' · '+repTier(save.reputation).name,'gold');
-  syncPlayerDoc(true);renderGuide();
+  syncPlayerDoc(true);renderGuide();Portal.onPlay();
   if(save.migrated)later(3,()=>toast('Powers updated','You now pick one traversal and one body mod. Your hero was converted; Change powers in the pause menu is free right now.','gold'));
   askMic();
 }
-$('start').addEventListener('click',()=>{SFX.init();if(!save.character)openCreator();else startPlay(false);});
+$('start').addEventListener('click',()=>{SFX.init();if(!save.character)startAsRingBearer();else startPlay(false);});
 $('m-lb').addEventListener('click',()=>openSheet('lb'));$('m-mp').addEventListener('click',()=>openSheet('mp'));$('p-mp').addEventListener('click',()=>openSheet('mp'));$('m-set').addEventListener('click',()=>openSheet('set'));
 $('resume').addEventListener('click',resume);
 $('p-skills').addEventListener('click',()=>openSheet('skills'));$('p-look').addEventListener('click',()=>openSheet('look'));
-$('p-lb').addEventListener('click',()=>openSheet('lb'));$('p-set').addEventListener('click',()=>openSheet('set'));
+$('p-lb').addEventListener('click',()=>openSheet('lb'));if(PBAL)$('m-lb').hidden=$('p-lb').hidden=true; // no leaderboard on CrazyGames (see 67_hudbar.js)$('p-set').addEventListener('click',()=>openSheet('set'));
 $('create-x').addEventListener('click',closeCreator);
 $('p-powers').addEventListener('click',tryRechoose);
 $('dial').addEventListener('click',e=>{if(e.target.id==='dial')closeDial();});
@@ -7476,7 +8086,7 @@ function frame(now){
   if(state==='play')MP.flush(real);
   Portal.tick();if(state==='play'&&PBAL&&time-(P.trialT||0)>1){P.trialT=time;updateTrials();}
   WS.update(real);
-  updateTags();
+  updateTags();updateMarkers();updateUnderwater();
   if(state!=='play')setText($('menu-online'),'monline',MP.status());
 }
 applyTouchUI();refreshMenu();updateEnv(0);applyLook();MP.init();
@@ -7488,7 +8098,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
-  Portal,respawn,resume,startTrial,revive,refill,reviveReady,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,get camPos(){return camPos;},get comboN(){return comboN;},
+  Portal,SFX,respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
 })();
 </script>

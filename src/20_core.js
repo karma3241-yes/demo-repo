@@ -32,13 +32,13 @@ const POWERS={
   metalSkin:{name:'Metal Skin',cat:'body',sig:'metalForms',desc:'Your body can turn to living steel. Gives you Metal Forms.',drain:3,dr:[0.3,0.7],slow:[0.3,0.1]},
   energyShield:{name:'Energy Shield',cat:'defence',type:'toggle',desc:'Raise a bubble that soaks up damage until it breaks.',energy:25,absorb:[50,400],cooldown:15},
   powerRing:{name:'Ring Bearer',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A ring of pure willpower. Fly, and build anything you can imagine out of hard light. Its charge only comes back when you recite the oath.',speed:[35,110]},
-  stormFlight:{name:'Storm God',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Spin your hammer and hurl yourself into the sky. Lightning answers when you call.',speed:[40,95]},
-  armorFlight:{name:'Armored Inventor',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A flying suit of armor with palm repulsors and a chest beam.',speed:[45,100]},
-  solarFlight:{name:'Sun Titan',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Powered by the sun: flight, heat vision, freezing breath and a thunderclap.',speed:[50,120]},
+  stormFlight:{name:'Tempest',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Ride a thunderclap into the sky. Lightning answers when you call.',speed:[40,95]},
+  armorFlight:{name:'Armored Inventor',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A flying suit of armor with palm blasters and a chest beam.',speed:[45,100]},
+  solarFlight:{name:'Sun Titan',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Powered by the sun: flight, laser eyes, an ice cloud and a thunderclap.',speed:[50,120]},
   stormBody:{name:'Storm Blood',cat:'body',hidden:true,desc:'Lightning barely hurts you and your hammer never leaves your hand for long.'},
   armorSuit:{name:'Power Armor',cat:'body',hidden:true,desc:'Armor plating takes 35% off every hit.'},
   solarBody:{name:'Solar Cells',cat:'body',hidden:true,desc:'Bullets bounce off: you take 40% less damage and punch half again as hard.'},
-  spiderPowers:{name:'Spider Powers',cat:'body',hidden:true,desc:'Stick to any surface, spider-sense warns you of attacks, and your strength is far beyond human.'},
+  spiderPowers:{name:'Spider Powers',cat:'body',hidden:true,desc:'Stick to any surface, a sixth sense warns you of attacks, and your strength is far beyond human.'},
   ringCore:{name:'The Ring',cat:'body',hidden:true,desc:'Everything you do runs on ring charge instead of energy.'},
   surgeSuit:{name:'Speed Surge',cat:'body',hidden:true,desc:'Your body runs on pure speed. Vibrate through walls and outrun time itself.'},
   webStrike:{name:'Web Strike',cat:'preset',type:'instant',desc:'Yank whoever you aim at toward you, or swing-kick them if you are in the air. On objects it pulls them to you.',energy:6,cooldown:0.6,damage:[20,80],range:[30,60]},
@@ -56,10 +56,10 @@ const POWERS={
   blackHole:{name:'Black Hole',cat:'preset',type:'instant',ring:95,desc:'Pour almost all of your ring into a black hole. It tears buildings, rubble and people into it. Only the strong or fast escape.',cooldown:30,radius:[40,70],duration:6},
   morphBand:{name:'Morph Band',cat:'special',type:'special',key:'V',desc:'An alien wrist device. Transform into one of seven alien forms, each with its own body and powers. Upgrades unlock more aliens and longer transformations.',duration:[45,150],recharge:[40,12],power:[1,2]},
   stormHammer:{name:'Storm Hammer',cat:'offence',type:'instant',desc:'Hurl an enchanted hammer. It calls lightning down on whatever it hits, smashes everything in its path and flies back to your hand.',energy:18,cooldown:3,damage:[40,170],stun:[0.5,1.2],range:[45,90]},
-  repulsors:{name:'Repulsor Barrage',cat:'offence',type:'channel',desc:'Hold to fire rapid palm blasts from alternating hands. Great for keeping crowds and drones at bay.',energyPerSec:14,damage:[8,30],knock:[5,14]},
+  repulsors:{name:'Pulse Barrage',cat:'offence',type:'channel',desc:'Hold to fire rapid palm blasts from alternating hands. Great for keeping crowds and drones at bay.',energyPerSec:14,damage:[8,30],knock:[5,14]},
   coreBeam:{name:'Core Beam',cat:'offence',type:'instant',desc:'Wind up a blinding beam from your chest. It burns through people, cars and even buildings for a second and a half.',energy:35,cooldown:10,dps:[60,220]},
   ricochetShield:{name:'Ricochet Shield',cat:'offence',type:'instant',desc:'Throw a disc that bounces from target to target before flying back to you.',energy:12,cooldown:2.5,damage:[30,110],bounces:[3,6],stun:[0.5,1]},
-  bladeClaws:{name:'Blade Claws',cat:'body',sig:'bladeLeap',desc:'Retractable claws in your hands and a healing factor that closes wounds fast. Gives you Blade Leap.',damage:[35,140],range:[10,18]},
+  bladeClaws:{name:'Blade Claws',cat:'body',sig:'bladeLeap',desc:'Blades spring from your fists, and your wounds close fast. Gives you Blade Leap.',damage:[35,140],range:[10,18]},
   elasticBody:{name:'Elastic Body',cat:'body',sig:'stretchStrike',desc:'Stretch like rubber: your punches reach much further and hard landings bounce off you. Gives you Stretch Strike.',reach:[6,12],damage:[30,120]},
   titanGrowth:{name:'Titan Growth',cat:'body',sig:'giantForm',desc:'Grow to three times your size for a while. Everything you hit, you hit like a giant. Gives you Giant Form.',duration:[10,25],scale:[2.2,3.2]},
   metalForms:{name:'Metal Forms',cat:'signature',of:'metalSkin',type:'toggle',key:'',desc:'Turn to steel. Press again to cycle your hand into a hammer, a spiked flail, a blade or a shield; hold to turn back.',energy:0},
@@ -79,7 +79,7 @@ const POWERS={
   shadowStep:{name:'Shadow Step',cat:'utility',type:'instant',desc:'Vanish and reappear right behind your target (or where you aim), striking as you arrive.',energy:20,cooldown:[6,3],range:[30,60],damage:[40,160]},
   plasmaWhip:{name:'Plasma Whip',cat:'offence',type:'instant',desc:'A crackling whip that sweeps a wide arc around you. Fast and good against crowds.',energy:12,cooldown:[1.6,0.8],damage:[25,100],radius:[6,9]},
   spiritWave:{name:'Spirit Wave',cat:'offence',type:'charge',desc:'Hold to gather energy in your palms, release to unleash a massive wave that tears through anything, buildings included.',energy:40,cooldown:8,damage:[120,420]},
-  suitBattery:{name:'Suit Battery',cat:'upgrade',hidden:true,desc:'How much charge the Armored Inventor\'s suit holds. Every power runs on it, and it only recharges at Inventor Tower.',capacity:[100,300]},
+  suitBattery:{name:'Suit Battery',cat:'upgrade',hidden:true,desc:'How much charge the Armored Inventor\'s suit holds. Every power runs on it, and it only recharges at Forge Tower.',capacity:[100,300]},
   timeDilation:{name:'Time Dilation',cat:'utility',type:'instant',desc:'Slow the world down around you while you move at full speed. In multiplayer it makes you faster instead.',energy:35,cooldown:20,duration:[3,7]},
 };
 const MOVEMENT_POWERS=Object.keys(POWERS).filter(k=>POWERS[k].cat==='movement'&&!POWERS[k].hidden);
@@ -87,11 +87,11 @@ const BODY_MODS=Object.keys(POWERS).filter(k=>POWERS[k].cat==='body'&&!POWERS[k]
 const ABILITY_POWERS=Object.keys(POWERS).filter(k=>['offence','defence','utility','special'].includes(POWERS[k].cat));
 // hero presets: picking one of these traversals fixes your body and abilities
 const PRESETS={
-  webSwing:{name:'Web-Slinger',body:'spiderPowers',abilities:['webStrike','webBomb','webWhip'],blurb:'Swing, crawl, glide and flip through the city. Spider-sense and web gadgets.'},
-  superSpeed:{name:'Speedster',body:'surgeSuit',abilities:['lightningThrow','phaseStrike','speedTornado','slowTime','timeStop'],blurb:'Faster than anything alive: phase through walls, bend and stop time.'},
-  stormFlight:{name:'Storm God',body:'stormBody',abilities:['stormHammer','lightning','shockwave','energyShield'],blurb:'Fly on a spinning hammer, call lightning and bring the thunder down.'},
-  armorFlight:{name:'Armored Inventor',body:'armorSuit',abilities:['repulsors','energyBlast','coreBeam','energyShield'],blurb:'A flying suit of armor: repulsors, a chest beam and a force shield.'},
-  solarFlight:{name:'Sun Titan',body:'solarBody',abilities:['laserVision','iceCloud','shockwave','timeDilation'],blurb:'Fly faster than jets, see through heat vision, freeze with your breath.'},
+  webSwing:{name:'Web Runner',body:'spiderPowers',abilities:['webStrike','webBomb','webWhip'],blurb:'Swing, crawl, glide and flip through the city. A sixth sense for danger and web gadgets.'},
+  superSpeed:{name:'Speedster',body:'surgeSuit',abilities:['lightningThrow','phaseStrike','speedTornado','slowTime','timeStop'],blurb:'Outrun anything: phase through walls, bend and stop time.'},
+  stormFlight:{name:'Tempest',body:'stormBody',abilities:['stormHammer','lightning','shockwave','energyShield'],blurb:'Ride the storm, call lightning and bring the thunder down.'},
+  armorFlight:{name:'Armored Inventor',body:'armorSuit',abilities:['repulsors','energyBlast','coreBeam','energyShield'],blurb:'A flying suit of armor: palm blasters, a chest beam and a force shield.'},
+  solarFlight:{name:'Sun Titan',body:'solarBody',abilities:['laserVision','iceCloud','shockwave','timeDilation'],blurb:'Fly faster than jets, burn with laser eyes, freeze with an ice cloud.'},
   powerRing:{name:'Ring Bearer',body:'ringCore',abilities:['ringBlast','hammerSmash','chainLasso','ringShield','blackHole'],blurb:'Build hard-light constructs, from a bubble to a dragon. Runs on ring charge.'},
 };
 const presetOf=c=>c&&PRESETS[c.movement[0]]||null;
@@ -123,11 +123,16 @@ const CRIMES={maxActive:3,spawnGap:[14,32],minDist:90,maxDist:420,clearXp:100,cl
 const Bus={h:{},on(e,f){(this.h[e]||(this.h[e]=[])).push(f);},emit(e,d){const l=this.h[e];if(l)for(const f of l)f(d);}};
 const SAVE_KEY='skyline-guardian-save',SAVE_VERSION=1;
 const RING_MAX=200; // ring charge tops out at 100; a loud spoken oath overcharges it up to this
-const DEFAULT_SETTINGS={oathInput:'voice',micLoud:0.65,controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
+const DEFAULT_SETTINGS={oathInput:window.__PORTAL__==='crazygames'?'type':'voice', // portals can't be counted on to allow the mic: typed there, voice still in Settings
+  micLoud:0.65,controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
 function cleanName(s){return String(s).replace(/[^\p{L}\p{N} _.'-]/gu,'').replace(/\s+/g,' ').trim().slice(0,16);}
+// other players' names are typed by them: a basic profanity filter (letters, common digit swaps and whole words)
+const BAD_PART=/fuck|fck|fuk|shit|cunt|bitch|nigg|fagg|whore|slut|porn|penis|vagina|asshole|retard|hitler|nazi/,BAD_WORD=/^(rape|fag|dick|cock|kys|sex|anal|cum)$/;
+function safeName(s){const n=cleanName(s);const t=n.toLowerCase().replace(/[0134579@$]/g,c=>({0:'o',1:'i',3:'e',4:'a',5:'s',7:'t',9:'g','@':'a','$':'s'})[c]);
+  return BAD_PART.test(t.replace(/[^a-z]/g,''))||t.split(/[^a-z]+/).some(w=>BAD_WORD.test(w))?'':n;}
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
 function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
@@ -162,8 +167,8 @@ function migrateCharacter(c){
   const pool=[...ab.filter(id=>ABILITY_POWERS.includes(id)),'energyBlast','fireball','shockwave'];
   return validCharacter(Object.assign({},c,{movement:[trav],body,abilities:[...new Set(pool)].slice(0,2)}));
 }
-function loadSave(){
-  let s=null;try{s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){s=null;}
+function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy); otherwise the one in this browser
+  let s=null;try{s=JSON.parse((raw!==undefined?raw:localStorage.getItem(SAVE_KEY))||'null');}catch(e){s=null;}
   const f=freshSave();if(!s||typeof s!=='object'||s.version!==SAVE_VERSION)return f;
   const num=(v,d,a,b)=>typeof v==='number'&&isFinite(v)?clamp(v,a,b):d;
   if(s.settings&&typeof s.settings==='object'){const t=s.settings,st=f.settings;
@@ -181,13 +186,14 @@ function loadSave(){
   if(s.stats&&typeof s.stats==='object')for(const k in f.stats)f.stats[k]=Math.floor(num(s.stats[k],0,0,1e9));
   f.rechoiceAt=f.migrated?0:num(s.rechoiceAt,0,0,1e15);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
-  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
+  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.savedAt=num(s.savedAt,0,0,1e15);f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
 const save=loadSave();
-function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}}
+let persistHook=null; // the CrazyGames build also copies every save to the portal's cloud storage (64_portal.js)
+function persist(){save.savedAt=Date.now();const j=JSON.stringify(save);try{localStorage.setItem(SAVE_KEY,j);}catch(e){}if(persistHook)try{persistHook(j);}catch(e){}}
 const touchOn=()=>save.settings.controls==='touch'||(save.settings.controls==='auto'&&IS_TOUCH_DEVICE);
 
 const pv=k=>save.passives[k]|0;

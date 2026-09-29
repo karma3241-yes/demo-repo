@@ -62,7 +62,7 @@ function updateCamera(dt){
     let dx=cx-tx,dy=cy-ty,dz=cz-tz;const L=Math.hypot(dx,dy,dz)||1;dx/=L;dy/=L;dz/=L;
     const t=L>250?L+1:rayCity(tx,ty,tz,dx,dy,dz,L+0.5),dist=Math.max(1.2,Math.min(L,t-0.6));
     camDist=dist<camDist?dist:lerp(camDist,dist,damp(5,dt));
-    camPos.set(tx+dx*camDist,Math.max(ty+dy*camDist,baseY(tx,tz)+0.6),tz+dz*camDist);
+    camPos.set(tx+dx*camDist,Math.max(ty+dy*camDist,camFloorY(tx,tz)),tz+dz*camDist);
     if(shake>0){const s=shake*shake*0.8;camPos.x+=rr(-s,s);camPos.y+=rr(-s,s);camPos.z+=rr(-s,s);}
     fov=lerp(fov,70+spN*24+(P.speeding?10:0)+(P.car?clamp(Math.abs(P.car.spd||0)/42,0,1)*8:0),damp(4,dt));
   }
@@ -396,7 +396,7 @@ function buildDrawList(){
     const hc=crimes.find(c=>c.type==='vault');if(hc&&hc.boss&&hc.boss.alive){const b=hc.boss,mid=(vaultY+b.pos.y)/2,len=b.pos.y-vaultY;const p=0.5+Math.sin(time*5)*0.2;
       queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,time,0,8,len,8),[.4,1,.7,0.18*p],F_ADD);queue(MESH.tube,at(bank.vault.x,mid,bank.vault.z,0,0,0,4,len,4),[.6,1,.8,0.25*p],F_ADD);}}
   for(const c of crimes)if(c.type==='shop'&&c.shop&&Math.sin(time*10)>0)queue(MESH.glowBox,at(c.shop.fx,5.8,c.shop.fz,0,0,0,0.5,0.5,0.5),[1,.1,.1,1],0);
-  drawProps();drawRubble();drawHelis();drawHeroAbilities();drawSpider();drawRing();drawBody();drawSuit();
+  drawProps();drawRubble();drawHelis();drawAmbient();drawHeroAbilities();drawSpider();drawRing();drawBody();drawSuit();
   for(const w of windows){if(inView(w.x,w.z,320)<0)continue;const ax=w.nx!==0;
     queue(MESH.box,at(w.x,w.y,w.z,0,0,0,ax?0.06:2.1,2.3,ax?2.1:0.06),[.02,.02,.025,1],F_UN);
     for(const [u,v,s] of [[-0.8,0.9,0.5],[0.85,-0.8,0.4],[0.7,0.95,0.3]])queue(MESH.box,at(w.x+(ax?w.nx*0.02:u),w.y+v,w.z+(ax?u:w.nz*0.02),0,0,u*0.8,ax?0.04:s,s*0.8,ax?s:0.04),[.55,.7,.8,1],0);}
@@ -490,7 +490,7 @@ function render(){
   gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);
-  if(camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
+  if(camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);if(camPos.y<SEA_Y)drawItem(seabedMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
   if(cityVisible()){drawItem(groundMesh,ID,WHITE,false,0);drawItem(lakeMesh,ID,WHITE,false,0);drawItem(cityMesh,ID,WHITE,false,0);}
   for(let i=0;i<dlN;i++){const d=drawList[i];if(d.flags&(F_ADD|F_BL))continue;drawItem(d.mesh,d.M,d.tint,d.flags&F_UN,d.emis);}
   gl.enable(gl.BLEND);gl.depthMask(false);gl.disable(gl.CULL_FACE);

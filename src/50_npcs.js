@@ -352,7 +352,7 @@ function updateRival(r,dt){
     const flung=r.flungT&&time-r.flungT<2.5,spd=flung?Math.hypot(r.vel.x,vyb,r.vel.z):0;
     if(flung){flungSweep(r,spd);if(col.wall&&spd>COMBAT.slamMin)slamWall(r,col.wall,spd,pv);else if(col.grounded&&vyb<-COMBAT.slamMin)slamGround(r,-vyb);}
     if(r.thrown&&(col.grounded||col.wall)){const t=r.thrown;r.thrown=null;Damage.apply(t.by,r,t.dmg,'throw');}
-    if(col.grounded){r.vel.x*=0.8;r.vel.z*=0.8;}
+    if(col.grounded){const f=Math.pow(0.8,dt*60);r.vel.x*=f;r.vel.z*=f;} // same slide at any frame rate
     if(!r.alive){r.tilt=lerp(r.tilt,1.5,damp(3,dt));r.deadT-=dt;if(r.deadT<=0)removeActor(r);}
     else if(r.stun>0)r.stun-=dt;
     return;
@@ -568,7 +568,7 @@ function updateCrimes(dt){
     if(r==='cleared'||r==='escaped'){crimes.splice(i,1);c.cleanup&&c.cleanup(r==='escaped');
       for(const a of c.actors)if(a.crime===c&&a.kind!=='boss'){a.crime=null;if(a.kind==='drone'&&a.alive)a.leave=true;}
       if(r==='cleared'&&c.helped){const xp=c.heist?CRIMES.clearXp*3:CRIMES.clearXp;addXP(xp);addRep(c.heist?CRIMES.clearRep*3:CRIMES.clearRep);save.stats.crimesStopped++;guideDone('crime');
-        if(c.heist)toast('Heist stopped','+'+xp+' XP · '+c.label.replace(/^The /,'the '),'gold');else feed('+'+xp+' XP','Crime stopped: '+c.label);persist();}
+        if(c.heist){toast('Heist stopped','+'+xp+' XP · '+c.label.replace(/^The /,'the '),'gold');Portal.happy();}else feed('+'+xp+' XP','Crime stopped: '+c.label);persist();}
       if(r==='cleared'&&WS.host)WS.crimeReward(c);}}
   if(state!=='play')return;
   const small=crimes.filter(c=>!c.heist).length;
@@ -616,7 +616,7 @@ function updateWorld(dt){
   updateHunters(dt);
   for(const r of rivals.slice())updateRival(r,dt);
   if(boss){if(boss.type==='ship')updateShip(boss,dt);else updateMech(boss,dt);}
-  updateProps(dt);updateStreetProps(dt);updateCrimes(dt);managePopulation(dt);manageRivals(dt);updatePolice(dt);updateHelis(dt);updateAliens(dt);
+  updateProps(dt);updateStreetProps(dt);updateCrimes(dt);managePopulation(dt);manageRivals(dt);updatePolice(dt);updateHelis(dt);updateAmbient(dt);updateAliens(dt);
   SFX.setSiren(Math.max(0,...vehicles.filter(v=>v.siren).map(v=>SFX.vol(v.pos.x,1,v.pos.z)),0));
 }
 function seedTraffic(){

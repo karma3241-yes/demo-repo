@@ -1,6 +1,6 @@
 // ================================================================
-// Web-Slinger kit: web wings, updrafts, swing boost, slingshot, dives, air tricks,
-// landing rolls, spider-sense, and the Web Strike / Web Bomb / Web Whip moves
+// Web Runner kit: web wings, updrafts, swing boost, slingshot, dives, air tricks,
+// landing rolls, danger sense, and the Web Strike / Web Bomb / Web Whip moves
 // ================================================================
 const updrafts=[];
 (function(){let q=7;const rnd=()=>(q=(q*16807)%2147483647)/2147483647,rg=(a,b)=>a+(b-a)*rnd(); // own seed: leaves the world generator untouched
@@ -53,16 +53,16 @@ function spiderTick(dt){
   if(P.wings&&(!air||!keys.Space))P.wings=false;
   if(P.web){const hs=Math.hypot(P.vel.x,P.vel.z);addMastery('webSwing',hs*dt*0.03);}
 }
-// spider-sense: sometimes you dodge before the hit lands
+// danger sense: sometimes you dodge before the hit lands
 function spiderSense(src,type){
   if(!hasPower('spiderPowers')||!src||src===P||P.dead)return false;
   if(!['bullet','blast','shot','punch','rocket','pvp','throw','shock','hit','fire'].includes(type))return false;
   if(time-(P.senseT||-9)<1.1||Math.random()>0.22+0.3*webMk())return false;
   P.senseT=time;const s=Math.random()<0.5?-1:1,rx=Math.cos(P.yaw)*s,rz=-Math.sin(P.yaw)*s;
-  P.vel.x+=rx*14;P.vel.z+=rz*14;if(P.grounded)P.vel.y=Math.max(P.vel.y,5);P.flip={t:0,dur:0.4,rx:0,ry:TAU*s};feed('Spider-sense','Dodged');SFX.tone('sine',1400,2000,0.08,0.06);
+  P.vel.x+=rx*14;P.vel.z+=rz*14;if(P.grounded)P.vel.y=Math.max(P.vel.y,5);P.flip={t:0,dur:0.4,rx:0,ry:TAU*s};feed('Danger sense','Dodged');SFX.tone('sine',1400,2000,0.08,0.06);
   return true;
 }
-// ---- Web-Slinger moves ----
+// ---- Web Runner moves ----
 Object.assign(POWER_FN,{
   webStrike(){
     const R=pstat('webStrike','range'),t=lockT&&lockT.alive?lockT:aim.actor&&aim.actor.kind!=='prop'&&aim.hitAny?aim.actor:null,h=handPoint();

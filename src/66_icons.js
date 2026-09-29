@@ -1,0 +1,78 @@
+// ================================================================
+// Icons: small line drawings for the HUD icon bar and the power cards
+// ================================================================
+// Every glyph is drawn on a 24×24 grid with round 2px strokes in the current text colour, so CSS picks the colour.
+const GLYPHS={
+  // HUD icon bar
+  moves:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/>',
+  skills:'<path d="M12 3l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.4 6.7 19.3l1.1-5.9L3.4 9.3l6-.8z"/>',
+  swap:'<path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/>',
+  shirt:'<path d="M8 3l-5 3 2 4 3-1.5V21h8V8.5l3 1.5 2-4-5-3c-.5 1.8-2 3-4 3s-3.5-1.2-4-3z"/>',
+  people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.7-6 6-6s6 2.4 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2c2.9.3 5 2.5 5 5.8"/>',
+  gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+  trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8M9.5 18h5"/>',
+  x2:'<path d="M4 8l6 8M10 8l-6 8"/><path d="M13.5 9.5a3 3 0 0 1 6 0c0 2.5-6 4-6 6.5h6"/>',
+  refill:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M11 9.5v5M8.5 12h5"/>',
+  unlock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.6-1.7"/><path d="M12 15v2"/>',
+  sparkle:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.8 2.2 2.2.8-2.2.8L19 22l-.8-2.2-2.2-.8 2.2-.8z"/>',
+  // powers
+  wing:'<path d="M3 17c4-1 7-4 9-9 1 4 4 7 9 9"/><path d="M6 20c2-.5 4-2 6-4 2 2 4 3.5 6 4"/><path d="M12 8V3"/>',
+  run:'<path d="M3 8h7M2 12h6M4 16h5"/><path d="M13 5l6 7-6 7"/>',
+  climb:'<path d="M4 4h16v16H4zM4 9.3h16M4 14.6h16M9 4v5.3M15 9.3v5.3M9 14.6V20"/>',
+  web:'<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><path d="M12 7l3.5 1.5L17 12l-1.5 3.5L12 17l-3.5-1.5L7 12l1.5-3.5z"/>',
+  flame:'<path d="M12 21a6 6 0 0 0 6-6c0-4-3-6-4-10-1.5 2-2 3.5-2 5-1-1-1.8-2-2.2-3.5C7.5 9 6 11.5 6 15a6 6 0 0 0 6 6z"/><path d="M12 21a2.5 2.5 0 0 0 2.5-2.5c0-2-2.5-3.5-2.5-3.5s-2.5 1.5-2.5 3.5A2.5 2.5 0 0 0 12 21z"/>',
+  snow:'<path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7"/><path d="M9.5 3.5L12 6l2.5-2.5M9.5 20.5L12 18l2.5 2.5"/>',
+  bolt:'<path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/>',
+  burst:'<circle cx="12" cy="12" r="3.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.8 2.8M16.2 16.2L19 19M5 19l2.8-2.8M16.2 7.8L19 5"/>',
+  eye:'<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  orbit:'<circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-25 12 12)"/>',
+  wave:'<path d="M8 8a5.5 5.5 0 0 0 0 8M5 5a10 10 0 0 0 0 14"/><path d="M16 8a5.5 5.5 0 0 1 0 8M19 5a10 10 0 0 1 0 14"/><circle cx="12" cy="12" r="1.5"/>',
+  metal:'<path d="M12 2l8.5 5v10L12 22l-8.5-5V7z"/><path d="M12 2v20M3.5 7L12 12l8.5-5"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+  ring:'<circle cx="12" cy="13" r="6.5"/><circle cx="12" cy="13" r="3"/><path d="M9 5.5L12 3l3 2.5"/>',
+  storm:'<path d="M6.5 15.5a4.5 4.5 0 0 1 .5-9 6 6 0 0 1 11.3 2A3.5 3.5 0 0 1 17.5 15.5"/><path d="M13 12l-3 5h4l-2 5"/>',
+  helmet:'<path d="M5 13a7 7 0 0 1 14 0v5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/><path d="M8 13h8l-1 3H9z"/>',
+  sun:'<circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/>',
+  spider:'<circle cx="12" cy="13" r="3.5"/><circle cx="12" cy="7.5" r="2"/><path d="M8.5 11L4 8l-1-3M8.5 13.5H3.5M8.5 15.5L5 19l-.5 2M15.5 11L20 8l1-3M15.5 13.5h5M15.5 15.5L19 19l.5 2"/>',
+  bomb:'<circle cx="11" cy="14" r="6.5"/><path d="M15.5 9.5L18 7M18 7l1-3M18 7l3-1"/>',
+  whip:'<path d="M4 20l3-3"/><path d="M7 17c2-2 1-5 4-7s6 1 8-2 0-5-2-5"/>',
+  phase:'<path d="M12 3a5 5 0 0 1 5 5v11l-2.5-2-2.5 2-2.5-2L7 19V8a5 5 0 0 1 5-5z" stroke-dasharray="3 2.4"/><circle cx="10" cy="9" r=".8"/><circle cx="14" cy="9" r=".8"/>',
+  tornado:'<path d="M3 4h18M5 8h14M7.5 12h9M9.5 16h5M11 20h2"/>',
+  clock:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9.5 2.5h5"/>',
+  clockStop:'<circle cx="12" cy="12" r="9"/><path d="M10 8.5v7M14 8.5v7"/>',
+  hammer:'<path d="M4 4h10v6H4zM9 10v11"/><path d="M14 7h4"/>',
+  chain:'<rect x="2.5" y="8.5" width="10" height="7" rx="3.5" transform="rotate(-35 7.5 12)"/><rect x="11.5" y="8.5" width="10" height="7" rx="3.5" transform="rotate(-35 16.5 12)"/>',
+  spiral:'<path d="M12 12a1.5 1.5 0 1 1 1.5 1.5A3 3 0 0 1 10.5 10.5a4.5 4.5 0 0 1 6 -1.5A6 6 0 0 1 18 16.5a7.5 7.5 0 0 1-12 1A8.5 8.5 0 0 1 8 5"/>',
+  band:'<rect x="6" y="7" width="12" height="10" rx="3"/><path d="M8.5 7V3h7v4M8.5 17v4h7v-4"/><circle cx="12" cy="12" r="2"/>',
+  beam:'<circle cx="5" cy="12" r="3"/><path d="M8 10.5h14M8 13.5h14"/>',
+  roundShield:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4"/>',
+  claw:'<path d="M5 20L15 4M9.5 21L19 6M14 21.5l6-10"/>',
+  stretch:'<path d="M3 12h2l2-5 3 10 3-10 3 10 2-5h3"/>',
+  giant:'<circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M8 11h8M12 15l-3 6M12 15l3 6"/><path d="M3 9V3m0 0L1 5m2-2 2 2M21 9V3m0 0-2 2m2-2 2 2"/>',
+  blink:'<path d="M3 12h3M9 12h3M15 12h3" /><path d="M18 8l4 4-4 4"/><circle cx="4" cy="6" r="1"/><circle cx="8" cy="18" r="1"/>',
+  gravity:'<circle cx="12" cy="8" r="4.5"/><path d="M6 16l6 5 6-5M12 13v8"/>',
+  quake:'<path d="M2 12h5l2-3 3 6 2-4 1 1h7"/><path d="M4 19h16"/>',
+  meteor:'<circle cx="15.5" cy="15.5" r="5"/><path d="M11.5 11.5L3 3M13 9L7 3M9 13L3 7"/>',
+  push:'<path d="M3 12h11M3 7h8M3 17h8"/><path d="M15 5l6 7-6 7"/>',
+  heal:'<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>',
+  eyeOff:'<path d="M2 12s3.5-6 10-6c2 0 3.7.6 5.1 1.4M22 12s-1.2 2.1-3.4 3.8M6.3 16.7C3.6 15 2 12 2 12"/><path d="M9.5 14.5a3 3 0 0 0 4.2-4.2M3 21L21 3"/>',
+  vine:'<path d="M12 21V11c0-3 2-6 6-7 0 4-2 6-6 7M12 14c0-2.5-2-4.5-6-5 0 3.5 2 5.5 6 5"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  wisp:'<path d="M6 20c-2-3-1-7 3-9s5-5 3-8c4 1 7 5 6 9s-5 5-6 8"/><circle cx="12.5" cy="13" r="1.5"/>',
+  battery:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M6.5 10v4M10 10v4M13.5 10v4"/>',
+};
+// which glyph each power uses (anything missing falls back to a burst)
+const POWER_GLYPH={flight:'wing',superSpeed:'run',wallClimb:'climb',webSwing:'web',fireball:'flame',iceCloud:'snow',lightning:'bolt',energyBlast:'burst',
+  laserVision:'eye',telekinesis:'orbit',shockwave:'wave',metalSkin:'metal',energyShield:'shield',powerRing:'ring',stormFlight:'storm',armorFlight:'helmet',
+  solarFlight:'sun',stormBody:'storm',armorSuit:'helmet',solarBody:'sun',spiderPowers:'spider',ringCore:'ring',surgeSuit:'run',webStrike:'web',webBomb:'bomb',
+  webWhip:'whip',lightningThrow:'bolt',phaseStrike:'phase',speedTornado:'tornado',slowTime:'clock',timeStop:'clockStop',ringBlast:'burst',hammerSmash:'hammer',
+  chainLasso:'chain',ringShield:'shield',blackHole:'spiral',morphBand:'band',stormHammer:'hammer',repulsors:'burst',coreBeam:'beam',ricochetShield:'roundShield',
+  bladeClaws:'claw',elasticBody:'stretch',titanGrowth:'giant',metalForms:'metal',bladeLeap:'claw',stretchStrike:'stretch',giantForm:'giant',blink:'blink',
+  gravityWell:'gravity',sonicScream:'wave',quakeStomp:'quake',meteorStrike:'meteor',forcePush:'push',chainLightning:'bolt',healingPulse:'heal',
+  invisibility:'eyeOff',vineSnare:'vine',shadowStep:'moon',plasmaWhip:'whip',spiritWave:'wisp',suitBattery:'battery',timeDilation:'clock'};
+// a power's colour follows what kind of power it is (hero kit moves in gold, the Ring Bearer's in ring green)
+const GLYPH_COL={movement:'#4fd8ff',offence:'#ff8a5c',body:'#c9d7ea',defence:'#8fe3ff',preset:'#ffc93c',signature:'#ffc93c',special:'#c89bff',utility:'#7dffb0',upgrade:'#bff4ff'};
+const RING_KIT=new Set(['powerRing','ringCore','ringBlast','hammerSmash','chainLasso','ringShield','blackHole']);
+function glyph(name,cls){const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('aria-hidden','true');
+  s.setAttribute('class','ico'+(cls?' '+cls:''));s.innerHTML=GLYPHS[name]||GLYPHS.burst;return s;}
+function powerIcon(id){const c=POWERS[id],s=glyph(POWER_GLYPH[id]||'burst','pico');s.style.color=RING_KIT.has(id)?'#6dff95':GLYPH_COL[c&&c.cat]||'#e9f3ff';return s;}

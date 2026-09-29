@@ -1,5 +1,5 @@
 // ================================================================
-// Traversal: Insomniac-style web swinging, web zip, wall running, parkour leaps
+// Traversal: physics-based web swinging, web zip, wall running, parkour leaps
 // ================================================================
 // Swinging: hold right click (or WEB) and the web finds a building above and ahead
 // automatically. Keep holding and it chains to the next anchor after each upswing;

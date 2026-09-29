@@ -17,13 +17,14 @@ addEventListener('keydown',e=>{
   if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(ringLocked()&&state==='play'&&!paused){closeOath();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
   if(state!=='play')return;
   if(e.code==='Tab'||e.code==='KeyK'){if(sheetOpen==='skills')closeSheet();else openSheet('skills');return;}
+  {const hb=HUDBAR_KEYS[e.code];if(hb&&!creating&&!(hb.off&&hb.off())&&!(hb.hide&&hb.hide())){hb.act();return;}} // the HUD icon bar's keys
   if(e.code==='KeyP'){setPaused(!paused);return;}
   if(e.code==='KeyL'){toggleLock();return;}
-  if(e.code==='KeyM'){toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
-  if(e.code==='KeyH'){hud.keys.classList.toggle('fade');return;}
-  if(P.dead&&!paused&&e.code==='KeyR'&&reviveReady()){revive();return;}
+  if(e.code==='KeyM'){if(Portal.forceMute){toast('Sound is off','Turn it back on with the site\'s sound button','cyan');return;}toast(SFX.toggleMute()?'Sound off':'Sound on','','cyan');return;}
+  if(e.code==='KeyH'){toggleMoves();return;}
   if(paused||P.dead)return;
   if(voidbornLocked()){if(voidbornAway()&&e.code in XQ_CODES)voidbornAnswer(XQ_CODES[e.code]);return;} // Voidborn: only the masks' question can be answered
+  if(P.swim&&e.code==='KeyC')return; // C dives while swimming
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyU'){suitToggle();return;}
@@ -79,10 +80,11 @@ function setPaused(v){
   paused=v;$('pause').hidden=!v||creating;if(v)renderPortalButtons();{const on=v&&MP.online();$('pause-title').textContent=on?'Menu':'Paused';$('pause-note').hidden=!on;}if(dialOpen)closeDial();
   if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<5;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();}
 }
-function resume(){if(sheetOpen)closeSheet();setPaused(false);Portal.midgame();if(save.settings.autoLock&&!touchOn())requestLock();}
+function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
-function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
-// web-slingers: tap Space in the air to web-zip, hold it to open the web wings
+function pressJump(){if(!canAct()||P.flying||P.car)return;if(P.swim&&!P.grounded)return; // under water Space just swims you up
+  if(P.wallRun){wallRunLeap();return;}if(P.web){swingJump();return;}if(P.wall){wallJump();return;}if(P.grounded){P.charging=true;P.chargeT=0;}else if(hasPower('flight')&&!P.alien)toggleFlight();else if(hasWeb())P.spaceT=time;else webZip();}
+// web runners: tap Space in the air to web-zip, hold it to open the web wings
 function releaseJump(){if(P.charging&&canAct())doJump();P.charging=false;
   if(P.spaceT&&!P.wings&&time-P.spaceT<0.22&&!P.grounded&&canAct())webZip();P.spaceT=0;}
 function doJump(){
@@ -143,18 +145,18 @@ tl.addEventListener('pointermove',e=>{
   else if(e.pointerId===lookId){look(e.clientX-lx,e.clientY-ly,2.2);lx=e.clientX;ly=e.clientY;}});
 const endTouch=e=>{if(e.pointerId===stickId){stickId=null;touchIn.x=touchIn.y=0;knob.style.transform='';stick.style.left='';stick.style.top='';stick.classList.remove('on');}if(e.pointerId===lookId)lookId=null;};
 tl.addEventListener('pointerup',endTouch);tl.addEventListener('pointercancel',endTouch);
-const SHORT={sonicScream:'SCREAM',quakeStomp:'QUAKE',meteorStrike:'METEOR',forcePush:'PUSH',chainLightning:'CHAIN',healingPulse:'HEAL',invisibility:'CLOAK',vineSnare:'SNARE',shadowStep:'STEP',plasmaWhip:'WHIP',bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'REPULS',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
+const SHORT={sonicScream:'SCREAM',quakeStomp:'QUAKE',meteorStrike:'METEOR',forcePush:'PUSH',chainLightning:'CHAIN',healingPulse:'HEAL',invisibility:'CLOAK',vineSnare:'SNARE',shadowStep:'STEP',plasmaWhip:'WHIP',bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'PULSE',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
 function bindTouchBtn(b,act){
   b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{b.setPointerCapture(e.pointerId);}catch(err){}b.classList.add('down');touchAct(act,true);});
   const up=()=>{if(!b.classList.contains('down'))return;b.classList.remove('down');touchAct(act,false);};
   b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('contextmenu',e=>e.preventDefault());
 }
 bindTouchBtn($('tpause'),'pause');
-function buildTouchButtons(){
+function buildTouchButtons(){ // on CrazyGames a locked power key gets its button when it unlocks (level-ups rebuild these)
   tbtns.textContent='';if(!save.character)return;
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
-  else{save.character.abilities.forEach((id,i)=>B(SHORT[id]||'A'+(i+1),'a'+i,'ab'));B('PUNCH','punch','big');
+  else{save.character.abilities.forEach((id,i)=>{if(!(PBAL&&slotLocked(i)))B(SHORT[id]||'A'+(i+1),'a'+i,'ab');});B('PUNCH','punch','big');
     for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');B('REBUILD','rebuild');}}}
   if(!P.alien){B('GROW','grow');B('SHRINK','shrink');} // hold a power button (or sit in a construct) and tap these to change its size
   if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
@@ -282,7 +284,7 @@ function updatePlayer(dt){
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
   const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=(P.alien&&P.alien.phase>0)||P.phasing;
-  P.speeding=false;
+  P.speeding=false;swimCheck(shift,phasing);
   if(P.wallRun)wallRunStep(dt,inF,inR);
   else if(P.wall){
     const w=P.wall,cs=(AL&&AL.climb?18:pstat('wallClimb','speed'))*slowMul;let tx=-w.nz,tz=w.nx;if(tx*camR.x+tz*camR.z<0){tx=-tx;tz=-tz;}
@@ -298,6 +300,7 @@ function updatePlayer(dt){
     if(P.dashT>0){P.dashT-=dt;const m=alienMul();for(const q of actors){if(!q.alive||q.kind==='prop'||time-(q.dashHit||-9)<0.5)continue;const c=center(q);if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y-1,c.z-P.pos.z)<3.5){q.dashHit=time;Damage.apply(P,q,25*m,'wind',{knock:20});}}
       if(Math.random()<0.8)emit(P.pos.x,P.pos.y+1.3,P.pos.z,0,0,0,0.4,[.8,1,1],1.4,0,0);}
     else if(P.burstT>0){P.burstT-=dt;if(!P.flying&&!P.grounded)P.vel.y-=CONFIG.move.gravity*0.35*dt;}
+    else if(P.swim)swimStep(dt,inF,inR,fwdX,fwdZ,rX,rZ,slowMul,shift);
     else if(P.zip)zipStep(dt);
     else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(conDrive()&&!P.flying)driveConstruct(dt,inF,inR,shift);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
@@ -309,7 +312,7 @@ function updatePlayer(dt){
       let tx=fwdX*inF+rX*inR,tz=fwdZ*inF+rZ*inR;const l=Math.hypot(tx,tz);if(l>1){tx/=l;tz/=l;}
       const am=AL?AL.speed:P.construct&&!P.flying?conSpeedMul():1;
       const canSpeed=hasPower('superSpeed')&&(shift||P.fastMode)&&P.grounded&&l>0.1&&P.en>1;P.speeding=canSpeed;
-      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*speedMult():shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul;
+      let spd=(hasteT>0?1.6:1)*(P.charging?6:canSpeed?CONFIG.move.run*speedMult():shift?CONFIG.move.sprint*am:CONFIG.move.run*am);spd*=slowMul*(canSpeed?1:wadeMul());
       const hsp=Math.hypot(P.vel.x,P.vel.z);
       if(!P.grounded&&hsp>spd+2){ // keep swing / leap momentum: steer it instead of braking
         if(l>0.1){const turn=damp(1.8,dt),nx=P.vel.x+(tx*hsp-P.vel.x)*turn,nz=P.vel.z+(tz*hsp-P.vel.z)*turn,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hsp;P.vel.z=nz/nl*hsp;}
@@ -318,11 +321,11 @@ function updatePlayer(dt){
       if(hasWeb()&&!P.grounded&&P.pitch<-0.5&&inF>0){P.vel.y-=30*dt;P.vel.x+=fwdX*12*dt;P.vel.z+=fwdZ*12*dt;} // dive
       if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
     }
-    const prevY=P.pos.y;P.pos.addS(P.vel,dt);
+    const prevY=P.pos.y,prevX=P.pos.x,prevZ=P.pos.z;P.pos.addS(P.vel,dt);if(P.swim)swimShore(prevX,prevZ);
     if(P.web){const W=P.web;let dx=P.pos.x-W.x,dy=P.pos.y+1.6-W.y,dz=P.pos.z-W.z;const d=Math.hypot(dx,dy,dz)||1;
       if(d>W.L){dx/=d;dy/=d;dz/=d;P.pos.x-=dx*(d-W.L);P.pos.y-=dy*(d-W.L);P.pos.z-=dz*(d-W.L);const vr=P.vel.x*dx+P.vel.y*dy+P.vel.z*dz;if(vr>0){P.vel.x-=dx*vr;P.vel.y-=dy*vr;P.vel.z-=dz*vr;}}}
     if(phasing){const gb=baseY(P.pos.x,P.pos.z);P.grounded=false;if(P.pos.y<=gb){P.pos.y=gb;if(P.vel.y<0)P.vel.y=0;P.grounded=true;}}
-    else{const pvx=P.vel.x,pvy=P.vel.y,pvz=P.vel.z,vpre=Math.hypot(pvx,pvy,pvz);const col=collideBody(P.pos,P.vel,prevY,P.radius,P.height);P.grounded=col.grounded;
+    else{const pvx=P.vel.x,pvy=P.vel.y,pvz=P.vel.z,vpre=Math.hypot(pvx,pvy,pvz);const col=collideBody(P.pos,P.vel,prevY,P.radius,P.height,swimFloor());P.grounded=col.grounded||(!!P.swim&&swimFloats());
       if(col.wall&&(P.flying||P.rush||(P.alien&&P.alien.dashing))&&vpre>70&&!P.car){const w=col.wall;
         if(damageBuilding(w.b.bld,vpre*vpre*0.08*(P.rush?3:1),P.pos.x,P.pos.y+1,P.pos.z,-(w.nx||0),-(w.nz||0))){P.vel.set(pvx*0.85,pvy*0.85,pvz*0.85);addShake(0.5);}
         else if(time-(P.wallHitT||-9)>0.5){P.wallHitT=time;crater(P.pos.x,P.pos.y+1.2,P.pos.z,w.nx||0,0,w.nz||0,clamp(vpre*0.025,1.5,4),w.b.col);}}
@@ -378,7 +381,7 @@ function updatePlayer(dt){
   else{if(P.vel.y>0){al=-2.7;ar=-2.7;el=er=-0.1;tl=0.5;tr=-0.3;kl=0.9;kr=0.3;cape=0.4;}else{al=-1.2;ar=-1.2;alz=-0.9;arz=0.9;el=er=-0.4;tl=0.3;tr=-0.2;kl=0.5;kr=0.4;cape=clamp(-P.vel.y/35,0.3,2.6);}
     if(P.slam){al=-3;ar=-3;alz=-0.2;arz=0.2;tl=0.9;tr=0.9;kl=kr=1.5;cape=2.8;}}
   if(P.tk){ar=-1.7;al=-1.7;alz=-0.3;arz=0.3;el=er=-0.2;}
-  if(hasPower('stormBody')&&!P.alien&&P.suited!==false&&!thrown.some(t=>t.kind==='hammer')){ // the storm god's hammer arm
+  if(hasPower('stormBody')&&!P.alien&&P.suited!==false&&!thrown.some(t=>t.kind==='hammer')){ // the tempest's hammer arm
     if(P.fCharge){ar=-2.9;arz=0.25;er=0;al=-0.6;}else if(time-(P.hammerUpT||-9)<0.6){ar=-3.1;arz=0.05;er=0;}else if(P.flying&&sp3>12){ar=-2.95;er=0;arz=0.05;}}
   if(time-castT<0.25&&!beam){ar=-1.6;er=0;}
   const k=damp(14,dt);a.legL=lerp(a.legL,tl,k);a.legR=lerp(a.legR,tr,k);a.kneeL=lerp(a.kneeL||0,kl,k);a.kneeR=lerp(a.kneeR||0,kr,k);a.armL=lerp(a.armL,al,k);a.armR=lerp(a.armR,ar,k);
