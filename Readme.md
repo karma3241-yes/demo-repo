@@ -167,15 +167,17 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `V` | Morph Band dial / change back (Ring Bearer: construct wheel; in a construct, tap to step out, hold for the wheel; Armored Inventor: suit forms; Web Runner, Tempest, Speedster: traversal styles) |
 | `Tab` or `K` | Skills and upgrades |
 | `J` · `I` | Change powers · Appearance |
-| `6` · `7` | Multiplayer · Settings |
+| `6` · `7` · `8` | Multiplayer · Settings · What you unlock |
 | `H` | Show or hide the move list |
 | `C` in water | Dive (let go, or hold `Space`, to swim back up) |
 | `L` | Lock or unlock the mouse. When it's unlocked, drag with the middle mouse button to look |
 | `Esc` / `P` | Pause (Appearance, Multiplayer, Leaderboard and Settings are here). In a multiplayer room the menu opens but the game keeps running |
 
-**Icon bar.** Under your name (top left) is a row of icons, one for every menu: move list, skills, change powers, appearance, multiplayer and settings. Each icon shows its key; with the mouse locked press the key, or press `L` to free the mouse and click. In the CrazyGames build the rewards are here too: double XP (`9`), refill (`0`), try locked powers (`,`) and cosmetics (`.`).
+**Icon bar.** Under your name (top left) is a row of icons, one for every menu: move list, skills, change powers, appearance, multiplayer, settings and what you unlock. Each icon shows its key; with the mouse locked press the key, or press `L` to free the mouse and click. In the CrazyGames build the rewards are here too: double XP (`9`), refill (`0`), try locked powers (`,`) and cosmetics (`.`).
 
 **Move list.** The panel on the right lists everything your current hero can do: moving, your five powers by name (on CrazyGames, with the level each one unlocks at), fighting, the hero's own keys (for the Ring Bearer: constructs, the wheel, the oath, rebuilding) and the menus. It starts closed ("Getting started" shows an `H · all moves` hint); `H` or its icon shows or hides it, and once you choose, it stays that way. It always fits on screen without scrolling: it lays out in two columns, shrinks its rows if it has to, and folds "Getting started" down to your next step while it's open. Its top row reminds you that `H` hides it. Opening a menu or Change powers frees the mouse, so the cursor is always there to click with.
+
+**What you unlock** (`8`, the stairs icon) lists what opens up as you go: your power keys by level (CrazyGames build), then what your traversal mastery opens (constructs, suit forms, tricks, speed) and, with the Morph Band, which alien opens at which band level. What you already have is gold, what's still ahead is grey, and a line shows where you are. "Getting started" includes opening it once.
 
 **Leaderboard.** A small leaderboard sits on the left, under the icon bar: switch between most respected, most feared and highest level, and click it for the full board (also in the main menu and the pause menu). On touch screens it's in the pause menu only.
 
@@ -241,10 +243,11 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 
 - **Basic launch mode (for now):** CrazyGames doesn't allow ads during a basic launch, so `BASIC_LAUNCH` in `src/20_core.js` turns every ad and the reward icons off, and starts your traversal fully mastered so players see the best of it. Levels, skill points and power keys unlocking by level work as usual. For full launch, set it to `false`: then everything below applies.
 - **Slower, tighter progression:**
-  - Your power keys open with level: key 1 at the start, then LV 2, 4, 6 and 9. Locked keys stay off the hotbar and the touch buttons until they open (the move list still shows them).
+  - Your power keys open with level: key 1 at the start, then LV 2, 4, 6 and 9. The next key to open shows greyed out on the hotbar (and as a grey touch button) with its level; the ones after it stay hidden until it opens (the move list still shows them all).
+  - Pressing or tapping a locked key (with ads on) asks whether to try it now: one rewarded ad gives 10 minutes of that power fully upgraded, at LV 10 and never smaller than ×10. Without ads it just says which level opens it.
   - Traversal mastery takes about 6 hours instead of 1.
-  - Flight starts at 20 m/s with a small Shift boost, and grows to full speed with mastery.
-  - The speed dial starts at ×2, and the space speed-up starts at ×10 (×90 when mastered).
+  - Flight, running and swinging start a little faster than on the website (flight at 1.15× its starting speed with a ×2 Shift boost, web swings a fifth stronger) and grow to full speed with mastery.
+  - The speed dial starts at ×4, and the space speed-up starts at ×10 (×90 when mastered).
 - **Caps on growing:**
   - Constructs grow to 2× at first and up to 30× with mastery (never Earth-sized).
   - Held powers grow to 1.5× at LV 1 and up to 10× at LV 10.

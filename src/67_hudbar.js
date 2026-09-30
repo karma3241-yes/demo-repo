@@ -17,6 +17,7 @@ const HUDBAR=[
   {id:'look',glyph:'shirt',key:'I',code:'KeyI',tip:'Appearance',act:()=>sheetToggle('look'),on:()=>sheetOpen==='look'},
   {id:'mp',glyph:'people',key:'6',code:'Digit6',tip:'Multiplayer',act:()=>sheetToggle('mp'),on:()=>sheetOpen==='mp'||MP.online()},
   {id:'set',glyph:'gear',key:'7',code:'Digit7',tip:'Settings',act:()=>sheetToggle('set'),on:()=>sheetOpen==='set'},
+  {id:'unlocks',glyph:'steps',key:'8',code:'Digit8',tip:'What you unlock',act:()=>sheetToggle('unlocks'),on:()=>sheetOpen==='unlocks'},
   // CrazyGames build only. The rewards appear once you've dealt with your first crime (or reached LV 2), so the opening
   // screen stays calm
   {id:'xp',glyph:'x2',key:'9',code:'Digit9',portal:true,act:()=>Portal.rewardXP(),hide:()=>rewardsLater(),

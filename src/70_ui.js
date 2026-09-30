@@ -35,6 +35,7 @@ function buildHotbar(){
   save.character.abilities.forEach((id,i)=>{
     const cd=el('i',{class:'cd'});const lv=el('small');
     const s=el('div',{class:'slot'+(id==='morphBand'?' bandslot':''),'data-cat':POWERS[id].cat},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]+(id==='morphBand'?' · V':'')}),el('span',{class:'nm',text:POWERS[id].name}),lv);
+    if(PBAL)s.addEventListener('click',()=>{if(slotLocked(i)&&state==='play'){P.lockMsgT=-9;lockedSlotMsg(i);}});
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd,lv,i});
   });
   for(const id of save.character.movement){
@@ -109,19 +110,42 @@ const dmgPool=[];function dmgEl(i){if(!dmgPool[i]){const e=el('div',{class:'dmg'
 // ================================================================
 let sheetOpen=null,creating=false;
 const sheet=$('sheet'),sheetBody=$('sheet-body'),sheetTitle=$('sheet-title');
-function openSheet(name){if(name==='skills')guideDone('skills');
+function openSheet(name){if(name==='skills')guideDone('skills');if(name==='unlocks')guideDone('unlocks');
   if(state==='play'&&!paused)setPaused(true);
   sheetOpen=name;sheet.hidden=false;sheet.classList.toggle('side',name==='look');renderSheet();
   const f=sheet.querySelector('button,input');if(f)f.focus({preventScroll:true});
 }
-function closeSheet(){if(!sheetOpen)return;const was=sheetOpen;sheetOpen=null;sheet.hidden=true;persist();if(was==='look'){applyLook();syncPlayerDoc(true);}}
+function closeSheet(){if(!sheetOpen)return;const was=sheetOpen;sheetOpen=null;sheet.hidden=true;persist();if(was==='look'){applyLook();syncPlayerDoc(true);}if(was==='keytrial')keyTrialClosed();}
 $('sheet-x').addEventListener('click',closeSheet);
 sheet.addEventListener('mousedown',e=>{if(e.target===sheet)closeSheet();});
 function renderSheet(){
   if(!sheetOpen)return;const y=sheetBody.scrollTop;sheetBody.textContent='';
-  sheetTitle.textContent={skills:'Skills',look:'Appearance',lb:'Leaderboard',set:'Settings',mp:'Multiplayer',trials:'Try locked powers',cos:'Cosmetics'}[sheetOpen];
-  ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings,mp:renderMP,trials:renderTrials,cos:renderCosmetics})[sheetOpen]();
+  sheetTitle.textContent={skills:'Skills',look:'Appearance',lb:'Leaderboard',set:'Settings',mp:'Multiplayer',trials:'Try locked powers',cos:'Cosmetics',keytrial:'Unlock this power?',unlocks:'What you unlock'}[sheetOpen];
+  ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings,mp:renderMP,trials:renderTrials,cos:renderCosmetics,keytrial:renderKeyTrial,unlocks:renderUnlocks})[sheetOpen]();
   sheetBody.scrollTop=y;
+}
+// ---- what you unlock (8): power keys by level (CrazyGames), then what mastery and the Morph Band open ----
+// Unlocked rows are gold, the ones still ahead are grey, and a marker shows where you are.
+function renderUnlocks(){
+  const B=sheetBody,ch=save.character;if(!ch)return;
+  B.append(el('p',{class:'muted',text:'Gold is yours already; grey is still ahead.'}));
+  const list=(title,rows,here)=>{B.append(el('h3',{text:title}));let marked=false;
+    for(const r of rows.sort((a,b)=>a.lv-b.lv)){if(!marked&&!r.got){marked=true;B.append(el('div',{class:'unl here',text:here}));}
+      B.append(el('div',{class:'unl'+(r.got?' got':'')},el('span',{class:'lvb',text:r.badge}),r.icon,el('div',{},el('b',{text:r.title}),r.sub?el('span',{class:'s',text:r.sub}):null)));}
+    if(!marked)B.append(el('div',{class:'unl here',text:here+' · all unlocked'}));};
+  const lv=save.level,sp=CONFIG.progression.spPerLevel;
+  if(PBAL){list('By level',ch.abilities.map((id,i)=>{const got=lv>=KIT_LV[i],tr=!got&&trialOn('key'+i);
+      return {lv:KIT_LV[i],got,badge:'LV '+KIT_LV[i],icon:powerIcon(id),title:'Key '+(i+1)+' · '+POWERS[id].name,sub:got?(i?'Unlocked':'Ready from the start'):tr?'Trying it now · '+trialLeft('key'+i)+' min left':(POWERS[id].desc||'').split('. ')[0].replace(/\.$/,'')};}),'You are LV '+lv);}
+  else B.append(el('h3',{text:'By level · you are LV '+lv}));
+  B.append(el('p',{class:'muted unl-foot',text:'Every level also gives you +'+sp+' skill points to upgrade your powers and passives ('+(touchOn()?'Skills in the pause menu':'Tab or K')+').'}));
+  // traversal mastery grows with use
+  const m=ch.movement[0],ml=masteryLevel(m),mn=PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Traversal',rows=[];
+  if(isRing()||armorForms()){const arm=armorForms(),by={};for(const id of CON_IDS){const C=CONSTRUCTS[id];if(!!C.armor!==arm||!(C.unlock>1))continue;(by[C.unlock]=by[C.unlock]||[]).push(C.name+(trialOn('con:'+id)?' (trying it)':''));}
+    for(const k in by)rows.push({lv:+k,got:ml>=+k,badge:'M '+k,icon:powerIcon(m),title:by[k].join(' · '),sub:arm?'Suit form':by[k].length>1?'Constructs':'Construct'});}
+  else{const N=MASTERY_NOTES[m]||{};for(const k in N)rows.push({lv:+k,got:ml>=+k,badge:'M '+k,icon:powerIcon(m),title:N[k]});}
+  if(rows.length)list(mn+' mastery',rows,'Mastery '+Math.floor(ml)+' · grows as you use it');
+  if(hasPower('morphBand')){const bl=powerLevel('morphBand');
+    list('Morph Band',ALIEN_IDS.map(id=>({lv:ALIENS[id].unlock,got:bl>=ALIENS[id].unlock,badge:'LV '+ALIENS[id].unlock,icon:powerIcon('morphBand'),title:ALIENS[id].name,sub:ALIENS[id].blurb})),'Band LV '+bl+' · upgrade it in Skills');}
 }
 const STAT_LABELS={bounces:'Bounces',duration:'Duration',damage:'Damage',dps:'Damage per second',radius:'Radius',speed:'Speed',drain:'Energy per second',mult:'Speed multiplier',range:'Range',force:'Swing force',
   stun:'Stun',slow:'Slow',absorb:'Absorbs',dr:'Damage reduction',throwDmg:'Throw damage',knock:'Knockback',burnDps:'Burn per second',hitDmg:'Bump damage',capacity:'Capacity'};
@@ -400,7 +424,7 @@ const hasWheel=()=>!!save.character&&(isRing()||armorForms()||hasPower('morphBan
 const wheelWhat=()=>isRing()?'pick a construct':armorForms()?'pick a suit form':hasPower('morphBand')?'pick an alien':'pick how you get around';
 const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],
   ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>(isRing()?'Tap PICK':armorForms()?'Tap FORMS':hasPower('morphBand')?'Use the Morph Band power':'Tap WHEEL')+' to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
-  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
+  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
 function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
   for(const [k,t,kb,tc] of guideList()){const s=touchOn()?tc:kb;list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:typeof s==='function'?s():s})));}fitMoves();}

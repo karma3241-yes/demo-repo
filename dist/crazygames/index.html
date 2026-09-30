@@ -259,7 +259,15 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #xquiz .xq-foot{margin-top:10px;font-size:12px;letter-spacing:.12em;color:var(--ink-dim)}
 #xquiz[data-mode="lock"]{top:max(90px,12vh);bottom:auto;width:auto;min-width:240px;padding:10px 16px;pointer-events:none;border-color:rgba(255,92,110,.5);box-shadow:0 0 30px rgba(255,60,80,.25)}
 #xquiz[data-mode="lock"] .xq-head{color:#ffb3bd}#xquiz[data-mode="lock"] .xq-foot{margin-top:4px;font-size:14px;color:var(--ink)}
-.slot.locked{display:none} /* power keys you haven't unlocked yet stay off the hotbar (the move list still lists them) */.slot.locked small{color:var(--ink-dim)}
+.slot.locked{display:none}.slot.locked.next{display:grid;opacity:.5;filter:grayscale(1);pointer-events:auto;cursor:pointer}.tb.lockd{opacity:.45;filter:grayscale(1);background:rgba(120,130,150,.25)}.tb small{display:block;font-size:8px;letter-spacing:.04em;opacity:.9}
+.ktrial{display:flex;gap:12px;align-items:center}.ktrial .pico{width:40px;height:40px;flex:none}.ktrial b{display:block;font-size:16px}.ktrial span{font-size:13px;color:var(--ink-dim)}
+.ktrial-b{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.unl{display:grid;grid-template-columns:auto 26px 1fr;gap:4px 10px;align-items:center;padding:7px 0;border-top:1px solid rgba(255,255,255,.07);color:var(--ink-dim)}
+.unl .pico,.unl .ico{width:22px;height:22px;opacity:.45;filter:grayscale(1)}.unl b{display:block;font-size:13px;font-weight:600}.unl span.s{font-size:12px}
+.unl .lvb{min-width:44px;text-align:center;font:700 11px var(--hud);letter-spacing:.06em;padding:3px 6px;border-radius:5px;border:1px solid rgba(255,255,255,.14)}
+.unl.got{color:var(--gold)}.unl.got b{color:var(--gold)}.unl.got .pico,.unl.got .ico{opacity:1;filter:none}.unl.got .lvb{border-color:var(--gold);background:rgba(255,201,60,.14)}
+.unl.here{grid-template-columns:1fr;color:var(--ink);font:700 11px var(--hud);letter-spacing:.14em;text-transform:uppercase;border-top:1px dashed var(--gold)}
+.unl-foot{margin-top:6px} /* power keys you haven't unlocked yet stay off the hotbar (the move list still lists them) */.slot.locked small{color:var(--ink-dim)}
 .cos-sw{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:8px;vertical-align:-2px;border:1px solid rgba(255,255,255,.3)}
 #guide{position:absolute;right:16px;top:96px;padding:10px 14px;width:230px;box-sizing:border-box}
 #guide h4{margin:0 0 6px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
@@ -1689,7 +1697,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
   f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.savedAt=num(s.savedAt,0,0,1e15);f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
-  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow'])if(s.guide[k]===true)f.guide[k]=true;
+  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
 const save=loadSave();
@@ -1725,7 +1733,7 @@ const mk=id=>(masteryLevel(id)-1)/(MASTERY_MAX-1); // 0 at the start, 1 when mas
 function addMastery(id,n){if(!save.character||!(n>0))return;const before=Math.floor(masteryLevel(id));save.mastery[id]=(save.mastery[id]||0)+n;const after=Math.floor(masteryLevel(id));
   if(after>before&&typeof feed==='function')feed((PRESETS[id]?PRESETS[id].name:POWERS[id]?POWERS[id].name:'Jumping')+' mastery '+after,MASTERY_NOTES[id]&&MASTERY_NOTES[id][after]||'You can go further, faster');}
 const MASTERY_NOTES={webSwing:{3:'Backflips and twists unlocked',5:'Web wings glide further',7:'Corner boosts and slingshot launches hit harder',9:'Faster swings than ever'},
-  superSpeed:{3:'Speed dial reaches higher',6:'Phasing lasts longer',9:'Near light speed'},powerRing:{3:'Bigger constructs',5:'Mech construct unlocked',7:'Huge mech unlocked',9:'Dragon unlocked'},
+  superSpeed:{3:'Speed dial reaches higher',6:'Phasing lasts longer',9:'Near light speed'},powerRing:{3:'Mech construct unlocked',5:'Huge mech unlocked',7:'Dragon unlocked',9:'Bigger constructs than ever'},
   flight:{5:'Supersonic flight',9:'Mach speed'},stormFlight:{5:'Supersonic flight',9:'Mach speed'},armorFlight:{5:'Supersonic flight',9:'Mach speed'},solarFlight:{5:'Supersonic flight',9:'Faster than sound'},jump:{5:'Super jumps go much higher'}};
 // traversal stats grow with mastery (use), never below the level they were upgraded to before
 const statLevel=id=>POWERS[id].cat==='movement'?Math.max(powerLevel(id),masteryLevel(id)):powerLevel(id);
@@ -2081,9 +2089,10 @@ let beam=null,ice=null,lastScorch=0,castT=-9;
 // castK is the size of the power being cast right now: radius and range scale with it, damage with its square root.
 const SKILL_GROW={mul:1.2,max:30,ring:0.9,energy:3,refund:0.25};
 // CrazyGames: a power grows up to 1.5x at LV1 and 10x at LV10 (30x everywhere else)
-const skillGrowMax=id=>PBAL?1.5+8.5*lvlK(id):SKILL_GROW.max;
+const skillGrowMax=id=>PBAL?Math.max(1.5+8.5*lvlK(id),trialBig(id)?TRIAL_SIZE:0):SKILL_GROW.max;
+const skillGrowMin=id=>PBAL&&trialBig(id)?TRIAL_SIZE:1; // a 10-minute key trial is never smaller than x10 (65_rewards.js)
 let castK=1,heldSlot=-1;
-const skillSize=id=>(PS[id]&&PS[id].grow)||1;
+const skillSize=id=>{const g=(PS[id]&&PS[id].grow)||1;return PBAL?Math.max(skillGrowMin(id),Math.min(g,skillGrowMax(id))):g;};
 function withCast(id,fn){const was=castK;castK=skillSize(id);try{return fn();}finally{castK=was;}}
 // while a power's key is held, show how big it will be where you aim
 function drawPrimed(){
@@ -2095,8 +2104,8 @@ function drawPrimed(){
 function skillGrowStep(slot,dir){
   const id=save.character&&!P.alien&&save.character.abilities[slot];if(!id||!PS[id]||!canAct())return false;
   if(ringLocked()){oathBusy();return true;}
-  const s=PS[id],g=s.grow||1,gm=skillGrowMax(id),ng=dir>0?Math.min(gm,Math.max(g,Math.min(gm,g*SKILL_GROW.mul))):Math.max(1,g/SKILL_GROW.mul);
-  if(Math.abs(ng-g)<1e-6){if(time-(s.maxMsg||-9)>3){s.maxMsg=time;feed(POWERS[id].name+(dir>0?' is as big as it gets (×'+(gm<10?gm.toFixed(1):Math.round(gm))+')':' is back to normal size'),dir>0&&PBAL&&gm<10?'Upgrade it to grow it bigger':'');}return true;}
+  const s=PS[id],gn=skillGrowMin(id),g=clamp(s.grow||1,gn,Math.max(gn,skillGrowMax(id))),gm=skillGrowMax(id),ng=dir>0?Math.min(gm,Math.max(g,Math.min(gm,g*SKILL_GROW.mul))):Math.max(gn,g/SKILL_GROW.mul);
+  if(Math.abs(ng-g)<1e-6){if(time-(s.maxMsg||-9)>3){s.maxMsg=time;feed(POWERS[id].name+(dir>0?' is as big as it gets (×'+(gm<10?gm.toFixed(1):Math.round(gm))+')':gn>1?' stays at ×'+gn+' during the trial':' is back to normal size'),dir>0&&PBAL&&gm<10?'Upgrade it to grow it bigger':'');}return true;}
   const ring=hasTrav('powerRing'),cost=ring?SKILL_GROW.ring:SKILL_GROW.energy;
   if(ng>g){if(ring?save.ring<cost:!spend(cost,id)){noEnergy(id);return true;}if(ring)save.ring-=cost;}
   else{const back=cost*SKILL_GROW.refund,m=heroMeter();if(ring)save.ring=Math.min(Math.max(100,save.ring),save.ring+back);else if(m)save[m.key]=Math.min(meterCap(m),save[m.key]+back*(m.rate||1));else P.en=Math.min(maxEn(),P.en+back);}
@@ -2170,11 +2179,11 @@ function togglePower(id){
   }
 }
 const flySpeed=()=>{const m=save.character&&save.character.movement[0],id=POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?m:'flight';
-  if(PBAL){const v=POWERS[id].speed;return lerp(20,v[1],(statLevel(id)-1)/(CONFIG.powerMax-1));} // CrazyGames: flight starts at 20 m/s
+  if(PBAL){const v=POWERS[id].speed;return lerp(v[0]*1.15,v[1],(statLevel(id)-1)/(CONFIG.powerMax-1));} // CrazyGames: flight starts a bit faster than the website's
   return pstat(id,'speed');};
 // CrazyGames: the Shift boost and the space speed-up grow with traversal mastery too
 const travK=()=>save.character?mk(save.character.movement[0]):0;
-const flyBoost=()=>PBAL?lerp(1.5,POWERS.flight.boost,travK()):POWERS.flight.boost;
+const flyBoost=()=>PBAL?lerp(2,POWERS.flight.boost,travK()):POWERS.flight.boost;
 // hold F on the ground to charge, let go to blast off into the sky (a tap still just toggles flight)
 function flyChargeStart(){
   if(!hasPower('flight')||isSpeed()||P.alien||P.car||P.flying||!P.grounded||!canAct()||P.construct)return false;
@@ -2740,7 +2749,7 @@ function webRelease(boost=true){
 }
 function swingJump(){if(!P.web)return;webRelease(true);P.vel.y+=MOVE.swingJump;SFX.whoosh();}
 function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
-  const W=P.web,f=pstat('webSwing','force');
+  const W=P.web,f=Math.max(pstat('webSwing','force'),PBAL?1.2:0); // CrazyGames: swings start a bit faster than the website's
   if(W.target&&!tetherTick(W))return;
   P.vel.y-=CONFIG.move.gravity*0.9*dt;
   P.vel.x+=(fwdX*inF+rX*inR)*26*f*dt;P.vel.z+=(fwdZ*inF+rZ*inR)*26*f*dt;
@@ -2748,7 +2757,7 @@ function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
   const gy=groundY(P.pos.x,P.pos.z,P.pos.y+1),dy=P.pos.y+1.6-W.y;
   if(dy<-W.L*0.6&&P.pos.y>gy+1.5){const hs=Math.hypot(P.vel.x,P.vel.z)||1;P.vel.x+=P.vel.x/hs*8*dt;P.vel.z+=P.vel.z/hs*8*dt;}
   if(P.pos.y<gy+3&&!W.target)W.L=Math.max(8,Math.min(W.L,W.y-gy-3.5)); // never drag along the street
-  P.vel.mul(1-0.03*dt);{const v=P.vel.len(),cap=70+35*webMk();if(v>cap)P.vel.mul(cap/v);}
+  P.vel.mul(1-0.03*dt);{const v=P.vel.len(),cap=(PBAL?80+25*webMk():70+35*webMk());if(v>cap)P.vel.mul(cap/v);}
   // chain: past the anchor on the upswing, let go and grab the next one
   const ax=P.pos.x-W.x,az=P.pos.z-W.z,hs=Math.hypot(P.vel.x,P.vel.z);
   if(!W.target&&webHeld&&time-W.t>0.5&&hs>8&&(ax*P.vel.x+az*P.vel.z)>0&&P.vel.y>-2&&(P.pos.y+1.6-W.y)>-W.L*MOVE.chainAngle){
@@ -3963,7 +3972,7 @@ function drawRing(){
 // whatever you hit in that moment lands all at once when time starts again.
 const SPD_C=[1,.82,.25],SPD_C2=[1,.45,.15];
 const isSpeed=()=>hasTrav('superSpeed')&&!P.alien;
-const dialMax=()=>hungry()?2:Math.round(PBAL?2+10*mk('superSpeed'):3+9*mk('superSpeed')); // CrazyGames: x2 at the start // x3 at the start, x12 mastered; x2 when out of calories
+const dialMax=()=>hungry()?2:Math.round(PBAL?4+8*mk('superSpeed'):3+9*mk('superSpeed')); // CrazyGames: x4 at the start // x3 at the start, x12 mastered; x2 when out of calories
 P.dial=2;P.fastMode=false;P.phasing=false;P.slowOn=false;
 let timeStopT=0,frozenT=0,slowK=0.3,tsQueue=[],tsPath=[],tsBy=null,lastStreak=null;
 function speedMult(){return isSpeed()?Math.max(1.5,Math.min(P.dial,dialMax())):pstat('superSpeed','mult');}
@@ -4124,7 +4133,7 @@ function renderHeroKeys(){
     if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
     if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
     K('U','Suit up or down');}
-  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('L','Free the mouse to click the icons');K('Esc','Pause');if(!PBAL)K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
+  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('8','What you unlock, level by level');K('L','Free the mouse to click the icons');K('Esc','Pause');if(!PBAL)K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
 }
 // ================================================================
 // Wanted level (1-5 stars) and bounty
@@ -6412,8 +6421,32 @@ Portal.init();
 const KIT_LV=[1,2,4,6,9];                 // the level each power key (1-5) opens at
 const TRIAL_MIN=10;
 const slotLocked=i=>PBAL&&save.level<KIT_LV[i]&&!trialOn('key'+i);
+// The next key to open shows greyed out on the hotbar (and as a grey touch button) with its level; the ones after it stay
+// hidden. Pressing or tapping a locked key asks whether to try it now: one ad = 10 minutes of that power at LV 10, never
+// smaller than x10. Without ads (basic launch, ad blocker) it just says which level opens it.
+const TRIAL_SIZE=10;
+const nextLockedSlot=()=>{if(!PBAL||!save.character)return -1;for(let i=0;i<save.character.abilities.length;i++)if(slotLocked(i))return i;return -1;};
+const trialBig=id=>{if(!PBAL||!save.character)return false;const a=save.character.abilities;for(let i=0;i<a.length;i++)if(a[i]===id&&trialOn('key'+i))return true;return false;};
+let keyTrialSlot=-1,keyTrialResume=false;
 function lockedSlotMsg(i){if(time-(P.lockMsgT||-9)<1)return;P.lockMsgT=time;const id=save.character.abilities[i];
-  feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],Portal.ads()&&!rewardsLater()?(touchOn()?'Tap the unlock icon':'Press , (the unlock icon)')+' to try it now for '+TRIAL_MIN+' min':'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
+  if(Portal.ads()&&!sheetOpen&&state==='play'){keyTrialSlot=i;keyTrialResume=!paused;openSheet('keytrial');SFX.tone('sine',520,780,0.12,0.06);return;}
+  feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
+function renderKeyTrial(){
+  const B=sheetBody,ch=save.character,i=keyTrialSlot,id=ch&&ch.abilities[i];if(!id||!POWERS[id]){B.append(el('p',{class:'muted',text:'Nothing to unlock here.'}));return;}
+  B.append(el('div',{class:'ktrial'},powerIcon(id),el('div',{},el('b',{text:'Key '+(i+1)+' · '+POWERS[id].name}),el('span',{text:'Unlocks at LV '+KIT_LV[i]+' · you are LV '+save.level}))));
+  B.append(el('p',{text:'Watch a short ad to use it right now, fully upgraded: LV 10 and ×'+TRIAL_SIZE+' size for '+TRIAL_MIN+' minutes. Reaching LV '+KIT_LV[i]+' unlocks it for good.'}));
+  if(!Portal.ads())B.append(el('p',{class:'muted',text:'Ads are not available right now (an ad blocker may be on).'}));
+  const go=el('button',{class:'go',type:'button',text:'Watch ad · unlock for '+TRIAL_MIN+' min',onclick:()=>startKeyTrial(i)});go.disabled=!Portal.ads();
+  B.append(el('div',{class:'ktrial-b'},go,el('button',{class:'ghost',type:'button',text:'Not now',onclick:closeSheet})));
+}
+// closing the popup goes straight back to the game if it was opened from play
+function keyTrialClosed(){if(!keyTrialResume)return;keyTrialResume=false;if(state==='play'&&paused&&!creating)resume();}
+function startKeyTrial(i){const id=save.character&&save.character.abilities[i];if(!id)return;
+  Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}
+    const until=Date.now()+TRIAL_MIN*60e3,lk='lv:'+LEVEL_OF(id);save.trials=save.trials||{};save.trials['key'+i]=until;save.trials[lk]=Math.max(save.trials[lk]||0,until);
+    if(PS[id])PS[id].grow=Math.max(PS[id].grow||1,TRIAL_SIZE);persist();
+    if(sheetOpen==='keytrial')closeSheet();toast(POWERS[id].name+' unlocked','LV 10 and ×'+TRIAL_SIZE+' size for the next '+TRIAL_MIN+' minutes','gold');
+    buildHotbar();buildTouchButtons();if(sheetOpen)renderSheet();});}
 // ---- timed trials (one rewarded ad = 10 minutes) ----
 function startTrial(k,label){
   Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}
@@ -6432,10 +6465,10 @@ function renderTrials(){
   const B=sheetBody,ch=save.character;if(!ch)return;
   B.append(el('p',{class:'muted',text:'Watch a short ad to use something before you unlock it. Each trial lasts '+TRIAL_MIN+' minutes; levelling up unlocks it for good.'}));
   if(!Portal.ads())B.append(el('p',{class:'muted',text:'Ads are not available right now (an ad blocker may be on), so these buttons are off.'}));
-  const row=(title,sub,k,label)=>{const left=trialLeft(k);const b=el('button',{class:left?'ghost':'go',type:'button',text:left?left+' min left':'Watch ad · '+TRIAL_MIN+' min',onclick:()=>startTrial(k,label)});b.disabled=!!left||!Portal.ads();
+  const row=(title,sub,k,label)=>{const left=trialLeft(k);const b=el('button',{class:left?'ghost':'go',type:'button',text:left?left+' min left':'Watch ad · '+TRIAL_MIN+' min',onclick:()=>/^key\d$/.test(k)?startKeyTrial(+k[3]):startTrial(k,label)});b.disabled=!!left||!Portal.ads();
     B.append(el('div',{class:'upg'},el('b',{text:title}),el('div',{class:'btns'},b),el('p',{text:sub})));};
   B.append(el('h3',{text:'Power keys'}));let any=false;
-  ch.abilities.forEach((id,i)=>{if(save.level>=KIT_LV[i])return;any=true;row('Key '+(i+1)+' · '+POWERS[id].name,'Unlocks at LV '+KIT_LV[i],'key'+i,POWERS[id].name);});
+  ch.abilities.forEach((id,i)=>{if(save.level>=KIT_LV[i])return;any=true;row('Key '+(i+1)+' · '+POWERS[id].name,'Unlocks at LV '+KIT_LV[i]+' · the trial is LV 10 and ×'+TRIAL_SIZE+' size','key'+i,POWERS[id].name);});
   if(!any)B.append(el('p',{class:'muted',text:'All your power keys are unlocked.'}));
   const tv=ch.movement[0],tn=PRESETS[tv]?PRESETS[tv].name:POWERS[tv].name;
   B.append(el('h3',{text:'Traversal'}));
@@ -6517,6 +6550,7 @@ const GLYPHS={
   shirt:'<path d="M8 3l-5 3 2 4 3-1.5V21h8V8.5l3 1.5 2-4-5-3c-.5 1.8-2 3-4 3s-3.5-1.2-4-3z"/>',
   people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.7-6 6-6s6 2.4 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2c2.9.3 5 2.5 5 5.8"/>',
   gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+  steps:'<path d="M3 20h5v-5h5v-5h5V5h3"/><path d="M3 20h18"/>',
   trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8M9.5 18h5"/>',
   x2:'<path d="M4 8l6 8M10 8l-6 8"/><path d="M13.5 9.5a3 3 0 0 1 6 0c0 2.5-6 4-6 6.5h6"/>',
   refill:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M11 9.5v5M8.5 12h5"/>',
@@ -6602,6 +6636,7 @@ const HUDBAR=[
   {id:'look',glyph:'shirt',key:'I',code:'KeyI',tip:'Appearance',act:()=>sheetToggle('look'),on:()=>sheetOpen==='look'},
   {id:'mp',glyph:'people',key:'6',code:'Digit6',tip:'Multiplayer',act:()=>sheetToggle('mp'),on:()=>sheetOpen==='mp'||MP.online()},
   {id:'set',glyph:'gear',key:'7',code:'Digit7',tip:'Settings',act:()=>sheetToggle('set'),on:()=>sheetOpen==='set'},
+  {id:'unlocks',glyph:'steps',key:'8',code:'Digit8',tip:'What you unlock',act:()=>sheetToggle('unlocks'),on:()=>sheetOpen==='unlocks'},
   // CrazyGames build only. The rewards appear once you've dealt with your first crime (or reached LV 2), so the opening
   // screen stays calm
   {id:'xp',glyph:'x2',key:'9',code:'Digit9',portal:true,act:()=>Portal.rewardXP(),hide:()=>rewardsLater(),
@@ -6772,6 +6807,7 @@ function buildHotbar(){
   save.character.abilities.forEach((id,i)=>{
     const cd=el('i',{class:'cd'});const lv=el('small');
     const s=el('div',{class:'slot'+(id==='morphBand'?' bandslot':''),'data-cat':POWERS[id].cat},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]+(id==='morphBand'?' · V':'')}),el('span',{class:'nm',text:POWERS[id].name}),lv);
+    if(PBAL)s.addEventListener('click',()=>{if(slotLocked(i)&&state==='play'){P.lockMsgT=-9;lockedSlotMsg(i);}});
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd,lv,i});
   });
   for(const id of save.character.movement){
@@ -6846,19 +6882,42 @@ const dmgPool=[];function dmgEl(i){if(!dmgPool[i]){const e=el('div',{class:'dmg'
 // ================================================================
 let sheetOpen=null,creating=false;
 const sheet=$('sheet'),sheetBody=$('sheet-body'),sheetTitle=$('sheet-title');
-function openSheet(name){if(name==='skills')guideDone('skills');
+function openSheet(name){if(name==='skills')guideDone('skills');if(name==='unlocks')guideDone('unlocks');
   if(state==='play'&&!paused)setPaused(true);
   sheetOpen=name;sheet.hidden=false;sheet.classList.toggle('side',name==='look');renderSheet();
   const f=sheet.querySelector('button,input');if(f)f.focus({preventScroll:true});
 }
-function closeSheet(){if(!sheetOpen)return;const was=sheetOpen;sheetOpen=null;sheet.hidden=true;persist();if(was==='look'){applyLook();syncPlayerDoc(true);}}
+function closeSheet(){if(!sheetOpen)return;const was=sheetOpen;sheetOpen=null;sheet.hidden=true;persist();if(was==='look'){applyLook();syncPlayerDoc(true);}if(was==='keytrial')keyTrialClosed();}
 $('sheet-x').addEventListener('click',closeSheet);
 sheet.addEventListener('mousedown',e=>{if(e.target===sheet)closeSheet();});
 function renderSheet(){
   if(!sheetOpen)return;const y=sheetBody.scrollTop;sheetBody.textContent='';
-  sheetTitle.textContent={skills:'Skills',look:'Appearance',lb:'Leaderboard',set:'Settings',mp:'Multiplayer',trials:'Try locked powers',cos:'Cosmetics'}[sheetOpen];
-  ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings,mp:renderMP,trials:renderTrials,cos:renderCosmetics})[sheetOpen]();
+  sheetTitle.textContent={skills:'Skills',look:'Appearance',lb:'Leaderboard',set:'Settings',mp:'Multiplayer',trials:'Try locked powers',cos:'Cosmetics',keytrial:'Unlock this power?',unlocks:'What you unlock'}[sheetOpen];
+  ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings,mp:renderMP,trials:renderTrials,cos:renderCosmetics,keytrial:renderKeyTrial,unlocks:renderUnlocks})[sheetOpen]();
   sheetBody.scrollTop=y;
+}
+// ---- what you unlock (8): power keys by level (CrazyGames), then what mastery and the Morph Band open ----
+// Unlocked rows are gold, the ones still ahead are grey, and a marker shows where you are.
+function renderUnlocks(){
+  const B=sheetBody,ch=save.character;if(!ch)return;
+  B.append(el('p',{class:'muted',text:'Gold is yours already; grey is still ahead.'}));
+  const list=(title,rows,here)=>{B.append(el('h3',{text:title}));let marked=false;
+    for(const r of rows.sort((a,b)=>a.lv-b.lv)){if(!marked&&!r.got){marked=true;B.append(el('div',{class:'unl here',text:here}));}
+      B.append(el('div',{class:'unl'+(r.got?' got':'')},el('span',{class:'lvb',text:r.badge}),r.icon,el('div',{},el('b',{text:r.title}),r.sub?el('span',{class:'s',text:r.sub}):null)));}
+    if(!marked)B.append(el('div',{class:'unl here',text:here+' · all unlocked'}));};
+  const lv=save.level,sp=CONFIG.progression.spPerLevel;
+  if(PBAL){list('By level',ch.abilities.map((id,i)=>{const got=lv>=KIT_LV[i],tr=!got&&trialOn('key'+i);
+      return {lv:KIT_LV[i],got,badge:'LV '+KIT_LV[i],icon:powerIcon(id),title:'Key '+(i+1)+' · '+POWERS[id].name,sub:got?(i?'Unlocked':'Ready from the start'):tr?'Trying it now · '+trialLeft('key'+i)+' min left':(POWERS[id].desc||'').split('. ')[0].replace(/\.$/,'')};}),'You are LV '+lv);}
+  else B.append(el('h3',{text:'By level · you are LV '+lv}));
+  B.append(el('p',{class:'muted unl-foot',text:'Every level also gives you +'+sp+' skill points to upgrade your powers and passives ('+(touchOn()?'Skills in the pause menu':'Tab or K')+').'}));
+  // traversal mastery grows with use
+  const m=ch.movement[0],ml=masteryLevel(m),mn=PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Traversal',rows=[];
+  if(isRing()||armorForms()){const arm=armorForms(),by={};for(const id of CON_IDS){const C=CONSTRUCTS[id];if(!!C.armor!==arm||!(C.unlock>1))continue;(by[C.unlock]=by[C.unlock]||[]).push(C.name+(trialOn('con:'+id)?' (trying it)':''));}
+    for(const k in by)rows.push({lv:+k,got:ml>=+k,badge:'M '+k,icon:powerIcon(m),title:by[k].join(' · '),sub:arm?'Suit form':by[k].length>1?'Constructs':'Construct'});}
+  else{const N=MASTERY_NOTES[m]||{};for(const k in N)rows.push({lv:+k,got:ml>=+k,badge:'M '+k,icon:powerIcon(m),title:N[k]});}
+  if(rows.length)list(mn+' mastery',rows,'Mastery '+Math.floor(ml)+' · grows as you use it');
+  if(hasPower('morphBand')){const bl=powerLevel('morphBand');
+    list('Morph Band',ALIEN_IDS.map(id=>({lv:ALIENS[id].unlock,got:bl>=ALIENS[id].unlock,badge:'LV '+ALIENS[id].unlock,icon:powerIcon('morphBand'),title:ALIENS[id].name,sub:ALIENS[id].blurb})),'Band LV '+bl+' · upgrade it in Skills');}
 }
 const STAT_LABELS={bounces:'Bounces',duration:'Duration',damage:'Damage',dps:'Damage per second',radius:'Radius',speed:'Speed',drain:'Energy per second',mult:'Speed multiplier',range:'Range',force:'Swing force',
   stun:'Stun',slow:'Slow',absorb:'Absorbs',dr:'Damage reduction',throwDmg:'Throw damage',knock:'Knockback',burnDps:'Burn per second',hitDmg:'Bump damage',capacity:'Capacity'};
@@ -7137,7 +7196,7 @@ const hasWheel=()=>!!save.character&&(isRing()||armorForms()||hasPower('morphBan
 const wheelWhat=()=>isRing()?'pick a construct':armorForms()?'pick a suit form':hasPower('morphBand')?'pick an alien':'pick how you get around';
 const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],
   ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>(isRing()?'Tap PICK':armorForms()?'Tap FORMS':hasPower('morphBand')?'Use the Morph Band power':'Tap WHEEL')+' to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
-  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
+  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
 function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
   for(const [k,t,kb,tc] of guideList()){const s=touchOn()?tc:kb;list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:typeof s==='function'?s():s})));}fitMoves();}
@@ -7188,7 +7247,7 @@ addEventListener('keydown',e=>{
   if(P.car)return;
   if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&P.web){swingBoost();return;}
   if(e.code==='KeyC'&&hasWeb()&&!P.grounded&&!P.flying&&spiderAirTrick())return;
-  if(e.code in SLOT_CODES){heldSlot=SLOT_CODES[e.code];abilityDown(heldSlot);guideDone('ability');return;}
+  if(e.code in SLOT_CODES){const i=SLOT_CODES[e.code];heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');return;}
   if(e.code==='KeyX'){if(P.construct&&constructX())return;dashPress();return;}
   if((e.code==='BracketRight'||e.code==='Equal'||e.code==='BracketLeft'||e.code==='Minus')&&growStep(e.code==='BracketRight'||e.code==='Equal'?1:-1))return;
   if(isSpeed()){if(e.code==='KeyF'){toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
@@ -7308,7 +7367,8 @@ function buildTouchButtons(){ // on CrazyGames a locked power key gets its butto
   tbtns.textContent='';if(!save.character)return;
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
-  else{save.character.abilities.forEach((id,i)=>{if(!(PBAL&&slotLocked(i)))B(SHORT[id]||'A'+(i+1),'a'+i,'ab');});B('PUNCH','punch','big');
+  else{save.character.abilities.forEach((id,i)=>{if(!(PBAL&&slotLocked(i)))B(SHORT[id]||'A'+(i+1),'a'+i,'ab');
+      else if(i===nextLockedSlot())B(SHORT[id]||'A'+(i+1),'a'+i,'ab lockd').appendChild(el('small',{text:'LV '+KIT_LV[i]}));});B('PUNCH','punch','big');
     for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');B('REBUILD','rebuild');}if(TRAV_STYLES[id])B('WHEEL','travdial');}}
   if(!P.alien){B('GROW','grow');B('SHRINK','shrink');} // hold a power button (or sit in a construct) and tap these to change its size
   if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
@@ -7321,7 +7381,7 @@ function touchAct(a,down){
   if(down&&!canAct())return;
   if(dialOpen)return;
   if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
-  else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){heldSlot=+a[1];abilityDown(+a[1]);guideDone('ability');}else{if(heldSlot===+a[1])heldSlot=-1;abilityUp(+a[1]);}}
+  else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){heldSlot=+a[1];abilityDown(+a[1]);if(!slotLocked(+a[1]))guideDone('ability');}else{if(heldSlot===+a[1])heldSlot=-1;abilityUp(+a[1]);}}
   else if(a==='con'){if(down)summonConstruct();}
   else if(a==='conpick'){if(down){if(isRing()&&ringLocked())oathBusy();else openDial(isRing()?'construct':'armor');}}
   else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
@@ -8091,7 +8151,7 @@ function updateHud(dt){
     if(s.alien!==undefined){if(!P.alien)continue;const ab=ALIENS[P.alien.id].abilities[s.alien],f=ab.cd?P.alien.cds[s.alien]/ab.cd:0,v=Math.round(f*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}
       s.s.classList.toggle('on',(ab.channel&&P.alien.channel)||(ab.id==='phase'&&P.alien.phase>0)||(ab.id==='veil'&&P.invisible>0)||(ab.id==='crystalArmor'&&P.alien.armor>0));continue;}
-    if(s.i!=null&&PBAL){const L=slotLocked(s.i);s.s.classList.toggle('locked',L);if(L){const t='Unlocks at LV '+KIT_LV[s.i];if(s.lvt!==t){s.lvt=t;s.lv.textContent=t;}continue;}}
+    if(s.i!=null&&PBAL){const L=slotLocked(s.i);s.s.classList.toggle('locked',L);s.s.classList.toggle('next',L&&s.i===nextLockedSlot());if(L){const t='Unlocks at LV '+KIT_LV[s.i];if(s.lvt!==t){s.lvt=t;s.lv.textContent=t;}continue;}}
     const st=PS[s.id],c=POWERS[s.id];
     if(s.id==='morphBand'){s.s.classList.toggle('on',!!P.alien||dialOpen);s.s.classList.toggle('bad',st.flash>0);const f=band.cd>0?band.cd/pstat('morphBand','recharge'):0,v=Math.round(clamp(f,0,1)*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}continue;}

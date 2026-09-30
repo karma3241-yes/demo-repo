@@ -79,7 +79,7 @@ function webRelease(boost=true){
 }
 function swingJump(){if(!P.web)return;webRelease(true);P.vel.y+=MOVE.swingJump;SFX.whoosh();}
 function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
-  const W=P.web,f=pstat('webSwing','force');
+  const W=P.web,f=Math.max(pstat('webSwing','force'),PBAL?1.2:0); // CrazyGames: swings start a bit faster than the website's
   if(W.target&&!tetherTick(W))return;
   P.vel.y-=CONFIG.move.gravity*0.9*dt;
   P.vel.x+=(fwdX*inF+rX*inR)*26*f*dt;P.vel.z+=(fwdZ*inF+rZ*inR)*26*f*dt;
@@ -87,7 +87,7 @@ function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
   const gy=groundY(P.pos.x,P.pos.z,P.pos.y+1),dy=P.pos.y+1.6-W.y;
   if(dy<-W.L*0.6&&P.pos.y>gy+1.5){const hs=Math.hypot(P.vel.x,P.vel.z)||1;P.vel.x+=P.vel.x/hs*8*dt;P.vel.z+=P.vel.z/hs*8*dt;}
   if(P.pos.y<gy+3&&!W.target)W.L=Math.max(8,Math.min(W.L,W.y-gy-3.5)); // never drag along the street
-  P.vel.mul(1-0.03*dt);{const v=P.vel.len(),cap=70+35*webMk();if(v>cap)P.vel.mul(cap/v);}
+  P.vel.mul(1-0.03*dt);{const v=P.vel.len(),cap=(PBAL?80+25*webMk():70+35*webMk());if(v>cap)P.vel.mul(cap/v);}
   // chain: past the anchor on the upswing, let go and grab the next one
   const ax=P.pos.x-W.x,az=P.pos.z-W.z,hs=Math.hypot(P.vel.x,P.vel.z);
   if(!W.target&&webHeld&&time-W.t>0.5&&hs>8&&(ax*P.vel.x+az*P.vel.z)>0&&P.vel.y>-2&&(P.pos.y+1.6-W.y)>-W.L*MOVE.chainAngle){

@@ -6,8 +6,32 @@
 const KIT_LV=[1,2,4,6,9];                 // the level each power key (1-5) opens at
 const TRIAL_MIN=10;
 const slotLocked=i=>PBAL&&save.level<KIT_LV[i]&&!trialOn('key'+i);
+// The next key to open shows greyed out on the hotbar (and as a grey touch button) with its level; the ones after it stay
+// hidden. Pressing or tapping a locked key asks whether to try it now: one ad = 10 minutes of that power at LV 10, never
+// smaller than x10. Without ads (basic launch, ad blocker) it just says which level opens it.
+const TRIAL_SIZE=10;
+const nextLockedSlot=()=>{if(!PBAL||!save.character)return -1;for(let i=0;i<save.character.abilities.length;i++)if(slotLocked(i))return i;return -1;};
+const trialBig=id=>{if(!PBAL||!save.character)return false;const a=save.character.abilities;for(let i=0;i<a.length;i++)if(a[i]===id&&trialOn('key'+i))return true;return false;};
+let keyTrialSlot=-1,keyTrialResume=false;
 function lockedSlotMsg(i){if(time-(P.lockMsgT||-9)<1)return;P.lockMsgT=time;const id=save.character.abilities[i];
-  feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],Portal.ads()&&!rewardsLater()?(touchOn()?'Tap the unlock icon':'Press , (the unlock icon)')+' to try it now for '+TRIAL_MIN+' min':'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
+  if(Portal.ads()&&!sheetOpen&&state==='play'){keyTrialSlot=i;keyTrialResume=!paused;openSheet('keytrial');SFX.tone('sine',520,780,0.12,0.06);return;}
+  feed((POWERS[id]?POWERS[id].name:'This power')+' unlocks at LV '+KIT_LV[i],'Keep fighting to level up');SFX.tone('square',220,150,0.1,0.06);}
+function renderKeyTrial(){
+  const B=sheetBody,ch=save.character,i=keyTrialSlot,id=ch&&ch.abilities[i];if(!id||!POWERS[id]){B.append(el('p',{class:'muted',text:'Nothing to unlock here.'}));return;}
+  B.append(el('div',{class:'ktrial'},powerIcon(id),el('div',{},el('b',{text:'Key '+(i+1)+' · '+POWERS[id].name}),el('span',{text:'Unlocks at LV '+KIT_LV[i]+' · you are LV '+save.level}))));
+  B.append(el('p',{text:'Watch a short ad to use it right now, fully upgraded: LV 10 and ×'+TRIAL_SIZE+' size for '+TRIAL_MIN+' minutes. Reaching LV '+KIT_LV[i]+' unlocks it for good.'}));
+  if(!Portal.ads())B.append(el('p',{class:'muted',text:'Ads are not available right now (an ad blocker may be on).'}));
+  const go=el('button',{class:'go',type:'button',text:'Watch ad · unlock for '+TRIAL_MIN+' min',onclick:()=>startKeyTrial(i)});go.disabled=!Portal.ads();
+  B.append(el('div',{class:'ktrial-b'},go,el('button',{class:'ghost',type:'button',text:'Not now',onclick:closeSheet})));
+}
+// closing the popup goes straight back to the game if it was opened from play
+function keyTrialClosed(){if(!keyTrialResume)return;keyTrialResume=false;if(state==='play'&&paused&&!creating)resume();}
+function startKeyTrial(i){const id=save.character&&save.character.abilities[i];if(!id)return;
+  Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}
+    const until=Date.now()+TRIAL_MIN*60e3,lk='lv:'+LEVEL_OF(id);save.trials=save.trials||{};save.trials['key'+i]=until;save.trials[lk]=Math.max(save.trials[lk]||0,until);
+    if(PS[id])PS[id].grow=Math.max(PS[id].grow||1,TRIAL_SIZE);persist();
+    if(sheetOpen==='keytrial')closeSheet();toast(POWERS[id].name+' unlocked','LV 10 and ×'+TRIAL_SIZE+' size for the next '+TRIAL_MIN+' minutes','gold');
+    buildHotbar();buildTouchButtons();if(sheetOpen)renderSheet();});}
 // ---- timed trials (one rewarded ad = 10 minutes) ----
 function startTrial(k,label){
   Portal.show('rewarded',ok=>{if(!ok){toast('No ad right now','Try again in a little while','red');return;}
@@ -26,10 +50,10 @@ function renderTrials(){
   const B=sheetBody,ch=save.character;if(!ch)return;
   B.append(el('p',{class:'muted',text:'Watch a short ad to use something before you unlock it. Each trial lasts '+TRIAL_MIN+' minutes; levelling up unlocks it for good.'}));
   if(!Portal.ads())B.append(el('p',{class:'muted',text:'Ads are not available right now (an ad blocker may be on), so these buttons are off.'}));
-  const row=(title,sub,k,label)=>{const left=trialLeft(k);const b=el('button',{class:left?'ghost':'go',type:'button',text:left?left+' min left':'Watch ad · '+TRIAL_MIN+' min',onclick:()=>startTrial(k,label)});b.disabled=!!left||!Portal.ads();
+  const row=(title,sub,k,label)=>{const left=trialLeft(k);const b=el('button',{class:left?'ghost':'go',type:'button',text:left?left+' min left':'Watch ad · '+TRIAL_MIN+' min',onclick:()=>/^key\d$/.test(k)?startKeyTrial(+k[3]):startTrial(k,label)});b.disabled=!!left||!Portal.ads();
     B.append(el('div',{class:'upg'},el('b',{text:title}),el('div',{class:'btns'},b),el('p',{text:sub})));};
   B.append(el('h3',{text:'Power keys'}));let any=false;
-  ch.abilities.forEach((id,i)=>{if(save.level>=KIT_LV[i])return;any=true;row('Key '+(i+1)+' · '+POWERS[id].name,'Unlocks at LV '+KIT_LV[i],'key'+i,POWERS[id].name);});
+  ch.abilities.forEach((id,i)=>{if(save.level>=KIT_LV[i])return;any=true;row('Key '+(i+1)+' · '+POWERS[id].name,'Unlocks at LV '+KIT_LV[i]+' · the trial is LV 10 and ×'+TRIAL_SIZE+' size','key'+i,POWERS[id].name);});
   if(!any)B.append(el('p',{class:'muted',text:'All your power keys are unlocked.'}));
   const tv=ch.movement[0],tn=PRESETS[tv]?PRESETS[tv].name:POWERS[tv].name;
   B.append(el('h3',{text:'Traversal'}));

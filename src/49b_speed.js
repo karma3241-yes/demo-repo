@@ -7,7 +7,7 @@
 // whatever you hit in that moment lands all at once when time starts again.
 const SPD_C=[1,.82,.25],SPD_C2=[1,.45,.15];
 const isSpeed=()=>hasTrav('superSpeed')&&!P.alien;
-const dialMax=()=>hungry()?2:Math.round(PBAL?2+10*mk('superSpeed'):3+9*mk('superSpeed')); // CrazyGames: x2 at the start // x3 at the start, x12 mastered; x2 when out of calories
+const dialMax=()=>hungry()?2:Math.round(PBAL?4+8*mk('superSpeed'):3+9*mk('superSpeed')); // CrazyGames: x4 at the start // x3 at the start, x12 mastered; x2 when out of calories
 P.dial=2;P.fastMode=false;P.phasing=false;P.slowOn=false;
 let timeStopT=0,frozenT=0,slowK=0.3,tsQueue=[],tsPath=[],tsBy=null,lastStreak=null;
 function speedMult(){return isSpeed()?Math.max(1.5,Math.min(P.dial,dialMax())):pstat('superSpeed','mult');}

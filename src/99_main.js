@@ -26,7 +26,7 @@ function updateHud(dt){
     if(s.alien!==undefined){if(!P.alien)continue;const ab=ALIENS[P.alien.id].abilities[s.alien],f=ab.cd?P.alien.cds[s.alien]/ab.cd:0,v=Math.round(f*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}
       s.s.classList.toggle('on',(ab.channel&&P.alien.channel)||(ab.id==='phase'&&P.alien.phase>0)||(ab.id==='veil'&&P.invisible>0)||(ab.id==='crystalArmor'&&P.alien.armor>0));continue;}
-    if(s.i!=null&&PBAL){const L=slotLocked(s.i);s.s.classList.toggle('locked',L);if(L){const t='Unlocks at LV '+KIT_LV[s.i];if(s.lvt!==t){s.lvt=t;s.lv.textContent=t;}continue;}}
+    if(s.i!=null&&PBAL){const L=slotLocked(s.i);s.s.classList.toggle('locked',L);s.s.classList.toggle('next',L&&s.i===nextLockedSlot());if(L){const t='Unlocks at LV '+KIT_LV[s.i];if(s.lvt!==t){s.lvt=t;s.lv.textContent=t;}continue;}}
     const st=PS[s.id],c=POWERS[s.id];
     if(s.id==='morphBand'){s.s.classList.toggle('on',!!P.alien||dialOpen);s.s.classList.toggle('bad',st.flash>0);const f=band.cd>0?band.cd/pstat('morphBand','recharge'):0,v=Math.round(clamp(f,0,1)*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}continue;}

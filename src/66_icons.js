@@ -10,6 +10,7 @@ const GLYPHS={
   shirt:'<path d="M8 3l-5 3 2 4 3-1.5V21h8V8.5l3 1.5 2-4-5-3c-.5 1.8-2 3-4 3s-3.5-1.2-4-3z"/>',
   people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.7-6 6-6s6 2.4 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2c2.9.3 5 2.5 5 5.8"/>',
   gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+  steps:'<path d="M3 20h5v-5h5v-5h5V5h3"/><path d="M3 20h18"/>',
   trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8M9.5 18h5"/>',
   x2:'<path d="M4 8l6 8M10 8l-6 8"/><path d="M13.5 9.5a3 3 0 0 1 6 0c0 2.5-6 4-6 6.5h6"/>',
   refill:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M11 9.5v5M8.5 12h5"/>',

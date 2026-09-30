@@ -36,7 +36,7 @@ addEventListener('keydown',e=>{
   if(P.car)return;
   if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&P.web){swingBoost();return;}
   if(e.code==='KeyC'&&hasWeb()&&!P.grounded&&!P.flying&&spiderAirTrick())return;
-  if(e.code in SLOT_CODES){heldSlot=SLOT_CODES[e.code];abilityDown(heldSlot);guideDone('ability');return;}
+  if(e.code in SLOT_CODES){const i=SLOT_CODES[e.code];heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');return;}
   if(e.code==='KeyX'){if(P.construct&&constructX())return;dashPress();return;}
   if((e.code==='BracketRight'||e.code==='Equal'||e.code==='BracketLeft'||e.code==='Minus')&&growStep(e.code==='BracketRight'||e.code==='Equal'?1:-1))return;
   if(isSpeed()){if(e.code==='KeyF'){toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
@@ -156,7 +156,8 @@ function buildTouchButtons(){ // on CrazyGames a locked power key gets its butto
   tbtns.textContent='';if(!save.character)return;
   const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
   if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
-  else{save.character.abilities.forEach((id,i)=>{if(!(PBAL&&slotLocked(i)))B(SHORT[id]||'A'+(i+1),'a'+i,'ab');});B('PUNCH','punch','big');
+  else{save.character.abilities.forEach((id,i)=>{if(!(PBAL&&slotLocked(i)))B(SHORT[id]||'A'+(i+1),'a'+i,'ab');
+      else if(i===nextLockedSlot())B(SHORT[id]||'A'+(i+1),'a'+i,'ab lockd').appendChild(el('small',{text:'LV '+KIT_LV[i]}));});B('PUNCH','punch','big');
     for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');B('REBUILD','rebuild');}if(TRAV_STYLES[id])B('WHEEL','travdial');}}
   if(!P.alien){B('GROW','grow');B('SHRINK','shrink');} // hold a power button (or sit in a construct) and tap these to change its size
   if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
@@ -169,7 +170,7 @@ function touchAct(a,down){
   if(down&&!canAct())return;
   if(dialOpen)return;
   if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
-  else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){heldSlot=+a[1];abilityDown(+a[1]);guideDone('ability');}else{if(heldSlot===+a[1])heldSlot=-1;abilityUp(+a[1]);}}
+  else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){heldSlot=+a[1];abilityDown(+a[1]);if(!slotLocked(+a[1]))guideDone('ability');}else{if(heldSlot===+a[1])heldSlot=-1;abilityUp(+a[1]);}}
   else if(a==='con'){if(down)summonConstruct();}
   else if(a==='conpick'){if(down){if(isRing()&&ringLocked())oathBusy();else openDial(isRing()?'construct':'armor');}}
   else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
