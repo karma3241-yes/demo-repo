@@ -165,13 +165,13 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `O` | Ring Bearer: hold up the beacon and say (or type) the oath. While you're saying it, `O` or `Esc` puts it away |
 | `G` | Get in or out of a car, or help an injured person up |
 | `V` | Morph Band dial / change back (Ring Bearer: construct wheel; in a construct, tap to step out, hold for the wheel; Armored Inventor: suit forms; Web Runner, Tempest, Speedster: traversal styles) |
-| `Tab` or `K` | Skills and upgrades |
+| `K` | Skills and upgrades |
 | `J` · `I` | Change powers · Appearance |
 | `6` · `7` · `8` | Multiplayer · Settings · What you unlock |
 | `H` | Show or hide the move list |
 | `C` in water | Dive (let go, or hold `Space`, to swim back up) |
 | `L` | Lock or unlock the mouse. When it's unlocked, drag with the middle mouse button to look |
-| `Esc` / `P` | Pause (Appearance, Multiplayer, Leaderboard and Settings are here). In a multiplayer room the menu opens but the game keeps running |
+| `Tab`, `Esc` or `P` | Pause (Appearance, Multiplayer, Leaderboard and Settings are here). In a multiplayer room the menu opens but the game keeps running |
 
 **Icon bar.** Under your name (top left) is a row of icons, one for every menu: move list, skills, change powers, appearance, multiplayer, settings and what you unlock. Each icon shows its key; with the mouse locked press the key, or press `L` to free the mouse and click. In the CrazyGames build the rewards are here too: double XP (`9`), refill (`0`), try locked powers (`,`) and cosmetics (`.`).
 
@@ -185,7 +185,11 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 
 **Driving:** `W` accelerates, `S` brakes and reverses, `A` and `D` steer, `Space` is the handbrake, and `G` gets you out.
 
-On touch screens: drag on the left side to move (or drive), drag on the right side to look, and use the on-screen buttons for everything else. The USE button gets you into cars and helps people up, LOCK locks on, DASH dashes, SUIT suits up, and holding PUNCH while flying and locked on charges a punch. Each hero gets its own extra buttons (WEB, FAST/PHASE/DIAL, BUILD/PICK/ALT/OATH, GRAB+).
+**On phones and tablets** (played sideways; held upright, a screen asks you to turn the phone):
+- **Left thumb:** a joystick that appears wherever you touch the left side (it moves you, or steers a car). **Right thumb:** drag any free spot to look.
+- **Buttons** sit in rings around the big **PUNCH** button in the bottom-right corner, like Roblox. Closest: **JUMP**, your way of getting around (**FLY**, **WEB**, **RUN**, or **DIVE** in water), **DASH** and **LOCK**. While flying, JUMP and FLY become **DOWN** and **UP** (hold to climb or drop) and **LAND** appears. Next ring: your five powers with their icons and cooldowns (the next locked one greyed with its level). Outer ring: buttons that come and go with what you're doing: **USE** (get in a car, help someone up, eat), the wheel (the same as `V`), **BUILD**, **OATH**, **GROW**/**SHRINK** while you hold a power or sit in a construct, the Speedster's **FAST**, **WALLS** and **DIAL**, and **SUIT**. In a car you only get **DRIFT** and **GET OUT**.
+- **Settings → Touch buttons:** small, medium or large buttons, and a left-handed layout (buttons on the left, joystick on the right, the HUD swaps sides).
+- The construct wheel is a grid of cards on touch screens, and every wheel has a **Close** button (or tap outside it).
 
 ## The city
 
@@ -288,6 +292,7 @@ The game source lives in `src/`: numbered JavaScript modules plus an HTML/CSS sh
 | `64_portal.js`, `65_rewards.js` | CrazyGames build: gameplay events, ads, mute setting, username, cloud save, room info; power keys by level, trials, refills, cosmetics |
 | `66_icons.js`, `67_hudbar.js`, `68_markers.js` | HUD icons, the icon bar, move list and leaderboard panel; crime and recharge markers |
 | `70_ui.js`, `80_player.js` | HUD, menus, input, driving, player movement |
+| `81_touch.js` | Touch controls: joystick, button rings, touch settings, the turn-your-phone screen |
 | `90_render.js`, `99_main.js` | Camera, models, draw list, main loop |
 
 All balance numbers (powers, passives, NPCs, reputation, crime timing) live in the config objects near the top of the game script (`CONFIG`, `POWERS`, `PASSIVES`, `NPCS`, `REP`, `CRIMES`). Systems talk through a small event bus (`damaged`, `defeated`, `levelUp`), so progression and reputation only listen to combat events. See `ROADMAP.md` for what's planned next.

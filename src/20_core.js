@@ -130,7 +130,7 @@ const TRAV_STYLES={
   superSpeed:[['walk','Walk','Normal pace · Shift still runs at the speed dial'],['jog','Jog','Always running at x2'],['run','Run','Always running at half your top speed'],['top','Top speed','Always running at your top speed']],
 };
 const DEFAULT_SETTINGS={oathInput:window.__PORTAL__==='crazygames'?'type':'voice', // portals can't be counted on to allow the mic: typed there, voice still in Settings
-  micLoud:0.65,controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
+  micLoud:0.65,controls:'auto',tSize:'m',tHand:'r',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
@@ -180,6 +180,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   if(s.settings&&typeof s.settings==='object'){const t=s.settings,st=f.settings;
     if(['auto','touch','kbm'].includes(t.controls))st.controls=t.controls;
     if(['voice','type'].includes(t.oathInput))st.oathInput=t.oathInput;
+    if(['s','m','l'].includes(t.tSize))st.tSize=t.tSize;if(['r','l'].includes(t.tHand))st.tHand=t.tHand;
     for(const k of ['autoLock','invertY','shadows'])if(typeof t[k]==='boolean')st[k]=t[k];
     if(t.travStyle&&typeof t.travStyle==='object'){st.travStyle={};for(const k in TRAV_STYLES)if(TRAV_STYLES[k].some(x=>x[0]===t.travStyle[k]))st.travStyle[k]=t.travStyle[k];}
     st.sens=num(t.sens,1,0.3,3);st.volume=num(t.volume,0.7,0,1);st.micLoud=num(t.micLoud,0.65,0.2,0.95);}

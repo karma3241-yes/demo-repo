@@ -9,14 +9,15 @@ const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2,Digit4:3,Digit
 const DIAL_CODES={Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,Digit6:5,Digit7:6};
 addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
-  if(e.code==='Tab'&&(sheetOpen||state!=='play'||creating))return;
+  if(e.code==='Tab'&&(state!=='play'||creating)){e.preventDefault();return;}
   if(['Space','ArrowUp','ArrowDown','Tab'].includes(e.code))e.preventDefault();
   if(oathOpen&&!oathFree&&!touchOn()&&state==='play'&&!paused){oathKey(e);return;} // the typed oath takes every key; the spoken one leaves them to you
   const was=keys[e.code];keys[e.code]=true;if(was)return;
   if(dialOpen){if(e.code in DIAL_CODES){setDialSel(DIAL_CODES[e.code]);dialConfirm();}else if(e.code==='KeyQ'||e.code==='KeyE'||e.code==='Tab'){e.preventDefault();dialPageTurn(e.code==='KeyQ'?-1:1);}else if(e.code==='Escape'||e.code==='KeyV')closeDial();return;}
   if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(ringLocked()&&state==='play'&&!paused){closeOath();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
   if(state!=='play')return;
-  if(e.code==='Tab'||e.code==='KeyK'){if(sheetOpen==='skills')closeSheet();else openSheet('skills');return;}
+  if(e.code==='Tab'){if(paused)resume();else{if(sheetOpen)closeSheet();setPaused(true);}return;} // Tab opens and closes the menu (Esc also leaves fullscreen on game portals)
+  if(e.code==='KeyK'){if(sheetOpen==='skills')closeSheet();else openSheet('skills');return;}
   {const hb=HUDBAR_KEYS[e.code];if(hb&&!creating&&!(hb.off&&hb.off())&&!(hb.hide&&hb.hide())){hb.act();return;}} // the HUD icon bar's keys
   if(e.code==='KeyP'){setPaused(!paused);return;}
   if(e.code==='KeyL'){toggleLock();return;}
@@ -60,7 +61,7 @@ canvas.addEventListener('mousedown',e=>{
   if(paused){if(!sheetOpen&&!creating)resume();return;}
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
-  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+  if(e.button===0){if(!locked&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
   else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
@@ -70,7 +71,7 @@ addEventListener('wheel',e=>{if(state!=='play'||paused||Math.abs(e.deltaY)<=1)re
 function growStep(dir){if(heldSlot>=0&&save.character&&!P.alien&&save.character.abilities[heldSlot])return skillGrowStep(heldSlot,dir);if(P.construct)return conGrowStep(dir);return false;}
 addEventListener('mousemove',e=>{if(state!=='play'||paused||touchOn())return;if(dialOpen){if(locked)dialMove(e.movementX,e.movementY);return;}if(locked||mmbLook||rmbLook)look(e.movementX,e.movementY);});
 function requestLock(){if(touchOn())return;try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
-function lockFail(){lockFailed=true;if(!lockHint){lockHint=true;toast('Mouse lock not available here','Hold the middle mouse button and drag to look','cyan');}}
+function lockFail(){lockFailed=true;if(time-(P.lockFailT||-9)>4){P.lockFailT=time;toast('Click the game to lock the mouse','Or hold the middle mouse button and drag to look','cyan');}} // browsers refuse a lock right after one ends: the next click tries again
 function toggleLock(){if(touchOn())return;if(locked){manualUnlock=true;document.exitPointerLock();toast('Mouse unlocked','Middle-drag to look · press L to lock again','cyan');}else{lockFailed=false;requestLock();}}
 document.addEventListener('pointerlockchange',()=>{const now=document.pointerLockElement===canvas;
   if(!now&&locked&&state==='play'&&!paused&&!manualUnlock&&!sheetOpen&&!dialOpen&&!creating)setPaused(true);
@@ -125,7 +126,7 @@ function enterCar(v){
     addRep(v.vtype==='police'?-10:-5);addWanted(v.vtype==='police'?4:1.5,150);feed('Carjacked',v.vtype==='police'?'-10 rep · the police want their car back':'-5 rep');}
   if(v.driver)ejectDriver(v);if(v.crime&&v.state==='flee'){v.escaped=false;}
   stopAllPowers();P.car=v;v.state='player';v.spd=v.state==='road'?v.maxSpd*0.5:0;v.siren=false;P.flying=false;P.charging=false;
-  if(!save.guide.car){save.guide.car=true;toast('Driving','W and S to drive, A and D to steer, Space to drift, G to get out','cyan');}
+  if(!save.guide.car){save.guide.car=true;toast('Driving',touchOn()?'Steer with the joystick, DRIFT to slide, GET OUT to leave':'W and S to drive, A and D to steer, Space to drift, G to get out','cyan');}
   SFX.tone('square',120,90,0.2,0.08);
 }
 function exitCar(forced){
@@ -134,68 +135,8 @@ function exitCar(forced){
   const c=Math.cos(v.yaw),s=Math.sin(v.yaw);P.pos.set(v.pos.x-c*2.4,v.pos.y+0.3,v.pos.z+s*2.4);
   const sp=v.spd||0;P.vel.set(Math.sin(v.yaw)*sp*0.5,forced?10:2,Math.cos(v.yaw)*sp*0.5);v.spd=0;P.grounded=false;SFX.setEngine(false,0);
 }
-// touch controls
-const tl=$('tlayer'),stick=$('stick'),knob=$('knob'),tbtns=$('tbtns');let stickId=null,lookId=null,sx0=0,sy0=0,lx=0,ly=0;
-tl.addEventListener('pointerdown',e=>{if(state!=='play'||paused)return;e.preventDefault();
-  if(e.clientX<innerWidth*0.42&&stickId===null){stickId=e.pointerId;sx0=e.clientX;sy0=e.clientY;stick.style.left=sx0+'px';stick.style.top=sy0+'px';stick.classList.add('on');}
-  else if(lookId===null){lookId=e.pointerId;lx=e.clientX;ly=e.clientY;}
-  try{tl.setPointerCapture(e.pointerId);}catch(err){}});
-tl.addEventListener('pointermove',e=>{
-  if(e.pointerId===stickId){let dx=e.clientX-sx0,dy=e.clientY-sy0;const l=Math.hypot(dx,dy),R=56;if(l>R){dx*=R/l;dy*=R/l;}knob.style.transform=`translate(${dx}px,${dy}px)`;touchIn.x=dx/R;touchIn.y=-dy/R;}
-  else if(e.pointerId===lookId){look(e.clientX-lx,e.clientY-ly,2.2);lx=e.clientX;ly=e.clientY;}});
-const endTouch=e=>{if(e.pointerId===stickId){stickId=null;touchIn.x=touchIn.y=0;knob.style.transform='';stick.style.left='';stick.style.top='';stick.classList.remove('on');}if(e.pointerId===lookId)lookId=null;};
-tl.addEventListener('pointerup',endTouch);tl.addEventListener('pointercancel',endTouch);
+// touch controls live in 81_touch.js; the short power names on their buttons:
 const SHORT={sonicScream:'SCREAM',quakeStomp:'QUAKE',meteorStrike:'METEOR',forcePush:'PUSH',chainLightning:'CHAIN',healingPulse:'HEAL',invisibility:'CLOAK',vineSnare:'SNARE',shadowStep:'STEP',plasmaWhip:'WHIP',bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'PULSE',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
-function bindTouchBtn(b,act){
-  b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{b.setPointerCapture(e.pointerId);}catch(err){}b.classList.add('down');touchAct(act,true);});
-  const up=()=>{if(!b.classList.contains('down'))return;b.classList.remove('down');touchAct(act,false);};
-  b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('contextmenu',e=>e.preventDefault());
-}
-bindTouchBtn($('tpause'),'pause');
-function buildTouchButtons(){ // on CrazyGames a locked power key gets its button when it unlocks (level-ups rebuild these)
-  tbtns.textContent='';if(!save.character)return;
-  const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
-  if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
-  else{save.character.abilities.forEach((id,i)=>{if(!(PBAL&&slotLocked(i)))B(SHORT[id]||'A'+(i+1),'a'+i,'ab');
-      else if(i===nextLockedSlot())B(SHORT[id]||'A'+(i+1),'a'+i,'ab lockd').appendChild(el('small',{text:'LV '+KIT_LV[i]}));});B('PUNCH','punch','big');
-    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');B('REBUILD','rebuild');}if(TRAV_STYLES[id])B('WHEEL','travdial');}}
-  if(!P.alien){B('GROW','grow');B('SHRINK','shrink');} // hold a power button (or sit in a construct) and tap these to change its size
-  if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
-  if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
-  if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
-  B('SUIT','suit');B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
-}
-function touchAct(a,down){
-  if(a==='pause'){if(down&&state==='play')setPaused(true);return;}
-  if(down&&!canAct())return;
-  if(dialOpen)return;
-  if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
-  else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){heldSlot=+a[1];abilityDown(+a[1]);if(!slotLocked(+a[1]))guideDone('ability');}else{if(heldSlot===+a[1])heldSlot=-1;abilityUp(+a[1]);}}
-  else if(a==='con'){if(down)summonConstruct();}
-  else if(a==='conpick'){if(down){if(isRing()&&ringLocked())oathBusy();else openDial(isRing()?'construct':'armor');}}
-  else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
-  else if(a==='alt'){constructAlt(down);}
-  else if(a==='cx'){if(down)constructX();}
-  else if(a==='rebuild'){if(down)ringRebuild();}
-  else if(a==='grow'||a==='shrink'){if(down)growStep(a==='grow'?1:-1);}
-  else if(a==='jump'){keys.Space=down;if(down)pressJump();else releaseJump();}
-  else if(a==='speed')keys.ShiftLeft=down;
-  else if(a==='down')keys.KeyC=down;
-  else if(a==='fly'){if(down){if(!flyChargeStart())toggleFlight();}else flyChargeRelease();}
-  else if(a==='web'){if(down)webPress();else webRelease();}
-  else if(a==='use'){if(down)interact();}
-  else if(a==='band'){if(down)bandPress();}
-  else if(a==='travdial'){if(down&&hasTravWheel())openDial('trav');}
-  else if(a==='fast'){if(down)toggleFastMode();}
-  else if(a==='tkmore'){if(down)tkGrabMore();}
-  else if(a==='suit'){if(down)suitToggle();}
-  else if(a==='phase'){if(down)togglePhase();}
-  else if(a==='dialup'){if(down)turnDial(1);}
-  else if(a==='dialdn'){if(down)turnDial(-1);}
-  else if(a==='lock'){if(down)lockToggle();}
-  else if(a==='dash'){if(down)dashPress();}
-}
-function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch',t);$('touch').hidden=!(t&&state==='play');$('menu-controls').hidden=t;$('menu-touch').hidden=!t;}
 
 // ================================================================
 // Player controller: Grounded | Airborne | Flying | Speeding | WallClimbing | Swinging | Driving

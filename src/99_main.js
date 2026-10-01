@@ -6,7 +6,7 @@ function setText(e,k,v){if(lastHud[k]!==v){lastHud[k]=v;e.textContent=v;}}
 function setW(e,k,v){v=Math.round(clamp(v,0,1)*1000)/10;if(lastHud[k]!==v){lastHud[k]=v;e.style.width=v+'%';}}
 function updateHud(dt){
   if(state!=='play')return;
-  buildHudbar();updateHudbar();
+  buildHudbar();updateHudbar();updateTouchHud();
   const t=repTier(save.reputation);
   setText(hud.htier,'tier',t.name);if(lastHud.tf!==t.faction){lastHud.tf=t.faction;hud.htier.style.color=FACTION_COL[t.faction];}
   setText(hud.lvl,'lvl','LV '+save.level);setW(hud.xpb,'xp',save.xp/xpNeed());
@@ -46,7 +46,7 @@ function updateHud(dt){
   if(boss&&!boss.leave){hud.bossbar.hidden=false;setText(hud.bossname,'bn',boss.name);setW(hud.bossb,'boss',boss.hp/boss.maxHp);}else hud.bossbar.hidden=true;
   updateMoves();
   updateGrowTut();
-  const tb=$('touch');if(!tb.hidden){const dn=tbtns.querySelector('.dn');if(dn)dn.hidden=!P.flying;const u=tbtns.querySelector('.use');if(u){u.classList.toggle('dim',!it);const t=it?it.kind==='exit'?'EXIT':it.kind==='car'?'CAR':'HELP':'USE';if(u.textContent!==t)u.textContent=t;}}
+  // the touch buttons follow what you're doing in updateTouchHud (81_touch.js)
   if(lastHud.alien!==(P.alien?P.alien.id:'')){lastHud.alien=P.alien?P.alien.id:'';buildHotbar();buildTouchButtons();}
   setText($('online'),'online',MP.status());
   drawMinimap(P.yaw);drawLockMark();
@@ -74,7 +74,7 @@ $('p-skills').addEventListener('click',()=>openSheet('skills'));$('p-look').addE
 $('p-lb').addEventListener('click',()=>openSheet('lb'));if(PBAL)$('m-lb').hidden=$('p-lb').hidden=true; // no leaderboard on CrazyGames (see 67_hudbar.js)$('p-set').addEventListener('click',()=>openSheet('set'));
 $('create-x').addEventListener('click',closeCreator);
 $('p-powers').addEventListener('click',tryRechoose);
-$('dial').addEventListener('click',e=>{if(e.target.id==='dial')closeDial();});
+
 let last=performance.now(),saveT=0;
 function frame(now){
   requestAnimationFrame(frame);
@@ -109,3 +109,4 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   Portal,SFX,applyLook,rings,makeRemote,applyPresence,FLAG,updateTags,spawnMech,fireProj,mechPoint,get parks(){return typeof parks!=="undefined"?parks:null;},travStyle,setTravStyle,hasTravWheel,masteryLevel,PRESETS,get growTutOn(){return growTutOn;},respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
+if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto}));

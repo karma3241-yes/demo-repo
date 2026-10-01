@@ -16,7 +16,8 @@ function placeMark(n,x,y,z,icon,col,label,cls,short){
   const p=fz>0.5?project(x,y,z):null;let sx,sy,edge=false,ang=0;
   if(p&&p[0]>36&&p[0]<W-36&&p[1]>60&&p[1]<H-40){sx=p[0];sy=p[1];}
   else{edge=true;ang=Math.atan2(-uy,rx);if(fz<=0&&Math.abs(rx)<Math.abs(uy)*0.2)ang=Math.PI/2; // straight behind you: point down
-    const hw=W/2-40,hh=H/2-64,ux=Math.cos(ang),vy=Math.sin(ang),t=Math.min(hw/Math.max(Math.abs(ux),1e-4),hh/Math.max(Math.abs(vy),1e-4));sx=W/2+ux*t;sy=H/2+vy*t;}
+    // on touch screens the edge pins stay between the left HUD column and the buttons
+    const lh=touchOn()&&save.settings.tHand==='l',L=touchOn()?(lh?Math.min(300,W*0.4):200):40,Rm=touchOn()?(lh?200:Math.min(300,W*0.4)):40,mid=(L+W-Rm)/2,hw=Math.max(40,(W-Rm-L)/2),hh=H/2-64,ux=Math.cos(ang),vy=Math.sin(ang),t=Math.min(hw/Math.max(Math.abs(ux),1e-4),hh/Math.max(Math.abs(vy),1e-4));sx=mid+ux*t;sy=H/2+vy*t;}
   m.t.hidden=false;m.t.style.transform=`translate(${sx.toFixed(1)}px,${sy.toFixed(1)}px) translate(-50%,${edge?'-14px':'-100%'})`;
   const key=icon+'|'+col+'|'+cls+'|'+edge;if(m.key!==key){m.key=key;m.b.textContent=icon;m.t.style.setProperty('--c',col);m.t.className='mk'+(cls?' '+cls:'')+(edge?' edge':'');}
   if(edge)label=short; // at the screen edge only the distance, so it never runs off the screen

@@ -67,5 +67,5 @@ function renderHeroKeys(){
     if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
     if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
     K('U','Suit up or down');}
-  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('8','What you unlock, level by level');K('L','Free the mouse to click the icons');K('Esc','Pause');if(!PBAL)K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
+  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('8','What you unlock, level by level');K('L','Free the mouse to click the icons');K('Tab · Esc','Menu (pause)');if(!PBAL)K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
 }

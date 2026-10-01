@@ -260,7 +260,7 @@ function openOath(){
   const tch=touchOn();oathIn.readOnly=!tch;oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';
   $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the beacon away')
     :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the beacon away.');
-  $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;
+  $('oath-next').hidden=!save.oathKnown||!tch;$('oath-next').textContent=touchOn()?'Next word':'Next word (Tab)';P.lantern=true;
   if(!vo){P.charging=false;for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);}
   SFX.tone('sine',200,400,0.6,0.08);
   if(vo){oathIn.placeholder='Listening… say the oath out loud';oathFreeHands();voiceOathStart();if(!voiceRec)oathTyped();else{micOn('oath');$('oath-lvl').hidden=false;micShow();}}

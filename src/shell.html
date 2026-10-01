@@ -50,7 +50,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hi
 #enm.cal .bar.en i{background:linear-gradient(90deg,#c88a12,#ffe14d)}#enm.cal span b{color:#ffe14d}
 #enm.low span b{animation:lowBlink .8s steps(2) infinite}@keyframes lowBlink{50%{opacity:.35}}
 .slot.dim{opacity:.38}
-#hud{position:fixed;inset:0;pointer-events:none;font-variant-numeric:tabular-nums}
+#hud{position:fixed;inset:0;z-index:3;pointer-events:none;font-variant-numeric:tabular-nums} /* above the touch layer so the icon bar can be tapped */
 .hud-tl{position:absolute;top:16px;left:16px;padding:10px 12px;display:grid;gap:7px;min-width:220px}
 .who{display:flex;align-items:baseline;gap:10px;justify-content:space-between}
 .who b{font-size:15px;font-weight:700}
@@ -189,28 +189,39 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--energy);flex:none
 .pick.on{border-color:var(--gold);background:rgba(255,201,60,.12);box-shadow:0 0 0 1px var(--gold) inset}
 #touch{position:fixed;inset:0;z-index:2}
 #tlayer{position:absolute;inset:0;touch-action:none}
-#stick{position:absolute;left:84px;top:calc(100% - 92px);width:108px;height:108px;margin:-54px 0 0 -54px;border-radius:50%;border:2px solid rgba(255,255,255,.25);background:rgba(8,12,24,.25);pointer-events:none;opacity:.55}
+#stick{position:absolute;left:84px;top:calc(100% - 92px);width:108px;height:108px;margin:-54px 0 0 -54px;border-radius:50%;border:2px solid rgba(255,255,255,.25);background:rgba(8,12,24,.25);pointer-events:none;opacity:.4}
 #stick.on{opacity:1}
 #knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(233,243,255,.55)}
-#tbtns{position:absolute;right:14px;bottom:18px;display:grid;grid-template-columns:repeat(3,60px);gap:9px;pointer-events:none;direction:rtl}
-.tb{pointer-events:auto;touch-action:none;width:60px;height:60px;border-radius:50%;border:1px solid var(--edge);background:rgba(8,12,24,.55);color:var(--ink);font:700 10px var(--hud);letter-spacing:.06em;padding:0;-webkit-tap-highlight-color:transparent;direction:ltr}
-.tb.down{background:rgba(79,216,255,.45)}
-.tb.ab{background:rgba(90,169,255,.28)}
-.tb.big{background:rgba(255,61,94,.35)}
-.tb.wide{grid-column:span 3;width:auto;height:48px;border-radius:24px}
-#tpause{position:absolute;right:14px;top:14px;width:44px;height:44px;border-radius:8px}
+/* touch buttons: placed by layoutTouch (81_touch.js) on rings around PUNCH */
+#tbtns{position:absolute;inset:0;pointer-events:none}
+.tb{position:absolute;pointer-events:auto;touch-action:none;display:grid;place-items:center;align-content:center;padding:0;border-radius:50%;border:1.5px solid rgba(233,243,255,.32);background:rgba(8,12,24,.5);color:var(--ink);font:700 9px var(--hud);letter-spacing:.04em;text-transform:uppercase;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 8px rgba(0,0,0,.35);overflow:hidden;transition:transform .06s}
+.tb .ico{position:relative;width:calc(var(--s,56px)*.44);height:calc(var(--s,56px)*.44);stroke-width:2.2}.tb small{position:relative;display:block;font-size:inherit;line-height:1;margin-top:2px;max-width:92%;overflow:hidden;white-space:nowrap}
+.tb.big .ico,.tb.jmp .ico{width:calc(var(--s,56px)*.5);height:calc(var(--s,56px)*.5)}.tb small{text-shadow:0 1px 2px #000}.tb small.long{letter-spacing:0;font-size:.86em}
+.tb.down{background:rgba(79,216,255,.45);transform:scale(.93)}
+.tb.ab{background:rgba(90,169,255,.24)}.tb.trav{background:rgba(79,216,255,.2)}
+.tb.big{background:rgba(255,61,94,.42);border-color:rgba(255,150,170,.6)}
+.tb.on{border-color:var(--gold);box-shadow:0 0 12px rgba(255,201,60,.55) inset}
+.tb .cd{position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(0,0,0,.62) var(--p,0%),transparent 0)}
+#tpause{position:absolute;right:calc(10px + var(--safe-r));top:calc(8px + var(--safe-t));width:44px;height:44px;border-radius:10px;display:grid;place-items:center}
+#tpause .ico{width:20px;height:20px}
+:root{--safe-t:env(safe-area-inset-top,0px);--safe-r:env(safe-area-inset-right,0px);--safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px)}
+#safeprobe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l)}
+/* phones are played sideways */
+#rotate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:24px;text-align:center;background:var(--bg)}
+#rotate .ico{width:72px;height:72px;color:var(--gold);animation:rot 2.4s ease-in-out infinite}#rotate b{display:block;margin-top:14px;font:400 22px var(--display);letter-spacing:.04em}#rotate span{display:block;margin-top:6px;color:var(--ink-dim);font-size:14px}
+@keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
 body.touch #keys,body.touch #prompt,body.touch #clock,body.touch #mode{display:none}
 body.touch .hud-tr{top:8px;right:auto;left:50%;transform:translateX(-50%);background:rgba(4,8,18,.55);padding:3px 8px;text-align:center}body.touch .hud-tr:has(#online:empty){display:none}
-body.touch .hud-tl{top:10px;left:10px;padding:7px 9px;min-width:0;width:176px;box-sizing:border-box;gap:5px}
+body.touch .hud-tl{top:calc(10px + var(--safe-t));left:calc(10px + var(--safe-l));padding:7px 9px;min-width:0;width:176px;box-sizing:border-box;gap:5px}
 body.touch .stats{gap:2px 8px;font-size:10px;letter-spacing:.05em}
-body.touch .hud-bc{top:108px;bottom:auto;left:10px;transform:none;width:176px;justify-items:stretch}
+body.touch .hud-bc{top:calc(108px + var(--safe-t));bottom:auto;left:calc(10px + var(--safe-l));transform:none;width:176px;justify-items:stretch}
 body.touch .meters{grid-template-columns:1fr;gap:6px;padding:7px 9px}
 body.touch .hotbar{display:none}
-body.touch #map{top:192px;bottom:auto;left:10px;width:104px;height:104px}
-body.touch #toasts{top:36%;left:50%;width:min(340px,calc(100% - 32px))}
+body.touch #map{top:calc(192px + var(--safe-t));bottom:auto;left:calc(10px + var(--safe-l));width:104px;height:104px}
+body.touch #toasts{top:max(26%,134px);left:45%;width:clamp(220px,calc(100% - 540px),320px)}
 body.touch .who{flex-wrap:wrap;gap:0 8px}
 body.touch .toast b{font-size:15px}body.touch .toast span{font-size:10px}
-body.touch #feed{right:12px;top:72px;transform:none;max-width:200px}
+body.touch #feed{left:50%;right:auto;top:calc(52px + var(--safe-t));bottom:auto;transform:translateX(-50%);justify-items:center;text-align:center;width:max-content;max-width:min(300px,calc(100% - 440px))}body.touch #feed .fline:nth-last-child(n+4){display:none}body.touch .fline{text-align:center}body.touch .fline b{font-size:13px}body.touch .fline span{font-size:11px}
 body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 290px))}
 @media (max-height:520px){body.touch #map{display:none}}
 @media (max-width:1100px){#keys:not(.pin){display:none}}
@@ -243,6 +254,20 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
 #dial.all #dial-ring{width:min(780px,96vw,94vh)}#dial.all #dial-ring::after{width:12%;height:12%}.dslot.mini{width:clamp(62px,12%,98px);padding:5px 4px;gap:1px;border-radius:8px}.dslot.mini b{font-size:11px;letter-spacing:.02em}.dslot.mini small{font-size:9px}
 #dial-ring .dpage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;max-width:20%;padding:6px 8px;border-radius:8px;border:1px solid rgba(93,255,134,.5);background:rgba(6,26,12,.85);color:#c9ffd8;font:700 10px var(--hud);letter-spacing:.08em}
 #dial-info{color:#c9ffd8}
+/* touch: the 25-construct wheel is a grid of cards you tap (a circle that size is too crowded on a phone) */
+body.touch #dial.all{align-content:start;padding:calc(10px + var(--safe-t)) calc(10px + var(--safe-r)) 10px calc(10px + var(--safe-l));overflow:hidden}
+body.touch #dial.all #dial-ring{width:min(100%,960px);aspect-ratio:auto;max-height:calc(100vh - 54px);overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;padding:8px;box-sizing:border-box;border-radius:14px}
+body.touch #dial.all #dial-ring::after,body.touch #dial.all .dpage{display:none}
+body.touch #dial.all .dslot{position:static;transform:none;width:auto;min-height:48px;padding:6px 4px}body.touch #dial.all .dslot.sel{transform:none}body.touch #dial.all .dslot.mini b{font-size:12px}
+/* touch: the oath sits at the top, clear of the phone's keyboard and the buttons */
+body.touch #oath{top:calc(52px + var(--safe-t));bottom:auto;width:min(560px,calc(100% - 24px));padding:10px 12px}body.touch #oath p{font-size:14px;margin-bottom:6px}
+body.touch #oath.mini{left:50%;right:auto;transform:translateX(-50%);text-align:center;width:clamp(260px,calc(100% - 400px),440px);padding:8px 10px;background:rgba(4,8,18,.78);border:1px solid rgba(93,255,134,.4);border-radius:12px}body.touch #oath.mini p{color:rgba(233,243,255,.75)}body.touch #oath-next{min-height:40px;padding:0 16px}body.touch #oath input{min-height:40px}
+/* left-handed touch layout: the buttons go bottom-left, so the HUD column, icon bar and pause swap to the right */
+body.touch.lefty .hud-tl,body.touch.lefty .hud-bc,body.touch.lefty #map,body.touch.lefty #guide,body.touch.lefty #growtut{left:auto;right:calc(10px + var(--safe-r))}
+body.touch.lefty #hudbar{right:auto;left:calc(62px + var(--safe-l));justify-content:flex-start}body.touch.lefty #tpause{right:auto;left:calc(10px + var(--safe-l))}
+body.touch.lefty #toasts{left:55%}body.touch.lefty #dial-x{right:auto;left:calc(12px + var(--safe-l))}
+#dial-x{display:none}body.touch #dial-x{display:block;position:absolute;right:calc(12px + var(--safe-r));top:calc(10px + var(--safe-t));z-index:2}body.touch #dial.all #dial-ring{width:min(calc(100% - 96px),960px);justify-self:start}
+body.touch #dial.all #dial-info{position:static;transform:none;margin-top:8px;font-size:11px}
 #oath{position:fixed;left:50%;bottom:max(120px,16vh);transform:translateX(-50%);z-index:6;width:min(640px,calc(100% - 32px));padding:16px 18px;box-sizing:border-box;text-align:center;border:1px solid rgba(93,255,134,.45);box-shadow:0 0 40px rgba(93,255,134,.25)}
 #oath.mini{left:auto;right:16px;bottom:max(140px,19vh);transform:none;width:min(320px,calc(100% - 32px));padding:0;text-align:right;background:none;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}#oath.mini h3{display:none}#oath.mini p{font-size:13px;margin:0 0 4px;color:rgba(233,243,255,.55);text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.7)}body:not(.touch) #oath.mini input{display:none}#oath.mini input{padding:6px 8px;font-size:13px}#oath.mini small{margin-top:2px;text-shadow:0 1px 3px #000}#oath.mini button{padding:4px 10px;font-size:11px}
 #oath h3{margin:0 0 8px;font-size:12px;letter-spacing:.24em;color:#8dffb0;font-weight:600}#oath p{margin:0 0 10px;font-size:17px;line-height:1.5;color:rgba(233,243,255,.45)}#oath p b{color:#b6ffca;font-weight:600;text-shadow:0 0 12px rgba(93,255,134,.7)}
@@ -259,7 +284,7 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #xquiz .xq-foot{margin-top:10px;font-size:12px;letter-spacing:.12em;color:var(--ink-dim)}
 #xquiz[data-mode="lock"]{top:max(90px,12vh);bottom:auto;width:auto;min-width:240px;padding:10px 16px;pointer-events:none;border-color:rgba(255,92,110,.5);box-shadow:0 0 30px rgba(255,60,80,.25)}
 #xquiz[data-mode="lock"] .xq-head{color:#ffb3bd}#xquiz[data-mode="lock"] .xq-foot{margin-top:4px;font-size:14px;color:var(--ink)}
-.slot.locked{display:none}.slot.locked.next{display:grid;opacity:.5;filter:grayscale(1);pointer-events:auto;cursor:pointer}.tb.lockd{opacity:.45;filter:grayscale(1);background:rgba(120,130,150,.25)}.tb small{display:block;font-size:8px;letter-spacing:.04em;opacity:.9}
+.slot.locked{display:none}.slot.locked.next{display:grid;opacity:.5;filter:grayscale(1);pointer-events:auto;cursor:pointer}.tb.lockd{opacity:.5;filter:grayscale(1);background:rgba(120,130,150,.25)}
 .ktrial{display:flex;gap:12px;align-items:center}.ktrial .pico{width:40px;height:40px;flex:none}.ktrial b{display:block;font-size:16px}.ktrial span{font-size:13px;color:var(--ink-dim)}
 .ktrial-b{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .unl{display:grid;grid-template-columns:auto 26px 1fr;gap:4px 10px;align-items:center;padding:7px 0;border-top:1px solid rgba(255,255,255,.07);color:var(--ink-dim)}
@@ -280,6 +305,11 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #growtut h4{margin:0 0 4px;font:400 20px var(--display);letter-spacing:.06em;color:#5dff86}#growtut p{margin:0;font-size:14px;line-height:1.4}
 .gt-wheel{width:22px;height:34px;margin:8px auto 0;border:2px solid var(--ink);border-radius:12px;position:relative}.gt-wheel i{position:absolute;left:50%;top:6px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:#5dff86;animation:gtscroll 1s ease-in-out infinite}
 body.touch .gt-wheel{display:none}
+/* touch: the grow tip takes Getting started's place in the left column */
+body.touch #growtut{left:calc(10px + var(--safe-l));top:310px;transform:none;width:176px;max-width:none;padding:7px 9px;text-align:left}body.touch #growtut h4{font-size:15px}body.touch #growtut p{font-size:12px}
+body.touch #growtut:not([hidden])~#guide{display:none}
+@media (max-height:700px){body.touch #guide li{display:none}body.touch #guide li:not(.done){display:grid}body.touch #guide li:not(.done)~li{display:none}}
+@media (max-height:520px){body.touch #growtut{top:186px}}
 @keyframes gtpulse{50%{box-shadow:0 0 40px rgba(93,255,134,.6)}}@keyframes gtscroll{0%{transform:translateY(10px);opacity:0}40%{opacity:1}100%{transform:translateY(-4px);opacity:0}}
 #guide-more{margin:8px 0 0;font-size:11px;color:var(--ink-dim);letter-spacing:.04em}body.touch #guide-more{display:none}
 #guide li span{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
@@ -293,10 +323,10 @@ body.touch .gt-wheel{display:none}
 .hbtn .dot{position:absolute;right:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);display:none}.hbtn.badge .dot{display:block}
 .hbtn:hover::after{content:attr(data-tip);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);white-space:nowrap;padding:4px 8px;font:600 12px var(--hud);color:var(--ink);background:rgba(4,8,18,.92);border:1px solid var(--edge);border-radius:6px;pointer-events:none;z-index:3}
 #hb-xp{color:var(--gold)}#hb-refill{color:#7dffb0}#hb-trials{color:#c89bff}#hb-cos{color:#ff9bd2}
-body.touch #hudbar{top:8px!important;left:auto;right:66px;max-width:calc(100% - 290px);justify-content:flex-end}body.touch .hbtn{width:36px;height:36px}body.touch .hbtn kbd,body.touch .hbtn.kbm{display:none}
+body.touch #hudbar{top:calc(8px + var(--safe-t))!important;left:auto;right:calc(62px + var(--safe-r));max-width:calc(100% - 290px);justify-content:flex-end}body.touch .hbtn{width:40px;height:40px}body.touch .hbtn kbd,body.touch .hbtn.kbm{display:none}
 .ico{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pick .pico{width:28px;height:28px;margin-bottom:2px}
-body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176px;padding:7px 9px}body.touch #guide li{font-size:11px}
+body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l));top:calc(310px + var(--safe-t));width:176px;padding:7px 9px}body.touch #guide li{font-size:11px}
 /* small desktop frames (CrazyGames 800x450 / 821x462 / 907x510): smaller minimap and hotbar, Getting started shows just the
    next step, and the feed moves up out of the hotbar's way */
 @media (max-height:560px){
@@ -312,9 +342,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 /* phones in landscape: five smaller columns keep the buttons under the icon bar, and Getting started shows just the next step
    where the minimap was (the minimap is hidden at this height) */
 @media (max-height:520px){
-  body.touch #tbtns{grid-template-columns:repeat(5,46px);gap:6px;right:10px;bottom:10px}body.touch .tb{width:46px;height:46px;font-size:9px;letter-spacing:.03em}
-  body.touch .tb.wide{grid-column:1/-1;width:auto;height:38px}
-  body.touch #toasts{top:22%}
+  body.touch #toasts{top:max(26%,134px)}body.touch #feed .fline:nth-last-child(n+3){display:none}
   body.touch #guide{top:186px;padding:5px 8px}body.touch #guide h4{margin-bottom:3px;font-size:10px}
   body.touch #guide li{display:none}body.touch #guide li:not(.done){display:grid}body.touch #guide li:not(.done)~li{display:none}
 }
@@ -399,7 +427,8 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 </div>
 <div id="vig"></div>
 <div id="flash"></div>
-<div id="touch" hidden><div id="tlayer"></div><div id="stick"><div id="knob"></div></div><div id="tbtns"></div><button class="tb" id="tpause" type="button" aria-label="Pause">II</button></div>
+<div id="touch" hidden><div id="tlayer"></div><div id="stick"><div id="knob"></div></div><div id="tbtns"></div><button class="tb" id="tpause" type="button" aria-label="Pause"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button></div><div id="safeprobe"></div>
+<div id="rotate" hidden><div><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg><b>Turn your phone sideways</b><span>Skyline Guardian is played in landscape.</span></div></div>
 
 <div id="menu" class="overlay">
   <div class="menu-inner">
@@ -409,7 +438,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
     <div class="controls" id="menu-controls">
       <div><kbd>WASD</kbd> Move</div><div><kbd>Mouse</kbd> Look</div>
       <div><kbd>Click</kbd> Punch</div><div><kbd>1–5</kbd> Abilities</div>
-      <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Skills</div>
+      <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Menu · <kbd>K</kbd> Skills</div>
       <div><kbd>Z</kbd> Lock on · <kbd>X</kbd> Dash</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
     </div>
     <p class="muted" id="menu-touch" hidden>Left side: move · right side: look · buttons: fight and fly.</p>
@@ -427,7 +456,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 </div></div>
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
 <div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
-<div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div></div>
+<div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div><button class="ghost" id="dial-x" type="button">Close</button></div>
 <div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><div id="oath-lvl" class="miclvl" hidden><i></i><b></b></div><small id="oath-note">Esc to put the beacon away</small></div>
 <div id="dead" class="overlay" hidden><div><p class="big">Knocked out</p><p class="sub" id="deads"></p></div></div>
 <div id="nogl" class="overlay" hidden><div><p class="big">No WebGL 2</p><p class="sub">This browser can't run the game. Try a recent Chrome, Edge, Firefox or Safari.</p></div></div>

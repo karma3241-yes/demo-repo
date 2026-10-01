@@ -95,7 +95,7 @@ function addXP(n){
   while(save.level<CONFIG.progression.levelCap&&save.xp>=xpNeed()){save.xp-=xpNeed();save.level++;save.sp+=CONFIG.progression.spPerLevel;ups++;}
   if(ups){
     P.hp=maxHp();P.en=maxEn();
-    toast('Level '+save.level,'+'+ups*CONFIG.progression.spPerLevel+' skill points · '+(touchOn()?'open Skills from the pause menu':'press Tab to spend them'),'gold');
+    toast('Level '+save.level,'+'+ups*CONFIG.progression.spPerLevel+' skill points · '+(touchOn()?'open Skills from the pause menu':'press K to spend them'),'gold');
     SFX.levelUp();ringFx(P.pos.x,P.pos.y+1,P.pos.z,1,30,0.8,[1,.8,.3]);burst(P.pos.x,P.pos.y+1.2,P.pos.z,60,20,1,GOLD,1.6,-4,1.5);
     persist();Bus.emit('levelUp',save.level);
   }

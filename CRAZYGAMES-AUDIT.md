@@ -99,3 +99,29 @@ to `false`, rebuild, re-upload.**
    player-hour.
 4. PEGI 12: the villain path is fine as it is.
 5. Calmer first screen: yes (done above).
+
+## Mobile pass (2026-10-01, basic-launch update)
+Audited against docs.crazygames.com Requirements (Gameplay, Technical, Quality guidelines, CrazyGames App, Common fixes),
+with a Playwright audit (overlaps between HUD panels and buttons, anything off screen, tap targets under 40 px, and buttons
+covered by something else) on 667x375, 800x360, 800x450 (CrazyGames mobile frame), 844x390, 915x412, 932x430,
+1080x607 (CrazyGames tablet frame), 1024x768 and 1180x820, for every hero preset and the states ground / flying /
+construct / holding a power / car / typed oath, plus every screen (menu, pause, all sheets, power picker, wheels, oath,
+rotate screen). Result: no overlaps, nothing off screen, no small or covered buttons, except a toast that briefly crosses
+an outer button with Large buttons on the smallest phone (toasts let taps through).
+
+| Requirement | Status | Evidence |
+| --- | --- | --- |
+| Mobile UI usable and readable (Gameplay) | Done | New touch layout (src/81_touch.js): joystick left, PUNCH-centred button rings right, contextual buttons, icons from src/66_icons.js |
+| 800x450 mobile and 1080x607 tablet frames (Gameplay) | Done | audit above |
+| Supports touch if mobile is supported (Technical) | Done | every button exercised by a tap test (move, punch, fly/up/land, wheel open/close, build, lock, car in/out, icon bar) |
+| Orientation configured in submission (Technical, mobile) | Owner | Choose **landscape** in the submission form; in portrait the game shows "Turn your phone sideways" and pauses |
+| user-select: none (Technical, mobile) | Done | html,body in src/shell.html |
+| Safe-area padding for the CrazyGames app (CrazyGames App) | Done | viewport-fit=cover; HUD, icon bar, pause, buttons and wheel offset by env(safe-area-inset-*) |
+| Resume audio on iOS after interruption (Technical, mobile) | Done | audioWake() on visibility change and on every touch (src/81_touch.js) |
+| No custom fullscreen button (Gameplay) | Done | none |
+| Avoid Escape (Quality, restricted keys) | Done | Tab now opens and closes the menu; Esc still works too |
+
+Bugs found and fixed on the way (all builds): the touch layer covered the HUD icon bar (icons could not be tapped);
+on touch a wheel could not be closed without picking something, and the tap that opened it could close it again; a
+refused mouse lock (Chrome does this right after Esc) disabled click-to-lock and L for the rest of the session.
+

@@ -137,7 +137,7 @@ function renderUnlocks(){
   if(PBAL){list('By level',ch.abilities.map((id,i)=>{const got=lv>=KIT_LV[i],tr=!got&&trialOn('key'+i);
       return {lv:KIT_LV[i],got,badge:'LV '+KIT_LV[i],icon:powerIcon(id),title:'Key '+(i+1)+' · '+POWERS[id].name,sub:got?(i?'Unlocked':'Ready from the start'):tr?'Trying it now · '+trialLeft('key'+i)+' min left':(POWERS[id].desc||'').split('. ')[0].replace(/\.$/,'')};}),'You are LV '+lv);}
   else B.append(el('h3',{text:'By level · you are LV '+lv}));
-  B.append(el('p',{class:'muted unl-foot',text:'Every level also gives you +'+sp+' skill points to upgrade your powers and passives ('+(touchOn()?'Skills in the pause menu':'Tab or K')+').'}));
+  B.append(el('p',{class:'muted unl-foot',text:'Every level also gives you +'+sp+' skill points to upgrade your powers and passives ('+(touchOn()?'Skills in the pause menu':'K')+').'}));
   // traversal mastery grows with use
   const m=ch.movement[0],ml=masteryLevel(m),mn=PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Traversal',rows=[];
   if(isRing()||armorForms()){const arm=armorForms(),by={};for(const id of CON_IDS){const C=CONSTRUCTS[id];if(!!C.armor!==arm||!(C.unlock>1))continue;(by[C.unlock]=by[C.unlock]||[]).push(C.name+(trialOn('con:'+id)?' (trying it)':''));}
@@ -278,6 +278,12 @@ function renderSettings(){
   sheetBody.append(
     el('div',{class:'field'},el('span',{text:'Controls · detected: '+(IS_TOUCH_DEVICE?'touch screen':'keyboard and mouse')}),
       el('div',{class:'lb-tabs'},...modes.map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.controls===k),text:l,onclick:()=>{s.controls=k;persist();applyTouchUI();buildHotbar();renderSheet();}})))),
+    ...(touchOn()?[
+      el('div',{class:'field'},el('span',{text:'Touch buttons · size'}),
+        el('div',{class:'lb-tabs'},...[['s','Small'],['m','Medium'],['l','Large']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.tSize===k),text:l,onclick:()=>{s.tSize=k;persist();applyTouchUI();renderSheet();}})))),
+      el('div',{class:'field'},el('span',{text:'Touch buttons · layout'}),
+        el('div',{class:'lb-tabs'},...[['r','Right-handed'],['l','Left-handed']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.tHand===k),text:l,onclick:()=>{s.tHand=k;persist();applyTouchUI();renderSheet();}}))),
+        el('p',{class:'muted',text:'Left-handed puts the buttons on the left and the joystick on the right.'}))]:[]),
     el('div',{class:'field'},el('span',{text:'Ring oath · how the Ring Bearer recites it'}),
       el('div',{class:'lb-tabs'},...[['voice','Say it out loud'],['type','Type it (Tab)']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.oathInput===k),disabled:k==='voice'&&!voiceOK(),text:l,onclick:()=>{s.oathInput=k;persist();if(k==='voice')askMic(true);renderSheet();}}))),
       el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line, and you can keep moving and fighting (no ring powers until you finish). O or Esc puts the beacon away.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
@@ -379,6 +385,8 @@ function tryRechoose(){
 // ---- Morph Band dial ----
 let dialOpen=false,dialSel=-1,dialVX=0,dialVY=0,dialKind='alien';
 const dialEl=$('dial');
+// touch: Close, or tap anywhere outside the choices
+$('dial-x').addEventListener('click',()=>closeDial());let dialAt=0;dialEl.addEventListener('click',e=>{if(performance.now()-dialAt>450&&(e.target===dialEl||(touchOn()&&e.target===$('dial-ring'))))closeDial();}); // clicking outside closes it, but not the tap that opened it
 // the radial picker is shared by the Morph Band (aliens) and the power ring (constructs)
 function dialItems(){
   if(dialKind==='trav'){const id=save.character.movement[0],cur=travStyle(id),glow=TRAV_GLOW[id]||'#4fd8ff';
@@ -401,14 +409,14 @@ function applyTravStyle(announce){
 let dialPage=0;
 function dialPageTurn(d){} // every construct is on the wheel at once now: nothing to page through
 function openDial(kind='alien',keepPage){
-  dialKind=kind;const list=dialItems();dialOpen=true;guideDone('wheel');dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');dialEl.classList.toggle('red',kind==='armor');dialEl.classList.toggle('all',kind==='construct');const ring=$('dial-ring');ring.textContent='';
+  dialKind=kind;const list=dialItems();dialOpen=true;dialAt=performance.now();guideDone('wheel');dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');dialEl.classList.toggle('red',kind==='armor');dialEl.classList.toggle('all',kind==='construct');const ring=$('dial-ring');ring.textContent='';
   const two=kind==='construct',nIn=two?DIAL_INNER:list.length; // constructs: an inner ring (mechs, flyers, rides, weapons) and an outer ring (everything newer)
   list.forEach((a,i)=>{const inner=i<nIn,k=inner?i:i-nIn,n=inner?nIn:list.length-nIn,ang=k/n*TAU-Math.PI/2,rad=two?(inner?25:43):38;
     const b=el('button',{type:'button',class:'dslot'+(two?' mini':'')+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*rad).toFixed(1)}%;top:${(50+Math.sin(ang)*rad).toFixed(1)}%`,
       onclick:()=>{if(a.on){closeDial();a.pick();}else dialTrial(a);},onmouseenter:()=>setDialSel(i)},two?null:el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:two?(a.on?a.cost+' charge':a.lock):a.on?a.blurb:a.lock}));
     b.style.setProperty('--g',a.glow);ring.appendChild(b);});
   if(kind==='construct')ring.appendChild(el('div',{class:'dpage'},'All '+list.length+' constructs'));
-  $('dial-info').textContent=kind==='trav'?'Pick how you get around · '+(presetOf(save.character)||{name:'your hero'}).name:kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · move toward the centre for the inner ring':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
+  $('dial-info').textContent=kind==='trav'?'Pick how you get around · '+(presetOf(save.character)||{name:'your hero'}).name:kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge'+(touchOn()?'':' · move toward the centre for the inner ring'):'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
 }
 function setDialSel(i){dialSel=i;for(const b of dialEl.querySelectorAll('.dslot'))b.classList.toggle('sel',+b.dataset.i===i);
   const a=dialItems()[i];if(a)$('dial-info').textContent=a.info;}
@@ -422,9 +430,9 @@ function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----
 const hasWheel=()=>!!save.character&&(isRing()||armorForms()||hasPower('morphBand')||hasTravWheel());
 const wheelWhat=()=>isRing()?'pick a construct':armorForms()?'pick a suit form':hasPower('morphBand')?'pick an alien':'pick how you get around';
-const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],
+const GUIDE=[['move','Move around','WASD to move, mouse to look',()=>'Drag the '+(save.settings.tHand==='l'?'right':'left')+' side to move'],
   ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>(isRing()?'Tap PICK':armorForms()?'Tap FORMS':hasPower('morphBand')?'Use the Morph Band power':'Tap WHEEL')+' to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
-  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
+  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press K','Tap the star icon'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
 function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
   for(const [k,t,kb,tc] of guideList()){const s=touchOn()?tc:kb;list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:typeof s==='function'?s():s})));}fitMoves();}

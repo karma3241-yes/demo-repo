@@ -50,7 +50,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hi
 #enm.cal .bar.en i{background:linear-gradient(90deg,#c88a12,#ffe14d)}#enm.cal span b{color:#ffe14d}
 #enm.low span b{animation:lowBlink .8s steps(2) infinite}@keyframes lowBlink{50%{opacity:.35}}
 .slot.dim{opacity:.38}
-#hud{position:fixed;inset:0;pointer-events:none;font-variant-numeric:tabular-nums}
+#hud{position:fixed;inset:0;z-index:3;pointer-events:none;font-variant-numeric:tabular-nums} /* above the touch layer so the icon bar can be tapped */
 .hud-tl{position:absolute;top:16px;left:16px;padding:10px 12px;display:grid;gap:7px;min-width:220px}
 .who{display:flex;align-items:baseline;gap:10px;justify-content:space-between}
 .who b{font-size:15px;font-weight:700}
@@ -189,28 +189,39 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--energy);flex:none
 .pick.on{border-color:var(--gold);background:rgba(255,201,60,.12);box-shadow:0 0 0 1px var(--gold) inset}
 #touch{position:fixed;inset:0;z-index:2}
 #tlayer{position:absolute;inset:0;touch-action:none}
-#stick{position:absolute;left:84px;top:calc(100% - 92px);width:108px;height:108px;margin:-54px 0 0 -54px;border-radius:50%;border:2px solid rgba(255,255,255,.25);background:rgba(8,12,24,.25);pointer-events:none;opacity:.55}
+#stick{position:absolute;left:84px;top:calc(100% - 92px);width:108px;height:108px;margin:-54px 0 0 -54px;border-radius:50%;border:2px solid rgba(255,255,255,.25);background:rgba(8,12,24,.25);pointer-events:none;opacity:.4}
 #stick.on{opacity:1}
 #knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(233,243,255,.55)}
-#tbtns{position:absolute;right:14px;bottom:18px;display:grid;grid-template-columns:repeat(3,60px);gap:9px;pointer-events:none;direction:rtl}
-.tb{pointer-events:auto;touch-action:none;width:60px;height:60px;border-radius:50%;border:1px solid var(--edge);background:rgba(8,12,24,.55);color:var(--ink);font:700 10px var(--hud);letter-spacing:.06em;padding:0;-webkit-tap-highlight-color:transparent;direction:ltr}
-.tb.down{background:rgba(79,216,255,.45)}
-.tb.ab{background:rgba(90,169,255,.28)}
-.tb.big{background:rgba(255,61,94,.35)}
-.tb.wide{grid-column:span 3;width:auto;height:48px;border-radius:24px}
-#tpause{position:absolute;right:14px;top:14px;width:44px;height:44px;border-radius:8px}
+/* touch buttons: placed by layoutTouch (81_touch.js) on rings around PUNCH */
+#tbtns{position:absolute;inset:0;pointer-events:none}
+.tb{position:absolute;pointer-events:auto;touch-action:none;display:grid;place-items:center;align-content:center;padding:0;border-radius:50%;border:1.5px solid rgba(233,243,255,.32);background:rgba(8,12,24,.5);color:var(--ink);font:700 9px var(--hud);letter-spacing:.04em;text-transform:uppercase;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 8px rgba(0,0,0,.35);overflow:hidden;transition:transform .06s}
+.tb .ico{position:relative;width:calc(var(--s,56px)*.44);height:calc(var(--s,56px)*.44);stroke-width:2.2}.tb small{position:relative;display:block;font-size:inherit;line-height:1;margin-top:2px;max-width:92%;overflow:hidden;white-space:nowrap}
+.tb.big .ico,.tb.jmp .ico{width:calc(var(--s,56px)*.5);height:calc(var(--s,56px)*.5)}.tb small{text-shadow:0 1px 2px #000}.tb small.long{letter-spacing:0;font-size:.86em}
+.tb.down{background:rgba(79,216,255,.45);transform:scale(.93)}
+.tb.ab{background:rgba(90,169,255,.24)}.tb.trav{background:rgba(79,216,255,.2)}
+.tb.big{background:rgba(255,61,94,.42);border-color:rgba(255,150,170,.6)}
+.tb.on{border-color:var(--gold);box-shadow:0 0 12px rgba(255,201,60,.55) inset}
+.tb .cd{position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(0,0,0,.62) var(--p,0%),transparent 0)}
+#tpause{position:absolute;right:calc(10px + var(--safe-r));top:calc(8px + var(--safe-t));width:44px;height:44px;border-radius:10px;display:grid;place-items:center}
+#tpause .ico{width:20px;height:20px}
+:root{--safe-t:env(safe-area-inset-top,0px);--safe-r:env(safe-area-inset-right,0px);--safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px)}
+#safeprobe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l)}
+/* phones are played sideways */
+#rotate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:24px;text-align:center;background:var(--bg)}
+#rotate .ico{width:72px;height:72px;color:var(--gold);animation:rot 2.4s ease-in-out infinite}#rotate b{display:block;margin-top:14px;font:400 22px var(--display);letter-spacing:.04em}#rotate span{display:block;margin-top:6px;color:var(--ink-dim);font-size:14px}
+@keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
 body.touch #keys,body.touch #prompt,body.touch #clock,body.touch #mode{display:none}
 body.touch .hud-tr{top:8px;right:auto;left:50%;transform:translateX(-50%);background:rgba(4,8,18,.55);padding:3px 8px;text-align:center}body.touch .hud-tr:has(#online:empty){display:none}
-body.touch .hud-tl{top:10px;left:10px;padding:7px 9px;min-width:0;width:176px;box-sizing:border-box;gap:5px}
+body.touch .hud-tl{top:calc(10px + var(--safe-t));left:calc(10px + var(--safe-l));padding:7px 9px;min-width:0;width:176px;box-sizing:border-box;gap:5px}
 body.touch .stats{gap:2px 8px;font-size:10px;letter-spacing:.05em}
-body.touch .hud-bc{top:108px;bottom:auto;left:10px;transform:none;width:176px;justify-items:stretch}
+body.touch .hud-bc{top:calc(108px + var(--safe-t));bottom:auto;left:calc(10px + var(--safe-l));transform:none;width:176px;justify-items:stretch}
 body.touch .meters{grid-template-columns:1fr;gap:6px;padding:7px 9px}
 body.touch .hotbar{display:none}
-body.touch #map{top:192px;bottom:auto;left:10px;width:104px;height:104px}
-body.touch #toasts{top:36%;left:50%;width:min(340px,calc(100% - 32px))}
+body.touch #map{top:calc(192px + var(--safe-t));bottom:auto;left:calc(10px + var(--safe-l));width:104px;height:104px}
+body.touch #toasts{top:max(26%,134px);left:45%;width:clamp(220px,calc(100% - 540px),320px)}
 body.touch .who{flex-wrap:wrap;gap:0 8px}
 body.touch .toast b{font-size:15px}body.touch .toast span{font-size:10px}
-body.touch #feed{right:12px;top:72px;transform:none;max-width:200px}
+body.touch #feed{left:50%;right:auto;top:calc(52px + var(--safe-t));bottom:auto;transform:translateX(-50%);justify-items:center;text-align:center;width:max-content;max-width:min(300px,calc(100% - 440px))}body.touch #feed .fline:nth-last-child(n+4){display:none}body.touch .fline{text-align:center}body.touch .fline b{font-size:13px}body.touch .fline span{font-size:11px}
 body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 290px))}
 @media (max-height:520px){body.touch #map{display:none}}
 @media (max-width:1100px){#keys:not(.pin){display:none}}
@@ -243,6 +254,20 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
 #dial.all #dial-ring{width:min(780px,96vw,94vh)}#dial.all #dial-ring::after{width:12%;height:12%}.dslot.mini{width:clamp(62px,12%,98px);padding:5px 4px;gap:1px;border-radius:8px}.dslot.mini b{font-size:11px;letter-spacing:.02em}.dslot.mini small{font-size:9px}
 #dial-ring .dpage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;max-width:20%;padding:6px 8px;border-radius:8px;border:1px solid rgba(93,255,134,.5);background:rgba(6,26,12,.85);color:#c9ffd8;font:700 10px var(--hud);letter-spacing:.08em}
 #dial-info{color:#c9ffd8}
+/* touch: the 25-construct wheel is a grid of cards you tap (a circle that size is too crowded on a phone) */
+body.touch #dial.all{align-content:start;padding:calc(10px + var(--safe-t)) calc(10px + var(--safe-r)) 10px calc(10px + var(--safe-l));overflow:hidden}
+body.touch #dial.all #dial-ring{width:min(100%,960px);aspect-ratio:auto;max-height:calc(100vh - 54px);overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;padding:8px;box-sizing:border-box;border-radius:14px}
+body.touch #dial.all #dial-ring::after,body.touch #dial.all .dpage{display:none}
+body.touch #dial.all .dslot{position:static;transform:none;width:auto;min-height:48px;padding:6px 4px}body.touch #dial.all .dslot.sel{transform:none}body.touch #dial.all .dslot.mini b{font-size:12px}
+/* touch: the oath sits at the top, clear of the phone's keyboard and the buttons */
+body.touch #oath{top:calc(52px + var(--safe-t));bottom:auto;width:min(560px,calc(100% - 24px));padding:10px 12px}body.touch #oath p{font-size:14px;margin-bottom:6px}
+body.touch #oath.mini{left:50%;right:auto;transform:translateX(-50%);text-align:center;width:clamp(260px,calc(100% - 400px),440px);padding:8px 10px;background:rgba(4,8,18,.78);border:1px solid rgba(93,255,134,.4);border-radius:12px}body.touch #oath.mini p{color:rgba(233,243,255,.75)}body.touch #oath-next{min-height:40px;padding:0 16px}body.touch #oath input{min-height:40px}
+/* left-handed touch layout: the buttons go bottom-left, so the HUD column, icon bar and pause swap to the right */
+body.touch.lefty .hud-tl,body.touch.lefty .hud-bc,body.touch.lefty #map,body.touch.lefty #guide,body.touch.lefty #growtut{left:auto;right:calc(10px + var(--safe-r))}
+body.touch.lefty #hudbar{right:auto;left:calc(62px + var(--safe-l));justify-content:flex-start}body.touch.lefty #tpause{right:auto;left:calc(10px + var(--safe-l))}
+body.touch.lefty #toasts{left:55%}body.touch.lefty #dial-x{right:auto;left:calc(12px + var(--safe-l))}
+#dial-x{display:none}body.touch #dial-x{display:block;position:absolute;right:calc(12px + var(--safe-r));top:calc(10px + var(--safe-t));z-index:2}body.touch #dial.all #dial-ring{width:min(calc(100% - 96px),960px);justify-self:start}
+body.touch #dial.all #dial-info{position:static;transform:none;margin-top:8px;font-size:11px}
 #oath{position:fixed;left:50%;bottom:max(120px,16vh);transform:translateX(-50%);z-index:6;width:min(640px,calc(100% - 32px));padding:16px 18px;box-sizing:border-box;text-align:center;border:1px solid rgba(93,255,134,.45);box-shadow:0 0 40px rgba(93,255,134,.25)}
 #oath.mini{left:auto;right:16px;bottom:max(140px,19vh);transform:none;width:min(320px,calc(100% - 32px));padding:0;text-align:right;background:none;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}#oath.mini h3{display:none}#oath.mini p{font-size:13px;margin:0 0 4px;color:rgba(233,243,255,.55);text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.7)}body:not(.touch) #oath.mini input{display:none}#oath.mini input{padding:6px 8px;font-size:13px}#oath.mini small{margin-top:2px;text-shadow:0 1px 3px #000}#oath.mini button{padding:4px 10px;font-size:11px}
 #oath h3{margin:0 0 8px;font-size:12px;letter-spacing:.24em;color:#8dffb0;font-weight:600}#oath p{margin:0 0 10px;font-size:17px;line-height:1.5;color:rgba(233,243,255,.45)}#oath p b{color:#b6ffca;font-weight:600;text-shadow:0 0 12px rgba(93,255,134,.7)}
@@ -259,7 +284,7 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #xquiz .xq-foot{margin-top:10px;font-size:12px;letter-spacing:.12em;color:var(--ink-dim)}
 #xquiz[data-mode="lock"]{top:max(90px,12vh);bottom:auto;width:auto;min-width:240px;padding:10px 16px;pointer-events:none;border-color:rgba(255,92,110,.5);box-shadow:0 0 30px rgba(255,60,80,.25)}
 #xquiz[data-mode="lock"] .xq-head{color:#ffb3bd}#xquiz[data-mode="lock"] .xq-foot{margin-top:4px;font-size:14px;color:var(--ink)}
-.slot.locked{display:none}.slot.locked.next{display:grid;opacity:.5;filter:grayscale(1);pointer-events:auto;cursor:pointer}.tb.lockd{opacity:.45;filter:grayscale(1);background:rgba(120,130,150,.25)}.tb small{display:block;font-size:8px;letter-spacing:.04em;opacity:.9}
+.slot.locked{display:none}.slot.locked.next{display:grid;opacity:.5;filter:grayscale(1);pointer-events:auto;cursor:pointer}.tb.lockd{opacity:.5;filter:grayscale(1);background:rgba(120,130,150,.25)}
 .ktrial{display:flex;gap:12px;align-items:center}.ktrial .pico{width:40px;height:40px;flex:none}.ktrial b{display:block;font-size:16px}.ktrial span{font-size:13px;color:var(--ink-dim)}
 .ktrial-b{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .unl{display:grid;grid-template-columns:auto 26px 1fr;gap:4px 10px;align-items:center;padding:7px 0;border-top:1px solid rgba(255,255,255,.07);color:var(--ink-dim)}
@@ -280,6 +305,11 @@ body.touch #xquiz .xq-opt kbd{display:none}
 #growtut h4{margin:0 0 4px;font:400 20px var(--display);letter-spacing:.06em;color:#5dff86}#growtut p{margin:0;font-size:14px;line-height:1.4}
 .gt-wheel{width:22px;height:34px;margin:8px auto 0;border:2px solid var(--ink);border-radius:12px;position:relative}.gt-wheel i{position:absolute;left:50%;top:6px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:#5dff86;animation:gtscroll 1s ease-in-out infinite}
 body.touch .gt-wheel{display:none}
+/* touch: the grow tip takes Getting started's place in the left column */
+body.touch #growtut{left:calc(10px + var(--safe-l));top:310px;transform:none;width:176px;max-width:none;padding:7px 9px;text-align:left}body.touch #growtut h4{font-size:15px}body.touch #growtut p{font-size:12px}
+body.touch #growtut:not([hidden])~#guide{display:none}
+@media (max-height:700px){body.touch #guide li{display:none}body.touch #guide li:not(.done){display:grid}body.touch #guide li:not(.done)~li{display:none}}
+@media (max-height:520px){body.touch #growtut{top:186px}}
 @keyframes gtpulse{50%{box-shadow:0 0 40px rgba(93,255,134,.6)}}@keyframes gtscroll{0%{transform:translateY(10px);opacity:0}40%{opacity:1}100%{transform:translateY(-4px);opacity:0}}
 #guide-more{margin:8px 0 0;font-size:11px;color:var(--ink-dim);letter-spacing:.04em}body.touch #guide-more{display:none}
 #guide li span{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
@@ -293,10 +323,10 @@ body.touch .gt-wheel{display:none}
 .hbtn .dot{position:absolute;right:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);display:none}.hbtn.badge .dot{display:block}
 .hbtn:hover::after{content:attr(data-tip);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);white-space:nowrap;padding:4px 8px;font:600 12px var(--hud);color:var(--ink);background:rgba(4,8,18,.92);border:1px solid var(--edge);border-radius:6px;pointer-events:none;z-index:3}
 #hb-xp{color:var(--gold)}#hb-refill{color:#7dffb0}#hb-trials{color:#c89bff}#hb-cos{color:#ff9bd2}
-body.touch #hudbar{top:8px!important;left:auto;right:66px;max-width:calc(100% - 290px);justify-content:flex-end}body.touch .hbtn{width:36px;height:36px}body.touch .hbtn kbd,body.touch .hbtn.kbm{display:none}
+body.touch #hudbar{top:calc(8px + var(--safe-t))!important;left:auto;right:calc(62px + var(--safe-r));max-width:calc(100% - 290px);justify-content:flex-end}body.touch .hbtn{width:40px;height:40px}body.touch .hbtn kbd,body.touch .hbtn.kbm{display:none}
 .ico{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pick .pico{width:28px;height:28px;margin-bottom:2px}
-body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176px;padding:7px 9px}body.touch #guide li{font-size:11px}
+body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l));top:calc(310px + var(--safe-t));width:176px;padding:7px 9px}body.touch #guide li{font-size:11px}
 /* small desktop frames (CrazyGames 800x450 / 821x462 / 907x510): smaller minimap and hotbar, Getting started shows just the
    next step, and the feed moves up out of the hotbar's way */
 @media (max-height:560px){
@@ -312,9 +342,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 /* phones in landscape: five smaller columns keep the buttons under the icon bar, and Getting started shows just the next step
    where the minimap was (the minimap is hidden at this height) */
 @media (max-height:520px){
-  body.touch #tbtns{grid-template-columns:repeat(5,46px);gap:6px;right:10px;bottom:10px}body.touch .tb{width:46px;height:46px;font-size:9px;letter-spacing:.03em}
-  body.touch .tb.wide{grid-column:1/-1;width:auto;height:38px}
-  body.touch #toasts{top:22%}
+  body.touch #toasts{top:max(26%,134px)}body.touch #feed .fline:nth-last-child(n+3){display:none}
   body.touch #guide{top:186px;padding:5px 8px}body.touch #guide h4{margin-bottom:3px;font-size:10px}
   body.touch #guide li{display:none}body.touch #guide li:not(.done){display:grid}body.touch #guide li:not(.done)~li{display:none}
 }
@@ -399,7 +427,8 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 </div>
 <div id="vig"></div>
 <div id="flash"></div>
-<div id="touch" hidden><div id="tlayer"></div><div id="stick"><div id="knob"></div></div><div id="tbtns"></div><button class="tb" id="tpause" type="button" aria-label="Pause">II</button></div>
+<div id="touch" hidden><div id="tlayer"></div><div id="stick"><div id="knob"></div></div><div id="tbtns"></div><button class="tb" id="tpause" type="button" aria-label="Pause"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button></div><div id="safeprobe"></div>
+<div id="rotate" hidden><div><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg><b>Turn your phone sideways</b><span>Skyline Guardian is played in landscape.</span></div></div>
 
 <div id="menu" class="overlay">
   <div class="menu-inner">
@@ -409,7 +438,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
     <div class="controls" id="menu-controls">
       <div><kbd>WASD</kbd> Move</div><div><kbd>Mouse</kbd> Look</div>
       <div><kbd>Click</kbd> Punch</div><div><kbd>1–5</kbd> Abilities</div>
-      <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Skills</div>
+      <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Menu · <kbd>K</kbd> Skills</div>
       <div><kbd>Z</kbd> Lock on · <kbd>X</kbd> Dash</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
     </div>
     <p class="muted" id="menu-touch" hidden>Left side: move · right side: look · buttons: fight and fly.</p>
@@ -427,7 +456,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:10px;top:310px;width:176p
 </div></div>
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
 <div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
-<div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div></div>
+<div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div><button class="ghost" id="dial-x" type="button">Close</button></div>
 <div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><div id="oath-lvl" class="miclvl" hidden><i></i><b></b></div><small id="oath-note">Esc to put the beacon away</small></div>
 <div id="dead" class="overlay" hidden><div><p class="big">Knocked out</p><p class="sub" id="deads"></p></div></div>
 <div id="nogl" class="overlay" hidden><div><p class="big">No WebGL 2</p><p class="sub">This browser can't run the game. Try a recent Chrome, Edge, Firefox or Safari.</p></div></div>
@@ -1630,7 +1659,7 @@ const TRAV_STYLES={
   superSpeed:[['walk','Walk','Normal pace · Shift still runs at the speed dial'],['jog','Jog','Always running at x2'],['run','Run','Always running at half your top speed'],['top','Top speed','Always running at your top speed']],
 };
 const DEFAULT_SETTINGS={oathInput:window.__PORTAL__==='crazygames'?'type':'voice', // portals can't be counted on to allow the mic: typed there, voice still in Settings
-  micLoud:0.65,controls:'auto',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
+  micLoud:0.65,controls:'auto',tSize:'m',tHand:'r',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
@@ -1680,6 +1709,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   if(s.settings&&typeof s.settings==='object'){const t=s.settings,st=f.settings;
     if(['auto','touch','kbm'].includes(t.controls))st.controls=t.controls;
     if(['voice','type'].includes(t.oathInput))st.oathInput=t.oathInput;
+    if(['s','m','l'].includes(t.tSize))st.tSize=t.tSize;if(['r','l'].includes(t.tHand))st.tHand=t.tHand;
     for(const k of ['autoLock','invertY','shadows'])if(typeof t[k]==='boolean')st[k]=t[k];
     if(t.travStyle&&typeof t.travStyle==='object'){st.travStyle={};for(const k in TRAV_STYLES)if(TRAV_STYLES[k].some(x=>x[0]===t.travStyle[k]))st.travStyle[k]=t.travStyle[k];}
     st.sens=num(t.sens,1,0.3,3);st.volume=num(t.volume,0.7,0,1);st.micLoud=num(t.micLoud,0.65,0.2,0.95);}
@@ -1846,7 +1876,7 @@ function addXP(n){
   while(save.level<CONFIG.progression.levelCap&&save.xp>=xpNeed()){save.xp-=xpNeed();save.level++;save.sp+=CONFIG.progression.spPerLevel;ups++;}
   if(ups){
     P.hp=maxHp();P.en=maxEn();
-    toast('Level '+save.level,'+'+ups*CONFIG.progression.spPerLevel+' skill points · '+(touchOn()?'open Skills from the pause menu':'press Tab to spend them'),'gold');
+    toast('Level '+save.level,'+'+ups*CONFIG.progression.spPerLevel+' skill points · '+(touchOn()?'open Skills from the pause menu':'press K to spend them'),'gold');
     SFX.levelUp();ringFx(P.pos.x,P.pos.y+1,P.pos.z,1,30,0.8,[1,.8,.3]);burst(P.pos.x,P.pos.y+1.2,P.pos.z,60,20,1,GOLD,1.6,-4,1.5);
     persist();Bus.emit('levelUp',save.level);
   }
@@ -3845,7 +3875,7 @@ function openOath(){
   const tch=touchOn();oathIn.readOnly=!tch;oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';
   $('oath-note').textContent=save.oathKnown?(tch?'NEXT WORD fills in each word':'Tab fills in the next word · Enter to put the beacon away')
     :'Type it once. From then on it sits in the bottom-right corner and '+(tch?'NEXT WORD':'Tab')+' fills in each word for you.'+(tch?'':' Enter puts the beacon away.');
-  $('oath-next').hidden=!save.oathKnown||!tch;P.lantern=true;
+  $('oath-next').hidden=!save.oathKnown||!tch;$('oath-next').textContent=touchOn()?'Next word':'Next word (Tab)';P.lantern=true;
   if(!vo){P.charging=false;for(const k in keys)keys[k]=false;mouseL=false;if(tch)setTimeout(()=>oathIn.focus(),30);}
   SFX.tone('sine',200,400,0.6,0.08);
   if(vo){oathIn.placeholder='Listening… say the oath out loud';oathFreeHands();voiceOathStart();if(!voiceRec)oathTyped();else{micOn('oath');$('oath-lvl').hidden=false;micShow();}}
@@ -4131,7 +4161,7 @@ function renderHeroKeys(){
     if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
     if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
     K('U','Suit up or down');}
-  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('8','What you unlock, level by level');K('L','Free the mouse to click the icons');K('Esc','Pause');if(!PBAL)K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
+  H('Menus');K('Icons, top left','Every menu, each with its key');K('K · J · I','Skills · change powers · appearance');K('8','What you unlock, level by level');K('L','Free the mouse to click the icons');K('Tab · Esc','Menu (pause)');if(!PBAL)K('Left panel','Leaderboard · click it for the full board');K('H','Show or hide this list');
 }
 // ================================================================
 // Wanted level (1-5 stars) and bounty
@@ -6548,6 +6578,25 @@ const GLYPHS={
   shirt:'<path d="M8 3l-5 3 2 4 3-1.5V21h8V8.5l3 1.5 2-4-5-3c-.5 1.8-2 3-4 3s-3.5-1.2-4-3z"/>',
   people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.7-6 6-6s6 2.4 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2c2.9.3 5 2.5 5 5.8"/>',
   gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+  // touch buttons
+  fist:'<path d="M7 11V7.5a1.5 1.5 0 0 1 3 0V10M10 9.5V6.5a1.5 1.5 0 0 1 3 0V10M13 9.5V7a1.5 1.5 0 0 1 3 0v3"/><path d="M16 9.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-1a6 6 0 0 1-6-6v-1.5a2 2 0 0 1 2-2h3"/>',
+  jump:'<path d="M5 13l7-7 7 7M5 19l7-7 7 7"/>',
+  up:'<path d="M12 20V5M5 11l7-7 7 7"/>',
+  down:'<path d="M12 4v15M5 13l7 7 7-7"/>',
+  dive:'<path d="M12 3v11M7 9l5 5 5-5"/><path d="M3 18c1.5 0 1.5 1.5 3 1.5S7.5 18 9 18s1.5 1.5 3 1.5S13.5 18 15 18s1.5 1.5 3 1.5S19.5 18 21 18"/>',
+  drift:'<path d="M5 15l1.5-5A2 2 0 0 1 8.4 8.5h7.2a2 2 0 0 1 1.9 1.5L19 15"/><rect x="3" y="15" width="18" height="4" rx="1.5"/><path d="M2 6c2-1.5 4-1.5 6 0"/>',
+  dash:'<path d="M4 6l6 6-6 6M12 6l6 6-6 6"/>',
+  target:'<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/>',
+  land:'<path d="M3 13c4-1 7-4 9-9 1 4 4 7 9 9"/><path d="M12 11v9M8.5 16.5L12 20l3.5-3.5"/>',
+  hand:'<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11M11 10V4a1.5 1.5 0 0 1 3 0v7M14 10.5V6a1.5 1.5 0 0 1 3 0v8a7 7 0 0 1-7 7 6 6 0 0 1-5-2.7L3 15a1.6 1.6 0 0 1 2.6-1.8L8 15.5"/>',
+  grow:'<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>',
+  shrink:'<path d="M4 14h6v6M20 10h-6V4M10 14l-7 7M14 10l7-7"/>',
+  star:'<path d="M12 3l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.4 6.7 19.3l1.1-5.9L3.4 9.3l6-.8z"/><circle cx="12" cy="12" r="1.2"/>',
+  wheel:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/>',
+  oath:'<path d="M9 21h6M10 18h4M8 18l-1-6h10l-1 6"/><path d="M7 12a5 5 0 0 1 10 0"/><path d="M12 2v3M5 5l1.8 1.8M19 5l-1.8 1.8"/>',
+  rebuild:'<path d="M4 21V9l5-3v15M9 21V4l6 3v14M15 21v-9l5 2v7"/><path d="M2 21h20"/>',
+  dialUp:'<path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4-5"/><path d="M17 4h4M19 2v4"/>',
+  dialDn:'<path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l-4-5"/><path d="M17 4h4"/>',
   steps:'<path d="M3 20h5v-5h5v-5h5V5h3"/><path d="M3 20h18"/>',
   trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8M9.5 18h5"/>',
   x2:'<path d="M4 8l6 8M10 8l-6 8"/><path d="M13.5 9.5a3 3 0 0 1 6 0c0 2.5-6 4-6 6.5h6"/>',
@@ -6729,7 +6778,8 @@ function placeMark(n,x,y,z,icon,col,label,cls,short){
   const p=fz>0.5?project(x,y,z):null;let sx,sy,edge=false,ang=0;
   if(p&&p[0]>36&&p[0]<W-36&&p[1]>60&&p[1]<H-40){sx=p[0];sy=p[1];}
   else{edge=true;ang=Math.atan2(-uy,rx);if(fz<=0&&Math.abs(rx)<Math.abs(uy)*0.2)ang=Math.PI/2; // straight behind you: point down
-    const hw=W/2-40,hh=H/2-64,ux=Math.cos(ang),vy=Math.sin(ang),t=Math.min(hw/Math.max(Math.abs(ux),1e-4),hh/Math.max(Math.abs(vy),1e-4));sx=W/2+ux*t;sy=H/2+vy*t;}
+    // on touch screens the edge pins stay between the left HUD column and the buttons
+    const lh=touchOn()&&save.settings.tHand==='l',L=touchOn()?(lh?Math.min(300,W*0.4):200):40,Rm=touchOn()?(lh?200:Math.min(300,W*0.4)):40,mid=(L+W-Rm)/2,hw=Math.max(40,(W-Rm-L)/2),hh=H/2-64,ux=Math.cos(ang),vy=Math.sin(ang),t=Math.min(hw/Math.max(Math.abs(ux),1e-4),hh/Math.max(Math.abs(vy),1e-4));sx=mid+ux*t;sy=H/2+vy*t;}
   m.t.hidden=false;m.t.style.transform=`translate(${sx.toFixed(1)}px,${sy.toFixed(1)}px) translate(-50%,${edge?'-14px':'-100%'})`;
   const key=icon+'|'+col+'|'+cls+'|'+edge;if(m.key!==key){m.key=key;m.b.textContent=icon;m.t.style.setProperty('--c',col);m.t.className='mk'+(cls?' '+cls:'')+(edge?' edge':'');}
   if(edge)label=short; // at the screen edge only the distance, so it never runs off the screen
@@ -6907,7 +6957,7 @@ function renderUnlocks(){
   if(PBAL){list('By level',ch.abilities.map((id,i)=>{const got=lv>=KIT_LV[i],tr=!got&&trialOn('key'+i);
       return {lv:KIT_LV[i],got,badge:'LV '+KIT_LV[i],icon:powerIcon(id),title:'Key '+(i+1)+' · '+POWERS[id].name,sub:got?(i?'Unlocked':'Ready from the start'):tr?'Trying it now · '+trialLeft('key'+i)+' min left':(POWERS[id].desc||'').split('. ')[0].replace(/\.$/,'')};}),'You are LV '+lv);}
   else B.append(el('h3',{text:'By level · you are LV '+lv}));
-  B.append(el('p',{class:'muted unl-foot',text:'Every level also gives you +'+sp+' skill points to upgrade your powers and passives ('+(touchOn()?'Skills in the pause menu':'Tab or K')+').'}));
+  B.append(el('p',{class:'muted unl-foot',text:'Every level also gives you +'+sp+' skill points to upgrade your powers and passives ('+(touchOn()?'Skills in the pause menu':'K')+').'}));
   // traversal mastery grows with use
   const m=ch.movement[0],ml=masteryLevel(m),mn=PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Traversal',rows=[];
   if(isRing()||armorForms()){const arm=armorForms(),by={};for(const id of CON_IDS){const C=CONSTRUCTS[id];if(!!C.armor!==arm||!(C.unlock>1))continue;(by[C.unlock]=by[C.unlock]||[]).push(C.name+(trialOn('con:'+id)?' (trying it)':''));}
@@ -7048,6 +7098,12 @@ function renderSettings(){
   sheetBody.append(
     el('div',{class:'field'},el('span',{text:'Controls · detected: '+(IS_TOUCH_DEVICE?'touch screen':'keyboard and mouse')}),
       el('div',{class:'lb-tabs'},...modes.map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.controls===k),text:l,onclick:()=>{s.controls=k;persist();applyTouchUI();buildHotbar();renderSheet();}})))),
+    ...(touchOn()?[
+      el('div',{class:'field'},el('span',{text:'Touch buttons · size'}),
+        el('div',{class:'lb-tabs'},...[['s','Small'],['m','Medium'],['l','Large']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.tSize===k),text:l,onclick:()=>{s.tSize=k;persist();applyTouchUI();renderSheet();}})))),
+      el('div',{class:'field'},el('span',{text:'Touch buttons · layout'}),
+        el('div',{class:'lb-tabs'},...[['r','Right-handed'],['l','Left-handed']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.tHand===k),text:l,onclick:()=>{s.tHand=k;persist();applyTouchUI();renderSheet();}}))),
+        el('p',{class:'muted',text:'Left-handed puts the buttons on the left and the joystick on the right.'}))]:[]),
     el('div',{class:'field'},el('span',{text:'Ring oath · how the Ring Bearer recites it'}),
       el('div',{class:'lb-tabs'},...[['voice','Say it out loud'],['type','Type it (Tab)']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.oathInput===k),disabled:k==='voice'&&!voiceOK(),text:l,onclick:()=>{s.oathInput=k;persist();if(k==='voice')askMic(true);renderSheet();}}))),
       el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line, and you can keep moving and fighting (no ring powers until you finish). O or Esc puts the beacon away.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
@@ -7149,6 +7205,8 @@ function tryRechoose(){
 // ---- Morph Band dial ----
 let dialOpen=false,dialSel=-1,dialVX=0,dialVY=0,dialKind='alien';
 const dialEl=$('dial');
+// touch: Close, or tap anywhere outside the choices
+$('dial-x').addEventListener('click',()=>closeDial());let dialAt=0;dialEl.addEventListener('click',e=>{if(performance.now()-dialAt>450&&(e.target===dialEl||(touchOn()&&e.target===$('dial-ring'))))closeDial();}); // clicking outside closes it, but not the tap that opened it
 // the radial picker is shared by the Morph Band (aliens) and the power ring (constructs)
 function dialItems(){
   if(dialKind==='trav'){const id=save.character.movement[0],cur=travStyle(id),glow=TRAV_GLOW[id]||'#4fd8ff';
@@ -7171,14 +7229,14 @@ function applyTravStyle(announce){
 let dialPage=0;
 function dialPageTurn(d){} // every construct is on the wheel at once now: nothing to page through
 function openDial(kind='alien',keepPage){
-  dialKind=kind;const list=dialItems();dialOpen=true;guideDone('wheel');dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');dialEl.classList.toggle('red',kind==='armor');dialEl.classList.toggle('all',kind==='construct');const ring=$('dial-ring');ring.textContent='';
+  dialKind=kind;const list=dialItems();dialOpen=true;dialAt=performance.now();guideDone('wheel');dialSel=-1;dialVX=dialVY=0;dialEl.hidden=false;dialEl.classList.toggle('green',kind==='construct');dialEl.classList.toggle('red',kind==='armor');dialEl.classList.toggle('all',kind==='construct');const ring=$('dial-ring');ring.textContent='';
   const two=kind==='construct',nIn=two?DIAL_INNER:list.length; // constructs: an inner ring (mechs, flyers, rides, weapons) and an outer ring (everything newer)
   list.forEach((a,i)=>{const inner=i<nIn,k=inner?i:i-nIn,n=inner?nIn:list.length-nIn,ang=k/n*TAU-Math.PI/2,rad=two?(inner?25:43):38;
     const b=el('button',{type:'button',class:'dslot'+(two?' mini':'')+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*rad).toFixed(1)}%;top:${(50+Math.sin(ang)*rad).toFixed(1)}%`,
       onclick:()=>{if(a.on){closeDial();a.pick();}else dialTrial(a);},onmouseenter:()=>setDialSel(i)},two?null:el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:two?(a.on?a.cost+' charge':a.lock):a.on?a.blurb:a.lock}));
     b.style.setProperty('--g',a.glow);ring.appendChild(b);});
   if(kind==='construct')ring.appendChild(el('div',{class:'dpage'},'All '+list.length+' constructs'));
-  $('dial-info').textContent=kind==='trav'?'Pick how you get around · '+(presetOf(save.character)||{name:'your hero'}).name:kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge · move toward the centre for the inner ring':'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
+  $('dial-info').textContent=kind==='trav'?'Pick how you get around · '+(presetOf(save.character)||{name:'your hero'}).name:kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge'+(touchOn()?'':' · move toward the centre for the inner ring'):'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
 }
 function setDialSel(i){dialSel=i;for(const b of dialEl.querySelectorAll('.dslot'))b.classList.toggle('sel',+b.dataset.i===i);
   const a=dialItems()[i];if(a)$('dial-info').textContent=a.info;}
@@ -7192,9 +7250,9 @@ function closeDial(){dialOpen=false;dialEl.hidden=true;}
 // ---- starter guide ----
 const hasWheel=()=>!!save.character&&(isRing()||armorForms()||hasPower('morphBand')||hasTravWheel());
 const wheelWhat=()=>isRing()?'pick a construct':armorForms()?'pick a suit form':hasPower('morphBand')?'pick an alien':'pick how you get around';
-const GUIDE=[['move','Move around','WASD to move, mouse to look','Drag the left side to move'],
+const GUIDE=[['move','Move around','WASD to move, mouse to look',()=>'Drag the '+(save.settings.tHand==='l'?'right':'left')+' side to move'],
   ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>(isRing()?'Tap PICK':armorForms()?'Tap FORMS':hasPower('morphBand')?'Use the Morph Band power':'Tap WHEEL')+' to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
-  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press Tab','Pause, then Skills'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
+  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press K','Tap the star icon'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
 function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
   for(const [k,t,kb,tc] of guideList()){const s=touchOn()?tc:kb;list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:typeof s==='function'?s():s})));}fitMoves();}
@@ -7218,14 +7276,15 @@ const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2,Digit4:3,Digit
 const DIAL_CODES={Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,Digit6:5,Digit7:6};
 addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
-  if(e.code==='Tab'&&(sheetOpen||state!=='play'||creating))return;
+  if(e.code==='Tab'&&(state!=='play'||creating)){e.preventDefault();return;}
   if(['Space','ArrowUp','ArrowDown','Tab'].includes(e.code))e.preventDefault();
   if(oathOpen&&!oathFree&&!touchOn()&&state==='play'&&!paused){oathKey(e);return;} // the typed oath takes every key; the spoken one leaves them to you
   const was=keys[e.code];keys[e.code]=true;if(was)return;
   if(dialOpen){if(e.code in DIAL_CODES){setDialSel(DIAL_CODES[e.code]);dialConfirm();}else if(e.code==='KeyQ'||e.code==='KeyE'||e.code==='Tab'){e.preventDefault();dialPageTurn(e.code==='KeyQ'?-1:1);}else if(e.code==='Escape'||e.code==='KeyV')closeDial();return;}
   if(e.code==='Escape'){if(sheetOpen){closeSheet();return;}if(ringLocked()&&state==='play'&&!paused){closeOath();return;}if(creating&&creatorMode==='rechoose'){closeCreator();return;}if(state==='play'&&!locked)setPaused(!paused);return;}
   if(state!=='play')return;
-  if(e.code==='Tab'||e.code==='KeyK'){if(sheetOpen==='skills')closeSheet();else openSheet('skills');return;}
+  if(e.code==='Tab'){if(paused)resume();else{if(sheetOpen)closeSheet();setPaused(true);}return;} // Tab opens and closes the menu (Esc also leaves fullscreen on game portals)
+  if(e.code==='KeyK'){if(sheetOpen==='skills')closeSheet();else openSheet('skills');return;}
   {const hb=HUDBAR_KEYS[e.code];if(hb&&!creating&&!(hb.off&&hb.off())&&!(hb.hide&&hb.hide())){hb.act();return;}} // the HUD icon bar's keys
   if(e.code==='KeyP'){setPaused(!paused);return;}
   if(e.code==='KeyL'){toggleLock();return;}
@@ -7269,7 +7328,7 @@ canvas.addEventListener('mousedown',e=>{
   if(paused){if(!sheetOpen&&!creating)resume();return;}
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
-  if(e.button===0){if(!locked&&!lockFailed&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+  if(e.button===0){if(!locked&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
   else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
@@ -7279,7 +7338,7 @@ addEventListener('wheel',e=>{if(state!=='play'||paused||Math.abs(e.deltaY)<=1)re
 function growStep(dir){if(heldSlot>=0&&save.character&&!P.alien&&save.character.abilities[heldSlot])return skillGrowStep(heldSlot,dir);if(P.construct)return conGrowStep(dir);return false;}
 addEventListener('mousemove',e=>{if(state!=='play'||paused||touchOn())return;if(dialOpen){if(locked)dialMove(e.movementX,e.movementY);return;}if(locked||mmbLook||rmbLook)look(e.movementX,e.movementY);});
 function requestLock(){if(touchOn())return;try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
-function lockFail(){lockFailed=true;if(!lockHint){lockHint=true;toast('Mouse lock not available here','Hold the middle mouse button and drag to look','cyan');}}
+function lockFail(){lockFailed=true;if(time-(P.lockFailT||-9)>4){P.lockFailT=time;toast('Click the game to lock the mouse','Or hold the middle mouse button and drag to look','cyan');}} // browsers refuse a lock right after one ends: the next click tries again
 function toggleLock(){if(touchOn())return;if(locked){manualUnlock=true;document.exitPointerLock();toast('Mouse unlocked','Middle-drag to look · press L to lock again','cyan');}else{lockFailed=false;requestLock();}}
 document.addEventListener('pointerlockchange',()=>{const now=document.pointerLockElement===canvas;
   if(!now&&locked&&state==='play'&&!paused&&!manualUnlock&&!sheetOpen&&!dialOpen&&!creating)setPaused(true);
@@ -7334,7 +7393,7 @@ function enterCar(v){
     addRep(v.vtype==='police'?-10:-5);addWanted(v.vtype==='police'?4:1.5,150);feed('Carjacked',v.vtype==='police'?'-10 rep · the police want their car back':'-5 rep');}
   if(v.driver)ejectDriver(v);if(v.crime&&v.state==='flee'){v.escaped=false;}
   stopAllPowers();P.car=v;v.state='player';v.spd=v.state==='road'?v.maxSpd*0.5:0;v.siren=false;P.flying=false;P.charging=false;
-  if(!save.guide.car){save.guide.car=true;toast('Driving','W and S to drive, A and D to steer, Space to drift, G to get out','cyan');}
+  if(!save.guide.car){save.guide.car=true;toast('Driving',touchOn()?'Steer with the joystick, DRIFT to slide, GET OUT to leave':'W and S to drive, A and D to steer, Space to drift, G to get out','cyan');}
   SFX.tone('square',120,90,0.2,0.08);
 }
 function exitCar(forced){
@@ -7343,68 +7402,8 @@ function exitCar(forced){
   const c=Math.cos(v.yaw),s=Math.sin(v.yaw);P.pos.set(v.pos.x-c*2.4,v.pos.y+0.3,v.pos.z+s*2.4);
   const sp=v.spd||0;P.vel.set(Math.sin(v.yaw)*sp*0.5,forced?10:2,Math.cos(v.yaw)*sp*0.5);v.spd=0;P.grounded=false;SFX.setEngine(false,0);
 }
-// touch controls
-const tl=$('tlayer'),stick=$('stick'),knob=$('knob'),tbtns=$('tbtns');let stickId=null,lookId=null,sx0=0,sy0=0,lx=0,ly=0;
-tl.addEventListener('pointerdown',e=>{if(state!=='play'||paused)return;e.preventDefault();
-  if(e.clientX<innerWidth*0.42&&stickId===null){stickId=e.pointerId;sx0=e.clientX;sy0=e.clientY;stick.style.left=sx0+'px';stick.style.top=sy0+'px';stick.classList.add('on');}
-  else if(lookId===null){lookId=e.pointerId;lx=e.clientX;ly=e.clientY;}
-  try{tl.setPointerCapture(e.pointerId);}catch(err){}});
-tl.addEventListener('pointermove',e=>{
-  if(e.pointerId===stickId){let dx=e.clientX-sx0,dy=e.clientY-sy0;const l=Math.hypot(dx,dy),R=56;if(l>R){dx*=R/l;dy*=R/l;}knob.style.transform=`translate(${dx}px,${dy}px)`;touchIn.x=dx/R;touchIn.y=-dy/R;}
-  else if(e.pointerId===lookId){look(e.clientX-lx,e.clientY-ly,2.2);lx=e.clientX;ly=e.clientY;}});
-const endTouch=e=>{if(e.pointerId===stickId){stickId=null;touchIn.x=touchIn.y=0;knob.style.transform='';stick.style.left='';stick.style.top='';stick.classList.remove('on');}if(e.pointerId===lookId)lookId=null;};
-tl.addEventListener('pointerup',endTouch);tl.addEventListener('pointercancel',endTouch);
+// touch controls live in 81_touch.js; the short power names on their buttons:
 const SHORT={sonicScream:'SCREAM',quakeStomp:'QUAKE',meteorStrike:'METEOR',forcePush:'PUSH',chainLightning:'CHAIN',healingPulse:'HEAL',invisibility:'CLOAK',vineSnare:'SNARE',shadowStep:'STEP',plasmaWhip:'WHIP',bladeLeap:'LEAP',metalForms:'METAL',stretchStrike:'STRETCH',giantForm:'GIANT',webStrike:'STRIKE',webBomb:'BOMB',webWhip:'WHIP',lightningThrow:'BOLT',phaseStrike:'PHASE',speedTornado:'TWISTER',slowTime:'SLOW',timeStop:'STOP',ringBlast:'BLAST',hammerSmash:'HAMMER',chainLasso:'LASSO',ringShield:'SHIELD',blackHole:'HOLE',stormHammer:'HAMMER',repulsors:'PULSE',coreBeam:'BEAM',ricochetShield:'DISC',bladeClaws:'CLAWS',blink:'BLINK',gravityWell:'WELL',spiritWave:'WAVE',timeDilation:'TIME',laserVision:'LASER',fireball:'FIRE',iceCloud:'ICE',lightning:'BOLT',energyBlast:'BLAST',telekinesis:'LIFT',shockwave:'SHOCK',metalSkin:'METAL',energyShield:'SHIELD',morphBand:'MORPH'};
-function bindTouchBtn(b,act){
-  b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{b.setPointerCapture(e.pointerId);}catch(err){}b.classList.add('down');touchAct(act,true);});
-  const up=()=>{if(!b.classList.contains('down'))return;b.classList.remove('down');touchAct(act,false);};
-  b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('contextmenu',e=>e.preventDefault());
-}
-bindTouchBtn($('tpause'),'pause');
-function buildTouchButtons(){ // on CrazyGames a locked power key gets its button when it unlocks (level-ups rebuild these)
-  tbtns.textContent='';if(!save.character)return;
-  const B=(label,act,cls='')=>{const b=el('button',{type:'button',class:'tb '+cls,text:label});bindTouchBtn(b,act);tbtns.appendChild(b);return b;};
-  if(P.alien){ALIENS[P.alien.id].abilities.forEach((ab,i)=>B(ab.name.split(' ').pop().toUpperCase().slice(0,7),'a'+i,'ab alien'));B('PUNCH','punch','big');B('REVERT','band','dn2');}
-  else{save.character.abilities.forEach((id,i)=>{if(!(PBAL&&slotLocked(i)))B(SHORT[id]||'A'+(i+1),'a'+i,'ab');
-      else if(i===nextLockedSlot())B(SHORT[id]||'A'+(i+1),'a'+i,'ab lockd').appendChild(el('small',{text:'LV '+KIT_LV[i]}));});B('PUNCH','punch','big');
-    for(const id of save.character.movement){if(id==='flight'||['stormFlight','armorFlight','solarFlight'].includes(id))B('FLY','fly');else if(id==='superSpeed'){B('SPEED','speed');B('FAST','fast');B('PHASE','phase');B('DIAL+','dialup');B('DIAL-','dialdn');}else if(id==='webSwing')B('WEB','web');else if(id==='powerRing'){B('FLY','fly');B('BUILD','con');B('PICK','conpick');B('ALT','alt');B('OATH','oath');B('REBUILD','rebuild');}if(TRAV_STYLES[id])B('WHEEL','travdial');}}
-  if(!P.alien){B('GROW','grow');B('SHRINK','shrink');} // hold a power button (or sit in a construct) and tap these to change its size
-  if(!P.alien&&save.character.movement[0]==='armorFlight'){B('FORM','con');B('FORMS','conpick');if(P.construct)B('ALT','alt');}
-  if(!P.alien&&hasPower('telekinesis'))B('GRAB+','tkmore');
-  if(hasPower('flight')||(P.alien&&alienDef().flies))B('DOWN','down','dn');
-  B('SUIT','suit');B('USE','use','use');B('LOCK','lock','lk');B('DASH','dash','ds');B('JUMP','jump','wide');
-}
-function touchAct(a,down){
-  if(a==='pause'){if(down&&state==='play')setPaused(true);return;}
-  if(down&&!canAct())return;
-  if(dialOpen)return;
-  if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
-  else if(/^a[0-4]$/.test(a)){if(P.car)return;if(down){heldSlot=+a[1];abilityDown(+a[1]);if(!slotLocked(+a[1]))guideDone('ability');}else{if(heldSlot===+a[1])heldSlot=-1;abilityUp(+a[1]);}}
-  else if(a==='con'){if(down)summonConstruct();}
-  else if(a==='conpick'){if(down){if(isRing()&&ringLocked())oathBusy();else openDial(isRing()?'construct':'armor');}}
-  else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
-  else if(a==='alt'){constructAlt(down);}
-  else if(a==='cx'){if(down)constructX();}
-  else if(a==='rebuild'){if(down)ringRebuild();}
-  else if(a==='grow'||a==='shrink'){if(down)growStep(a==='grow'?1:-1);}
-  else if(a==='jump'){keys.Space=down;if(down)pressJump();else releaseJump();}
-  else if(a==='speed')keys.ShiftLeft=down;
-  else if(a==='down')keys.KeyC=down;
-  else if(a==='fly'){if(down){if(!flyChargeStart())toggleFlight();}else flyChargeRelease();}
-  else if(a==='web'){if(down)webPress();else webRelease();}
-  else if(a==='use'){if(down)interact();}
-  else if(a==='band'){if(down)bandPress();}
-  else if(a==='travdial'){if(down&&hasTravWheel())openDial('trav');}
-  else if(a==='fast'){if(down)toggleFastMode();}
-  else if(a==='tkmore'){if(down)tkGrabMore();}
-  else if(a==='suit'){if(down)suitToggle();}
-  else if(a==='phase'){if(down)togglePhase();}
-  else if(a==='dialup'){if(down)turnDial(1);}
-  else if(a==='dialdn'){if(down)turnDial(-1);}
-  else if(a==='lock'){if(down)lockToggle();}
-  else if(a==='dash'){if(down)dashPress();}
-}
-function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch',t);$('touch').hidden=!(t&&state==='play');$('menu-controls').hidden=t;$('menu-touch').hidden=!t;}
 
 // ================================================================
 // Player controller: Grounded | Airborne | Flying | Speeding | WallClimbing | Swinging | Driving
@@ -7614,6 +7613,184 @@ function updatePlayer(dt){
   if(AL&&P.alien.id==='magmaw'&&Math.random()<0.3)emit(P.pos.x+rr(-.6,.6),P.pos.y+rr(0.5,3),P.pos.z+rr(-.6,.6),0,rr(1,3),0,0.6,FIRE[1],1,-2,1);
   SFX.setWind(clamp((sp3-20)/170,0,1));
 }
+// ================================================================
+// Touch controls (phones and tablets, played sideways)
+// ================================================================
+// Left thumb: a joystick that appears wherever it lands (a faint one shows where to start). Right thumb: drag anywhere
+// free to look. The buttons sit in rings around PUNCH in the bottom-right corner, like Roblox:
+//   ring A (closest): JUMP, your traversal (FLY, WEB, RUN, DIVE), DASH and LOCK. While flying JUMP and FLY turn into
+//                     DOWN and UP (like Minecraft), and LAND shows up in the outer ring.
+//   ring B: your five powers (the next locked one greyed out with its level), or an alien's powers.
+//   ring C (and D when it fills up): buttons that come and go with what you're doing: LAND, USE (get in a car, help
+//                     someone up, eat...), the wheel (V on a keyboard), BUILD, OATH, GROW/SHRINK while you hold a power or
+//                     sit in a construct, and so on.
+// Settings has the button size and a left-handed layout (everything mirrored). In portrait a "turn your phone" screen
+// covers the game.
+const tl=$('tlayer'),stick=$('stick'),knob=$('knob'),tbtns=$('tbtns');let stickId=null,lookId=null,sx0=0,sy0=0,lx=0,ly=0;
+const tHand=()=>save.settings.tHand==='l'?'l':'r',tSizeMul=()=>({s:0.86,m:1,l:1.16})[save.settings.tSize]||1;
+// the phone's notch and rounded corners (CrazyGames app, iOS): read from a probe padded by env(safe-area-inset-*)
+const safeIn=k=>{const p=$('safeprobe');if(!p)return 0;const v=parseFloat(getComputedStyle(p)['padding'+{t:'Top',r:'Right',b:'Bottom',l:'Left'}[k]]);return isFinite(v)?v:0;};
+// how big the controls are on this screen (phones ~0.9, tablets up to 1.3), times the Settings size
+const tScale=()=>clamp(Math.min(innerHeight/400,innerWidth/760),0.8,1.3)*tSizeMul();
+tl.addEventListener('pointerdown',e=>{if(state!=='play'||paused)return;e.preventDefault();audioWake();
+  const left=tHand()==='l'?e.clientX>innerWidth*0.55:e.clientX<innerWidth*0.45;
+  if(left&&stickId===null){stickId=e.pointerId;sx0=e.clientX;sy0=e.clientY;stick.style.left=sx0+'px';stick.style.top=sy0+'px';stick.classList.add('on');}
+  else if(lookId===null){lookId=e.pointerId;lx=e.clientX;ly=e.clientY;}
+  try{tl.setPointerCapture(e.pointerId);}catch(err){}});
+tl.addEventListener('pointermove',e=>{
+  if(e.pointerId===stickId){let dx=e.clientX-sx0,dy=e.clientY-sy0;const l=Math.hypot(dx,dy),R=56*tScale();if(l>R){dx*=R/l;dy*=R/l;}knob.style.transform=`translate(${dx}px,${dy}px)`;touchIn.x=dx/R;touchIn.y=-dy/R;}
+  else if(e.pointerId===lookId){look(e.clientX-lx,e.clientY-ly,2.2);lx=e.clientX;ly=e.clientY;}});
+const endTouch=e=>{if(e.pointerId===stickId){stickId=null;touchIn.x=touchIn.y=0;knob.style.transform='';stick.classList.remove('on');placeStick();}if(e.pointerId===lookId)lookId=null;};
+tl.addEventListener('pointerup',endTouch);tl.addEventListener('pointercancel',endTouch);
+// the faint resting joystick (bottom-left, or bottom-right when left-handed)
+function placeStick(){const k=tScale(),R=54*k;stick.style.width=stick.style.height=R*2+'px';stick.style.margin=-R+'px 0 0 '+(-R)+'px';knob.style.width=knob.style.height=52*k+'px';knob.style.margin=-26*k+'px 0 0 '+(-26*k)+'px';
+  if(stickId!==null)return;const x=(tHand()==='l'?safeIn('r'):safeIn('l'))+R+30*k,y=innerHeight-safeIn('b')-R-26*k;stick.style.left=(tHand()==='l'?innerWidth-x:x)+'px';stick.style.top=y+'px';}
+function bindTouchBtn(b,act){
+  b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();audioWake();try{b.setPointerCapture(e.pointerId);}catch(err){}b.classList.add('down');touchAct(b.dataset.act||act,true);});
+  const up=()=>{if(!b.classList.contains('down'))return;b.classList.remove('down');touchAct(b.dataset.act||act,false);};
+  b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('contextmenu',e=>e.preventDefault());b._up=up;
+}
+bindTouchBtn($('tpause'),'pause');
+// ---- the buttons ----
+// every button this hero could need is made once (buildTouchButtons); layoutTouch shows the ones that fit what you're
+// doing right now and places them on the rings
+let TB={},tbSig='',tbT=-9;
+function tbMake(id,act,icon,label,ring,cls,col){
+  const b=el('button',{type:'button',class:'tb '+(cls||''),'aria-label':label||id,'data-act':act});
+  if(icon instanceof Element)b.appendChild(icon);else if(icon){const g=glyph(icon);if(col)g.style.color=col;b.appendChild(g);}
+  if(label)b.appendChild(el('small',{text:label,class:label.length>5?'long':null}));
+  b.hidden=true;bindTouchBtn(b,act);tbtns.appendChild(b);TB[id]={b,ring,id};return b;}
+function buildTouchButtons(){
+  for(const k in TB){const t=TB[k];if(t.b.classList.contains('down'))t.b._up();}
+  tbtns.textContent='';TB={};tbSig='';if(!save.character)return;
+  tbMake('punch','punch','fist','','P','big');
+  tbMake('jump','jump','jump','','A0','jmp');tbMake('down','down','down','','A0','jmp');tbMake('drift','jump','drift','Drift','A0','jmp');tbMake('exit','use','hand','Get out','A1','use');
+  tbMake('up','jump','up','','A1','jmp');tbMake('fly','fly','wing','Fly','A1','trav');tbMake('web','web','web','Web','A1','trav');
+  tbMake('run','speed','run','Run','A1','trav');tbMake('dive','down','dive','Dive','A1','trav');
+  tbMake('dash','dash','dash','Dash','A2','ds');tbMake('lock','lock','target','Lock','A3','lk');
+  if(P.alien)ALIENS[P.alien.id].abilities.forEach((ab,i)=>tbMake('p'+i,'a'+i,'burst',ab.name.split(' ').pop(),'B','ab alien','#c89bff'));
+  else save.character.abilities.forEach((id,i)=>{const lk=PBAL&&slotLocked(i);
+    if(lk&&i!==nextLockedSlot())return;
+    const b=tbMake('p'+i,'a'+i,powerIcon(id),lk?'LV '+KIT_LV[i]:SHORT[id]||POWERS[id].name.split(' ')[0],'B','ab'+(lk?' lockd':''));b.prepend(el('i',{class:'cd',hidden:true}));});
+  // ring C, in the order they should sit (nearest the top first)
+  tbMake('land','fly','land','Land','C');tbMake('use','use','hand','Use','C','use');
+  tbMake('revert','band','band','Revert','C','dn2');
+  tbMake('grow','grow','grow','Grow','C');tbMake('shrink','shrink','shrink','Shrink','C');
+  tbMake('alt','alt','star','Alt','C');tbMake('cx','cx','burst','Special','C');tbMake('tkmore','tkmore','orbit','Grab+','C');
+  tbMake('wheel',isRing()||armorForms()?'conpick':'travdial','wheel',isRing()?'Pick':armorForms()?'Forms':'Style','C');
+  tbMake('build','con',isRing()?'ring':'helmet',isRing()?'Build':'Form','C');
+  tbMake('oath','oath','oath','Oath','C');tbMake('rebuild','rebuild','rebuild','Rebuild','C');
+  tbMake('fast','fast','run','Fast','C');tbMake('phase','phase','phase','Walls','C');tbMake('dial','dialcycle','dialUp','Dial','C');
+  tbMake('suit','suit','shirt','Suit','C');
+  layoutTouch(true);
+}
+// which buttons fit what you're doing right now
+function tbWanted(){
+  const on=new Set();if(!save.character||P.dead)return on;const m=save.character.movement[0],con=!!P.construct,fly=!!P.flying,flyer=hasPower('flight')||(P.alien&&alienDef().flies);
+  if(P.car){on.add('drift');on.add('exit');return on;}
+  if(oathOpen&&!oathFree){on.add('oath');return on;} // typing the oath: you hang still, so only OATH (to put it away) stays
+  on.add('punch');on.add('dash');on.add('lock');
+  if(fly){on.add('down');on.add('up');if(!P.alien)on.add('land');}else{on.add('jump');
+    if(P.swim)on.add('dive');else if(!P.alien&&m==='webSwing')on.add('web');else if(!P.alien&&m==='superSpeed')on.add('run');else if(flyer)on.add('fly');}
+  for(let i=0;i<5;i++)if(TB['p'+i])on.add('p'+i);
+  if(nearestInteract())on.add('use');
+  if(P.alien){on.add('revert');return on;}
+  if(heldSlot>=0||con){on.add('grow');on.add('shrink');}
+  if(con){on.add('alt');on.add('cx');}
+  if(P.tk)on.add('tkmore');
+  if(isRing()||armorForms()||(hasTravWheel()&&!hasPower('morphBand')))on.add('wheel');
+  if(isRing()||armorForms())on.add('build');
+  if(isRing()&&!con){on.add('oath');on.add('rebuild');}
+  if(isSpeed()){on.add('fast');on.add('phase');on.add('dial');}
+  if(!con)on.add('suit');
+  return on;
+}
+const TB_ORDER_C=['land','use','revert','grow','shrink','alt','cx','tkmore','wheel','build','oath','rebuild','fast','phase','dial','suit'];
+function layoutTouch(force){
+  if(!touchOn()||state!=='play')return;
+  if(!force&&time-tbT<0.15)return;tbT=time;
+  const on=tbWanted(),W=innerWidth,H=innerHeight,k=tScale(),hand=tHand();
+  const sig=[...on].join()+'|'+W+'x'+H+'|'+k+hand;if(sig===tbSig)return;tbSig=sig;
+  const side=hand==='l'?safeIn('l'):safeIn('r'),sb=safeIn('b'),st=safeIn('t');
+  const Pz=78*k,cx=W-side-14*k-Pz/2,cy=H-sb-14*k-Pz/2,minY=st+52; // keep clear of the icon bar
+  const put=(t,x,y,sz)=>{const b=t.b;b.hidden=false;b.style.width=b.style.height=sz+'px';b.style.left=(hand==='l'?W-x:x)-sz/2+'px';b.style.top=y-sz/2+'px';b.style.fontSize=Math.max(9.5,Math.round(10*k))+'px';b.style.setProperty('--s',sz+'px');};
+  const at=(r,deg)=>[cx+r*Math.cos(deg*Math.PI/180),cy-r*Math.sin(deg*Math.PI/180)];
+  for(const id in TB){const t=TB[id];if(!on.has(id)){if(!t.b.hidden&&t.b.classList.contains('down'))t.b._up();t.b.hidden=true;}}
+  if(on.has('punch'))put(TB.punch,cx,cy,Pz);
+  const A=112*k,ringA={A0:[180,62*k],A1:[148,56*k],A2:[118,52*k],A3:[88,52*k]};
+  for(const id in TB){const t=TB[id];if(!on.has(id)||!ringA[t.ring])continue;const [d,sz]=ringA[t.ring];const [x,y]=at(A,d);put(t,x,y,sz);}
+  // the powers share ring B, evenly from straight up to straight left
+  const ps=[0,1,2,3,4].map(i=>'p'+i).filter(id=>on.has(id)),B=184*k,bs=58*k;
+  ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,bs);});
+  // ring C packs the rest from the top down, spilling into ring D
+  let r=252*k,d=-1;const cs=48*k,step=r=>2*Math.asin(Math.min(1,(cs+8*k)/(2*r)))*180/Math.PI;
+  for(const id of TB_ORDER_C){if(!on.has(id))continue;
+    for(let guard=0;guard<40;guard++){
+      if(d<0){d=86;while(d<200&&at(r,d)[1]-cs/2<minY)d+=2;}
+      if(d>190){r+=cs+12*k;d=-1;continue;}
+      const [x,y]=at(r,d);if(x-cs/2<W*0.47){r+=cs+12*k;d=-1;continue;}
+      put(TB[id],x,y,cs);d+=step(r);break;}}
+}
+// the left column (name, meters, minimap, Getting started or the grow tip) stacks itself, so a taller panel (a wanted
+// badge, a bounty) pushes the rest down instead of covering it
+const LEFT_COL=['.hud-tl','.hud-bc','#map','#growtut','#guide'];let leftT=-9;
+function stackLeft(on){if(!on){for(const q of LEFT_COL){const e=document.querySelector(q);if(e)e.style.top='';}return;}
+  if(time-leftT<0.25)return;leftT=time;let y=safeIn('t')+10;
+  for(const q of LEFT_COL){const e=document.querySelector(q);if(!e||e.hidden||getComputedStyle(e).display==='none')continue;const t=Math.round(y)+'px';if(e.style.top!==t)e.style.top=t;y+=e.offsetHeight+8;}}
+// per frame: cooldowns, toggles that are on, and the USE button's label
+function updateTouchHud(){
+  if(!touchOn()||state!=='play')return;layoutTouch(false);stackLeft(true);
+  if(!save.character||P.alien)return;
+  save.character.abilities.forEach((id,i)=>{const t=TB['p'+i];if(!t||t.b.hidden||t.b.classList.contains('lockd'))return;const st=PS[id],c=POWERS[id],cd=t.b.querySelector('.cd');
+    if(cd){const f=c.cooldown?st.cd/pstat(id,'cooldown'):0,v=Math.round(clamp(f,0,1)*100);if(t.cdv!==v){t.cdv=v;cd.style.setProperty('--p',v+'%');cd.hidden=v<=0;}}
+    t.b.classList.toggle('on',!!(st.holding||(id==='energyShield'&&P.shieldOn)||(id==='ringShield'&&P.ringShield)||(id==='telekinesis'&&P.tk)||(id==='invisibility'&&P.cloak)||(id==='slowTime'&&P.slowOn)||((id==='metalSkin'||id==='metalForms')&&P.metal)));});
+  if(TB.use&&!TB.use.b.hidden){const it=nearestInteract(),lab=!it?'Use':it.kind==='exit'?'Get out':it.kind==='car'?(it.v.driver?'Take':'Get in'):it.kind==='eat'?'Eat':it.kind==='storm'?'Storm':'Help';
+    if(TB.use.lab!==lab){TB.use.lab=lab;TB.use.b.querySelector('small').textContent=lab;}}
+  if(TB.fast)TB.fast.b.classList.toggle('on',!!P.fastMode);if(TB.phase)TB.phase.b.classList.toggle('on',!!P.phasing);
+}
+function touchAct(a,down){
+  if(a==='pause'){if(down&&state==='play')setPaused(true);return;}
+  if(down&&!canAct())return;
+  if(dialOpen)return;
+  if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
+  else if(/^a[0-4]$/.test(a)){if(P.car)return;const i=+a[1];if(down){heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');}else{if(heldSlot===i)heldSlot=-1;abilityUp(i);}}
+  else if(a==='con'){if(down)summonConstruct();}
+  else if(a==='conpick'){if(down){if(isRing()&&ringLocked())oathBusy();else{openDial(isRing()?'construct':'armor');guideDone('wheel');}}}
+  else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
+  else if(a==='alt'){constructAlt(down);}
+  else if(a==='cx'){if(down)constructX();}
+  else if(a==='rebuild'){if(down)ringRebuild();}
+  else if(a==='grow'||a==='shrink'){if(down)growStep(a==='grow'?1:-1);}
+  else if(a==='jump'){keys.Space=down;if(down)pressJump();else releaseJump();}
+  else if(a==='speed')keys.ShiftLeft=down;
+  else if(a==='down')keys.KeyC=down;
+  else if(a==='fly'){if(down){if(!flyChargeStart())toggleFlight();}else flyChargeRelease();}
+  else if(a==='web'){if(down)webPress();else webRelease();}
+  else if(a==='use'){if(down)interact();}
+  else if(a==='band'){if(down)bandPress();}
+  else if(a==='travdial'){if(down&&hasTravWheel()){openDial('trav');guideDone('wheel');}}
+  else if(a==='fast'){if(down)toggleFastMode();}
+  else if(a==='tkmore'){if(down)tkGrabMore();}
+  else if(a==='suit'){if(down)suitToggle();}
+  else if(a==='phase'){if(down)togglePhase();}
+  else if(a==='dialup'){if(down)turnDial(1);}
+  else if(a==='dialdn'){if(down)turnDial(-1);}
+  // one touch button for the speed dial: each tap is one step faster, and past the top it starts again at x1 (in Slow Time: slower)
+  else if(a==='dialcycle'){if(down){if(P.slowOn)turnDial(1);else if((P.dial|0)>=dialMax()){P.dial=1;feed('Speed dial x1','Tap DIAL to go faster');}else turnDial(1);}}
+  else if(a==='lock'){if(down)lockToggle();}
+  else if(a==='dash'){if(down)dashPress();}
+}
+function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch',t);document.body.classList.toggle('lefty',t&&tHand()==='l');$('touch').hidden=!(t&&state==='play');$('menu-controls').hidden=t;$('menu-touch').hidden=!t;
+  if(t){$('menu-touch').textContent=(tHand()==='l'?'Right side: move · left side: look':'Left side: move · right side: look')+' · buttons: fight and fly.';placeStick();tbSig='';layoutTouch(true);leftT=-9;}else stackLeft(false);checkOrient();}
+addEventListener('resize',()=>{if(touchOn()){placeStick();layoutTouch(true);}checkOrient();});
+// ---- phones are played sideways: in portrait a screen asks you to turn the phone (and the game pauses) ----
+function checkOrient(){const r=$('rotate');if(!r)return;const p=IS_TOUCH_DEVICE&&innerHeight>innerWidth*1.05;r.hidden=!p;
+  if(p&&state==='play'&&!paused&&!creating)setPaused(true);}
+addEventListener('orientationchange',()=>setTimeout(checkOrient,250));
+// ---- iOS stops the sound after a call, the lock screen or another app: start it again on the next touch ----
+function audioWake(){const c=SFX.ctx;if(c&&c.state!=='running'&&c.resume)c.resume().catch(()=>{});}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)audioWake();});
+addEventListener('pointerdown',audioWake,{passive:true});
 // ================================================================
 // Day / night
 // ================================================================
@@ -8129,7 +8306,7 @@ function setText(e,k,v){if(lastHud[k]!==v){lastHud[k]=v;e.textContent=v;}}
 function setW(e,k,v){v=Math.round(clamp(v,0,1)*1000)/10;if(lastHud[k]!==v){lastHud[k]=v;e.style.width=v+'%';}}
 function updateHud(dt){
   if(state!=='play')return;
-  buildHudbar();updateHudbar();
+  buildHudbar();updateHudbar();updateTouchHud();
   const t=repTier(save.reputation);
   setText(hud.htier,'tier',t.name);if(lastHud.tf!==t.faction){lastHud.tf=t.faction;hud.htier.style.color=FACTION_COL[t.faction];}
   setText(hud.lvl,'lvl','LV '+save.level);setW(hud.xpb,'xp',save.xp/xpNeed());
@@ -8169,7 +8346,7 @@ function updateHud(dt){
   if(boss&&!boss.leave){hud.bossbar.hidden=false;setText(hud.bossname,'bn',boss.name);setW(hud.bossb,'boss',boss.hp/boss.maxHp);}else hud.bossbar.hidden=true;
   updateMoves();
   updateGrowTut();
-  const tb=$('touch');if(!tb.hidden){const dn=tbtns.querySelector('.dn');if(dn)dn.hidden=!P.flying;const u=tbtns.querySelector('.use');if(u){u.classList.toggle('dim',!it);const t=it?it.kind==='exit'?'EXIT':it.kind==='car'?'CAR':'HELP':'USE';if(u.textContent!==t)u.textContent=t;}}
+  // the touch buttons follow what you're doing in updateTouchHud (81_touch.js)
   if(lastHud.alien!==(P.alien?P.alien.id:'')){lastHud.alien=P.alien?P.alien.id:'';buildHotbar();buildTouchButtons();}
   setText($('online'),'online',MP.status());
   drawMinimap(P.yaw);drawLockMark();
@@ -8197,7 +8374,7 @@ $('p-skills').addEventListener('click',()=>openSheet('skills'));$('p-look').addE
 $('p-lb').addEventListener('click',()=>openSheet('lb'));if(PBAL)$('m-lb').hidden=$('p-lb').hidden=true; // no leaderboard on CrazyGames (see 67_hudbar.js)$('p-set').addEventListener('click',()=>openSheet('set'));
 $('create-x').addEventListener('click',closeCreator);
 $('p-powers').addEventListener('click',tryRechoose);
-$('dial').addEventListener('click',e=>{if(e.target.id==='dial')closeDial();});
+
 let last=performance.now(),saveT=0;
 function frame(now){
   requestAnimationFrame(frame);
@@ -8232,6 +8409,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   Portal,SFX,applyLook,rings,makeRemote,applyPresence,FLAG,updateTags,spawnMech,fireProj,mechPoint,get parks(){return typeof parks!=="undefined"?parks:null;},travStyle,setTravStyle,hasTravWheel,masteryLevel,PRESETS,get growTutOn(){return growTutOn;},respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
+if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto}));
 })();
 </script>
 </body>
