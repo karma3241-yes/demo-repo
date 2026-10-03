@@ -138,7 +138,7 @@ const TRAV_STYLES={
   stormFlight:[['fly','Fly','F to fly · Shift to boost'],['leap','Hammer Leap','Tap or hold F to leap: you arc through the sky and land, no hovering'],['storm','Storm Ride','Fly at full boost on a trail of lightning · harder to steer']],
   superSpeed:[['walk','Walk','Normal pace · Shift still runs at the speed dial'],['jog','Jog','Always running at x2'],['run','Run','Always running at half your top speed'],['top','Top speed','Always running at your top speed']],
 };
-const DEFAULT_SETTINGS={oathInput:window.__PORTAL__==='crazygames'?'type':'voice', // portals can't be counted on to allow the mic: typed there, voice still in Settings
+const DEFAULT_SETTINGS={oathInput:'hold',oathV2:true, // hold O to charge: no mic prompt, no typing; Type and Voice stay in Settings
   micLoud:0.65,controls:'auto',tSize:'m',tHand:'r',autoLock:true,sens:1,invertY:false,volume:0.7,gfx:'auto'};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
@@ -185,7 +185,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   const num=(v,d,a,b)=>typeof v==='number'&&isFinite(v)?clamp(v,a,b):d;
   if(s.settings&&typeof s.settings==='object'){const t=s.settings,st=f.settings;
     if(['auto','touch','kbm'].includes(t.controls))st.controls=t.controls;
-    if(['voice','type'].includes(t.oathInput))st.oathInput=t.oathInput;
+    if(t.oathV2===true&&['hold','voice','type'].includes(t.oathInput))st.oathInput=t.oathInput; // saves from before hold mode keep the new default once
     st.gfx=gfxFromSettings(t); // old Shadows switch -> a tier
     if(['s','m','l'].includes(t.tSize))st.tSize=t.tSize;if(['r','l'].includes(t.tHand))st.tHand=t.tHand;
     for(const k of ['autoLock','invertY'])if(typeof t[k]==='boolean')st[k]=t[k];

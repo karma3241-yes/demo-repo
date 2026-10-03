@@ -141,7 +141,7 @@ function touchAct(a,down){
   else if(/^a[0-3]$/.test(a)){if(P.car)return;const i=+a[1];if(down){heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');}else{if(heldSlot===i)heldSlot=-1;abilityUp(i);}}
   else if(a==='con'){if(down)summonConstruct();}
   else if(a==='vkey'){if(down)vPress();}
-  else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
+  else if(a==='oath'){if(oathHoldMode()){if(down)holdOathStart('touch');else holdOathStop();}else if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
   else if(a==='rebuild'){if(down)ringRebuild();}

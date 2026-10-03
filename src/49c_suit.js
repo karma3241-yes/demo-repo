@@ -59,7 +59,7 @@ function renderHeroKeys(){
   H('Fighting');K('Click','Punch · hold to keep swinging');K('Z','Lock on');K('G','Get in a car · help someone up');
   if(m){H(PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Your hero');
     if(m==='powerRing'){K('B','Build your construct (the last one you picked)');K('V','Construct wheel · in a construct: tap to step out, hold to switch');
-      K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');K('O','Say or type the oath to recharge the ring');K('Y','Rebuild every broken building');}
+      K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');K('Hold O','Recite the oath to recharge the ring');K('Y','Rebuild every broken building');}
     if(m==='armorFlight'){K('Forge Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
     if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');
     if(m==='superSpeed')K('G at a shop','Eat to refill your calories');

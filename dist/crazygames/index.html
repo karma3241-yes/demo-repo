@@ -274,6 +274,7 @@ body.touch.lefty #toasts{left:55%}body.touch.lefty #dial-x{right:auto;left:calc(
 #dial-x{display:none}body.touch #dial-x{display:block;position:absolute;right:calc(12px + var(--safe-r));top:calc(10px + var(--safe-t));z-index:2}body.touch #dial.all #dial-ring{width:min(calc(100% - 96px),960px);justify-self:start}
 body.touch #dial.all #dial-info{position:static;transform:none;margin-top:8px;font-size:11px}
 #oath{position:fixed;left:50%;bottom:max(120px,16vh);transform:translateX(-50%);z-index:6;width:min(640px,calc(100% - 32px));padding:16px 18px;box-sizing:border-box;text-align:center;border:1px solid rgba(93,255,134,.45);box-shadow:0 0 40px rgba(93,255,134,.25)}
+#oath-hold{position:fixed;left:50%;bottom:max(140px,19vh);transform:translateX(-50%);z-index:6;width:min(300px,calc(100% - 32px));padding:12px 16px;box-sizing:border-box;text-align:center;border:1px solid rgba(93,255,134,.45);box-shadow:0 0 30px rgba(93,255,134,.25);pointer-events:none}#oath-hold h3{margin:0 0 4px;font-size:12px;letter-spacing:.2em;color:#8dffb0;font-weight:600}#oath-hold small{color:rgba(233,243,255,.7)}body.touch #oath-hold{top:calc(52px + var(--safe-t));bottom:auto}
 #oath.mini{left:auto;right:16px;bottom:max(140px,19vh);transform:none;width:min(320px,calc(100% - 32px));padding:0;text-align:right;background:none;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}#oath.mini h3{display:none}#oath.mini p{font-size:13px;margin:0 0 4px;color:rgba(233,243,255,.55);text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.7)}body:not(.touch) #oath.mini input{display:none}#oath.mini input{padding:6px 8px;font-size:13px}#oath.mini small{margin-top:2px;text-shadow:0 1px 3px #000}#oath.mini button{padding:4px 10px;font-size:11px}
 #oath h3{margin:0 0 8px;font-size:12px;letter-spacing:.24em;color:#8dffb0;font-weight:600}#oath p{margin:0 0 10px;font-size:17px;line-height:1.5;color:rgba(233,243,255,.45)}#oath p b{color:#b6ffca;font-weight:600;text-shadow:0 0 12px rgba(93,255,134,.7)}
 #oath input{width:100%;box-sizing:border-box;padding:10px 12px;font:inherit;font-size:15px;color:#e9f3ff;background:rgba(0,0,0,.45);border:1px solid rgba(93,255,134,.5);border-radius:8px;outline:none}#oath small{display:block;margin-top:8px;font-size:11px;color:var(--ink-dim);letter-spacing:.1em}
@@ -475,6 +476,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
 <div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
 <div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div><button class="ghost" id="dial-x" type="button">Close</button></div>
+<div id="oath-hold" class="panel" hidden><h3 id="oath-hold-t">Hold O to recite the oath</h3><div class="miclvl"><i></i></div><small id="oath-hold-p">0%</small></div>
 <div id="oath" class="panel" hidden><h3>RECITE THE OATH</h3><p id="oath-text"></p><input id="oath-in" type="text" autocomplete="off" spellcheck="false" placeholder="Type the oath to recharge your ring"><button id="oath-next" type="button" class="ghost" hidden style="margin-top:8px">Next word (Tab)</button><div id="oath-lvl" class="miclvl" hidden><i></i><b></b></div><small id="oath-note">Esc to put the beacon away</small></div>
 <div id="dead" class="overlay" hidden><div><p class="big">Knocked out</p><p class="sub" id="deads"></p></div></div>
 <div id="nogl" class="overlay" hidden><div><p class="big">No WebGL 2</p><p class="sub">This browser can't run the game. Try a recent Chrome, Edge, Firefox or Safari.</p></div></div>
@@ -1730,7 +1732,7 @@ const TRAV_STYLES={
   stormFlight:[['fly','Fly','F to fly · Shift to boost'],['leap','Hammer Leap','Tap or hold F to leap: you arc through the sky and land, no hovering'],['storm','Storm Ride','Fly at full boost on a trail of lightning · harder to steer']],
   superSpeed:[['walk','Walk','Normal pace · Shift still runs at the speed dial'],['jog','Jog','Always running at x2'],['run','Run','Always running at half your top speed'],['top','Top speed','Always running at your top speed']],
 };
-const DEFAULT_SETTINGS={oathInput:window.__PORTAL__==='crazygames'?'type':'voice', // portals can't be counted on to allow the mic: typed there, voice still in Settings
+const DEFAULT_SETTINGS={oathInput:'hold',oathV2:true, // hold O to charge: no mic prompt, no typing; Type and Voice stay in Settings
   micLoud:0.65,controls:'auto',tSize:'m',tHand:'r',autoLock:true,sens:1,invertY:false,volume:0.7,gfx:'auto'};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
@@ -1777,7 +1779,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   const num=(v,d,a,b)=>typeof v==='number'&&isFinite(v)?clamp(v,a,b):d;
   if(s.settings&&typeof s.settings==='object'){const t=s.settings,st=f.settings;
     if(['auto','touch','kbm'].includes(t.controls))st.controls=t.controls;
-    if(['voice','type'].includes(t.oathInput))st.oathInput=t.oathInput;
+    if(t.oathV2===true&&['hold','voice','type'].includes(t.oathInput))st.oathInput=t.oathInput; // saves from before hold mode keep the new default once
     st.gfx=gfxFromSettings(t); // old Shadows switch -> a tier
     if(['s','m','l'].includes(t.tSize))st.tSize=t.tSize;if(['r','l'].includes(t.tHand))st.tHand=t.tHand;
     for(const k of ['autoLock','invertY'])if(typeof t[k]==='boolean')st[k]=t[k];
@@ -3698,7 +3700,7 @@ function updateWebbed(dt){for(const a of actors)if(a.webT>0){a.webT-=dt;a.stun=M
 // Ring Bearer: ring charge, hard-light constructs, ring moves, the black hole and the oath
 // ================================================================
 // Everything the ring does costs charge (save.ring, 0-100). It never refills on its own:
-// press O to hold up the beacon and type the oath. At zero charge you can only walk.
+// hold O to recite the oath (default), or press O to hold up the beacon and type it. At zero charge you can only walk.
 // Said out loud and loud enough (Settings → Ring oath), the oath overcharges the ring to 200 (RING_MAX).
 // B builds your default construct (the last one you picked), V opens the construct wheel.
 // Inside a construct, left click / right click / X are its attacks.
@@ -3751,7 +3753,7 @@ const armorForms=()=>hasTrav('armorFlight')&&!P.alien;
 const conFuel=()=>armorForms()?save.battery*4:save.ring;
 function conBurn(n){if(armorForms())save.battery=Math.max(0,save.battery-n*0.25);else save.ring=Math.max(0,save.ring-n);}
 const conOwner=id=>CONSTRUCTS[id]&&CONSTRUCTS[id].armor?'armorFlight':'powerRing';
-function ringOut(){if(armorForms()){meterOut(METERS.armorFlight);return;}feed('Ring charge is empty','Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
+function ringOut(){if(armorForms()){meterOut(METERS.armorFlight);return;}feed('Ring charge is empty',oathHoldMode()?(touchOn()?'Hold OATH to recite the oath':'Hold O to recite the oath'):'Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
 function summonConstruct(id){
   if(!(isRing()||armorForms())||!canAct()||P.car)return;
   if(ringLocked()){oathBusy();return;}
@@ -3882,6 +3884,7 @@ function onRingFx(d,n){
 function presExtra(){return [P.ringShield?1:0,P.phasing?1:0,P.giantS>1.02?Math.round(P.giantS*100)/100:0,P.suited===false?1:0,hasPower('armorSuit')?1:0,(metalWeapon()||{}).id==='shield'?1:0];}
 // ---- per-frame ----
 function updateRing(dt){
+  holdOathTick(dt);
   if(P.construct&&!!CONSTRUCTS[P.construct.id].armor!==armorForms())dismissConstruct(true);
   if(isRing()||armorForms()){
     const K=P.construct;
@@ -3973,9 +3976,34 @@ function oathTyped(){
   P.charging=false;for(const k in keys)keys[k]=false;mouseL=false;
   const tch=touchOn();oathIn.placeholder=tch?'Type the oath to recharge your ring':'Just start typing';if(tch)setTimeout(()=>oathIn.focus(),30);
 }
+// the oath is complete (typed, spoken, or held): flash, toast, remember it
+function oathFinish(over,said){
+  const c=center(P);flashWhite=0.5;ringFx(c.x,c.y,c.z,1,24,0.7,RING_C);ringFx(c.x,c.y,c.z,1,12,0.5,[1,1,1]);
+      if(over){ringFx(c.x,c.y,c.z,1,48,0.9,[1,1,1]);addShake(0.3);Portal.happy();}
+      burst(c.x,c.y,c.z,120,24,1,[RING_C,[1,1,1]],1.8,0,2);SFX.transform();addShake(0.4);
+      toast(over?'Ring overcharged':'Ring fully charged',over?'Your voice carried it past every limit · '+Math.round(save.ring)+'%':said?'Say it louder to overcharge it to 200':'Your will is the only limit','cyan');MP.fx('rg',{g:'o'});save.oathKnown=true;persist();
+}
+// ---- hold to charge (the default): hold O (or the touch OATH button) and the ring fills in HOLD_OATH_S seconds, no typing, no mic ----
+const HOLD_OATH_S=4;let oathHold=false,oathHoldSrc='',oathHoldEl=null;
+const oathHoldMode=()=>save.settings.oathInput==='hold';
+function holdOathStart(src){
+  if(oathHold||!isRing()||!canAct()||dialOpen)return;
+  if(save.ring>=99.5){feed('Your ring is fully charged','');return;}
+  if(!oathHoldEl)oathHoldEl=$('oath-hold');
+  oathHold=true;oathHoldSrc=src;P.lantern=false;$('oath-hold-t').textContent=(touchOn()?'Hold OATH':'Hold O')+' to recite the oath';oathHoldEl.hidden=false;holdOathMeter();SFX.tone('sine',200,400,0.6,0.08);
+}
+function holdOathStop(){if(!oathHold)return;oathHold=false;if(oathHoldEl)oathHoldEl.hidden=true;}
+function holdOathMeter(){oathHoldEl.style.setProperty('--lvl',Math.min(100,save.ring)+'%');$('oath-hold-p').textContent=Math.floor(save.ring)+'%';}
+function holdOathTick(dt){
+  if(!oathHold)return;
+  if(!isRing()||!canAct()||dialOpen||oathOpen||(oathHoldSrc==='key'&&!keys.KeyO)){holdOathStop();return;}
+  save.ring=Math.min(100,save.ring+100/HOLD_OATH_S*dt);holdOathMeter();
+  if(Math.random()<dt*8){const c=center(P);ringFx(c.x,c.y,c.z,1,3+save.ring*0.05,0.25,RING_C);}
+  if(save.ring>=100){holdOathStop();oathFinish(false,false);}
+}
 const ringLocked=()=>oathOpen&&oathFree;
 function oathBusy(){if(time-oathBusyT<1.2)return;oathBusyT=time;feed('Finish the oath first','The ring is busy while you speak · '+(touchOn()?'tap OATH':'O')+' puts the beacon away');SFX.tone('square',220,160,0.08,0.05);}
-function closeOath(){if(!oathOpen||!oathEl)return;oathOpen=false;oathFree=false;voiceOathStop();micOff('oath');$('oath-lvl').hidden=true;oathEl.hidden=true;P.lantern=false;oathIn.blur();}
+function closeOath(){holdOathStop();if(!oathOpen||!oathEl)return;oathOpen=false;oathFree=false;voiceOathStop();micOff('oath');$('oath-lvl').hidden=true;oathEl.hidden=true;P.lantern=false;oathIn.blur();}
 // keyboard typing while the beacon is out (called from the main key handler before anything else)
 function oathKey(e){
   e.preventDefault();const k=e.key;
@@ -3992,10 +4020,7 @@ oathIn.addEventListener('input',()=>{
   const want=oathNorm(OATH),got=oathNorm(oathIn.value);let n=0;while(n<got.length&&got[n]===want[n])n++;
   renderOath(n);const k=n/want.length;save.ring=Math.max(save.ring,oathStart+Math.max(0,100-oathStart)*k);
   if(n<got.length){oathIn.style.borderColor='#ff4d5e';}else oathIn.style.borderColor='';
-  if(n>=want.length){const over=oathLoud(),said=oathVoice();save.ring=Math.max(save.ring,over?RING_MAX:100);closeOath();const c=center(P);flashWhite=0.5;ringFx(c.x,c.y,c.z,1,24,0.7,RING_C);ringFx(c.x,c.y,c.z,1,12,0.5,[1,1,1]);
-    if(over){ringFx(c.x,c.y,c.z,1,48,0.9,[1,1,1]);addShake(0.3);Portal.happy();}
-    burst(c.x,c.y,c.z,120,24,1,[RING_C,[1,1,1]],1.8,0,2);SFX.transform();addShake(0.4);
-    toast(over?'Ring overcharged':'Ring fully charged',over?'Your voice carried it past every limit · '+Math.round(save.ring)+'%':said?'Say it louder to overcharge it to 200':'Your will is the only limit','cyan');MP.fx('rg',{g:'o'});save.oathKnown=true;persist();}
+  if(n>=want.length){const over=oathLoud(),said=oathVoice();save.ring=Math.max(save.ring,over?RING_MAX:100);closeOath();oathFinish(over,said);}
 });
 oathIn.addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();closeOath();}else if(e.code==='Tab'){e.preventDefault();oathNextWord();}e.stopPropagation();});
 $('oath-next').addEventListener('pointerdown',e=>{e.preventDefault();oathNextWord();});}
@@ -4237,7 +4262,7 @@ function renderHeroKeys(){
   H('Fighting');K('Click','Punch · hold to keep swinging');K('Z','Lock on');K('G','Get in a car · help someone up');
   if(m){H(PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Your hero');
     if(m==='powerRing'){K('B','Build your construct (the last one you picked)');K('V','Construct wheel · in a construct: tap to step out, hold to switch');
-      K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');K('O','Say or type the oath to recharge the ring');K('Y','Rebuild every broken building');}
+      K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');K('Hold O','Recite the oath to recharge the ring');K('Y','Rebuild every broken building');}
     if(m==='armorFlight'){K('Forge Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
     if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');
     if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
@@ -6947,7 +6972,7 @@ function nearestTallRoof(){let best=null,bd=1e9;for(const r of roofTops){if(r.y<
 function nearestShop(){let best=null,bd=1e9;for(const s of shops){if(s.prop&&!s.prop.alive)continue;const d=Math.hypot(s.x-P.pos.x,s.z-P.pos.z);if(d<bd){bd=d;best=s;}}return best;}
 function rechargeGoal(){
   const m=heroMeter();if(!m||P.dead||meterFrac(m)>=0.25)return null;
-  if(m.key==='ring')return {hint:'Ring low · '+(touchOn()?'tap OATH':'press O')+' and say the oath to recharge',col:'#5dff86'};
+  if(m.key==='ring')return {hint:'Ring low · '+(touchOn()?'hold OATH':'hold O')+' to recite the oath and recharge',col:'#5dff86'};
   if(m.key==='battery'){if(atInventorTower())return {hint:'Recharging at Forge Tower',col:'#ff6a3d'};if(!invTower)return null;
     return {x:invTower.x,y:invTower.top+8,z:invTower.z,icon:'🔋',label:'Forge Tower',col:'#ff6a3d',hint:(save.battery<=0?'Suit on standby':'Battery low')+' · fly to Forge Tower to recharge'};}
   if(m.key==='bolt'){if(tallRoofHere())return {hint:(touchOn()?'Tap USE':'Press G')+' to raise your hammer and call the storm',col:'#8fd8ff'};
@@ -7265,8 +7290,8 @@ function renderSettings(){
         el('div',{class:'lb-tabs'},...[['r','Right-handed'],['l','Left-handed']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.tHand===k),text:l,onclick:()=>{s.tHand=k;persist();applyTouchUI();renderSheet();}}))),
         el('p',{class:'muted',text:'Left-handed puts the buttons on the left and the joystick on the right.'}))]:[]),
     el('div',{class:'field'},el('span',{text:'Ring oath · how the Ring Bearer recites it'}),
-      el('div',{class:'lb-tabs'},...[['voice','Say it out loud'],['type','Type it (Tab)']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.oathInput===k),disabled:k==='voice'&&!voiceOK(),text:l,onclick:()=>{s.oathInput=k;persist();if(k==='voice')askMic(true);renderSheet();}}))),
-      el('p',{class:'muted',text:!voiceOK()?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line, and you can keep moving and fighting (no ring powers until you finish). O or Esc puts the beacon away.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
+      el('div',{class:'lb-tabs'},...[['hold','Hold to charge'],['type','Type it (Tab)'],['voice','Say it out loud']].map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.oathInput===k),disabled:k==='voice'&&!voiceOK(),text:l,onclick:()=>{s.oathInput=k;persist();if(k==='voice')askMic(true);renderSheet();}}))),
+      el('p',{class:'muted',text:!voiceOK()&&s.oathInput==='voice'?'This browser can\'t listen, so the oath is typed.':voiceBlocked&&s.oathInput==='voice'?'The microphone is blocked. Allow it for this page in your browser, then pick Say it out loud again.':s.oathInput==='hold'?'Hold O (or the OATH button on a phone) and the ring fills in a few seconds. Let go to stop. No typing, no microphone.':s.oathInput==='voice'?'Press O and speak the oath. The ring charges as you say each line, and you can keep moving and fighting (no ring powers until you finish). O or Esc puts the beacon away.':'Press O and type the oath. Once you know it, Tab fills in each word.'})),
     ...(s.oathInput==='voice'&&voiceOK()?micSettings(s,rng):[]),
     row('Lock the mouse when you click into the game',chk('autoLock')),
     el('p',{class:'muted',text:'Press L any time to lock or unlock the mouse. While it is unlocked, hold the middle mouse button and drag to look around.'}),
@@ -7452,7 +7477,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyU'){suitToggle();return;}
   if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else if(P.construct)vHoldStart(e.timeStamp);else openDial('construct');}else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else if(hasTravWheel()&&!hasPower('morphBand'))openDial('trav');else bandPress();return;}
   if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
-  if(e.code==='KeyO'&&isRing()){if(ringLocked())closeOath();else openOath();return;}
+  if(e.code==='KeyO'&&isRing()){if(oathHoldMode())holdOathStart('key');else if(ringLocked())closeOath();else openOath();return;}
   if(e.code==='KeyY'&&isRing()){ringRebuild();return;}
   if(e.code==='KeyB'&&(isRing()||armorForms())&&!P.car){summonConstruct();return;}
   if(P.car)return;
@@ -7914,7 +7939,7 @@ function touchAct(a,down){
   else if(/^a[0-3]$/.test(a)){if(P.car)return;const i=+a[1];if(down){heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');}else{if(heldSlot===i)heldSlot=-1;abilityUp(i);}}
   else if(a==='con'){if(down)summonConstruct();}
   else if(a==='vkey'){if(down)vPress();}
-  else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
+  else if(a==='oath'){if(oathHoldMode()){if(down)holdOathStart('touch');else holdOathStop();}else if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
   else if(a==='rebuild'){if(down)ringRebuild();}

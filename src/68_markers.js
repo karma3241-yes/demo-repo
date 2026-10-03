@@ -30,7 +30,7 @@ function nearestTallRoof(){let best=null,bd=1e9;for(const r of roofTops){if(r.y<
 function nearestShop(){let best=null,bd=1e9;for(const s of shops){if(s.prop&&!s.prop.alive)continue;const d=Math.hypot(s.x-P.pos.x,s.z-P.pos.z);if(d<bd){bd=d;best=s;}}return best;}
 function rechargeGoal(){
   const m=heroMeter();if(!m||P.dead||meterFrac(m)>=0.25)return null;
-  if(m.key==='ring')return {hint:'Ring low · '+(touchOn()?'tap OATH':'press O')+' and say the oath to recharge',col:'#5dff86'};
+  if(m.key==='ring')return {hint:'Ring low · '+(touchOn()?'hold OATH':'hold O')+' to recite the oath and recharge',col:'#5dff86'};
   if(m.key==='battery'){if(atInventorTower())return {hint:'Recharging at Forge Tower',col:'#ff6a3d'};if(!invTower)return null;
     return {x:invTower.x,y:invTower.top+8,z:invTower.z,icon:'🔋',label:'Forge Tower',col:'#ff6a3d',hint:(save.battery<=0?'Suit on standby':'Battery low')+' · fly to Forge Tower to recharge'};}
   if(m.key==='bolt'){if(tallRoofHere())return {hint:(touchOn()?'Tap USE':'Press G')+' to raise your hammer and call the storm',col:'#8fd8ff'};
