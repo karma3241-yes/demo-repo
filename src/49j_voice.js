@@ -44,7 +44,7 @@ function askMic(force){
   if((micAsked&&!force)||save.settings.oathInput!=='voice'||!voiceOK()||!hasTrav('powerRing'))return;micAsked=true;voiceBlocked=false;
   const md=navigator.mediaDevices;if(!md||!md.getUserMedia)return;
   md.getUserMedia({audio:true}).then(s=>{for(const t of s.getTracks())t.stop();feed('Microphone ready','Press O and say the oath out loud');})
-    .catch(()=>{voiceBlocked=true;feed('No microphone','You can still type the oath · switch in Settings');});
+    .catch(e=>{logErr(e);voiceBlocked=true;feed('No microphone','You can still type the oath · switch in Settings');});
 }
 // ---- how loud you are ----
 // While the voice oath listens (or Settings tests the mic) the mic runs into an analyser: level is 0-1 (-60 dB to 0 dB, RMS).
@@ -59,8 +59,8 @@ function micOn(who){
   md.getUserMedia({audio:{autoGainControl:false}}).then(s=>{ // no auto gain: it would turn a shout back down
     if(MIC.ctx!==ctx){for(const t of s.getTracks())t.stop();return;}
     MIC.stream=s;const an=ctx.createAnalyser();an.fftSize=1024;ctx.createMediaStreamSource(s).connect(an);MIC.an=an;MIC.buf=new Float32Array(an.fftSize);
-    if(ctx.resume)ctx.resume().catch(()=>{});cancelAnimationFrame(MIC.raf);micTick();
-  }).catch(()=>{if(MIC.ctx===ctx)micRelease();});
+    if(ctx.resume)ctx.resume().catch(e=>logErr(e));cancelAnimationFrame(MIC.raf);micTick();
+  }).catch(e=>{logErr(e);if(MIC.ctx===ctx)micRelease();});
 }
 function micOff(who){MIC.users.delete(who);if(!MIC.users.size&&MIC.ctx)micRelease();}
 function micRelease(){cancelAnimationFrame(MIC.raf);MIC.raf=0;if(MIC.stream)for(const t of MIC.stream.getTracks())t.stop();

@@ -25,9 +25,9 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
   async init(){
     try{
       if(!window.claude||typeof window.claude.use!=='function')return;this.since=performance.now();
-      window.claude.use('user').then(async u=>{if(!u)return;try{this.access={edit:await u.canEdit(),write:await u.can('data.write')};}catch(e){}}).catch(()=>{});
+      window.claude.use('user').then(async u=>{if(!u)return;try{this.access={edit:await u.canEdit(),write:await u.can('data.write')};}catch(e){}}).catch(e=>logErr(e));
       const room=await window.claude.use('room');this.tried=true;if(!room)return;this.room=room;
-      const onErr=e=>{this.err=(e&&e.code)||'error';};
+      const onErr=e=>{this.err=(e&&e.code)||'error';logErr(e);};
       room.onPeers(ch=>{
         for(const p of ch.peers)if(p.isMe&&p.sameTab)this.myPeer=p.peer;
         for(const p of ch.joined)if(!p.isMe)this.upsert(p,true);
@@ -36,7 +36,7 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
       },onErr);
       room.on('hit',m=>this.onHit(m),onErr);room.on('down',m=>this.onDown(m),onErr);room.on('fx',m=>this.onFx(m),onErr);
       room.onConnection(c=>{this.connected=c;if(c)this.dirty=true;},onErr);
-    }catch(e){this.room=null;this.tried=true;}
+    }catch(e){this.room=null;this.tried=true;logErr(e);}
   },
   upsert(peer,joined){
     const pr=peer.presence||{};if(pr.v!==1)return;
@@ -56,11 +56,11 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
     const net=this.net();if(!net)return;
     this.hitT-=dt;if(this.hitT<=0){this.hitT=0.12;
       for(const r of this.peers.values())if(r.pend>0){const d={to:r.peer,a:Math.round(r.pend*10)/10,t:String(r.pendType||'hit').slice(0,12),k:Math.round(r.pendK||0),x:Math.round(P.pos.x),z:Math.round(P.pos.z)};if(r.pendV)d.v=r.pendV;if(r.pendS)d.s=Math.round(r.pendS*10)/10;
-        r.pend=0;r.pendK=0;r.pendV=null;r.pendS=0;net.emit('hit',d).catch(()=>{});}}
+        r.pend=0;r.pendK=0;r.pendV=null;r.pendS=0;net.emit('hit',d).catch(e=>logErr(e));}}
     this.sendT-=dt;if(this.sendT>0)return;this.sendT=0.08;
     this.keepT=(this.keepT||0)-0.08;if(net===P2P&&this.keepT<=0){this.keepT=2;this.dirty=true;} // room codes: resend so late joiners see idle players
     const pr=myPresence(),key=JSON.stringify(pr);if(key===this.last&&!this.dirty)return;this.last=key;this.dirty=false;
-    net.presence(pr).catch(e=>{if(e&&e.code==='not_granted')this.err='not_granted';});
+    net.presence(pr).catch(e=>{if(e&&e.code==='not_granted')this.err='not_granted';else logErr(e);});
   },
   onHit(m){
     if(!m||m.isMe||!m.data||m.data.to!==this.myPeer||P.dead||state!=='play')return;
@@ -70,14 +70,14 @@ const MP={room:null,myPeer:null,peers:new Map(),connected:false,sendT:0,last:'',
     Damage.apply(src,P,amt,'pvp',{knock:clamp(+m.data.k||0,0,40),kv:v,stun:clamp(+m.data.s||0,0,1.4)});
   },
   sendDown(killer){const net=this.net();if(!net||!killer||killer.kind!=='remote')return;
-    net.emit('down',{to:killer.peer,lv:save.level,fac:playerFaction(),b:hasBounty()?1:0}).catch(()=>{});},
+    net.emit('down',{to:killer.peer,lv:save.level,fac:playerFaction(),b:hasBounty()?1:0}).catch(e=>logErr(e));},
   onDown(m){
     if(!m||m.isMe||!m.data||m.data.to!==this.myPeer)return;
     const r=this.peers.get(m.peer),lv=clamp(Math.floor(+m.data.lv||1),1,100),fac=m.data.fac;
     let xp=NPCS.rival.xp+NPCS.rival.xpPerLvl*lv,rep=fac==='villain'?25:fac==='hero'?-25:0;if(m.data.b){xp*=2;rep*=2;}
     addXP(xp);addRep(rep);save.stats.defeated++;toast('You defeated '+(r?r.name:'a player'),'+'+xp+' XP'+(rep?' · '+(rep>0?'+':'')+rep+' rep':''),'gold');
   },
-  fx(k,d){const net=this.net();if(net&&(net===P2P||this.connected))net.emit('fx',Object.assign({k},d)).catch(()=>{});},
+  fx(k,d){const net=this.net();if(net&&(net===P2P||this.connected))net.emit('fx',Object.assign({k},d)).catch(e=>logErr(e));},
   onFx(m){
     if(!m||m.isMe||!m.data)return;const d=m.data,r=this.peers.get(m.peer);if(!r)return;
     const n=v=>{v=+v;return isFinite(v)?v:0;};
@@ -204,10 +204,10 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
     this.shutdown();this.state='starting';this.err='';this.host=true;this.code=this.newCode();this.changed();
     try{await this.loadLib();}catch(e){this.fail('Could not load the multiplayer library. Check your connection.');return;}
     await this.loadIce();
-    const peer=this.startPeer(P2P_PREFIX+this.code);
-    peer.on('open',id=>{MP.myPeer=id;this.state='open';this.open=true;this.setHash();this.changed();});
+    let peer;try{peer=this.startPeer(P2P_PREFIX+this.code);}catch(e){logErr(e);this.fail('Could not start a room');return;}
+    peer.on('open',id=>{try{MP.myPeer=id;this.state='open';this.open=true;this.setHash();this.changed();}catch(e){logErr(e);}});
     peer.on('connection',conn=>this.accept(conn));
-    peer.on('error',e=>{if(this.peer!==peer)return;if(e&&e.type==='unavailable-id'){this.create();return;}
+    peer.on('error',e=>{logErr(e);if(this.peer!==peer)return;if(e&&e.type==='unavailable-id'){this.create();return;}
       if(!this.open)this.fail('Could not start a room ('+((e&&e.type)||'error')+')');});
     this.timer=setTimeout(()=>{if(this.state==='starting'&&this.peer===peer)this.fail('Could not reach the matchmaking server');},15000);
   },
@@ -216,14 +216,14 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
     this.shutdown();this.state='starting';this.err='';this.host=false;this.code=code;this.changed();
     try{await this.loadLib();}catch(e){this.fail('Could not load the multiplayer library. Check your connection.');return;}
     await this.loadIce();
-    const peer=this.startPeer(undefined);
+    let peer;try{peer=this.startPeer(undefined);}catch(e){logErr(e);this.fail('Could not join that room');return;}
     let found=false;
-    peer.on('open',id=>{MP.myPeer=id;found=true;const c=peer.connect(P2P_PREFIX+code,{reliable:true,serialization:'json'});this.hostConn=c;
+    peer.on('open',id=>{MP.myPeer=id;found=true;let c;try{c=peer.connect(P2P_PREFIX+code,{reliable:true,serialization:'json'});}catch(e){logErr(e);this.fail('Could not join ('+((e&&e.type)||'error')+')');return;}this.hostConn=c;
       c.on('open',()=>{if(this.hostConn!==c)return;this.state='open';this.open=true;this.setHash();this.changed();if(state==='play')feed('Joined room '+code,'');});
       c.on('data',m=>this.fromHost(m));
       c.on('close',()=>{if(this.hostConn===c&&this.state!=='off')this.fail(this.open?'The host left, so the room closed':'Could not connect to that room');});
-      c.on('error',()=>{});});
-    peer.on('error',e=>{if(this.peer!==peer)return;const t=e&&e.type;
+      c.on('error',e=>logErr(e));});
+    peer.on('error',e=>{logErr(e);if(this.peer!==peer)return;const t=e&&e.type;
       this.fail(t==='peer-unavailable'?'No room with code '+code+'. Check the code, and make sure the host is still playing.':this.open?'Connection lost ('+(t||'error')+')':'Could not join ('+(t||'error')+')');});
     this.timer=setTimeout(()=>{if(this.state==='starting'&&this.peer===peer)this.fail(found?'Found room '+code+' but could not connect to the host. One of your networks may be blocking it: try another network (e.g. a phone hotspot).':'Could not reach the matchmaking server. Check your connection and try again.');},25000);
   },
@@ -232,13 +232,14 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
     conn.on('open',()=>{
       if(this.conns.size>=P2P_MAX-1){try{conn.send({t:'full'});}catch(e){}setTimeout(()=>conn.close(),300);return;}
       if(ROOM.locked){try{conn.send({t:'locked'});}catch(e){}setTimeout(()=>conn.close(),300);return;}
-      this.conns.set(conn.peer,conn);conn.send({t:'rs',d:ROOM});
-      if(this.myLast)conn.send({t:'pr',from:MP.myPeer,p:this.myLast});
-      for(const [id,o] of this.conns)if(id!==conn.peer&&o.lastPr)conn.send({t:'pr',from:id,p:o.lastPr});
+      this.conns.set(conn.peer,conn);
+      try{conn.send({t:'rs',d:ROOM});
+        if(this.myLast)conn.send({t:'pr',from:MP.myPeer,p:this.myLast});
+        for(const [id,o] of this.conns)if(id!==conn.peer&&o.lastPr)conn.send({t:'pr',from:id,p:o.lastPr});}catch(e){logErr(e);}
       this.changed();});
     conn.on('data',m=>this.fromClient(conn,m));
     conn.on('close',()=>{if(!this.conns.has(conn.peer))return;this.conns.delete(conn.peer);MP.remove(conn.peer);this.broadcast({t:'left',from:conn.peer},null);this.changed();});
-    conn.on('error',()=>{});
+    conn.on('error',e=>logErr(e));
   },
   broadcast(m,except){for(const [id,c] of this.conns)if(id!==except&&c.open)try{c.send(m);}catch(e){}},
   fromClient(conn,m){
@@ -263,6 +264,6 @@ const P2P={peer:null,host:false,code:'',conns:new Map(),hostConn:null,state:'off
     else if(topic==='dx')WS.onDestroy(d);else if(topic==='nh')WS.onClientHit(from,d);else if(topic==='tk')WS.onTake(from,d);else if(topic==='tg')WS.onTkGrab(from,d);else if(topic==='tt')WS.onTkThrow(from,d);},
   sendTo(id,m){const c=this.conns.get(id);if(c&&c.open)try{c.send(m);}catch(e){}},
   // transport interface used by MP (same shape as the claude.ai room)
-  presence(pr){if(this.host){this.myLast=pr;this.broadcast({t:'pr',from:MP.myPeer,p:pr},null);}else if(this.hostConn&&this.hostConn.open)this.hostConn.send({t:'pr',p:pr});return Promise.resolve();},
-  emit(topic,d){if(this.host)this.broadcast({t:'ev',from:MP.myPeer,topic,d},null);else if(this.hostConn&&this.hostConn.open)this.hostConn.send({t:'ev',topic,d});return Promise.resolve();},
+  presence(pr){if(this.host){this.myLast=pr;this.broadcast({t:'pr',from:MP.myPeer,p:pr},null);}else if(this.hostConn&&this.hostConn.open)try{this.hostConn.send({t:'pr',p:pr});}catch(e){logErr(e);}return Promise.resolve();},
+  emit(topic,d){if(this.host)this.broadcast({t:'ev',from:MP.myPeer,topic,d},null);else if(this.hostConn&&this.hostConn.open)try{this.hostConn.send({t:'ev',topic,d});}catch(e){logErr(e);}return Promise.resolve();},
 };
