@@ -1,7 +1,7 @@
 // ================================================================
 // Input: keyboard, mouse, pointer lock, touch
 // ================================================================
-const keys={};let mouseL=false,mmbLook=false,rmbLook=false,locked=false,lockFailed=false,manualUnlock=false,helpTimer=0,lockHint=false,gHeld=0;
+const keys={};let mouseL=false,mmbLook=false,rmbLook=false,locked=false,lockFailed=false,manualUnlock=false,helpTimer=0,lockHint=false,gHeld=0,lockPend=false;
 const touchIn={x:0,y:0};let lookT=-9;
 const sensK=()=>0.0023*save.settings.sens;
 function look(dx,dy,k=1){P.yaw-=dx*sensK()*k;P.pitch=clamp(P.pitch+(save.settings.invertY?1:-1)*dy*sensK()*k,-1.3,1.25);lookT=time;}
@@ -61,7 +61,8 @@ canvas.addEventListener('mousedown',e=>{
   if(paused){if(!sheetOpen&&!creating)resume();return;}
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
-  if(e.button===0){if(!locked&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+  if(e.button===0){if(lockPend){requestLock();return;} // the first click after an auto-start only locks the mouse (no punch)
+    if(!locked&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
   else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
@@ -70,15 +71,18 @@ addEventListener('wheel',e=>{if(state!=='play'||paused||Math.abs(e.deltaY)<=1)re
 // the wheel (or [ ]) grows whatever you are holding: the power whose key is held down, else the construct you are in
 function growStep(dir){if(heldSlot>=0&&save.character&&!P.alien&&save.character.abilities[heldSlot])return skillGrowStep(heldSlot,dir);if(P.construct)return conGrowStep(dir);return false;}
 addEventListener('mousemove',e=>{if(state!=='play'||paused||touchOn())return;if(dialOpen){if(locked)dialMove(e.movementX,e.movementY);return;}if(locked||mmbLook||rmbLook)look(e.movementX,e.movementY);});
-function requestLock(){if(touchOn())return;try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
+// browsers reject a pointer lock without a user gesture: until the first click/key the lock is held back and a pill asks for the click
+function gestureOK(){const u=navigator.userActivation;return !u||u.isActive;}
+function lockPill(on){const e=$('lockpill');if(e)e.hidden=!on;}
+function requestLock(){if(touchOn())return;if(!gestureOK()){lockPend=true;lockPill(state==='play'&&!paused);return;}lockPend=false;lockPill(false);try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
 function lockFail(){lockFailed=true;if(time-(P.lockFailT||-9)>4){P.lockFailT=time;toast('Click the game to lock the mouse','Or hold the middle mouse button and drag to look','cyan');}} // browsers refuse a lock right after one ends: the next click tries again
 function toggleLock(){if(touchOn())return;if(locked){manualUnlock=true;document.exitPointerLock();toast('Mouse unlocked','Middle-drag to look · press L to lock again','cyan');}else{lockFailed=false;requestLock();}}
 document.addEventListener('pointerlockchange',()=>{const now=document.pointerLockElement===canvas;
   if(!now&&locked&&state==='play'&&!paused&&!manualUnlock&&!sheetOpen&&!dialOpen&&!creating)setPaused(true);
-  if(!now)manualUnlock=false;locked=now;});
+  if(!now)manualUnlock=false;locked=now;if(now){lockPend=false;lockPill(false);}});
 document.addEventListener('pointerlockerror',()=>lockFail());
 function setPaused(v){
-  paused=v;$('pause').hidden=!v||creating;if(v)renderPortalButtons();{const on=v&&MP.online();$('pause-title').textContent=on?'Menu':'Paused';$('pause-note').hidden=!on;}if(dialOpen)closeDial();
+  paused=v;lockPill(!v&&lockPend&&state==='play');$('pause').hidden=!v||creating;if(v)renderPortalButtons();{const on=v&&MP.online();$('pause-title').textContent=on?'Menu':'Paused';$('pause-note').hidden=!on;}if(dialOpen)closeDial();
   if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<5;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();}
 }
 function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}

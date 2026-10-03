@@ -102,9 +102,18 @@ function frameBody(now){
   updateTags();updateMarkers();updateUnderwater();
   if(state!=='play')setText($('menu-online'),'monline',MP.status());
 }
+// a first visit drops straight into the world as the Ring Bearer (no menu click). Returning players keep the menu. On a phone held in
+// portrait it waits for landscape (checkOrient calls this again). On CrazyGames it waits for Portal.init (cloud save, username).
+let autoReady=false,autoDone=false;
+function autoStart(){
+  if(autoDone||!autoReady||window.__SKYLINE_TEST__||save.character||state!=='menu'||creating||sheetOpen)return;
+  if(IS_TOUCH_DEVICE&&innerHeight>innerWidth*1.05)return;
+  autoDone=true;later(0.1,()=>{if(!save.character&&state==='menu'&&!creating)startAsRingBearer();}); // after the world has drawn a frame
+}
 applyTouchUI();refreshMenu();updateEnv(0);applyLook();MP.init();
 {const m=/^#room=([A-Za-z0-9]{4,8})$/.exec(location.hash);if(m&&P2P.available())P2P.join(m[1]);}
 requestAnimationFrame(frame);
+if(!Portal.pending){autoReady=true;autoStart();}else setTimeout(()=>{autoReady=true;autoStart();},4000); // the portal SDK never answered: start anyway
 if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},actors,humans,drones,vehicles,rivals,crimes,orbs,keys,
   start:()=>$('start').click(),look:(y,p)=>{P.yaw=y;P.pitch=p;},setTod:v=>{tod=v;},abilityDown,abilityUp,punch,toggleFlight,webPress,webRelease,
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),

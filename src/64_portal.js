@@ -13,20 +13,26 @@
 // within seconds. The rewards live in the HUD icon bar (67_hudbar.js).
 const PORTAL=window.__PORTAL__||'';
 const PORTAL_AD_GAP=180,XP_BOOST={mul:2,time:300};
-const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,forceMute:false,weMuted:false,username:'',adblock:false,
+const Portal={sdk:null,pending:false,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,forceMute:false,weMuted:false,username:'',adblock:false,
   on(){return !!this.sdk;},
   // rewarded buttons are only live when an ad can actually play (an ad blocker leaves them greyed out, never clickable-but-dead)
   ads(){return !!this.sdk&&!this.adblock&&!BASIC_LAUNCH;}, // basic launch: no ads at all (20_core.js)
   async init(){
     if(PORTAL!=='crazygames')return;const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;
+    this.pending=true; // the boot code leaves the first-visit auto-start to the end of this (cloud save and username first)
+    try{await this.setup(S);}catch(e){logErr(e);}
+    autoReady=true;autoStart();
+  },
+  async setup(S){
     try{await S.init();}catch(e){return;}
     this.sdk=S;
     try{S.game.loadingStart();S.game.loadingStop();}catch(e){} // the game has finished loading by the time the SDK is ready
-    this.cloudSync(S);this.watchSettings(S);this.fetchUser(S);this.checkAdblock(S);
+    this.cloudSync(S);this.watchSettings(S);const who=this.fetchUser(S);this.checkAdblock(S);
     try{const room=S.game.getInviteParam('room');if(room&&P2P.available())P2P.join(room);else if(S.game.isInstantMultiplayer&&P2P.available())P2P.create();}catch(e){}
     // a player already in the game who accepts a friend's invite goes straight to that room
     try{if(typeof S.game.addJoinRoomListener==='function')S.game.addJoinRoomListener(p=>this.joinInvite(p));}catch(e){}
     if(sheetOpen)renderSheet();renderPortalButtons();
+    try{await Promise.race([who,new Promise(r=>setTimeout(r,1500))]);}catch(e){} // the username names a first-visit hero
   },
   // tell the portal whether the player is actually playing (not in menus, paused, knocked out or watching an ad)
   tick(){

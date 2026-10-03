@@ -212,6 +212,8 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--energy);flex:none
 #rotate .ico{width:72px;height:72px;color:var(--gold);animation:rot 2.4s ease-in-out infinite}#rotate b{display:block;margin-top:14px;font:400 22px var(--display);letter-spacing:.04em}#rotate span{display:block;margin-top:6px;color:var(--ink-dim);font-size:14px}
 #glreset{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:24px;text-align:center;background:var(--bg);cursor:pointer}#glreset b{display:block;font:400 22px var(--display);letter-spacing:.04em}#glreset span{display:block;margin-top:6px;color:var(--ink-dim);font-size:14px}
 @keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+#lockpill{position:fixed;left:50%;top:62%;transform:translateX(-50%);z-index:3;padding:9px 20px;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;pointer-events:none;animation:pillPulse 1.6s ease-in-out infinite}
+@keyframes pillPulse{50%{opacity:.55}}
 body.touch #keys,body.touch #prompt,body.touch #clock,body.touch #mode{display:none}
 body.touch .hud-tr{top:8px;right:auto;left:50%;transform:translateX(-50%);background:rgba(4,8,18,.55);padding:3px 8px;text-align:center}body.touch .hud-tr:has(#online:empty){display:none}
 body.touch .hud-tl{top:calc(10px + var(--safe-t));left:calc(10px + var(--safe-l));padding:7px 9px;min-width:0;width:176px;box-sizing:border-box;gap:5px}
@@ -433,6 +435,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
 <div id="touch" hidden><div id="tlayer"></div><div id="stick"><div id="knob"></div></div><div id="tbtns"></div><button class="tb" id="tpause" type="button" aria-label="Pause"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button></div><div id="safeprobe"></div>
 <div id="rotate" hidden><div><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg><b>Turn your phone sideways</b><span>Skyline Guardian is played in landscape.</span></div></div>
 
+<div id="lockpill" class="panel" hidden>Click to look around</div>
 <div id="glreset" hidden><div><b>Graphics were reset</b><span>Your progress is saved. Tap to continue.</span></div></div>
 
 <div id="menu" class="overlay">
@@ -899,7 +902,7 @@ const FIRE=[[1,.85,.4],[1,.55,.15],[1,.35,.08],[1,.95,.7]],SPARK=[[1,1,.8],[1,.8
 // ================================================================
 const SFX={ctx:null,master:null,muted:false,volume:0.7,
   init(){
-    if(this.ctx){this.ctx.resume&&this.ctx.resume();return;}
+    if(this.ctx){if(this.ctx.state!=='running'&&this.ctx.resume)this.ctx.resume().catch(()=>{});return;}
     try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){this.ctx=null;return;}
     const c=this.ctx;this.master=c.createGain();this.volume=save.settings.volume;this.master.gain.value=this.muted?0:this.volume;this.master.connect(c.destination);
     const len=c.sampleRate*2,b=c.createBuffer(1,len,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;this.noise=b;
@@ -6370,20 +6373,26 @@ function renderHostControls(B){
 // within seconds. The rewards live in the HUD icon bar (67_hudbar.js).
 const PORTAL=window.__PORTAL__||'';
 const PORTAL_AD_GAP=180,XP_BOOST={mul:2,time:300};
-const Portal={sdk:null,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,forceMute:false,weMuted:false,username:'',adblock:false,
+const Portal={sdk:null,pending:false,inAd:false,adAt:0,playing:false,stopAt:-9999,boostUntil:0,muteWas:false,happyAt:-99,crimeAt:0,forceMute:false,weMuted:false,username:'',adblock:false,
   on(){return !!this.sdk;},
   // rewarded buttons are only live when an ad can actually play (an ad blocker leaves them greyed out, never clickable-but-dead)
   ads(){return !!this.sdk&&!this.adblock&&!BASIC_LAUNCH;}, // basic launch: no ads at all (20_core.js)
   async init(){
     if(PORTAL!=='crazygames')return;const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;
+    this.pending=true; // the boot code leaves the first-visit auto-start to the end of this (cloud save and username first)
+    try{await this.setup(S);}catch(e){logErr(e);}
+    autoReady=true;autoStart();
+  },
+  async setup(S){
     try{await S.init();}catch(e){return;}
     this.sdk=S;
     try{S.game.loadingStart();S.game.loadingStop();}catch(e){} // the game has finished loading by the time the SDK is ready
-    this.cloudSync(S);this.watchSettings(S);this.fetchUser(S);this.checkAdblock(S);
+    this.cloudSync(S);this.watchSettings(S);const who=this.fetchUser(S);this.checkAdblock(S);
     try{const room=S.game.getInviteParam('room');if(room&&P2P.available())P2P.join(room);else if(S.game.isInstantMultiplayer&&P2P.available())P2P.create();}catch(e){}
     // a player already in the game who accepts a friend's invite goes straight to that room
     try{if(typeof S.game.addJoinRoomListener==='function')S.game.addJoinRoomListener(p=>this.joinInvite(p));}catch(e){}
     if(sheetOpen)renderSheet();renderPortalButtons();
+    try{await Promise.race([who,new Promise(r=>setTimeout(r,1500))]);}catch(e){} // the username names a first-visit hero
   },
   // tell the portal whether the player is actually playing (not in menus, paused, knocked out or watching an ad)
   tick(){
@@ -7293,7 +7302,7 @@ Bus.on('damaged',e=>{if(e.source===P&&e.type==='punch')guideDone('punch');});
 // ================================================================
 // Input: keyboard, mouse, pointer lock, touch
 // ================================================================
-const keys={};let mouseL=false,mmbLook=false,rmbLook=false,locked=false,lockFailed=false,manualUnlock=false,helpTimer=0,lockHint=false,gHeld=0;
+const keys={};let mouseL=false,mmbLook=false,rmbLook=false,locked=false,lockFailed=false,manualUnlock=false,helpTimer=0,lockHint=false,gHeld=0,lockPend=false;
 const touchIn={x:0,y:0};let lookT=-9;
 const sensK=()=>0.0023*save.settings.sens;
 function look(dx,dy,k=1){P.yaw-=dx*sensK()*k;P.pitch=clamp(P.pitch+(save.settings.invertY?1:-1)*dy*sensK()*k,-1.3,1.25);lookT=time;}
@@ -7353,7 +7362,8 @@ canvas.addEventListener('mousedown',e=>{
   if(paused){if(!sheetOpen&&!creating)resume();return;}
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
-  if(e.button===0){if(!locked&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+  if(e.button===0){if(lockPend){requestLock();return;} // the first click after an auto-start only locks the mouse (no punch)
+    if(!locked&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
   else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
 addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
@@ -7362,15 +7372,18 @@ addEventListener('wheel',e=>{if(state!=='play'||paused||Math.abs(e.deltaY)<=1)re
 // the wheel (or [ ]) grows whatever you are holding: the power whose key is held down, else the construct you are in
 function growStep(dir){if(heldSlot>=0&&save.character&&!P.alien&&save.character.abilities[heldSlot])return skillGrowStep(heldSlot,dir);if(P.construct)return conGrowStep(dir);return false;}
 addEventListener('mousemove',e=>{if(state!=='play'||paused||touchOn())return;if(dialOpen){if(locked)dialMove(e.movementX,e.movementY);return;}if(locked||mmbLook||rmbLook)look(e.movementX,e.movementY);});
-function requestLock(){if(touchOn())return;try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
+// browsers reject a pointer lock without a user gesture: until the first click/key the lock is held back and a pill asks for the click
+function gestureOK(){const u=navigator.userActivation;return !u||u.isActive;}
+function lockPill(on){const e=$('lockpill');if(e)e.hidden=!on;}
+function requestLock(){if(touchOn())return;if(!gestureOK()){lockPend=true;lockPill(state==='play'&&!paused);return;}lockPend=false;lockPill(false);try{const r=canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>lockFail());}catch(e){lockFail();}}
 function lockFail(){lockFailed=true;if(time-(P.lockFailT||-9)>4){P.lockFailT=time;toast('Click the game to lock the mouse','Or hold the middle mouse button and drag to look','cyan');}} // browsers refuse a lock right after one ends: the next click tries again
 function toggleLock(){if(touchOn())return;if(locked){manualUnlock=true;document.exitPointerLock();toast('Mouse unlocked','Middle-drag to look · press L to lock again','cyan');}else{lockFailed=false;requestLock();}}
 document.addEventListener('pointerlockchange',()=>{const now=document.pointerLockElement===canvas;
   if(!now&&locked&&state==='play'&&!paused&&!manualUnlock&&!sheetOpen&&!dialOpen&&!creating)setPaused(true);
-  if(!now)manualUnlock=false;locked=now;});
+  if(!now)manualUnlock=false;locked=now;if(now){lockPend=false;lockPill(false);}});
 document.addEventListener('pointerlockerror',()=>lockFail());
 function setPaused(v){
-  paused=v;$('pause').hidden=!v||creating;if(v)renderPortalButtons();{const on=v&&MP.online();$('pause-title').textContent=on?'Menu':'Paused';$('pause-note').hidden=!on;}if(dialOpen)closeDial();
+  paused=v;lockPill(!v&&lockPend&&state==='play');$('pause').hidden=!v||creating;if(v)renderPortalButtons();{const on=v&&MP.online();$('pause-title').textContent=on?'Menu':'Paused';$('pause-note').hidden=!on;}if(dialOpen)closeDial();
   if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<5;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();}
 }
 function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}
@@ -7810,10 +7823,13 @@ function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch'
 addEventListener('resize',()=>{if(touchOn()){placeStick();layoutTouch(true);}checkOrient();});
 // ---- phones are played sideways: in portrait a screen asks you to turn the phone (and the game pauses) ----
 function checkOrient(){const r=$('rotate');if(!r)return;const p=IS_TOUCH_DEVICE&&innerHeight>innerWidth*1.05;r.hidden=!p;
-  if(p&&state==='play'&&!paused&&!creating)setPaused(true);}
+  if(p&&state==='play'&&!paused&&!creating)setPaused(true);
+  if(!p)autoStart();} // a first visit held back in portrait starts once the phone is turned
 addEventListener('orientationchange',()=>setTimeout(checkOrient,250));
 // ---- iOS stops the sound after a call, the lock screen or another app: start it again on the next touch ----
 function audioWake(){const c=SFX.ctx;if(c&&c.state!=='running'&&c.resume)c.resume().catch(()=>{});}
+// sound starts on the first click, tap or key (an auto-started game has had none yet): SFX.init() builds the audio graph once and wakes it
+for(const ev of ['pointerdown','keydown']){const h=()=>{removeEventListener(ev,h,true);try{SFX.init();}catch(e){logErr(e);}audioWake();};addEventListener(ev,h,true);}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)audioWake();});
 addEventListener('pointerdown',audioWake,{passive:true});
 // ================================================================
@@ -8427,9 +8443,18 @@ function frameBody(now){
   updateTags();updateMarkers();updateUnderwater();
   if(state!=='play')setText($('menu-online'),'monline',MP.status());
 }
+// a first visit drops straight into the world as the Ring Bearer (no menu click). Returning players keep the menu. On a phone held in
+// portrait it waits for landscape (checkOrient calls this again). On CrazyGames it waits for Portal.init (cloud save, username).
+let autoReady=false,autoDone=false;
+function autoStart(){
+  if(autoDone||!autoReady||window.__SKYLINE_TEST__||save.character||state!=='menu'||creating||sheetOpen)return;
+  if(IS_TOUCH_DEVICE&&innerHeight>innerWidth*1.05)return;
+  autoDone=true;later(0.1,()=>{if(!save.character&&state==='menu'&&!creating)startAsRingBearer();}); // after the world has drawn a frame
+}
 applyTouchUI();refreshMenu();updateEnv(0);applyLook();MP.init();
 {const m=/^#room=([A-Za-z0-9]{4,8})$/.exec(location.hash);if(m&&P2P.available())P2P.join(m[1]);}
 requestAnimationFrame(frame);
+if(!Portal.pending){autoReady=true;autoStart();}else setTimeout(()=>{autoReady=true;autoStart();},4000); // the portal SDK never answered: start anyway
 if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},actors,humans,drones,vehicles,rivals,crimes,orbs,keys,
   start:()=>$('start').click(),look:(y,p)=>{P.yaw=y;P.pitch=p;},setTod:v=>{tod=v;},abilityDown,abilityUp,punch,toggleFlight,webPress,webRelease,
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),

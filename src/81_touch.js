@@ -170,9 +170,12 @@ function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch'
 addEventListener('resize',()=>{if(touchOn()){placeStick();layoutTouch(true);}checkOrient();});
 // ---- phones are played sideways: in portrait a screen asks you to turn the phone (and the game pauses) ----
 function checkOrient(){const r=$('rotate');if(!r)return;const p=IS_TOUCH_DEVICE&&innerHeight>innerWidth*1.05;r.hidden=!p;
-  if(p&&state==='play'&&!paused&&!creating)setPaused(true);}
+  if(p&&state==='play'&&!paused&&!creating)setPaused(true);
+  if(!p)autoStart();} // a first visit held back in portrait starts once the phone is turned
 addEventListener('orientationchange',()=>setTimeout(checkOrient,250));
 // ---- iOS stops the sound after a call, the lock screen or another app: start it again on the next touch ----
 function audioWake(){const c=SFX.ctx;if(c&&c.state!=='running'&&c.resume)c.resume().catch(()=>{});}
+// sound starts on the first click, tap or key (an auto-started game has had none yet): SFX.init() builds the audio graph once and wakes it
+for(const ev of ['pointerdown','keydown']){const h=()=>{removeEventListener(ev,h,true);try{SFX.init();}catch(e){logErr(e);}audioWake();};addEventListener(ev,h,true);}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)audioWake();});
 addEventListener('pointerdown',audioWake,{passive:true});

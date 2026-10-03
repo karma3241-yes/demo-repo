@@ -428,7 +428,7 @@ const FIRE=[[1,.85,.4],[1,.55,.15],[1,.35,.08],[1,.95,.7]],SPARK=[[1,1,.8],[1,.8
 // ================================================================
 const SFX={ctx:null,master:null,muted:false,volume:0.7,
   init(){
-    if(this.ctx){this.ctx.resume&&this.ctx.resume();return;}
+    if(this.ctx){if(this.ctx.state!=='running'&&this.ctx.resume)this.ctx.resume().catch(()=>{});return;}
     try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){this.ctx=null;return;}
     const c=this.ctx;this.master=c.createGain();this.volume=save.settings.volume;this.master.gain.value=this.muted?0:this.volume;this.master.connect(c.destination);
     const len=c.sampleRate*2,b=c.createBuffer(1,len,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;this.noise=b;
