@@ -588,6 +588,16 @@ const gfx=()=>GFX_TIERS[gfxTier()];
 const GFXB=gfx(); // the tier at load: what the load-time values were built from
 function setGfx(k){if(k!=='auto'&&!GFX_TIERS[k])return;const s=GFX_SAVE;if(!s)return;s.settings.gfx=k;if(k==='auto')s.gfxAuto='';persist();resize();
   const t=gfx();if(t.shadowRes!==GFXB.shadowRes||t.fx!==GFXB.fx||t.cars!==GFXB.cars)toast('Graphics: '+GFX_NAMES[k],'Some changes apply after a reload');}
+// fps watch (Auto only): counts frames while really playing, ignores the first 10 s, averages 5 s windows, steps down one tier when under 28 fps (max one step per 30 s). realDt is the raw frame gap in seconds.
+const GW={t:0,acc:0,n:0,step:-99};
+function gfxWatch(rd){
+  if(!GFX_SAVE||GFX_SAVE.settings.gfx!=='auto')return;
+  if(!(rd>0)||rd>2){GW.acc=GW.n=0;return;} // tab was hidden or the page stalled: don't count it
+  GW.t+=rd;if(GW.t<10)return;
+  GW.acc+=rd;GW.n++;if(GW.acc<5)return;
+  const fps=GW.n/GW.acc;GW.acc=GW.n=0;
+  const cur=gfxTier(),next={high:'med',med:'low'}[cur];
+  if(fps<28&&next&&GW.t-GW.step>=30){GW.step=GW.t;GFX_SAVE.gfxAuto=next;persist();resize();toast('Smoother graphics','Lowered for this device. Change it in Settings.','gold');}} // 'gold' so the first-minute toast filter can't swallow it
 let W=1,H=1,DPR=1;
 function resize(){DPR=Math.min(window.devicePixelRatio||1,gfx().dpr);W=Math.max(1,Math.floor(innerWidth*DPR));H=Math.max(1,Math.floor(innerHeight*DPR));canvas.width=W;canvas.height=H;}
 addEventListener('resize',resize);resize();
@@ -8546,6 +8556,7 @@ function frameBody(now){
   buildDrawList();render();
   if(live)updateHud(dt);
   if(state==='play')MP.flush(real);
+  if(state==='play'&&!paused&&!sheetOpen&&!Portal.inAd)gfxWatch(raw); // real frame gap (real is clamped to 20 fps)
   if(state==='play'&&time-goalT>1){goalT=time;updateGoal();}
   Portal.tick();if(state==='play'&&PBAL&&time-(P.trialT||0)>1){P.trialT=time;updateTrials();}
   WS.update(real);
