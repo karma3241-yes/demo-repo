@@ -576,8 +576,9 @@ const GFX_TIERS={low:{dpr:0.85,shadows:false,shadowRes:1024,fx:2000,smoke:500,ca
   med:{dpr:1.25,shadows:false,shadowRes:1024,fx:3500,smoke:900,cars:90,crowd:0.6,fogEnd:950,lights:12},
   high:{dpr:1.75,shadows:true,shadowRes:2048,fx:6000,smoke:1800,cars:130,crowd:1,fogEnd:1150,lights:20}};
 const GFX_NAMES={auto:'Auto',low:'Low',med:'Medium',high:'High'};
-// a saved settings object -> 'auto'|'low'|'med'|'high'. An old save with the Shadows switch carries over: on -> High, off -> Medium (no shadows).
-const gfxFromSettings=t=>!t||typeof t!=='object'?'auto':t.gfx==='auto'||GFX_TIERS[t.gfx]?t.gfx:t.shadows===true?'high':t.shadows===false?'med':'auto';
+// a saved settings object -> 'auto'|'low'|'med'|'high'. Old saves stored the Shadows switch at its default (on for desktop, off on touch):
+// the default becomes Auto (so slow phones still step down); only a switch the player flipped carries over (on -> High, off -> Medium).
+const gfxFromSettings=t=>!t||typeof t!=='object'?'auto':t.gfx==='auto'||GFX_TIERS[t.gfx]?t.gfx:typeof t.shadows!=='boolean'||t.shadows===!IS_TOUCH_DEVICE?'auto':t.shadows?'high':'med';
 let GFX_SAVE=null; // the live save, set in 20_core.js once it exists
 const GFX_BOOT=(()=>{let set='auto',auto='';try{const s=JSON.parse(localStorage.getItem('skyline-guardian-save')||'null');if(s&&typeof s==='object'){set=gfxFromSettings(s.settings);if(GFX_TIERS[s.gfxAuto])auto=s.gfxAuto;}}catch(e){}return {set,auto};})();
 function gfxTier(){const set=GFX_SAVE?GFX_SAVE.settings.gfx:GFX_BOOT.set,au=GFX_SAVE?GFX_SAVE.gfxAuto:GFX_BOOT.auto;
