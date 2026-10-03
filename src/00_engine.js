@@ -69,6 +69,21 @@ let gl=null;
 try{gl=canvas.getContext('webgl2',{antialias:true,powerPreference:'high-performance'});}catch(e){gl=null;}
 if(!gl){document.getElementById('nogl').hidden=false;document.getElementById('menu').hidden=true;return;}
 
+// ---- error log + lost-graphics recovery ----
+// logErr dedupes by message, counts repeats, keeps 20 entries in window.__errs; console.error only the first time per message.
+const ERRS=window.__errs=[];
+function logErr(e){try{
+  let m=String(e&&e.message!==undefined?e.message:e).slice(0,160);const at=((e&&e.stack||'').split('\n')[1]||'').trim().slice(-70);if(at)m+=' @ '+at;
+  const o=ERRS.find(x=>x.m===m);if(o){o.n++;return;}
+  if(ERRS.length>=20)ERRS.shift();ERRS.push({m,n:1});console.error(e);}catch(x){}}
+addEventListener('error',e=>logErr(e.error||e.message));addEventListener('unhandledrejection',e=>logErr(e.reason));
+if(/[?&]debug/.test(location.search)){const d=document.createElement('div');d.style.cssText='position:fixed;left:4px;bottom:4px;z-index:99;max-width:min(92vw,560px);max-height:36vh;overflow:hidden;padding:4px 6px;font:10px/1.3 monospace;color:#fff;background:rgba(160,20,20,.8);border-radius:4px;pointer-events:none;white-space:pre-wrap;word-break:break-all;display:none';document.body.appendChild(d);
+  let prev='';setInterval(()=>{const t=ERRS.map(x=>x.n+'x '+x.m).join('\n');if(t===prev)return;prev=t;d.textContent=t;d.style.display=t?'block':'none';},1000);}
+let glLost=false;
+{const gr=document.getElementById('glreset'),reload=()=>{try{location.reload();}catch(e){}};
+  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();glLost=true;try{if(typeof persist==='function')persist();}catch(x){}if(gr)gr.hidden=false;});
+  canvas.addEventListener('webglcontextrestored',reload);if(gr)gr.addEventListener('click',reload);} // rebuilding every GPU buffer is not worth it: a reload with a fresh save is safe
+
 const IS_TOUCH_DEVICE=(()=>{try{const coarse=matchMedia('(pointer: coarse)').matches,fine=matchMedia('(any-pointer: fine)').matches;return (coarse&&!fine)||(navigator.maxTouchPoints>0&&!fine);}catch(e){return false;}})();
 let W=1,H=1,DPR=1;
 function resize(){DPR=Math.min(window.devicePixelRatio||1,IS_TOUCH_DEVICE?1.25:1.75);W=Math.max(1,Math.floor(innerWidth*DPR));H=Math.max(1,Math.floor(innerHeight*DPR));canvas.width=W;canvas.height=H;}
