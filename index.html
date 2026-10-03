@@ -323,6 +323,7 @@ body.touch #growtut:not([hidden])~#guide{display:none}
 #hudbar{position:absolute;left:16px;top:122px;display:flex;flex-wrap:wrap;gap:6px;max-width:330px;pointer-events:none}
 .hbtn{pointer-events:auto;position:relative;width:40px;height:40px;padding:0;display:grid;place-items:center;color:var(--ink);background:var(--panel);border:1px solid var(--edge);border-radius:10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;transition:border-color .15s,background .15s}
 .hbtn:hover{background:rgba(79,216,255,.16);border-color:var(--energy)}.hbtn:focus-visible{outline:2px solid var(--energy);outline-offset:2px}
+.hbtn.pulse{animation:hbpulse 1.4s ease-in-out infinite}@keyframes hbpulse{0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(255,201,60,0)}50%{transform:scale(1.12);box-shadow:0 0 14px rgba(255,201,60,.85);border-color:var(--gold)}}
 .hbtn.on{border-color:var(--gold);box-shadow:0 0 10px rgba(255,201,60,.35) inset}.hbtn:disabled{opacity:.4;cursor:default}
 .hbtn .ico{width:22px;height:22px}.hbtn kbd{position:absolute;right:-4px;bottom:-5px;padding:0 4px;font-size:9px;line-height:14px;background:#0b1224;border-radius:4px;border-width:1px}
 .hbtn .dot{position:absolute;right:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);display:none}.hbtn.badge .dot{display:block}
@@ -6730,7 +6731,7 @@ const rewardsLater=()=>{const st=save.stats||{};return BASIC_LAUNCH||!(st.crimes
 const HUDBAR=[
   {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
-  {id:'powers',glyph:'swap',key:'J',code:'KeyJ',tip:()=>'Change powers'+(save.rechoiceAt?'':' · free the first time'),act:()=>{if(sheetOpen)closeSheet();tryRechoose();}},
+  {id:'powers',glyph:'swap',key:'J',code:'KeyJ',tip:()=>'Change powers'+(save.rechoiceAt?'':' · free the first time'),act:()=>{if(sheetOpen)closeSheet();tryRechoose();},pulse:()=>!!save.guide.done&&!save.guide.swap},
   {id:'look',glyph:'shirt',key:'I',code:'KeyI',tip:'Appearance',act:()=>sheetToggle('look'),on:()=>sheetOpen==='look'},
   {id:'mp',glyph:'people',key:'6',code:'Digit6',tip:'Multiplayer',act:()=>sheetToggle('mp'),on:()=>sheetOpen==='mp'||MP.online()},
   {id:'set',glyph:'gear',key:'7',code:'Digit7',tip:'Settings',act:()=>sheetToggle('set'),on:()=>sheetOpen==='set'},
@@ -6762,7 +6763,7 @@ function updateHudbar(force){
   if(!force&&time-hudbarT<0.25)return;hudbarT=time;
   for(const b of HUDBAR){const e=b.el;if(!e)continue;const tip=hbVal(b.tip)||'';
     if(e.dataset.tip!==tip){e.dataset.tip=tip;e.setAttribute('aria-label',tip+' ('+b.key+')');}
-    e.hidden=!!(b.hide&&b.hide());e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));}
+    e.hidden=!!(b.hide&&b.hide());e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));e.classList.toggle('pulse',!!(b.pulse&&b.pulse()));}
   // sit just under the name panel, whatever its height
   const tl=document.querySelector('.hud-tl'),bar=$('hudbar');if(tl&&bar&&!touchOn()){const top=(tl.offsetTop+tl.offsetHeight+8)+'px';if(bar.style.top!==top)bar.style.top=top;}
   updateLBMini();
@@ -7224,7 +7225,7 @@ function finishCreator(){
 function startAsRingBearer(){
   const c=validCharacter({name:Portal.username||'Guardian '+Math.floor(rr(100,1000)),suit:2,cape:4,accent:4,capeOn:true,movement:['powerRing'],abilities:[]});
   if(!c){openCreator();return;}newHero(c,true);
-  feed('You are the Ring Bearer',(touchOn()?'Tap the swap icon (top)':'Press J (the swap icon, top left)')+' to pick other powers · free the first time');
+  feed('You are the Ring Bearer','Follow Getting started to learn the basics'); // the J hint comes after the guide (guideDone)
 }
 // the menu's second button, for players who want to pick their powers before they start
 function menuButtons(){let q=$('choose');if(!q){q=el('button',{class:'ghost',id:'choose',type:'button',text:'Choose your powers',onclick:()=>{SFX.init();openCreator();}});$('start').after(q);}q.hidden=!!save.character;}
@@ -7300,7 +7301,7 @@ const wheelWhat=()=>isRing()?'pick a construct':armorForms()?'pick a suit form':
 const GUIDE=[['move','Move around','WASD to move, mouse to look',()=>'Drag the '+(save.settings.tHand==='l'?'right':'left')+' side to move'],
   ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>'Tap the '+(vAction()||{name:'wheel'}).name.toUpperCase()+' button to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
   ['ability','Use a power','Press 1 to 4','Tap a power button'],['skills','Open your skills','Press K','Tap the star icon'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
-function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
+function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');later(4,()=>{if(!save.guide.swap&&state==='play')toast('Try another hero',touchOn()?'Tap the swap icon (top) to pick from 11 heroes':'Press J to pick from 11 heroes','gold');});}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
   for(const [k,t,kb,tc] of guideList()){const s=touchOn()?tc:kb;list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:typeof s==='function'?s():s})));}fitMoves();}
 // the grow tutorial: whenever a construct is out and you have never grown one, a card tells you how (scroll up, ] or GROW)
