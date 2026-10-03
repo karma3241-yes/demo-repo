@@ -296,7 +296,10 @@ function renderSettings(){
     row('Lock the mouse when you click into the game',chk('autoLock')),
     el('p',{class:'muted',text:'Press L any time to lock or unlock the mouse. While it is unlocked, hold the middle mouse button and drag to look around.'}),
     row('Mouse sensitivity',rng('sens',0.3,3,0.05)),row('Invert vertical look',chk('invertY')),
-    row('Volume',rng('volume',0,1,0.05,()=>SFX.setVolume(s.volume))),row('Shadows',chk('shadows')));
+    row('Volume',rng('volume',0,1,0.05,()=>SFX.setVolume(s.volume))),
+    el('div',{class:'field',id:'set-gfx'},el('span',{text:'Graphics'}),
+      el('div',{class:'lb-tabs'},...Object.entries(GFX_NAMES).map(([k,l])=>el('button',{class:'ghost','aria-pressed':String(s.gfx===k),text:l,onclick:()=>{setGfx(k);renderSheet();}}))),
+      el('p',{class:'muted',text:s.gfx==='auto'?'Auto uses '+GFX_NAMES[gfxTier()]+' here and lowers it if the game runs slowly.':'Lower is smoother on slow devices. Some changes apply after a reload.'})));
 }
 // Ring oath loudness: say the oath louder than the line and finishing it overcharges the ring to 200
 function micSettings(s,rng){

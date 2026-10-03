@@ -85,8 +85,25 @@ let glLost=false;
   canvas.addEventListener('webglcontextrestored',reload);if(gr)gr.addEventListener('click',reload);} // rebuilding every GPU buffer is not worth it: a reload with a fresh save is safe
 
 const IS_TOUCH_DEVICE=(()=>{try{const coarse=matchMedia('(pointer: coarse)').matches,fine=matchMedia('(any-pointer: fine)').matches;return (coarse&&!fine)||(navigator.maxTouchPoints>0&&!fine);}catch(e){return false;}})();
+
+// ---- graphics tiers: Low / Medium / High / Auto (picked in Settings; Auto steps down on a slow device, see gfxWatch) ----
+// "load-time" values (shadowRes, fx, smoke, cars) are read once at load; the rest are read every frame through gfx(). `save` doesn't exist yet here, so boot reads localStorage.
+const GFX_TIERS={low:{dpr:0.85,shadows:false,shadowRes:1024,fx:2000,smoke:500,cars:50,crowd:0.4,fogEnd:700,lights:6},
+  med:{dpr:1.25,shadows:false,shadowRes:1024,fx:3500,smoke:900,cars:90,crowd:0.6,fogEnd:950,lights:12},
+  high:{dpr:1.75,shadows:true,shadowRes:2048,fx:6000,smoke:1800,cars:130,crowd:1,fogEnd:1150,lights:20}};
+const GFX_NAMES={auto:'Auto',low:'Low',med:'Medium',high:'High'};
+// a saved settings object -> 'auto'|'low'|'med'|'high'. An old save with the Shadows switch carries over: on -> High, off -> Medium (no shadows).
+const gfxFromSettings=t=>!t||typeof t!=='object'?'auto':t.gfx==='auto'||GFX_TIERS[t.gfx]?t.gfx:t.shadows===true?'high':t.shadows===false?'med':'auto';
+let GFX_SAVE=null; // the live save, set in 20_core.js once it exists
+const GFX_BOOT=(()=>{let set='auto',auto='';try{const s=JSON.parse(localStorage.getItem('skyline-guardian-save')||'null');if(s&&typeof s==='object'){set=gfxFromSettings(s.settings);if(GFX_TIERS[s.gfxAuto])auto=s.gfxAuto;}}catch(e){}return {set,auto};})();
+function gfxTier(){const set=GFX_SAVE?GFX_SAVE.settings.gfx:GFX_BOOT.set,au=GFX_SAVE?GFX_SAVE.gfxAuto:GFX_BOOT.auto;
+  return GFX_TIERS[set]?set:GFX_TIERS[au]?au:IS_TOUCH_DEVICE?'med':'high';}
+const gfx=()=>GFX_TIERS[gfxTier()];
+const GFXB=gfx(); // the tier at load: what the load-time values were built from
+function setGfx(k){if(k!=='auto'&&!GFX_TIERS[k])return;const s=GFX_SAVE;if(!s)return;s.settings.gfx=k;if(k==='auto')s.gfxAuto='';persist();resize();
+  const t=gfx();if(t.shadowRes!==GFXB.shadowRes||t.fx!==GFXB.fx||t.cars!==GFXB.cars)toast('Graphics: '+GFX_NAMES[k],'Some changes apply after a reload');}
 let W=1,H=1,DPR=1;
-function resize(){DPR=Math.min(window.devicePixelRatio||1,IS_TOUCH_DEVICE?1.25:1.75);W=Math.max(1,Math.floor(innerWidth*DPR));H=Math.max(1,Math.floor(innerHeight*DPR));canvas.width=W;canvas.height=H;}
+function resize(){DPR=Math.min(window.devicePixelRatio||1,gfx().dpr);W=Math.max(1,Math.floor(innerWidth*DPR));H=Math.max(1,Math.floor(innerHeight*DPR));canvas.width=W;canvas.height=H;}
 addEventListener('resize',resize);resize();
 
 function program(vs,fs){
@@ -242,7 +259,7 @@ const PART=program(PART_VS,PART_FS);
 const skyVao=gl.createVertexArray();
 
 // Shadow map
-const SHADOW=IS_TOUCH_DEVICE?1024:2048;
+const SHADOW=GFXB.shadowRes;
 const shTex=gl.createTexture();
 gl.bindTexture(gl.TEXTURE_2D,shTex);
 gl.texStorage2D(gl.TEXTURE_2D,1,gl.DEPTH_COMPONENT24,SHADOW,SHADOW);
@@ -412,7 +429,7 @@ class PSys{
     gl.bindVertexArray(this.vao);gl.bindBuffer(gl.ARRAY_BUFFER,this.vbo);gl.bufferSubData(gl.ARRAY_BUFFER,0,this.buf,0,this.count*8);gl.drawArrays(gl.POINTS,0,this.count);
   }
 }
-const FX=new PSys(IS_TOUCH_DEVICE?3500:6000,true,false),SMOKE=new PSys(IS_TOUCH_DEVICE?900:1800,false,true);
+const FX=new PSys(GFXB.fx,true,false),SMOKE=new PSys(GFXB.smoke,false,true);
 function emit(x,y,z,vx,vy,vz,life,c,size,grav=0,drag=0){FX.emit(x,y,z,vx,vy,vz,life,c,size,grav,drag);}
 function smoke(x,y,z,n=1,spread=1,size=4,life=2.5,shade=0.25){
   for(let k=0;k<n;k++){const c=shade*rr(0.75,1.1);SMOKE.emit(x+rr(-spread,spread),y+rr(-spread*0.3,spread*0.3),z+rr(-spread,spread),rr(-1.5,1.5),rr(3,7),rr(-1.5,1.5),life*rr(0.7,1.2),[c,c,c*1.04],size*rr(0.7,1.3),-1.2,0.6);}

@@ -592,7 +592,7 @@ function manageGangs(){
 }
 function managePopulation(dt){
   popT-=dt;if(popT>0)return;popT=1;
-  const k=touchOn()?0.6:1,D=CRIMES.despawn,PL=WS.players(),C=PL.map(a=>a.pos);
+  const k=gfx().crowd,D=CRIMES.despawn,PL=WS.players(),C=PL.map(a=>a.pos);
   const far=(p,d)=>C.every(c=>Math.abs(p.x-c.x)>d||Math.abs(p.z-c.z)>d);
   for(const h of humans.slice())if(!h.crime&&!h.gang&&!h.held&&far(h.pos,D))removeActor(h);
   const countNear=(r,c)=>{let n=0;for(const h of humans)if(h.alive&&h.role===r&&!h.crime&&!h.gang&&Math.abs(h.pos.x-c.x)<150&&Math.abs(h.pos.z-c.z)<150)n++;return n;};

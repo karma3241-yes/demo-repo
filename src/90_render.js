@@ -441,9 +441,9 @@ function setMainFrameUniforms(){
   if(sk>0){const sl=spaceLight(),d=mix3(env.ldir,sl,sk),l=Math.hypot(...d)||1;gl.uniform3f(u.uLDir,d[0]/l,d[1]/l,d[2]/l);gl.uniform3fv(u.uLCol,mix3(env.lcol,[2.6,2.5,2.3],sk));}
   else{gl.uniform3fv(u.uLDir,env.ldir);gl.uniform3fv(u.uLCol,env.lcol);}
   gl.uniform3fv(u.uSky,mix3(env.sky,[.01,.01,.02],sk));gl.uniform3fv(u.uGnd,mix3(env.gnd,[0,0,0],sk));
-  gl.uniform3fv(u.uFogC,mix3(env.hor,[0,0,0],sk));{const cb=state==='play'?camBig():1;gl.uniform2f(u.uFog,Math.max(lerp(state==='play'?160:300,4e5,sk),cb*12),Math.max(lerp(state==='play'?1150:1500,9e5,sk),cb*80));}
+  gl.uniform3fv(u.uFogC,mix3(env.hor,[0,0,0],sk));{const cb=state==='play'?camBig():1;gl.uniform2f(u.uFog,Math.max(lerp(state==='play'?160:300,4e5,sk),cb*12),Math.max(lerp(state==='play'?gfx().fogEnd:1500,9e5,sk),cb*80));}
   gl.uniform3f(u.uCam,camPos.x,camPos.y,camPos.z);gl.uniform1f(u.uNight,env.night);gl.uniform1f(u.uTime,time);gl.uniform1f(u.uExpo,1.0);
-  gl.uniform1f(u.uShTexel,1/SHADOW);gl.uniform1i(u.uShadow,0);gl.uniform1f(u.uShOn,save.settings.shadows?1:0);
+  gl.uniform1f(u.uShTexel,1/SHADOW);gl.uniform1i(u.uShadow,0);gl.uniform1f(u.uShOn,gfx().shadows?1:0);
   const n=gatherLights();gl.uniform1f(u.uPLn,n);if(n){gl.uniform4fv(u.uPL,PL_POS);gl.uniform3fv(u.uPLC,PL_COL);}
 }
 // the nearest lit street lamps (and car headlights) light the street around them at night
@@ -457,7 +457,7 @@ function gatherLights(){
       if(d<200*200)plCand.push({x,y:p.y+6.2,z,d,r:28,c:0});}}
   for(const v of vehicles){if(!v.alive||v.state==='wreck'||v.state==='parked'||v.state==='thrown')continue;const d=(v.pos.x-fx)**2+(v.pos.z-fz)**2;if(d>120*120)continue;
     const s=Math.sin(v.yaw),c=Math.cos(v.yaw),hl=v.hl||2;plCand.push({x:v.pos.x+s*(hl+5),y:v.pos.y+1.2,z:v.pos.z+c*(hl+5),d:d+900,r:13,c:1});}
-  plCand.sort((a,b)=>a.d-b.d);const n=Math.min(PL_MAX,plCand.length);
+  plCand.sort((a,b)=>a.d-b.d);const n=Math.min(PL_MAX,gfx().lights,plCand.length);
   for(let k=0;k<n;k++){const L=plCand[k],fade=clamp(1.4-Math.sqrt(L.d)/170,0,1)*night;
     PL_POS[k*4]=L.x;PL_POS[k*4+1]=L.y;PL_POS[k*4+2]=L.z;PL_POS[k*4+3]=L.r;
     const col=L.c?[0.9,0.9,0.8]:[1,0.72,0.42];PL_COL[k*3]=col[0]*fade;PL_COL[k*3+1]=col[1]*fade;PL_COL[k*3+2]=col[2]*fade;}
@@ -474,7 +474,7 @@ function drawItem(mesh,M,tint,unlit,emis){
   gl.bindVertexArray(mesh.vao);gl.drawElements(gl.TRIANGLES,mesh.n,mesh.type,0);
 }
 function render(){
-  if(save.settings.shadows){
+  if(gfx().shadows){
     gl.bindFramebuffer(gl.FRAMEBUFFER,shFbo);gl.viewport(0,0,SHADOW,SHADOW);
     gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.clear(gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(2.0,4.0);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);

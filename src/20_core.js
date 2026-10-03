@@ -12,7 +12,7 @@ const CONFIG={
   punch:{damage:16,range:3.4,cooldown:0.3,knock:11,comboMul:1.6},
   autosave:30,
   drive:{maxSpeed:42,accel:16,brake:34,reverse:12,steer:1.7,grip:6},
-  traffic:{cars:130,police:6,follow:11,stopLine:14},
+  traffic:{cars:GFXB.cars,police:6,follow:11,stopLine:14},
   rechoiceCooldown:0, // seconds between power changes (off for now)
   destruction:{propRespawn:120,windowLife:150},
 };
@@ -139,7 +139,7 @@ const TRAV_STYLES={
   superSpeed:[['walk','Walk','Normal pace · Shift still runs at the speed dial'],['jog','Jog','Always running at x2'],['run','Run','Always running at half your top speed'],['top','Top speed','Always running at your top speed']],
 };
 const DEFAULT_SETTINGS={oathInput:window.__PORTAL__==='crazygames'?'type':'voice', // portals can't be counted on to allow the mic: typed there, voice still in Settings
-  micLoud:0.65,controls:'auto',tSize:'m',tHand:'r',autoLock:true,sens:1,invertY:false,volume:0.7,shadows:!IS_TOUCH_DEVICE};
+  micLoud:0.65,controls:'auto',tSize:'m',tHand:'r',autoLock:true,sens:1,invertY:false,volume:0.7,gfx:'auto'};
 const SUIT_OPTS=['#1f3f9e','#17181f','#0f6b5a','#5b1f9a','#9aa3b0','#a3122a'];
 const CAPE_OPTS=['#c8102e','#ffc93c','#1fb8d6','#eeeeee','#17181f','#ff4f9a'];
 const ACC_OPTS=['#ffc93c','#4fd8ff','#ff3d5e','#e9f3ff','#39ff88'];
@@ -149,7 +149,7 @@ const BAD_PART=/fuck|fck|fuk|shit|cunt|bitch|nigg|fagg|whore|slut|porn|penis|vag
 function safeName(s){const n=cleanName(s);const t=n.toLowerCase().replace(/[0134579@$]/g,c=>({0:'o',1:'i',3:'e',4:'a',5:'s',7:'t',9:'g','@':'a','$':'s'})[c]);
   return BAD_PART.test(t.replace(/[^a-z]/g,''))||t.split(/[^a-z]+/).some(w=>BAD_WORD.test(w))?'':n;}
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
-function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},goal:0,daily:{last:'',streak:0},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
+function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},gfxAuto:'',goal:0,daily:{last:'',streak:0},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
 // what each flier gets from plain flight (and the Shifter's Morph Band, which lives on V and takes no key). Defined here because loadSave needs it.
 const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'],armorFlight:['flight'],solarFlight:['flight'],
@@ -186,8 +186,9 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   if(s.settings&&typeof s.settings==='object'){const t=s.settings,st=f.settings;
     if(['auto','touch','kbm'].includes(t.controls))st.controls=t.controls;
     if(['voice','type'].includes(t.oathInput))st.oathInput=t.oathInput;
+    st.gfx=gfxFromSettings(t); // old Shadows switch -> a tier
     if(['s','m','l'].includes(t.tSize))st.tSize=t.tSize;if(['r','l'].includes(t.tHand))st.tHand=t.tHand;
-    for(const k of ['autoLock','invertY','shadows'])if(typeof t[k]==='boolean')st[k]=t[k];
+    for(const k of ['autoLock','invertY'])if(typeof t[k]==='boolean')st[k]=t[k];
     if(t.travStyle&&typeof t.travStyle==='object'){st.travStyle={};for(const k in TRAV_STYLES)if(TRAV_STYLES[k].some(x=>x[0]===t.travStyle[k]))st.travStyle[k]=t.travStyle[k];}
     st.sens=num(t.sens,1,0.3,3);st.volume=num(t.volume,0.7,0,1);st.micLoud=num(t.micLoud,0.65,0.2,0.95);}
   f.character=validCharacter(s.character);
@@ -210,12 +211,13 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
     f.sp+=refundDropped(f.powerLevels,oldIds,ownedIds(f.character));}
   f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.savedAt=num(s.savedAt,0,0,1e15);f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
+  if(GFX_TIERS[s.gfxAuto])f.gfxAuto=s.gfxAuto; // the tier the fps watch settled on
   f.goal=typeof s.goal==='number'?Math.floor(num(s.goal,0,-1,99)):-1; // -1: a save from before goals
   if(s.daily&&typeof s.daily==='object'){const d=s.daily;if(typeof d.last==='string'&&/^\d{4}-\d\d-\d\d$/.test(d.last))f.daily.last=d.last;if(Number.isInteger(d.streak)&&d.streak>=0&&d.streak<=7)f.daily.streak=d.streak;} // last claim (local date) and the streak
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks','swap'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
-const save=loadSave();
+const save=loadSave();GFX_SAVE=save;
 let persistHook=null; // the CrazyGames build also copies every save to the portal's cloud storage (64_portal.js)
 function persist(){save.savedAt=Date.now();const j=JSON.stringify(save);try{localStorage.setItem(SAVE_KEY,j);}catch(e){}if(persistHook)try{persistHook(j);}catch(e){}}
 const touchOn=()=>save.settings.controls==='touch'||(save.settings.controls==='auto'&&IS_TOUCH_DEVICE);

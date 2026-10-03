@@ -84,7 +84,7 @@ function frame(now){
   try{frameBody(now);}catch(e){logErr(e);} // one bad frame must not stop the loop
 }
 function frameBody(now){
-  const real=clamp((now-last)/1000,0,0.05);last=Math.max(last,now);const dt=real*(slowT>0?0.35:1)*(dialOpen?0.25:1);if(slowT>0)slowT-=real;
+  const raw=(now-last)/1000,real=clamp(raw,0,0.05);last=Math.max(last,now);const dt=real*(slowT>0?0.35:1)*(dialOpen?0.25:1);if(slowT>0)slowT-=real;
   mpi=0;
   const live=(!paused||(state==='play'&&MP.online()))&&!Portal.inAd; // in a room the world never stops (except while a portal ad plays)
   if(live){
