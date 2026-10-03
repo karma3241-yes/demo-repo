@@ -223,18 +223,18 @@ function updateRing(dt){
   for(let i=holes.length-1;i>=0;i--){const H=holes[i];H.t+=dt;const k=Math.min(1,H.t/0.8),fade=H.t>H.dur-0.6?Math.max(0,(H.dur-H.t)/0.6):1,R=H.R;
     if(!H.visual){H.hitT-=dt;const netTick=H.hitT<=0;if(netTick)H.hitT=0.35;
       for(const a of actors){if(!a.alive||a===P||a.held||a.kind==='prop')continue;const c=center(a),dx=H.x-c.x,dy=H.y-c.y,dz=H.z-c.z,d=Math.hypot(dx,dy,dz)||1;if(d>R)continue;
-        const resist=a.kind==='boss'?0.1:a.kind==='rival'||a.kind==='drone'?0.45:1,f=(1-d/R)*90*k*resist+10;
+        const resist=a.kind==='boss'?0.1:a.kind==='rival'||a.kind==='drone'?0.45:1,f=(1-d/R)*90*(H.sg?1.6:1)*k*resist+10;
         if(a.kind==='remote'){if(netTick&&!(a.flags&FLAG.speed)&&!((a.flags&FLAG.fly)&&a.vel.len()>45))Damage.apply(P,a,d<5?25:3,'gravity',{kv:[dx/d*f*0.5,dy/d*f*0.5+6,dz/d*f*0.5]});continue;}
         if(a.net){if(netTick)Damage.apply(P,a,d<5?60:4,'gravity',{kv:[dx/d*f*0.5,dy/d*f*0.5+6,dz/d*f*0.5]});continue;}
         if(a.kind==='human'){if(!a.air){a.air=true;a.vel.set(0,6,0);}a.vel.x+=(dx/d*f-dz/d*f*0.5)*dt;a.vel.y+=(dy/d*f+14)*dt;a.vel.z+=(dz/d*f+dx/d*f*0.5)*dt;a.tumble=6;a.floatT=0.2;}
         else if(a.kind==='vehicle'&&a!==P.car){if(a.state!=='thrown'){if(a.driver)ejectDriver(a);a.state='thrown';a.vel.set(0,8,0);a.sx=rr(-2,2);a.sy=rr(-2,2);a.sz=rr(-2,2);a.thrower=P;a.throwDmg=40;}a.life=8;
           a.vel.x+=(dx/d*f*0.8-dz/d*f*0.4)*dt;a.vel.y+=(dy/d*f*0.8+30)*dt;a.vel.z+=(dz/d*f*0.8+dx/d*f*0.4)*dt;}
         else if(a.vel){a.vel.x+=dx/d*f*dt;a.vel.y+=dy/d*f*dt;a.vel.z+=dz/d*f*dt;}
-        if(d<4.5)Damage.apply(P,a,(a.kind==='boss'?40:220)*dt,'gravity');}
+        if(d<(H.sg?9:4.5))Damage.apply(P,a,H.sg?(sgBig(a)?300*dt:Math.ceil((a.hp||50)*2+100)):(a.kind==='boss'?40:220)*dt,'gravity');}
       hitProps(H.x,Math.min(H.y,4),H.z,R*0.4*k,P,8);
       // pull down the buildings around it, one at a time, leaning into the hole
-      H.next-=dt;if(H.t>0.8&&H.t<H.dur-1&&H.next<=0&&(!PBAL||powerLevel('blackHole')>=5)){ // CrazyGames: tearing down buildings needs Black Hole LV5
-        H.next=0.5;let best=null,bd=R*0.9;
+      H.next-=dt;if(H.t>0.8&&H.t<H.dur-1&&H.next<=0&&(!PBAL||H.sg||powerLevel('blackHole')>=5)){ // CrazyGames: tearing down buildings needs Black Hole LV5
+        H.next=H.sg?0.8:0.5;let best=null,bd=R*0.9;
         for(const b of bldgs){if(b.state!=='up')continue;const d=Math.hypot(Math.max(b.x0-H.x,0,H.x-b.x1),Math.max(b.z0-H.z,0,H.z-b.z1));if(d<bd){bd=d;best=b;}}
         if(best){const cx=(best.x0+best.x1)/2,cz=(best.z0+best.z1)/2;collapseBuilding(best,H.x-cx,H.z-cz,true);H.bl=(H.bl||[]).concat([best]);}}}
     // chunks from falling and fallen buildings stream into the hole
@@ -245,7 +245,7 @@ function updateRing(dt){
     for(const p of debris)if(!p.rest){const dx=H.x-p.x,dy=H.y-p.y,dz=H.z-p.z,d=Math.hypot(dx,dy,dz)||1;if(d<R){p.vx+=dx/d*120*dt*k;p.vy+=(dy/d*120+20)*dt*k;p.vz+=dz/d*120*dt*k;if(d<3)p.life=Math.min(p.life,0.05);}}
     for(let j=0;j<3;j++){const a=rr(0,TAU),r=R*rr(0.2,0.9);emit(H.x+Math.cos(a)*r,H.y+rr(-4,4),H.z+Math.sin(a)*r,-Math.cos(a)*r*1.2-Math.sin(a)*r,0,-Math.sin(a)*r*1.2+Math.cos(a)*r,0.7,[rr(.5,1),rr(.3,.6),1],rr(1,2.5),0,0);}
     if(Math.random()<dt*6)addShake(0.2*SFX.vol(H.x,H.y,H.z));void fade;
-    if(H.t>=H.dur){holes.splice(i,1);explode(H.x,H.y,H.z,2);if(!H.visual)areaDamage(H.x,H.y,H.z,R*0.5,200,P,{knock:50,type:'blast'});ringFx(H.x,H.y,H.z,1,R*1.5,0.6,[.7,.5,1]);flashWhite=Math.max(flashWhite,0.35);}}
+    if(H.t>=H.dur){holes.splice(i,1);explode(H.x,H.y,H.z,2);if(H.sg)sgImplode(H);else if(!H.visual)areaDamage(H.x,H.y,H.z,R*0.5,200,P,{knock:50,type:'blast'});ringFx(H.x,H.y,H.z,1,R*1.5,0.6,[.7,.5,1]);flashWhite=Math.max(flashWhite,0.35);}}
 }
 // ---- the oath ----
 let oathEl=null,oathIn=null,oathText=null; // wired on first use (the UI helpers load after this module)

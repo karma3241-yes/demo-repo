@@ -53,7 +53,8 @@ function buildTouchButtons(){
   tbMake('up','jump','up','','A0','jmp');tbMake('fly','fly','wing','Fly','A1','trav');tbMake('web','web','web','Web','A1','trav');
   tbMake('run','speed','run','Run','A1','trav');tbMake('dive','down','dive','Dive','A1','trav');
   tbMake('boost','speed','run','Boost','A2','trav');tbMake('lock','lock','target','Lock','A3','lk');
-  if(P.alien)ALIENS[P.alien.id].abilities.forEach((ab,i)=>tbMake('p'+i,'a'+i,'burst',ab.name.split(' ').pop(),'B','ab alien','#c89bff'));
+  if(SG.on)sgTouchButtons();
+  else if(P.alien)ALIENS[P.alien.id].abilities.forEach((ab,i)=>tbMake('p'+i,'a'+i,'burst',ab.name.split(' ').pop(),'B','ab alien','#c89bff'));
   else save.character.abilities.forEach((id,i)=>{const lk=PBAL&&slotLocked(i);
     if(lk&&i!==nextLockedSlot())return;
     const b=tbMake('p'+i,'a'+i,powerIcon(id),lk?'LV '+KIT_LV[i]:SHORT[id]||POWERS[id].name.split(' ')[0],'B','ab'+(lk?' lockd':''));b.prepend(el('i',{class:'cd',hidden:true}));});
@@ -78,7 +79,7 @@ function tbWanted(){
     if(P.swim)on.add('dive');else if(!P.alien&&m==='webSwing')on.add('web');else if(!P.alien&&m==='superSpeed')on.add('run');else if(flyer)on.add('fly');}
   for(let i=0;i<4;i++)if(TB['p'+i])on.add('p'+i);
   if(nearestInteract())on.add('use');
-  if(P.alien){on.add('wheel');return on;}
+  if(P.alien||SG.on){on.add('wheel');return on;}
   if(heldSlot>=0||con){on.add('grow');on.add('shrink');}
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
@@ -125,7 +126,7 @@ function stackLeft(on){if(!on){for(const q of LEFT_COL){const e=document.querySe
 // per frame: cooldowns, toggles that are on, and the USE button's label
 function updateTouchHud(){
   if(!touchOn()||state!=='play')return;layoutTouch(false);stackLeft(true);
-  if(!save.character||P.alien)return;
+  if(!save.character||P.alien||SG.on)return;
   save.character.abilities.forEach((id,i)=>{const t=TB['p'+i];if(!t||t.b.hidden||t.b.classList.contains('lockd'))return;const st=PS[id],c=POWERS[id],cd=t.b.querySelector('.cd');
     if(cd){const f=c.cooldown?st.cd/pstat(id,'cooldown'):0,v=Math.round(clamp(f,0,1)*100);if(t.cdv!==v){t.cdv=v;cd.style.setProperty('--p',v+'%');cd.hidden=v<=0;}}
     t.b.classList.toggle('on',!!(st.holding||(id==='energyShield'&&P.shieldOn)||(id==='ringShield'&&P.ringShield)||(id==='telekinesis'&&P.tk)||(id==='invisibility'&&P.cloak)||(id==='slowTime'&&P.slowOn)||((id==='metalSkin'||id==='metalForms')&&P.metal)));});

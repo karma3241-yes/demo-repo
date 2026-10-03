@@ -56,6 +56,7 @@ function faceAim(){P.heroYaw=Math.atan2(camF.x,camF.z);castT=time;}
 function handPoint(){const s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw);return {x:P.pos.x+s*0.8+c*0.45,y:P.pos.y+1.95,z:P.pos.z+c*0.8-s*0.45};}
 function dirTo(from,x,y,z){const dx=x-from.x,dy=y-from.y,dz=z-from.z,l=Math.hypot(dx,dy,dz)||1;return [dx/l,dy/l,dz/l];}
 function abilityDown(slot){
+  if(SG.on){sgAbilityDown(slot);return;}
   if(P.alien){alienAbilityDown(slot);return;}
   const id=save.character&&save.character.abilities[slot];if(!id||!canAct())return;
   if(slotLocked(slot)){lockedSlotMsg(slot);return;}
@@ -78,6 +79,7 @@ function castPrimed(id){
   s.cd=(pstat(id,'cooldown')||0)*cdMul();withCast(id,POWER_FN[id]);
 }
 function abilityUp(slot,cancel){
+  if(SG.on){sgAbilityUp(slot);return;}
   if(P.alien){alienAbilityUp(slot);return;}
   if(ringLocked())return; // opening the voice oath already let go of everything held
   const id=save.character&&save.character.abilities[slot];if(!id)return;
@@ -337,5 +339,5 @@ function updatePowers(dt){
   if(time-P.lastHit>CONFIG.health.healDelay)P.hp=Math.min(maxHp(),P.hp+hpRegen()*dt);
   updateWanted(dt);
   if(P.stun>0)P.stun-=dt;
-  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateMeters(dt);updateSpace(dt);updatePool(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();
+  updateHeroAbilities(dt);updateWebbed(dt);updateRing(dt);updateMeters(dt);updateSpace(dt);updatePool(dt);updateSpeed(dt);updateBody(dt);updateSuit(dt);flyChargeTick();remoteStreaks();updateSunGod(dt);
 }

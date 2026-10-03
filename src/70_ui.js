@@ -32,6 +32,7 @@ const SLOT_KEYS=['1','2','3','4'],SLOT_ALT=['Q','E','R',''];
 let slotEls=[];
 function buildHotbar(){
   hud.hotbar.textContent='';slotEls=[];renderHeroKeys();fitMoves();if(!save.character)return;
+  if(SG.on){sgBuildHotbar();return;}
   if(P.alien){const a=ALIENS[P.alien.id];
     a.abilities.forEach((ab,i)=>{const cd=el('i',{class:'cd'});const s=el('div',{class:'slot alien'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:ab.name}),el('small',{text:a.name}));hud.hotbar.appendChild(s);slotEls.push({alien:i,s,cd});});
     const tb=el('i');const s=el('div',{class:'slot move band vslot'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Revert'}),el('div',{class:'bar tbar'},tb));s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});
@@ -323,7 +324,7 @@ function openCreator(mode='new'){
   applyLook();creator.hidden=false;$('menu').hidden=true;$('pause').hidden=true;$('create-title').textContent=mode==='rechoose'?'Change your powers':'Create your hero';renderCreator();
 }
 // what V does for a hero ('' when it has no V power)
-const heroV=id=>id==='powerRing'?'Constructs':id==='armorFlight'?'Suit forms':id==='bandFlight'?'Morph Band':TRAV_STYLES[id]?'Style wheel':'';
+const heroV=id=>id==='powerRing'?'Constructs':id==='armorFlight'?'Suit forms':id==='bandFlight'?'Morph Band':id==='solarFlight'?'Sun God':TRAV_STYLES[id]?'Style wheel':'';
 function heroCard(id,on,onclick){const h=PRESETS[id],v=heroV(id);
   return el('button',{type:'button',class:'pick'+(on?' on':''),'aria-pressed':String(on),'data-hero':id,onclick},powerIcon(id),el('b',{text:h.name}),
     el('span',{class:'cat',text:'Hero'}),el('span',{text:h.blurb}),
@@ -391,11 +392,13 @@ function vAction(){
   if(isRing())return P.construct?{key:'B',name:'Put away',icon:'ring'}:{key:'V',name:'Constructs',icon:'ring'};
   if(hasPower('morphBand'))return {key:'V',name:P.alien?'Revert':'Morph',icon:'band'};
   if(armorForms())return P.construct?{key:'B',name:'Put away',icon:'helmet'}:{key:'V',name:'Suit forms',icon:'helmet'};
+  if(hasTrav('solarFlight')&&!P.alien)return {key:'V',name:'Sun God',icon:'sun'};
   if(hasTravWheel())return {key:'V',name:'Style',icon:'wheel'};
   return null;}
 // what clicking the slot or tapping the button does: the same as the key
 function vPress(){const v=vAction();if(!v||state!=='play'||dialOpen||P.dead)return;
   if(v.key==='B'){summonConstruct();return;}
+  if(v.name==='Sun God'){sunGodKey();return;}
   if(isRing()){if(ringLocked())oathBusy();else openDial('construct');}else if(hasPower('morphBand'))bandPress();else if(armorForms())openDial('armor');else openDial('trav');}
 function setTravStyle(id,k){if(!save.settings.travStyle)save.settings.travStyle={};save.settings.travStyle[id]=k;persist();applyTravStyle(true);renderHeroKeys();}
 // puts the chosen style into effect (on picking it, on starting to play and after changing powers)

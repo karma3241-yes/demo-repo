@@ -38,7 +38,8 @@ function updateSpace(dt){
   wasSpace=sp;
   if(P.pos.y>CEIL){
     // the planets are solid: land on them (the Sun burns)
-    for(const b of PLANETS){const dx=P.pos.x-b.x,dy=P.pos.y+1-b.y,dz=P.pos.z-b.z,d=Math.hypot(dx,dy,dz)||1,min=b.r+(b.sun?800:1.4);
+    for(const b of PLANETS){if(b.sun&&sunGodOn())continue; // the Sun God flies through the Sun unharmed
+      const dx=P.pos.x-b.x,dy=P.pos.y+1-b.y,dz=P.pos.z-b.z,d=Math.hypot(dx,dy,dz)||1,min=b.r+(b.sun?800:1.4);
       if(d<min){const nx=dx/d,ny=dy/d,nz=dz/d;P.pos.set(b.x+nx*min,b.y+ny*min-1,b.z+nz*min);const vr=P.vel.x*nx+P.vel.y*ny+P.vel.z*nz;if(vr<0){P.vel.x-=nx*vr;P.vel.y-=ny*vr;P.vel.z-=nz*vr;}
         if(b.sun){if(time-(P.sunT||-9)>0.5){P.sunT=time;Damage.apply(null,P,25,'fire',{burn:{dps:8,time:2}});feed('Too hot','Nobody lands on the Sun');}P.vel.set(nx*400,ny*400,nz*400);}
         else{P.vel.mul(0.8);if(lastBody!==b){lastBody=b;toast('You landed on '+b.name,'Take in the view · fly off whenever you like','cyan');SFX.chime();addXP(50);}}}}

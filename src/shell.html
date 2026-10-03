@@ -118,6 +118,15 @@ kbd:empty{display:none}
 @media (max-width:900px){#keys-hero{column-count:1}#keys{width:min(360px,60vw)}}
 #vig{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,20,50,.55) 100%)}
 #flash{position:fixed;inset:0;pointer-events:none;opacity:0;background:#eef6ff}
+/* Sun God: the pill under the meters, the Eclipse darkening and the gold-white tint inside the Sun */
+#sgbar{display:flex;align-items:center;gap:8px;padding:3px 12px;border-radius:999px;background:rgba(40,24,0,.74);border:1px solid rgba(255,210,100,.75);color:#ffe9a8;font:700 11px var(--hud);letter-spacing:.14em;text-transform:uppercase;box-shadow:0 0 14px rgba(255,190,60,.45)}
+#sgbar[hidden]{display:none}#sgbar i{display:block;width:90px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden}#sgbar b{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff9a1a,#fff1b8)}
+#sgbar.dark{background:rgba(14,4,28,.82);border-color:rgba(190,120,255,.8);color:#e7d2ff;box-shadow:0 0 14px rgba(150,70,255,.5)}#sgbar.dark b{background:linear-gradient(90deg,#6a2cc4,#ffd36b)}
+body.touch #sgbar{justify-self:start}
+#sgdark{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;background:radial-gradient(ellipse at center,rgba(10,0,24,.42) 0%,rgba(0,0,6,.86) 100%)}
+#sgtint{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,#fffbe6 0%,#ffd36b 60%,#ff9a1a 100%)}
+.slot.sg{border-color:rgba(255,210,100,.7)}.slot.sg small{color:#ffd36b}.slot.sg.dk{border-color:rgba(190,120,255,.7)}.slot.sg.dk small{color:#c89bff}
+.slot.band.sgv .tbar{width:74px;height:4px;margin-top:3px}.slot.band.sgv .tbar i{background:linear-gradient(90deg,#ff9a1a,#fff1b8)}
 .overlay{position:fixed;inset:0;display:grid;align-items:center;padding-inline:16px;z-index:4}
 #menu{background:linear-gradient(90deg,rgba(3,5,12,.92) 0%,rgba(3,5,12,.72) 42%,rgba(3,5,12,.05) 78%);justify-items:start;padding-inline:clamp(16px,7vw,110px);overflow-y:auto}
 .menu-inner{max-width:540px;display:grid;gap:20px;padding-block:32px}
@@ -448,6 +457,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
       <div class="meter"><span>HEALTH <b id="hpt">100</b></span><div class="bar hp"><i id="hpb"></i></div><div class="bar shield" id="shbar" hidden><i id="shb"></i></div></div>
       <div class="meter" id="enm"><span>ENERGY <b id="ent">100</b></span><div class="bar en"><i id="enb"></i><i id="enb2"></i></div></div>
     </div>
+    <div id="sgbar" hidden><span id="sgbar-t">Sun God</span><i><b id="sgbar-f"></b></i></div>
     <div class="hotbar" id="hotbar"></div>
   </div>
   <canvas id="map" width="360" height="360"></canvas>
@@ -470,6 +480,8 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
 </div>
 <div id="vig"></div>
 <div id="flash"></div>
+<div id="sgdark"></div>
+<div id="sgtint"></div>
 <div id="touch" hidden><div id="tlayer"></div><div id="stick"><div id="knob"></div></div><div id="tbtns"></div><button class="tb" id="tpause" type="button" aria-label="Pause"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button></div><div id="safeprobe"></div>
 <div id="rotate" hidden><div><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg><b>Turn your phone sideways to play</b><span>Skyline Guardian is played in landscape.</span></div></div>
 
