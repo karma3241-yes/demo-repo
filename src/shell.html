@@ -320,6 +320,13 @@ body.touch #growtut:not([hidden])~#guide{display:none}
 #guide li span{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
 #guide.mini li{display:none}#guide.mini li:not(.done){display:grid}#guide.mini li:not(.done)~li{display:none}#guide.mini h4{margin-bottom:4px}
 /* HUD icon bar: every menu one key or click away */
+/* starter goal pill: desktop sits under the icon bar (top is set from script); touch takes Getting started's place in the left column */
+#goal{position:absolute;left:16px;top:130px;max-width:330px;box-sizing:border-box;padding:6px 10px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;font-size:12px;line-height:1.3;border-color:rgba(255,201,60,.45)}
+#goal b{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}#goal em{font-style:normal;font-size:11px;font-weight:700;color:var(--gold)}#goal em:empty{display:none}
+body.touch #goal{left:calc(10px + var(--safe-l));top:calc(310px + var(--safe-t))!important;width:176px;max-width:none;padding:5px 8px;font-size:11px}
+body.touch.lefty #goal{left:auto;right:calc(10px + var(--safe-r))}
+body.touch #growtut:not([hidden])~#goal{display:none}
+@media (max-height:520px){body.touch #goal{top:calc(186px + var(--safe-t))!important}}
 #hudbar{position:absolute;left:16px;top:122px;display:flex;flex-wrap:wrap;gap:6px;max-width:330px;pointer-events:none}
 .hbtn{pointer-events:auto;position:relative;width:40px;height:40px;padding:0;display:grid;place-items:center;color:var(--ink);background:var(--panel);border:1px solid var(--edge);border-radius:10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;transition:border-color .15s,background .15s}
 .hbtn:hover{background:rgba(79,216,255,.16);border-color:var(--energy)}.hbtn:focus-visible{outline:2px solid var(--energy);outline-offset:2px}
@@ -427,6 +434,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
   <div id="feed"></div>
   <div id="growtut" class="panel" hidden><h4>Grow it</h4><p id="growtut-t"></p><div class="gt-wheel"><i></i></div></div>
   <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol><p id="guide-more"><kbd>H</kbd> all moves</p></div>
+  <div id="goal" class="panel" hidden><b>Goal</b><span id="goal-t"></span><em id="goal-x"></em></div>
   <div id="keys" class="panel fade"><div id="keys-head"><b>Move list</b><span><kbd>H</kbd> hide</span></div><div id="keys-hero"></div></div>
   <div id="hudbar"></div>
   <div id="lbmini" class="panel" hidden></div>

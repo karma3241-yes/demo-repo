@@ -453,6 +453,8 @@ function mechStep(b){
 // ================================================================
 // Crimes: scripted scenes that play out in the world (map only, no alerts)
 // ================================================================
+// the first minutes (LV 1-2) are busier: closer and more often. nearCrime() lowers the distances itself, so take the smaller value
+function crimeCfg(){const e=save.level<3;return {gap:e?[Math.min(8,CRIMES.spawnGap[0]),Math.min(16,CRIMES.spawnGap[1])]:CRIMES.spawnGap,min:e?Math.min(40,CRIMES.minDist):CRIMES.minDist,max:e?Math.min(200,CRIMES.maxDist):CRIMES.maxDist};}
 let crimeT=6,heistT=CRIMES.heistFirst,rivalT=CRIMES.rivalGap[0],popT=0;
 let vaultY=bank?bank.vault.y:0,vaultGoneT=0;
 function newCrime(type,x,z,label,icon){const c={type,x,z,label,icon,helped:false,age:0,actors:[],heist:false,stage:'start'};crimes.push(c);return c;}
@@ -462,7 +464,7 @@ function pickNear(list,minD,maxD){
 }
 function curbPlace(v,x,z,nx,nz){const [cx,cz]=blockCenter(x,z);if(nx!==0){v.axis=0;v.lane=cx+nx*33.5;v.s=z;}else{v.axis=1;v.lane=cz+nz*33.5;v.s=x;}v.dir=Math.random()<0.5?1:-1;setVehiclePos(v);}
 function startShopRobbery(){
-  const s=pickNear(shops.filter(s=>s.prop.alive&&!s.busy),CRIMES.minDist,CRIMES.maxDist);if(!s)return false;s.busy=true;
+  const s=pickNear(shops.filter(s=>s.prop.alive&&!s.busy),crimeCfg().min,crimeCfg().max);if(!s)return false;s.busy=true;
   const c=newCrime('shop',s.x,s.z,'Robbery at the '+s.name,'$');c.shop=s;c.bags=0;c.need=6;
   const v=makeVehicle('van');v.temp=true;v.state='parked';v.tint=c4('#2a2d33');v.crime=c;curbPlace(v,s.x,s.z,s.nx,s.nz);c.van=v;c.actors.push(v);
   for(let i=0;i<2;i++){const d=spawnDrone(s.x+rr(-2,2),rr(2,4),s.z+rr(-2,2),'thief',c);d.carry=false;c.actors.push(d);}
@@ -484,7 +486,7 @@ function startShopRobbery(){
   return true;
 }
 function startAtmHack(){
-  const a=pickNear(atms.filter(a=>a.prop.alive&&!a.busy),CRIMES.minDist,CRIMES.maxDist);if(!a)return false;a.busy=true;
+  const a=pickNear(atms.filter(a=>a.prop.alive&&!a.busy),crimeCfg().min,crimeCfg().max);if(!a)return false;a.busy=true;
   const c=newCrime('atm',a.x,a.z,'ATM being hacked','$');c.timer=45;
   const d=spawnDrone(a.fx+a.nx*1.1,2,a.fz+a.nz*1.1,'hacker',c);d.goal={x:a.fx+a.nx*1.1,y:2,z:a.fz+a.nz*1.1,sp:6};c.actors.push(d);
   c.update=dt=>{if(!d.alive)return 'cleared';
@@ -495,7 +497,7 @@ function startAtmHack(){
   return true;
 }
 function startMugging(){
-  const p=sidewalkPointNear(P.pos.x,P.pos.z,CRIMES.minDist,300);
+  const p=sidewalkPointNear(P.pos.x,P.pos.z,crimeCfg().min,300);
   const c=newCrime('mug',p.x,p.z,'Mugging','!');
   const victim=spawnHuman('civilian',p.x,p.z,{path:p.path,crime:c});
   const q=pathPos({...p.path,u:p.path.u+14*p.path.dir});
@@ -517,7 +519,7 @@ function startMugging(){
   return true;
 }
 function startCarTheft(){
-  const spot=pickNear(curbSpots,CRIMES.minDist,320);if(!spot)return false;
+  const spot=pickNear(curbSpots,crimeCfg().min,320);if(!spot)return false;
   const c=newCrime('car',spot.x,spot.z,'Car theft','C');
   const car=makeVehicle('car');car.temp=true;car.state='parked';car.tint=pick(CAR_COLS).slice();car.axis=spot.axis;car.lane=spot.axis===0?spot.x:spot.z;car.s=spot.axis===0?spot.z:spot.x;car.dir=Math.random()<0.5?1:-1;setVehiclePos(car);car.crime=c;
   const side=spot.axis===0?[Math.sign(-spot.x+blockCenter(spot.x,spot.z)[0])*1.8,0]:[0,Math.sign(-spot.z+blockCenter(spot.x,spot.z)[1])*1.8];
@@ -572,7 +574,7 @@ function updateCrimes(dt){
       if(r==='cleared'&&WS.host)WS.crimeReward(c);}}
   if(state!=='play')return;
   const small=crimes.filter(c=>!c.heist).length;
-  if(small<CRIMES.maxActive&&ROOM.crimes){crimeT-=dt;if(crimeT<=0){crimeT=rr(CRIMES.spawnGap[0],CRIMES.spawnGap[1]);startRandomCrime();}}
+  if(small<CRIMES.maxActive&&ROOM.crimes){crimeT-=dt;if(crimeT<=0){{const gp=crimeCfg().gap;crimeT=rr(gp[0],gp[1]);}startRandomCrime();}}
   if(vaultGoneT>0){vaultGoneT-=dt;if(vaultGoneT<=0&&bank)vaultY=bank.vault.y;}
   if(!crimes.some(c=>c.heist)&&save.level>=CRIMES.heistMinLevel){heistT-=dt;if(heistT<=0){heistT=rr(CRIMES.heistGap[0],CRIMES.heistGap[1]);if(!(Math.random()<0.5&&startVaultHeist()))startTruckHeist();}}
 }

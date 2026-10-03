@@ -82,7 +82,8 @@ function playerDown(killer){
   MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
 }
 function respawn(){
-  const s=SPAWNS[(Math.random()*SPAWNS.length)|0];if(P.alien)revertAlien(true);
+  let s=SPAWNS[0],bd=1e18;for(const c of SPAWNS){const d=Math.hypot(c[0]-P.pos.x,c[1]-P.pos.z);if(d<bd){bd=d;s=c;}} // nearest spawn to where you fell
+  if(P.alien)revertAlien(true);
   P.dead=false;P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.12;P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();clearWanted();P.stun=0;P.lastHit=-99;
   $('dead').hidden=true;Portal.midgame();
 }

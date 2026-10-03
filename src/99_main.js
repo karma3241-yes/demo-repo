@@ -99,6 +99,7 @@ function frameBody(now){
   buildDrawList();render();
   if(live)updateHud(dt);
   if(state==='play')MP.flush(real);
+  if(state==='play'&&time-goalT>1){goalT=time;updateGoal();}
   Portal.tick();if(state==='play'&&PBAL&&time-(P.trialT||0)>1){P.trialT=time;updateTrials();}
   WS.update(real);
   updateTags();updateMarkers();updateUnderwater();
