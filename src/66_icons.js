@@ -89,7 +89,7 @@ const POWER_GLYPH={flight:'wing',superSpeed:'run',wallClimb:'climb',webSwing:'we
   chainLasso:'chain',ringShield:'shield',blackHole:'spiral',morphBand:'band',stormHammer:'hammer',repulsors:'burst',coreBeam:'beam',ricochetShield:'roundShield',
   bladeClaws:'claw',elasticBody:'stretch',titanGrowth:'giant',metalForms:'metal',bladeLeap:'claw',stretchStrike:'stretch',giantForm:'giant',blink:'blink',
   gravityWell:'gravity',sonicScream:'wave',quakeStomp:'quake',meteorStrike:'meteor',forcePush:'push',chainLightning:'bolt',healingPulse:'heal',
-  invisibility:'eyeOff',vineSnare:'vine',shadowStep:'moon',plasmaWhip:'whip',spiritWave:'wisp',suitBattery:'battery',timeDilation:'clock'};
+  invisibility:'eyeOff',vineSnare:'vine',shadowStep:'moon',plasmaWhip:'whip',spiritWave:'wisp',suitBattery:'battery',timeDilation:'clock',ironFlight:'metal',bladeFlight:'claw',elasticFlight:'stretch',titanFlight:'giant',bandFlight:'band'};
 // a power's colour follows what kind of power it is (hero kit moves in gold, the Ring Bearer's in ring green)
 const GLYPH_COL={movement:'#4fd8ff',offence:'#ff8a5c',body:'#c9d7ea',defence:'#8fe3ff',preset:'#ffc93c',signature:'#ffc93c',special:'#c89bff',utility:'#7dffb0',upgrade:'#bff4ff'};
 const RING_KIT=new Set(['powerRing','ringCore','ringBlast','hammerSmash','chainLasso','ringShield','blackHole']);

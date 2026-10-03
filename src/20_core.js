@@ -4,7 +4,7 @@
 const CONFIG={
   progression:{spPerLevel:3,startSP:3,levelCap:100,xpToNext:l=>Math.floor(100*Math.pow(l,1.5)),dmgXp:0.2,
     orbs:{yellow:25,blue:50,red:100},orbRespawn:[30,60],orbRadius:1.5},
-  picks:{movement:1,abilities:4,body:1,kit:3,free:2}, // custom builds: signature move + 4 picks; hero kits: 3 kit moves + 2 more
+  picks:{kit:4}, // every hero has four power keys (plus the V power some of them have)
   powerMax:10,powerUpgradeCost:lvl=>lvl+1,passiveMax:50,passiveCost:1,
   energy:{base:100,perLevel:5,regen:8,regenBonus:0.02,delay:1.5,togglesBlockRegen:false},
   health:{base:220,perLevel:14,baseRegen:2,healPerLevel:0.5,healDelay:3,respawn:5,npcTaken:0.5},
@@ -18,7 +18,7 @@ const CONFIG={
 };
 // [min,max] pairs are the values at power level 1 and 10
 const POWERS={
-  flight:{name:'Flight',cat:'movement',type:'toggle',key:'F',desc:'Fly anywhere. Space climbs, C dives, Shift boosts.',speed:[40,90],drain:[4,2],boost:2.6},
+  flight:{name:'Flight',cat:'movement',hidden:true,type:'toggle',key:'F',desc:'Fly anywhere. Space climbs, C dives, Shift boosts.',speed:[40,90],drain:[4,2],boost:2.6},
   superSpeed:{name:'Super Speed',cat:'movement',type:'hold',key:'Shift',desc:'Hold Shift to run at blinding speed and bowl people over.',mult:[2,5],drain:[5,2],hitDmg:[6,20]},
   wallClimb:{name:'Wall-Climb',cat:'movement',hidden:true,type:'passive',key:'Auto',desc:'Run into a wall to grab it. W and S climb, A and D move sideways, Space leaps off.',speed:[8,20]},
   webSwing:{name:'Web-Swinging',cat:'movement',type:'hold',key:'Right click',desc:'Hold right click to swing: webs find buildings ahead for you and chain while you hold. Let go at the top of a swing for a boost, Space mid-air to web-zip. Aim at a person to yank them.',range:[90,170],force:[1,2],energy:3,stun:[1.2,3]},
@@ -29,16 +29,22 @@ const POWERS={
   laserVision:{name:'Laser Vision',cat:'offence',type:'channel',desc:'Hold to fire a beam from your eyes. It scorches whatever it touches.',energyPerSec:15,dps:[20,110],range:[60,120]},
   telekinesis:{name:'Telekinesis',cat:'offence',type:'hold',desc:'Hold to lift a person, drone or car with your mind. Let go to throw it.',energy:10,energyPerSec:4,range:[20,50],throwDmg:[20,100]},
   shockwave:{name:'Shockwave',cat:'offence',type:'instant',desc:'Blast everything around you away. Use it in mid-air to slam into the ground.',energy:30,cooldown:1,damage:[40,160],radius:[18,40]},
-  metalSkin:{name:'Metal Skin',cat:'body',sig:'metalForms',desc:'Your body can turn to living steel. Gives you Metal Forms.',drain:3,dr:[0.3,0.7],slow:[0.3,0.1]},
+  metalSkin:{name:'Metal Skin',cat:'body',hidden:true,sig:'metalForms',desc:'Your body can turn to living steel. Gives you Metal Forms.',drain:3,dr:[0.3,0.7],slow:[0.3,0.1]},
   energyShield:{name:'Energy Shield',cat:'defence',type:'toggle',desc:'Raise a bubble that soaks up damage until it breaks.',energy:25,absorb:[50,400],cooldown:15},
   powerRing:{name:'Ring Bearer',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A ring of pure willpower. Fly, and build anything you can imagine out of hard light. Its charge only comes back when you recite the oath.',speed:[35,110]},
   stormFlight:{name:'Tempest',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Ride a thunderclap into the sky. Lightning answers when you call.',speed:[40,95]},
   armorFlight:{name:'Armored Inventor',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A flying suit of armor with palm blasters and a chest beam.',speed:[45,100]},
   solarFlight:{name:'Sun Titan',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Powered by the sun: flight, laser eyes, an ice cloud and a thunderclap.',speed:[50,120]},
+  ironFlight:{name:'Ironclad',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Fly with a body of living steel. Turn to metal, shove cars aside and shake the street.',speed:[38,95]},
+  bladeFlight:{name:'Nightblade',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A silent hunter who flies by night. Claws that heal you, a blink through the dark and a cloak to vanish in.',speed:[45,105]},
+  elasticFlight:{name:'Slingshot',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Fly, and stretch like rubber. Grab things from a distance, tie people up in vines and heal the street.',speed:[40,100]},
+  titanFlight:{name:'Goliath',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Grow to the size of a building and still fly. Call down meteors and a screaming black hole.',speed:[35,90]},
+  bandFlight:{name:'Shifter',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Fly, throw fire and lightning, and turn into a different alien with the Morph Band on V.',speed:[42,100]},
   stormBody:{name:'Storm Blood',cat:'body',hidden:true,desc:'Lightning barely hurts you and your hammer never leaves your hand for long.'},
   armorSuit:{name:'Power Armor',cat:'body',hidden:true,desc:'Armor plating takes 35% off every hit.'},
   solarBody:{name:'Solar Cells',cat:'body',hidden:true,desc:'Bullets bounce off: you take 40% less damage and punch half again as hard.'},
   spiderPowers:{name:'Spider Powers',cat:'body',hidden:true,desc:'Stick to any surface, a sixth sense warns you of attacks, and your strength is far beyond human.'},
+  bandCore:{name:'Morph Core',cat:'body',hidden:true,desc:'The Morph Band is your body. No bonus of its own.'},
   ringCore:{name:'The Ring',cat:'body',hidden:true,desc:'Everything you do runs on ring charge instead of energy.'},
   surgeSuit:{name:'Speed Surge',cat:'body',hidden:true,desc:'Your body runs on pure speed. Vibrate through walls and outrun time itself.'},
   webStrike:{name:'Web Strike',cat:'preset',type:'instant',desc:'Yank whoever you aim at toward you, or swing-kick them if you are in the air. On objects it pulls them to you.',energy:6,cooldown:0.6,damage:[20,80],range:[30,60]},
@@ -59,9 +65,9 @@ const POWERS={
   repulsors:{name:'Pulse Barrage',cat:'offence',type:'channel',desc:'Hold to fire rapid palm blasts from alternating hands. Great for keeping crowds and drones at bay.',energyPerSec:14,damage:[8,30],knock:[5,14]},
   coreBeam:{name:'Core Beam',cat:'offence',type:'instant',desc:'Wind up a blinding beam from your chest. It burns through people, cars and even buildings for a second and a half.',energy:35,cooldown:10,dps:[60,220]},
   ricochetShield:{name:'Ricochet Shield',cat:'offence',type:'instant',desc:'Throw a disc that bounces from target to target before flying back to you.',energy:12,cooldown:2.5,damage:[30,110],bounces:[3,6],stun:[0.5,1]},
-  bladeClaws:{name:'Blade Claws',cat:'body',sig:'bladeLeap',desc:'Blades spring from your fists, and your wounds close fast. Gives you Blade Leap.',damage:[35,140],range:[10,18]},
-  elasticBody:{name:'Elastic Body',cat:'body',sig:'stretchStrike',desc:'Stretch like rubber: your punches reach much further and hard landings bounce off you. Gives you Stretch Strike.',reach:[6,12],damage:[30,120]},
-  titanGrowth:{name:'Titan Growth',cat:'body',sig:'giantForm',desc:'Grow to three times your size for a while. Everything you hit, you hit like a giant. Gives you Giant Form.',duration:[10,25],scale:[2.2,3.2]},
+  bladeClaws:{name:'Blade Claws',cat:'body',hidden:true,sig:'bladeLeap',desc:'Blades spring from your fists, and your wounds close fast. Gives you Blade Leap.',damage:[35,140],range:[10,18]},
+  elasticBody:{name:'Elastic Body',cat:'body',hidden:true,sig:'stretchStrike',desc:'Stretch like rubber: your punches reach much further and hard landings bounce off you. Gives you Stretch Strike.',reach:[6,12],damage:[30,120]},
+  titanGrowth:{name:'Titan Growth',cat:'body',hidden:true,sig:'giantForm',desc:'Grow to three times your size for a while. Everything you hit, you hit like a giant. Gives you Giant Form.',duration:[10,25],scale:[2.2,3.2]},
   metalForms:{name:'Metal Forms',cat:'signature',of:'metalSkin',type:'toggle',key:'',desc:'Turn to steel. Press again to cycle your hand into a hammer, a spiked flail, a blade or a shield; hold to turn back.',energy:0},
   bladeLeap:{name:'Blade Leap',cat:'signature',of:'bladeClaws',type:'instant',desc:'Lunge through enemies with a flurry of claw slashes.',energy:10,cooldown:1.5},
   stretchStrike:{name:'Stretch Strike',cat:'signature',of:'elasticBody',type:'instant',desc:'Your arm shoots out, grabs whoever you aim at and slams them into the ground.',energy:12,cooldown:2.5},
@@ -82,17 +88,20 @@ const POWERS={
   suitBattery:{name:'Suit Battery',cat:'upgrade',hidden:true,desc:'How much charge the Armored Inventor\'s suit holds. Every power runs on it, and it only recharges at Forge Tower.',capacity:[100,300]},
   timeDilation:{name:'Time Dilation',cat:'utility',type:'instant',desc:'Slow the world down around you while you move at full speed. In multiplayer it makes you faster instead.',energy:35,cooldown:20,duration:[3,7]},
 };
-const MOVEMENT_POWERS=Object.keys(POWERS).filter(k=>POWERS[k].cat==='movement'&&!POWERS[k].hidden);
-const BODY_MODS=Object.keys(POWERS).filter(k=>POWERS[k].cat==='body'&&!POWERS[k].hidden);
-const ABILITY_POWERS=Object.keys(POWERS).filter(k=>['offence','defence','utility','special'].includes(POWERS[k].cat));
-// hero presets: picking one of these traversals fixes your body and abilities
+// the heroes: you can only pick one of these. Its movement id is the hero's identity everywhere (movement[0]), and fixes the body and
+// the four power keys (the first key of a body hero is its signature move). The new fliers get their own id and fly like plain flight (IMPLIED).
 const PRESETS={
-  webSwing:{name:'Web Runner',body:'spiderPowers',abilities:['webStrike','webBomb','webWhip'],blurb:'Swing, crawl, glide and flip through the city. A sixth sense for danger and web gadgets.'},
-  superSpeed:{name:'Speedster',body:'surgeSuit',abilities:['lightningThrow','phaseStrike','speedTornado','slowTime','timeStop'],blurb:'Outrun anything: phase through walls, bend and stop time.'},
+  webSwing:{name:'Web Runner',body:'spiderPowers',abilities:['webStrike','webBomb','webWhip','shadowStep'],blurb:'Swing, crawl, glide and flip through the city. A sixth sense for danger and web gadgets.'},
+  superSpeed:{name:'Speedster',body:'surgeSuit',abilities:['lightningThrow','phaseStrike','speedTornado','timeStop'],blurb:'Outrun anything: phase through walls, bend and stop time.'},
   stormFlight:{name:'Tempest',body:'stormBody',abilities:['stormHammer','lightning','shockwave','energyShield'],blurb:'Ride the storm, call lightning and bring the thunder down.'},
   armorFlight:{name:'Armored Inventor',body:'armorSuit',abilities:['repulsors','energyBlast','coreBeam','energyShield'],blurb:'A flying suit of armor: palm blasters, a chest beam and a force shield.'},
   solarFlight:{name:'Sun Titan',body:'solarBody',abilities:['laserVision','iceCloud','shockwave','timeDilation'],blurb:'Fly faster than jets, burn with laser eyes, freeze with an ice cloud.'},
-  powerRing:{name:'Ring Bearer',body:'ringCore',abilities:['ringBlast','hammerSmash','chainLasso','ringShield','blackHole'],blurb:'Build hard-light constructs, from a bubble to a dragon. Runs on ring charge.'},
+  powerRing:{name:'Ring Bearer',body:'ringCore',abilities:['ringBlast','hammerSmash','ringShield','blackHole'],blurb:'Build hard-light constructs, from a bubble to a dragon. Runs on ring charge.'},
+  ironFlight:{name:'Ironclad',body:'metalSkin',abilities:['metalForms','ricochetShield','forcePush','quakeStomp'],blurb:'Fly with a body of living steel. Turn to metal, throw a bouncing disc and shake the street.'},
+  bladeFlight:{name:'Nightblade',body:'bladeClaws',abilities:['bladeLeap','plasmaWhip','blink','invisibility'],blurb:'A silent hunter. Claws that heal you, a blink through the dark and a cloak to vanish in.'},
+  elasticFlight:{name:'Slingshot',body:'elasticBody',abilities:['stretchStrike','vineSnare','telekinesis','healingPulse'],blurb:'Stretch like rubber, snare people in vines, lift things with your mind and heal the street.'},
+  titanFlight:{name:'Goliath',body:'titanGrowth',abilities:['giantForm','meteorStrike','gravityWell','sonicScream'],blurb:'Grow as tall as a tower. Call down meteors, open a black hole and scream the windows out.'},
+  bandFlight:{name:'Shifter',body:'bandCore',abilities:['fireball','chainLightning','spiritWave','energyBlast'],blurb:'Fire, lightning and a Morph Band on V that turns you into aliens.'},
 };
 const presetOf=c=>c&&PRESETS[c.movement[0]]||null;
 const PASSIVES={
@@ -142,29 +151,26 @@ function safeName(s){const n=cleanName(s);const t=n.toLowerCase().replace(/[0134
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
 function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
-// five hotkeys: a hero kit puts 3 of its own moves on keys 1-3 and 2 more (the rest of the kit or any pool power) on 4-5
-const PRESET_FILL={webSwing:['vineSnare','shadowStep'],stormFlight:['chainLightning'],armorFlight:['forcePush'],solarFlight:['sonicScream'],superSpeed:[],powerRing:[]};
-const CUSTOM_FILL=['energyBlast','shockwave','fireball','blink','forcePush','plasmaWhip'];
-function presetAbilities(m,want){
-  const kit=PRESETS[m].abilities,w=Array.isArray(want)?want.filter(id=>typeof id==='string'):[],K=CONFIG.picks.kit,F=CONFIG.picks.free;
-  const keys=[...new Set(w.slice(0,K).filter(id=>kit.includes(id)))];for(const id of kit){if(keys.length>=K)break;if(!keys.includes(id))keys.push(id);}
-  const free=[];for(const id of w.slice(K)){if(free.length>=F)break;if(!keys.includes(id)&&!free.includes(id)&&(kit.includes(id)||ABILITY_POWERS.includes(id)))free.push(id);}
-  for(const id of [...kit,...(PRESET_FILL[m]||[]),...CUSTOM_FILL]){if(free.length>=F)break;if(!keys.includes(id)&&!free.includes(id))free.push(id);}
-  return [...keys,...free];
-}
+// what each flier gets from plain flight (and the Shifter's Morph Band, which lives on V and takes no key). Defined here because loadSave needs it.
+const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'],armorFlight:['flight'],solarFlight:['flight'],
+  ironFlight:['flight'],bladeFlight:['flight'],elasticFlight:['flight'],titanFlight:['flight'],bandFlight:['flight','morphBand']};
+const LEVEL_OF=id=>POWERS[id]&&POWERS[id].of||id; // signature moves share their body mod's level
+// every power whose skill level belongs to this build (a hero's V power, like the Morph Band, counts although it has no key)
+const ownedIds=c=>[...new Set([...c.abilities.map(LEVEL_OF),...c.movement,c.body,...(IMPLIED[c.movement[0]]||[])])];
+// takes back the skill points spent on powers that are no longer owned: drops their levels from `levels` and returns the points
+function refundDropped(levels,oldIds,newIds){let r=0;
+  for(const id of oldIds)if(!newIds.includes(id)){const l=levels[id]|0;for(let q=1;q<l;q++)r+=CONFIG.powerUpgradeCost(q);delete levels[id];}
+  return r;}
+const presetAbilities=m=>PRESETS[m].abilities.slice();
+const isHero=m=>typeof m==='string'&&Object.prototype.hasOwnProperty.call(PRESETS,m);
 function validCharacter(c){
-  if(!c||typeof c!=='object')return null;
-  const mv=Array.isArray(c.movement)?[...new Set(c.movement.filter(id=>MOVEMENT_POWERS.includes(id)))]:[];
-  if(mv.length!==1)return null;
-  const n=(v,max)=>Number.isInteger(v)&&v>=0&&v<max?v:0,pre=PRESETS[mv[0]];let body,ab;
-  if(pre){body=pre.body;ab=presetAbilities(mv[0],c.abilities);}
-  else{body=BODY_MODS.includes(c.body)?c.body:null;if(!body)return null;
-    const free=Array.isArray(c.abilities)?[...new Set(c.abilities.filter(id=>ABILITY_POWERS.includes(id)))].slice(0,CONFIG.picks.abilities):[];
-    for(const id of CUSTOM_FILL){if(free.length>=CONFIG.picks.abilities)break;if(!free.includes(id))free.push(id);} // builds from before five hotkeys get the rest filled in
-    ab=[POWERS[body].sig,...free];}
-  return {name:(typeof c.name==='string'&&cleanName(c.name))||'Guardian',suit:n(c.suit,SUIT_OPTS.length),cape:n(c.cape,CAPE_OPTS.length),accent:n(c.accent,ACC_OPTS.length),capeOn:c.capeOn!==false,movement:mv,body,abilities:ab};
+  if(!c||typeof c!=='object'||!Array.isArray(c.movement)||c.movement.length!==1||!isHero(c.movement[0]))return null; // old custom builds come out null: migrateCharacter turns them into a hero
+  const n=(v,max)=>Number.isInteger(v)&&v>=0&&v<max?v:0,m=c.movement[0],pre=PRESETS[m];
+  return {name:(typeof c.name==='string'&&cleanName(c.name))||'Guardian',suit:n(c.suit,SUIT_OPTS.length),cape:n(c.cape,CAPE_OPTS.length),accent:n(c.accent,ACC_OPTS.length),capeOn:c.capeOn!==false,movement:[m],body:pre.body,abilities:presetAbilities(m)};
 }
-// builds from before traversal presets (two movement powers, no body mod) become the closest new build
+// old builds become the nearest hero. Flight builds (a body mod plus four abilities) go by their body; the Morph Band wins over the body;
+// builds from before traversal presets (two movement powers, no body mod) keep the Web Runner and Speedster, and fly as Ironclad (or Nightblade with Blade Claws).
+const BODY_HERO={metalSkin:'ironFlight',bladeClaws:'bladeFlight',elasticBody:'elasticFlight',titanGrowth:'titanFlight'};
 function migrateCharacter(c){
   if(!c||typeof c!=='object'||!Array.isArray(c.movement)||c.body)return null;
   const mv=c.movement,ab=Array.isArray(c.abilities)?c.abilities:[];
@@ -211,12 +217,10 @@ const enRegen=()=>CONFIG.energy.regen*(1+CONFIG.energy.regenBonus*pv('energy'));
 const hpRegen=()=>CONFIG.health.baseRegen+CONFIG.health.healPerLevel*pv('healing')+(hasPower('bladeClaws')?4+powerLevel('bladeClaws')*0.6:0);
 const strengthMul=()=>1+0.02*pv('strength');
 const throwMul=()=>1+0.01*pv('strength');
-const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'],armorFlight:['flight'],solarFlight:['flight']};
 const hasPower=id=>{const c=save.character;if(!c)return false;if(c.movement.includes(id)||c.body===id||c.abilities.includes(id))return true;const imp=IMPLIED[c.movement[0]];return !!(imp&&imp.includes(id));};
 const hasTrav=id=>!!save.character&&save.character.movement[0]===id;
 // the chosen V-wheel style of your traversal ('' when it has none)
 const travStyle=id=>{const L=TRAV_STYLES[id];if(!L)return '';const v=save.settings.travStyle&&save.settings.travStyle[id];return L.some(x=>x[0]===v)?v:L[0][0];};
-const LEVEL_OF=id=>POWERS[id]&&POWERS[id].of||id; // signature moves share their body mod's level
 const powerLevel=id=>trialOn('lv:'+LEVEL_OF(id))?CONFIG.powerMax:clamp(save.powerLevels[LEVEL_OF(id)]|0||1,1,CONFIG.powerMax);
 // ---- traversal mastery: grows with use, no skill points ----
 // The CrazyGames build (PBAL) plays slower and tighter: weaker at the start, mastery takes ~6 hours, every size has a cap,
@@ -242,6 +246,7 @@ function pstat(id,name,lvl){const v=POWERS[id][name];const r=Array.isArray(v)?le
   if(typeof castK!=='undefined'&&castK>1&&typeof r==='number'&&!lvl){if(name==='radius'||name==='range'||name==='reach')return r*castK;if(name==='damage'||name==='dps'||name==='throwDmg')return r*Math.sqrt(castK);}
   return r;}
 function faction(rep){return rep>=REP.heroAt?'hero':rep<=REP.villainAt?'villain':'neutral';}
+for(const id of ['ironFlight','bladeFlight','elasticFlight','titanFlight','bandFlight'])MASTERY_NOTES[id]=MASTERY_NOTES.flight; // the new fliers grow like plain flight
 const playerFaction=()=>faction(save.reputation);
 function repTier(r){
   if(r>=REP.heroAt){let n='Rookie';for(const [t,nm] of REP.heroTiers)if(r>=t)n=nm;return {faction:'hero',name:n};}
