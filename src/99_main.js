@@ -65,7 +65,7 @@ function startPlay(first){
   P.hp=maxHp();P.en=maxEn();
   toast(first?'Welcome to Nova Bay':'Welcome back, '+save.character.name,first?'Crimes show up on your minimap. Stop them, or join in.':'LV '+save.level+' · '+repTier(save.reputation).name,'gold');
   syncPlayerDoc(true);renderGuide();Portal.onPlay();
-  if(save.migrated)later(3,()=>toast('Powers updated','You now pick one traversal and one body mod. Your hero was converted; Change powers in the pause menu is free right now.','gold'));
+  if(save.heroConv)later(3,()=>{toast('Heroes updated','Every hero now has 4 keys plus V. Skill points from removed powers were refunded. Your next hero change is free.','gold');save.heroConv=false;persist();});
   askMic();
 }
 $('start').addEventListener('click',()=>{SFX.init();if(!save.character)startAsRingBearer();else startPlay(false);});

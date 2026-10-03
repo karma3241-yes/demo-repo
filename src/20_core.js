@@ -172,12 +172,12 @@ function validCharacter(c){
 // builds from before traversal presets (two movement powers, no body mod) keep the Web Runner and Speedster, and fly as Ironclad (or Nightblade with Blade Claws).
 const BODY_HERO={metalSkin:'ironFlight',bladeClaws:'bladeFlight',elasticBody:'elasticFlight',titanGrowth:'titanFlight'};
 function migrateCharacter(c){
-  if(!c||typeof c!=='object'||!Array.isArray(c.movement)||c.body)return null;
-  const mv=c.movement,ab=Array.isArray(c.abilities)?c.abilities:[];
-  const trav=mv.includes('webSwing')||mv.includes('wallClimb')?'webSwing':mv.includes('superSpeed')?'superSpeed':'flight';
-  const body=ab.includes('bladeClaws')?'bladeClaws':'metalSkin';
-  const pool=[...ab.filter(id=>ABILITY_POWERS.includes(id)),'energyBlast','fireball','shockwave'];
-  return validCharacter(Object.assign({},c,{movement:[trav],body,abilities:[...new Set(pool)].slice(0,2)}));
+  if(!c||typeof c!=='object'||!Array.isArray(c.movement))return null;
+  const mv=c.movement.filter(x=>typeof x==='string'),ab=Array.isArray(c.abilities)?c.abilities.filter(x=>typeof x==='string'):[];let to;
+  if(typeof c.body==='string'&&c.body){to=ab.includes('morphBand')?'bandFlight':BODY_HERO[c.body];}
+  else to=mv.includes('webSwing')||mv.includes('wallClimb')?'webSwing':mv.includes('superSpeed')?'superSpeed':ab.includes('morphBand')?'bandFlight':ab.includes('bladeClaws')?'bladeFlight':'ironFlight';
+  if(!to)return null;
+  return validCharacter(Object.assign({},c,{movement:[to]}));
 }
 function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy); otherwise the one in this browser
   let s=null;try{s=JSON.parse((raw!==undefined?raw:localStorage.getItem(SAVE_KEY))||'null');}catch(e){s=null;}
@@ -191,18 +191,26 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
     if(t.travStyle&&typeof t.travStyle==='object'){st.travStyle={};for(const k in TRAV_STYLES)if(TRAV_STYLES[k].some(x=>x[0]===t.travStyle[k]))st.travStyle[k]=t.travStyle[k];}
     st.sens=num(t.sens,1,0.3,3);st.volume=num(t.volume,0.7,0,1);st.micLoud=num(t.micLoud,0.65,0.2,0.95);}
   f.character=validCharacter(s.character);
-  if(!f.character){f.character=migrateCharacter(s.character);if(f.character)f.migrated=true;}
+  const rc=s.character&&typeof s.character==='object'?s.character:{},oldAb=Array.isArray(rc.abilities)?rc.abilities.filter(x=>typeof x==='string'):null,oldMv=Array.isArray(rc.movement)?rc.movement.filter(x=>typeof x==='string'):[];
+  let oldIds=null; // the powers the build had before this load, for the refund (set when the build changed)
+  if(!f.character){f.character=migrateCharacter(rc);if(f.character){f.heroConv=true;if(!rc.body)f.migrated=true;
+    oldIds=[...new Set([...(oldAb||[]).map(LEVEL_OF),...oldMv,...(typeof rc.body==='string'?[rc.body]:[])])];}}
+  else if(oldAb&&(oldAb.length!==f.character.abilities.length||oldAb.some(id=>!f.character.abilities.includes(id)))){ // a hero that lost a key (Ring Bearer, Speedster...) or had free picks on keys 4-5
+    f.heroConv=true;oldIds=[...new Set([...oldAb.map(LEVEL_OF),...f.character.movement,f.character.body,...(IMPLIED[f.character.movement[0]]||[])])];}
   if(!f.character)return f;
   f.level=Math.floor(num(s.level,1,1,CONFIG.progression.levelCap));f.xp=num(s.xp,0,0,1e9);f.sp=Math.floor(num(s.sp,f.sp,0,1e5));
   f.reputation=Math.round(num(s.reputation,0,REP.min,REP.max));
   if(s.powerLevels&&typeof s.powerLevels==='object')for(const k in POWERS){const v=s.powerLevels[k];if(typeof v==='number'&&isFinite(v))f.powerLevels[k]=Math.floor(clamp(v,1,CONFIG.powerMax));}
   if(s.passives&&typeof s.passives==='object')for(const k in PASSIVES)f.passives[k]=Math.floor(num(s.passives[k],0,0,CONFIG.passiveMax));
   if(s.stats&&typeof s.stats==='object')for(const k in f.stats)f.stats[k]=Math.floor(num(s.stats[k],0,0,1e9));
-  f.rechoiceAt=f.migrated?0:num(s.rechoiceAt,0,0,1e15);
+  f.rechoiceAt=f.heroConv?0:num(s.rechoiceAt,0,0,1e15); // a converted or trimmed hero may change for free
   if(s.mastery&&typeof s.mastery==='object')for(const k in s.mastery)if(POWERS[k]||k==='jump')f.mastery[k]=num(s.mastery[k],0,0,1e9);
+  if(f.heroConv){ // old flight builds keep the flying mastery they earned
+    if(oldMv.includes('flight')){const id=f.character.movement[0];f.mastery[id]=Math.max(f.mastery[id]||0,f.mastery.flight||0);}
+    f.sp+=refundDropped(f.powerLevels,oldIds,ownedIds(f.character));}
   f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.savedAt=num(s.savedAt,0,0,1e15);f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
-  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks'])if(s.guide[k]===true)f.guide[k]=true;
+  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks','swap'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
 const save=loadSave();
