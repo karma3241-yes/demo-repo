@@ -59,7 +59,7 @@ function buildTouchButtons(){
     const b=tbMake('p'+i,'a'+i,powerIcon(id),lk?'LV '+KIT_LV[i]:SHORT[id]||POWERS[id].name.split(' ')[0],'B','ab'+(lk?' lockd':''));b.prepend(el('i',{class:'cd',hidden:true}));});
   // ring C, in the order they should sit (nearest the top first)
   tbMake('land','fly','land','Land','A1','trav');tbMake('use','use','hand','Use','C','use');
-  tbMake('revert','band','band','Revert','C','dn2');
+  tbMake('revert','band','band','Revert','C','dn2');tbMake('morph','band','band','Morph','C'); // the Shifter's Morph Band is on V, not on a key (Session G2 reworks this button)
   tbMake('grow','grow','grow','Grow','C');tbMake('shrink','shrink','shrink','Shrink','C');
   tbMake('alt','alt','star','Alt','C');tbMake('cx','cx','burst','Special','C');tbMake('tkmore','tkmore','orbit','Grab+','C');
   // one button for the ring / suit: tap to pick and build, tap again to put it away (it keeps the top slot of the ring)
@@ -81,6 +81,7 @@ function tbWanted(){
   for(let i=0;i<5;i++)if(TB['p'+i])on.add('p'+i);
   if(nearestInteract())on.add('use');
   if(P.alien){on.add('revert');return on;}
+  if(hasPower('morphBand'))on.add('morph');
   if(heldSlot>=0||con){on.add('grow');on.add('shrink');}
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
@@ -90,7 +91,7 @@ function tbWanted(){
   if(!con)on.add('suit');
   return on;
 }
-const TB_ORDER_C=['wheel','lock','use','revert','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit'];
+const TB_ORDER_C=['wheel','morph','lock','use','revert','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit'];
 function layoutTouch(force){
   if(!touchOn()||state!=='play')return;
   if(!force&&time-tbT<0.15)return;tbT=time;

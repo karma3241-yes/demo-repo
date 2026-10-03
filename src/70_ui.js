@@ -166,8 +166,8 @@ function renderSkills(){
   sheetBody.appendChild(el('h3',{text:'Your powers'}));
   for(const id of save.character.movement){const m=masteryLevel(id);
     sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:(PRESETS[id]?PRESETS[id].name:POWERS[id].name)+'  ·  Mastery '+m.toFixed(1)+'/'+MASTERY_MAX}),el('p',{text:'Traversal grows by using it: the more you travel this way, the higher, faster and bigger it gets. It does not cost skill points.'}),el('div',{class:'bar xp'},el('i',{style:'width:'+(m/MASTERY_MAX*100).toFixed(1)+'%'}))));}
-  for(const id of [...new Set([...save.character.abilities.map(LEVEL_OF),save.character.body,...(hasTrav('armorFlight')?['suitBattery']:[])])]){
-    if(!POWERS[id]||POWERS[id].cat==='body'&&POWERS[id].hidden)continue;
+  for(const id of [...new Set([...save.character.abilities.map(LEVEL_OF),save.character.body,...(hasPower('morphBand')?['morphBand']:[]),...(hasTrav('armorFlight')?['suitBattery']:[])])]){
+    if(!POWERS[id]||POWERS[id].cat==='body'&&POWERS[id].hidden&&!POWERS[id].sig)continue; // hidden bodies have no level, except the ones whose signature move levels with them
     const lvl=powerLevel(id),max=lvl>=CONFIG.powerMax,cost=CONFIG.powerUpgradeCost(lvl);
     const btn=el('button',{class:'plus',text:max?'Maxed':'Upgrade · '+cost+' SP',onclick:()=>{if(save.sp<cost||max)return;save.sp-=cost;save.powerLevels[id]=lvl+1;SFX.chime();persist();buildHotbar();renderSheet();syncPlayerDoc();}});
     btn.disabled=max||save.sp<cost;if(!btn.disabled)btn.prepend(glyph('up'));
@@ -314,56 +314,35 @@ function openCreator(mode='new'){
   creatorMode=mode;creating=true;
   if(locked)document.exitPointerLock(); // the creator is clicked with the mouse, so give the cursor back (creating keeps this from pausing)
   if(mode==='new'&&state!=='play'){const pk=parks.find(q=>Math.abs(q.cx-40)<1&&Math.abs(q.cz+360)<1)||parks[0];P.pos.set(pk.cx,1.4,pk.cz);P.vel.set(0,0,0);P.showcase=true;}
-  if(mode==='rechoose'&&save.character){const c=save.character,pre=presetOf(c);draft={name:c.name,suit:c.suit,cape:c.cape,accent:c.accent,capeOn:c.capeOn,movement:c.movement.slice(),body:pre?null:c.body,abilities:pre?[]:c.abilities.filter(id=>ABILITY_POWERS.includes(id)),kit:pre?c.abilities.slice(0,CONFIG.picks.kit):[],free:pre?c.abilities.slice(CONFIG.picks.kit):[],confirm:false};}
-  else draft={name:'Guardian '+Math.floor(rr(100,1000)),suit:(Math.random()*SUIT_OPTS.length)|0,cape:(Math.random()*CAPE_OPTS.length)|0,accent:0,capeOn:true,movement:[],body:null,abilities:[],confirm:false};
+  if(mode==='rechoose'&&save.character){const c=save.character;draft={name:c.name,suit:c.suit,cape:c.cape,accent:c.accent,capeOn:c.capeOn,movement:c.movement.slice(),confirm:false};}
+  else draft={name:'Guardian '+Math.floor(rr(100,1000)),suit:(Math.random()*SUIT_OPTS.length)|0,cape:(Math.random()*CAPE_OPTS.length)|0,accent:0,capeOn:true,movement:[],confirm:false};
   applyLook();creator.hidden=false;$('menu').hidden=true;$('pause').hidden=true;$('create-title').textContent=mode==='rechoose'?'Change your powers':'Create your hero';renderCreator();
 }
-function pickCard(id,on,onclick,tag,extra){const c=POWERS[id];
-  return el('button',{type:'button',class:'pick'+(on?' on':'')+(tag?' special':''),'aria-pressed':String(on),onclick},powerIcon(id),el('b',{text:PRESETS[id]?PRESETS[id].name:c.name}),
-    el('span',{class:'cat',text:tag||(c.cat==='defence'?'Defence':c.cat==='special'?'Transformation':c.cat==='utility'?'Utility':c.type==='charge'?'Attack · hold':c.cat==='body'?'Body mod':'Attack')}),
-    el('span',{text:PRESETS[id]?PRESETS[id].blurb:c.desc}),extra?el('span',{class:'cat',text:extra}):null);}
+// what V does for a hero ('' when it has no V power)
+const heroV=id=>id==='powerRing'?'Constructs':id==='armorFlight'?'Suit forms':id==='bandFlight'?'Morph Band':TRAV_STYLES[id]?'Style wheel':'';
+function heroCard(id,on,onclick){const h=PRESETS[id],v=heroV(id);
+  return el('button',{type:'button',class:'pick'+(on?' on':''),'aria-pressed':String(on),'data-hero':id,onclick},powerIcon(id),el('b',{text:h.name}),
+    el('span',{class:'cat',text:'Hero'}),el('span',{text:h.blurb}),
+    el('span',{class:'keys',text:h.abilities.map((a,i)=>(i+1)+' '+POWERS[a].name).join(' · ')+(v?' · V '+v:'')}));}
 function renderCreator(){
   const y=creatorBody.scrollTop;creatorBody.textContent='';const d=draft;
-  creatorBody.appendChild(el('p',{class:'muted',text:creatorMode==='rechoose'?'Pick new powers. Skill points you spent on powers you drop come back to you.'+(CONFIG.rechoiceCooldown>0?' You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':''):'Pick one way to get around. Six of them are full hero kits: pick 3 of the kit\'s moves for keys 1–3 and 2 more for keys 4–5. Flight lets you build your own hero from a body mod (its move goes on key 1) and 4 abilities. Powers are free, and you can change them any time from the pause menu. Traversal gets stronger the more you use it; skill points upgrade everything else.'}));
+  creatorBody.appendChild(el('p',{class:'muted',text:'Pick a hero. Each one has 4 power keys, and some have a V power. You can change any time with J.'+(creatorMode==='rechoose'?' Skill points you spent on powers you drop come back to you.':'')+(CONFIG.rechoiceCooldown>0?' You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':'')}));
   if(creatorMode!=='rechoose')renderLook(creatorBody);
   const redraw=()=>{d.confirm=false;renderCreator();};
-  creatorBody.appendChild(el('h3',{text:'Traversal · pick 1'}));
-  const tw=el('div',{class:'picks'});for(const id of MOVEMENT_POWERS)tw.appendChild(pickCard(id,d.movement[0]===id,()=>{d.movement=[id];if(PRESETS[id]){const ab=presetAbilities(id,[]);d.kit=ab.slice(0,CONFIG.picks.kit);d.free=ab.slice(CONFIG.picks.kit);}redraw();},PRESETS[id]?'Hero kit':'Build your own'));creatorBody.appendChild(tw);
-  const pre=PRESETS[d.movement[0]];
-  if(pre){
-    if(!d.kit||!d.free){const ab=presetAbilities(d.movement[0],[]);d.kit=ab.slice(0,CONFIG.picks.kit);d.free=ab.slice(CONFIG.picks.kit);}
-    const K=CONFIG.picks.kit,F=CONFIG.picks.free,toggle=(arr,other,max,id)=>{const i=arr.indexOf(id);if(i>=0)arr.splice(i,1);else{const j=other.indexOf(id);if(j>=0)other.splice(j,1);if(arr.length>=max)arr.shift();arr.push(id);}redraw();};
-    creatorBody.appendChild(el('h3',{text:pre.name+' · body'}));
-    const bodyRow=el('div',{class:'picks'});bodyRow.appendChild(pickCard(pre.body,true,()=>{},'Body'));creatorBody.appendChild(bodyRow);
-    creatorBody.appendChild(el('h3',{text:'Keys 1–3 · '+d.kit.length+'/'+K+' from the '+pre.name+' kit'}));
-    const kit=el('div',{class:'picks'});for(const id of pre.abilities)kit.appendChild(pickCard(id,d.kit.includes(id),()=>toggle(d.kit,d.free,K,id),d.kit.includes(id)?'Key '+(d.kit.indexOf(id)+1):'Kit move'));creatorBody.appendChild(kit);
-    creatorBody.appendChild(el('h3',{text:'Keys 4–5 · '+d.free.length+'/'+F+' more: the rest of your kit, or any power'}));
-    const fr=el('div',{class:'picks'});for(const id of [...pre.abilities.filter(x=>!d.kit.includes(x)),...ABILITY_POWERS.filter(x=>!pre.abilities.includes(x))])
-      fr.appendChild(pickCard(id,d.free.includes(id),()=>toggle(d.free,d.kit,F,id),d.free.includes(id)?'Key '+(K+d.free.indexOf(id)+1):pre.abilities.includes(id)?'Kit move':id==='morphBand'?'Transformation':null));
-    creatorBody.appendChild(fr);d.abilities=[...d.kit,...d.free];
-  }else if(d.movement[0]){
-    creatorBody.appendChild(el('h3',{text:'Body mod · pick 1'}));
-    const bw=el('div',{class:'picks'});for(const id of BODY_MODS)bw.appendChild(pickCard(id,d.body===id,()=>{d.body=id;redraw();},null,'Signature move: '+POWERS[POWERS[id].sig].name));creatorBody.appendChild(bw);
-    creatorBody.appendChild(el('h3',{text:'Abilities · '+d.abilities.length+'/'+CONFIG.picks.abilities+(d.body?' (plus '+POWERS[POWERS[d.body].sig].name+')':'')}));
-    const aw=el('div',{class:'picks'});
-    for(const id of ABILITY_POWERS){const on=d.abilities.includes(id);aw.appendChild(pickCard(id,on,()=>{if(on)d.abilities.splice(d.abilities.indexOf(id),1);else if(d.abilities.length<CONFIG.picks.abilities)d.abilities.push(id);else{d.abilities.shift();d.abilities.push(id);}redraw();},id==='morphBand'?'Transformation':null));}
-    creatorBody.appendChild(aw);
-  }
-  const ready=d.movement.length===1&&(pre?d.kit.length===CONFIG.picks.kit&&d.free.length===CONFIG.picks.free:(d.body&&d.abilities.length===CONFIG.picks.abilities));
-  const need=!d.movement.length?'Pick a traversal':pre?(d.kit.length<CONFIG.picks.kit?'Pick '+(CONFIG.picks.kit-d.kit.length)+' more kit move'+(CONFIG.picks.kit-d.kit.length>1?'s':''):'Pick '+(CONFIG.picks.free-d.free.length)+' more for keys 4–5'):!d.body?'Pick a body mod':'Pick '+(CONFIG.picks.abilities-d.abilities.length)+' more abilit'+(CONFIG.picks.abilities-d.abilities.length===1?'y':'ies');
-  const rnd=el('button',{class:'ghost',type:'button',text:'Surprise me',onclick:()=>{d.movement=[pick(MOVEMENT_POWERS)];d.body=pick(BODY_MODS);d.abilities=ABILITY_POWERS.slice().sort(()=>Math.random()-0.5).slice(0,CONFIG.picks.abilities);const pr=PRESETS[d.movement[0]];if(pr){const k=pr.abilities.slice().sort(()=>Math.random()-0.5);d.kit=k.slice(0,CONFIG.picks.kit);d.free=[...k.slice(CONFIG.picks.kit),...ABILITY_POWERS.filter(x=>!pr.abilities.includes(x)).sort(()=>Math.random()-0.5)].slice(0,CONFIG.picks.free);}redraw();}});
-  const go=el('button',{class:'go',id:'lockin',type:'button',text:!ready?need:d.confirm?'Lock in':'Lock in my powers',onclick:()=>{if(!ready)return;if(!d.confirm){d.confirm=true;renderCreator();return;}finishCreator();}});
+  creatorBody.appendChild(el('h3',{text:'Pick a hero'}));
+  const hw=el('div',{class:'picks'});for(const id in PRESETS)hw.appendChild(heroCard(id,d.movement[0]===id,()=>{d.movement=[id];redraw();}));creatorBody.appendChild(hw);
+  const ready=d.movement.length===1&&isHero(d.movement[0]);
+  const rnd=el('button',{class:'ghost',type:'button',text:'Surprise me',onclick:()=>{d.movement=[pick(Object.keys(PRESETS))];redraw();}});
+  const go=el('button',{class:'go',id:'lockin',type:'button',text:!ready?'Pick a hero':d.confirm?'Lock in':'Lock in '+PRESETS[d.movement[0]].name,onclick:()=>{if(!ready)return;if(!d.confirm){d.confirm=true;renderCreator();return;}finishCreator();}});
   go.disabled=!ready;
   creatorBody.append(el('div',{class:'cta'},go,rnd),d.confirm?el('p',{class:'note warn',text:'Click Lock in to confirm.'}):null);
   creatorBody.scrollTop=y;
 }
-const ownedIds=c=>[...new Set([...c.abilities.map(LEVEL_OF),...c.movement,c.body])];
 function finishCreator(){
   const c=validCharacter(draft);if(!c)return;
   if(creatorMode==='rechoose'&&save.character){
-    const old=ownedIds(save.character),now=ownedIds(c);let refund=0;
-    for(const id of old)if(!now.includes(id)){const l=save.powerLevels[id]|0;for(let q=1;q<l;q++)refund+=CONFIG.powerUpgradeCost(q);delete save.powerLevels[id];}
-    if(P.alien)revertAlien(true);stopAllPowers();save.character=c;save.sp+=refund;save.rechoiceAt=Date.now();save.migrated=false;persist();
+    const refund=refundDropped(save.powerLevels,ownedIds(save.character),ownedIds(c));
+    if(P.alien)revertAlien(true);stopAllPowers();save.character=c;save.sp+=refund;save.rechoiceAt=Date.now();save.migrated=false;save.heroConv=false;save.guide.swap=true;persist();
     creating=false;draft=null;creator.hidden=true;applyLook();buildHotbar();buildTouchButtons();applyTravStyle(false);setPaused(true);
     toast('Powers changed',refund?'+'+refund+' skill points refunded':'Your new powers are ready','cyan');return;
   }

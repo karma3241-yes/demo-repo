@@ -246,6 +246,7 @@ function addMastery(id,n){if(!save.character||!(n>0))return;const before=Math.fl
 const MASTERY_NOTES={webSwing:{3:'Backflips and twists unlocked',5:'Web wings glide further',7:'Corner boosts and slingshot launches hit harder',9:'Faster swings than ever'},
   superSpeed:{3:'Speed dial reaches higher',6:'Phasing lasts longer',9:'Near light speed'},powerRing:{3:'Mech construct unlocked',5:'Huge mech unlocked',7:'Dragon unlocked',9:'Bigger constructs than ever'},
   flight:{5:'Supersonic flight',9:'Mach speed'},stormFlight:{5:'Supersonic flight',9:'Mach speed'},armorFlight:{5:'Supersonic flight',9:'Mach speed'},solarFlight:{5:'Supersonic flight',9:'Faster than sound'},jump:{5:'Super jumps go much higher'}};
+for(const id of ['ironFlight','bladeFlight','elasticFlight','titanFlight','bandFlight'])MASTERY_NOTES[id]=MASTERY_NOTES.flight; // the new fliers grow like plain flight
 // traversal stats grow with mastery (use), never below the level they were upgraded to before
 const statLevel=id=>POWERS[id].cat==='movement'?Math.max(powerLevel(id),masteryLevel(id)):powerLevel(id);
 const lvlK=id=>(powerLevel(id)-1)/(CONFIG.powerMax-1); // 0 at level 1, 1 at max: drives how strong a power looks
@@ -254,7 +255,6 @@ function pstat(id,name,lvl){const v=POWERS[id][name];const r=Array.isArray(v)?le
   if(typeof castK!=='undefined'&&castK>1&&typeof r==='number'&&!lvl){if(name==='radius'||name==='range'||name==='reach')return r*castK;if(name==='damage'||name==='dps'||name==='throwDmg')return r*Math.sqrt(castK);}
   return r;}
 function faction(rep){return rep>=REP.heroAt?'hero':rep<=REP.villainAt?'villain':'neutral';}
-for(const id of ['ironFlight','bladeFlight','elasticFlight','titanFlight','bandFlight'])MASTERY_NOTES[id]=MASTERY_NOTES.flight; // the new fliers grow like plain flight
 const playerFaction=()=>faction(save.reputation);
 function repTier(r){
   if(r>=REP.heroAt){let n='Rookie';for(const [t,nm] of REP.heroTiers)if(r>=t)n=nm;return {faction:'hero',name:n};}
