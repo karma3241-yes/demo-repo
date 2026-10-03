@@ -289,6 +289,9 @@ function oathKey(e){
   oathIn.dispatchEvent(new Event('input'));
 }
 function oathWire(){if(oathEl)return;oathEl=$('oath');oathIn=$('oath-in');oathText=$('oath-text');
+// the phone keyboard shrinks the visual viewport (landscape leaves ~100px): keep the panel inside what's left, and compact it when tight
+const vv=window.visualViewport,fitOath=()=>{if(!vv)return;const r=document.documentElement.style;r.setProperty('--vv-top',vv.offsetTop+'px');r.setProperty('--vv-h',vv.height+'px');oathEl.classList.toggle('kb',touchOn()&&vv.height<innerHeight*0.8);};
+if(vv){vv.addEventListener('resize',fitOath);vv.addEventListener('scroll',fitOath);}oathIn.addEventListener('focus',()=>{fitOath();setTimeout(fitOath,250);});oathIn.addEventListener('blur',()=>oathEl.classList.remove('kb'));
 oathIn.addEventListener('input',()=>{
   const want=oathNorm(OATH),got=oathNorm(oathIn.value);let n=0;while(n<got.length&&got[n]===want[n])n++;
   renderOath(n);const k=n/want.length;save.ring=Math.max(save.ring,oathStart+Math.max(0,100-oathStart)*k);

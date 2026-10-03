@@ -76,9 +76,10 @@ function updateMeters(dt){
   if(m.key==='battery'){
     if(P.flying&&save.battery>0&&P.suited!==false){save.battery=Math.max(0,save.battery-0.08*dt);if(save.battery<=0)meterEmpty(m);}
     if(atInventorTower()&&save.battery<cap&&!P.dead){const was=save.battery;save.battery=Math.min(cap,save.battery+cap*0.2*dt);
-      if(was<=0||time-(P.chgMsgT||-9)>8){P.chgMsgT=time;feed('Charging at Forge Tower',save.battery>=cap?'Fully charged':'');}
+      if(was<=0||(!P.chgFull&&time-(P.chgMsgT||-9)>8)){P.chgMsgT=time;feed('Charging at Forge Tower',save.battery>=cap?'Fully charged':'');}
       if(Math.random()<dt*14){const T=invTower,c=center(P),sx=c.x+rr(-6,6),sz=c.z+rr(-6,6);tracer(sx,c.y+rr(3,8),sz,c.x,c.y,c.z,[.5,.9,1],0.12,0.15);}
-      if(save.battery>=cap&&was<cap){toast('Battery full','Suit systems online','cyan');SFX.chime();persist();}}
+      if(save.battery>=cap&&was<cap&&!P.chgFull){P.chgFull=true;toast('Battery full','Suit systems online','cyan');SFX.chime();persist();}}
+    else if(!atInventorTower())P.chgFull=false; // announce "full" once per visit, not every time flying nibbles it back down
   }else if(m.key==='bolt'){
     const S=P.stormCall;
     if(S){S.t+=dt;S.next-=dt;{const f=Math.pow(0.8,dt*60);P.vel.x*=f;P.vel.z*=f;}P.hammerUpT=time;

@@ -56,7 +56,7 @@ function renderHeroKeys(){
   if(c){H('Your powers');c.abilities.forEach((id,i)=>{const p=POWERS[id];if(!p)return;
       K(String(i+1)+(i<3?' · '+'QER'[i]:''),p.name+(PBAL&&typeof slotLocked==='function'&&slotLocked(i)?' · unlocks at LV '+KIT_LV[i]:''));});
     K('Hold 1–5 · wheel','Size a power (up to ×30), let go to use it');}
-  H('Fighting');K('Click','Punch · hold to keep swinging');K('Z · X','Lock on · dash');K('G','Get in a car · help someone up');
+  H('Fighting');K('Click','Punch · hold to keep swinging');K('Z','Lock on');K('G','Get in a car · help someone up');
   if(m){H(PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Your hero');
     if(m==='powerRing'){K('B','Build your construct (the last one you picked)');K('V','Construct wheel · in a construct: tap to step out, hold to switch');
       K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');K('O','Say or type the oath to recharge the ring');K('Y','Rebuild every broken building');}

@@ -3,11 +3,11 @@
 // ================================================================
 // Left thumb: a joystick that appears wherever it lands (a faint one shows where to start). Right thumb: drag anywhere
 // free to look. The buttons sit in rings around PUNCH in the bottom-right corner, like Roblox:
-//   ring A (closest): JUMP, your traversal (FLY, WEB, RUN, DIVE), DASH and LOCK. While flying JUMP and FLY turn into
-//                     DOWN and UP (like Minecraft), and LAND shows up in the outer ring.
+//   ring A (closest): JUMP, your traversal (FLY, WEB, RUN, DIVE), BOOST (hold = Shift) and LOCK. While flying JUMP turns into UP
+//                     and FLY into LAND (same spot), DOWN takes LOCK's slot and LOCK moves to the outer ring.
 //   ring B: your five powers (the next locked one greyed out with its level), or an alien's powers.
-//   ring C (and D when it fills up): buttons that come and go with what you're doing: LAND, USE (get in a car, help
-//                     someone up, eat...), the wheel (V on a keyboard), BUILD, OATH, GROW/SHRINK while you hold a power or
+//   ring C (and D when it fills up): buttons that come and go with what you're doing: the Build button (ring / suit, always on top), USE (get in a car, help
+//                     someone up, eat...), the wheel (V on a keyboard), OATH, GROW/SHRINK while you hold a power or
 //                     sit in a construct, and so on.
 // Settings has the button size and a left-handed layout (everything mirrored). In portrait a "turn your phone" screen
 // covers the game.
@@ -49,21 +49,22 @@ function buildTouchButtons(){
   for(const k in TB){const t=TB[k];if(t.b.classList.contains('down'))t.b._up();}
   tbtns.textContent='';TB={};tbSig='';if(!save.character)return;
   tbMake('punch','punch','fist','','P','big');
-  tbMake('jump','jump','jump','','A0','jmp');tbMake('down','down','down','','A0','jmp');tbMake('drift','jump','drift','Drift','A0','jmp');tbMake('exit','use','hand','Get out','A1','use');
-  tbMake('up','jump','up','','A1','jmp');tbMake('fly','fly','wing','Fly','A1','trav');tbMake('web','web','web','Web','A1','trav');
+  tbMake('jump','jump','jump','','A0','jmp');tbMake('down','down','down','','A3','jmp');tbMake('drift','jump','drift','Drift','A0','jmp');tbMake('exit','use','hand','Get out','A1','use');
+  tbMake('up','jump','up','','A0','jmp');tbMake('fly','fly','wing','Fly','A1','trav');tbMake('web','web','web','Web','A1','trav');
   tbMake('run','speed','run','Run','A1','trav');tbMake('dive','down','dive','Dive','A1','trav');
-  tbMake('dash','dash','dash','Dash','A2','ds');tbMake('lock','lock','target','Lock','A3','lk');
+  tbMake('boost','speed','run','Boost','A2','trav');tbMake('lock','lock','target','Lock','A3','lk');
   if(P.alien)ALIENS[P.alien.id].abilities.forEach((ab,i)=>tbMake('p'+i,'a'+i,'burst',ab.name.split(' ').pop(),'B','ab alien','#c89bff'));
   else save.character.abilities.forEach((id,i)=>{const lk=PBAL&&slotLocked(i);
     if(lk&&i!==nextLockedSlot())return;
     const b=tbMake('p'+i,'a'+i,powerIcon(id),lk?'LV '+KIT_LV[i]:SHORT[id]||POWERS[id].name.split(' ')[0],'B','ab'+(lk?' lockd':''));b.prepend(el('i',{class:'cd',hidden:true}));});
   // ring C, in the order they should sit (nearest the top first)
-  tbMake('land','fly','land','Land','C');tbMake('use','use','hand','Use','C','use');
+  tbMake('land','fly','land','Land','A1','trav');tbMake('use','use','hand','Use','C','use');
   tbMake('revert','band','band','Revert','C','dn2');
   tbMake('grow','grow','grow','Grow','C');tbMake('shrink','shrink','shrink','Shrink','C');
   tbMake('alt','alt','star','Alt','C');tbMake('cx','cx','burst','Special','C');tbMake('tkmore','tkmore','orbit','Grab+','C');
-  tbMake('wheel',isRing()||armorForms()?'conpick':'travdial','wheel',isRing()?'Pick':armorForms()?'Forms':'Style','C');
-  tbMake('build','con',isRing()?'ring':'helmet',isRing()?'Build':'Form','C');
+  // one button for the ring / suit: tap to pick and build, tap again to put it away (it keeps the top slot of the ring)
+  if(isRing()||armorForms())tbMake('wheel','conpick',isRing()?'ring':'helmet',P.construct?'Put away':isRing()?'Build':'Form','C');
+  else tbMake('wheel','travdial','wheel','Style','C');
   tbMake('oath','oath','oath','Oath','C');tbMake('rebuild','rebuild','rebuild','Rebuild','C');
   tbMake('fast','fast','run','Fast','C');tbMake('phase','phase','phase','Walls','C');tbMake('dial','dialcycle','dialUp','Dial','C');
   tbMake('suit','suit','shirt','Suit','C');
@@ -74,7 +75,7 @@ function tbWanted(){
   const on=new Set();if(!save.character||P.dead)return on;const m=save.character.movement[0],con=!!P.construct,fly=!!P.flying,flyer=hasPower('flight')||(P.alien&&alienDef().flies);
   if(P.car){on.add('drift');on.add('exit');return on;}
   if(oathOpen&&!oathFree){on.add('oath');return on;} // typing the oath: you hang still, so only OATH (to put it away) stays
-  on.add('punch');on.add('dash');on.add('lock');
+  on.add('punch');on.add('boost');on.add('lock');
   if(fly){on.add('down');on.add('up');if(!P.alien)on.add('land');}else{on.add('jump');
     if(P.swim)on.add('dive');else if(!P.alien&&m==='webSwing')on.add('web');else if(!P.alien&&m==='superSpeed')on.add('run');else if(flyer)on.add('fly');}
   for(let i=0;i<5;i++)if(TB['p'+i])on.add('p'+i);
@@ -84,13 +85,12 @@ function tbWanted(){
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
   if(isRing()||armorForms()||(hasTravWheel()&&!hasPower('morphBand')))on.add('wheel');
-  if(isRing()||armorForms())on.add('build');
   if(isRing()&&!con){on.add('oath');on.add('rebuild');}
   if(isSpeed()){on.add('fast');on.add('phase');on.add('dial');}
   if(!con)on.add('suit');
   return on;
 }
-const TB_ORDER_C=['land','use','revert','grow','shrink','alt','cx','tkmore','wheel','build','oath','rebuild','fast','phase','dial','suit'];
+const TB_ORDER_C=['wheel','lock','use','revert','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit'];
 function layoutTouch(force){
   if(!touchOn()||state!=='play')return;
   if(!force&&time-tbT<0.15)return;tbT=time;
@@ -103,13 +103,14 @@ function layoutTouch(force){
   for(const id in TB){const t=TB[id];if(!on.has(id)){if(!t.b.hidden&&t.b.classList.contains('down'))t.b._up();t.b.hidden=true;}}
   if(on.has('punch'))put(TB.punch,cx,cy,Pz);
   const A=112*k,ringA={A0:[180,62*k],A1:[148,56*k],A2:[118,52*k],A3:[88,52*k]};
+  if(TB.lock)TB.lock.ring=on.has('down')?'C':'A3'; // flying: DOWN takes LOCK's slot, LOCK moves out
   for(const id in TB){const t=TB[id];if(!on.has(id)||!ringA[t.ring])continue;const [d,sz]=ringA[t.ring];const [x,y]=at(A,d);put(t,x,y,sz);}
   // the powers share ring B, evenly from straight up to straight left
   const ps=[0,1,2,3,4].map(i=>'p'+i).filter(id=>on.has(id)),B=184*k,bs=58*k;
   ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,bs);});
   // ring C packs the rest from the top down, spilling into ring D
   let r=252*k,d=-1;const cs=48*k,step=r=>2*Math.asin(Math.min(1,(cs+8*k)/(2*r)))*180/Math.PI;
-  for(const id of TB_ORDER_C){if(!on.has(id))continue;
+  for(const id of TB_ORDER_C){if(!on.has(id)||TB[id].ring!=='C')continue;
     for(let guard=0;guard<40;guard++){
       if(d<0){d=86;while(d<200&&at(r,d)[1]-cs/2<minY)d+=2;}
       if(d>190){r+=cs+12*k;d=-1;continue;}
@@ -140,7 +141,7 @@ function touchAct(a,down){
   if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
   else if(/^a[0-4]$/.test(a)){if(P.car)return;const i=+a[1];if(down){heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');}else{if(heldSlot===i)heldSlot=-1;abilityUp(i);}}
   else if(a==='con'){if(down)summonConstruct();}
-  else if(a==='conpick'){if(down){if(isRing()&&ringLocked())oathBusy();else{openDial(isRing()?'construct':'armor');guideDone('wheel');}}}
+  else if(a==='conpick'){if(down){if(isRing()&&ringLocked())oathBusy();else if(P.construct)dismissConstruct();else{openDial(isRing()?'construct':'armor');guideDone('wheel');}}}
   else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
@@ -163,7 +164,6 @@ function touchAct(a,down){
   // one touch button for the speed dial: each tap is one step faster, and past the top it starts again at x1 (in Slow Time: slower)
   else if(a==='dialcycle'){if(down){if(P.slowOn)turnDial(1);else if((P.dial|0)>=dialMax()){P.dial=1;feed('Speed dial x1','Tap DIAL to go faster');}else turnDial(1);}}
   else if(a==='lock'){if(down)lockToggle();}
-  else if(a==='dash'){if(down)dashPress();}
 }
 function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch',t);document.body.classList.toggle('lefty',t&&tHand()==='l');$('touch').hidden=!(t&&state==='play');$('menu-controls').hidden=t;$('menu-touch').hidden=!t;
   if(t){$('menu-touch').textContent=(tHand()==='l'?'Right side: move · left side: look':'Left side: move · right side: look')+' · buttons: fight and fly.';placeStick();tbSig='';layoutTouch(true);leftT=-9;}else stackLeft(false);checkOrient();}

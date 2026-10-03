@@ -166,13 +166,13 @@ function renderSkills(){
     if(!POWERS[id]||POWERS[id].cat==='body'&&POWERS[id].hidden)continue;
     const lvl=powerLevel(id),max=lvl>=CONFIG.powerMax,cost=CONFIG.powerUpgradeCost(lvl);
     const btn=el('button',{class:'plus',text:max?'Maxed':'Upgrade · '+cost+' SP',onclick:()=>{if(save.sp<cost||max)return;save.sp-=cost;save.powerLevels[id]=lvl+1;SFX.chime();persist();buildHotbar();renderSheet();syncPlayerDoc();}});
-    btn.disabled=max||save.sp<cost;
+    btn.disabled=max||save.sp<cost;if(!btn.disabled)btn.prepend(glyph('up'));
     sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:POWERS[id].name+'  ·  LV '+lvl+'/'+CONFIG.powerMax}),btn,el('p',{text:POWERS[id].desc}),el('p',{class:'stat',text:statLines(id,lvl,max?0:lvl+1)})));
   }
   sheetBody.appendChild(el('h3',{text:'Passives'}));
     for(const k in PASSIVES){
     const lvl=pv(k),max=lvl>=CONFIG.passiveMax;
-    const b1=el('button',{class:'plus',text:max?'Maxed':'+1 · 1 SP',onclick:()=>buyPassive(k,1)});b1.disabled=max||save.sp<1;
+    const b1=el('button',{class:'plus',text:max?'Maxed':'+1 · 1 SP',onclick:()=>buyPassive(k,1)});b1.disabled=max||save.sp<1;if(!b1.disabled)b1.prepend(glyph('up'));
     const b5=el('button',{class:'ghost small',text:'+5',onclick:()=>buyPassive(k,5)});b5.disabled=max||save.sp<5||lvl+5>CONFIG.passiveMax;
     sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:PASSIVES[k].name+'  ·  '+lvl+'/'+CONFIG.passiveMax}),el('div',{class:'btns'},b5,b1),el('p',{text:PASSIVES[k].desc})));
   }

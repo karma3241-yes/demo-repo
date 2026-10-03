@@ -163,6 +163,7 @@ button:disabled{cursor:default}
 .upg p.stat{color:#c9d7ea;font-size:12px}
 .upg .btns,.upg .plus{grid-column:2;grid-row:1/span 3;display:flex;gap:6px;align-items:center}
 .plus{font:700 13px var(--hud);letter-spacing:.08em;background:var(--gold);color:#1a0508;border:0;border-radius:4px;padding:9px 12px;white-space:nowrap}
+.plus svg{width:1.1em;height:1.1em;vertical-align:-.2em;margin-right:4px;stroke-width:3}.plus:not(:disabled){animation:upg 1.4s ease-in-out infinite}@keyframes upg{50%{box-shadow:0 0 0 4px rgba(255,200,60,.35)}}
 .plus:disabled,.ghost:disabled{background:rgba(255,255,255,.08);color:var(--ink-dim);border-color:transparent}
 .pts{margin:0;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700}
 .muted{margin:0;font-size:13px;line-height:1.5;color:var(--ink-dim)}
@@ -262,6 +263,7 @@ body.touch #dial.all .dslot{position:static;transform:none;width:auto;min-height
 /* touch: the oath sits at the top, clear of the phone's keyboard and the buttons */
 body.touch #oath{top:calc(52px + var(--safe-t));bottom:auto;width:min(560px,calc(100% - 24px));padding:10px 12px}body.touch #oath p{font-size:14px;margin-bottom:6px}
 body.touch #oath.mini{left:50%;right:auto;transform:translateX(-50%);text-align:center;width:clamp(260px,calc(100% - 400px),440px);padding:8px 10px;background:rgba(4,8,18,.78);border:1px solid rgba(93,255,134,.4);border-radius:12px}body.touch #oath.mini p{color:rgba(233,243,255,.75)}body.touch #oath-next{min-height:40px;padding:0 16px}body.touch #oath input{min-height:40px}
+body.touch #oath{top:calc(var(--vv-top,0px) + 6px + var(--safe-t));max-height:calc(var(--vv-h,100vh) - 12px);overflow:auto}body.touch #oath.kb{padding:6px 10px}body.touch #oath.kb h3,body.touch #oath.kb small{display:none}body.touch #oath.kb p{font-size:12px;margin-bottom:4px;line-height:1.3}body.touch #oath.kb input{min-height:34px;padding:6px 10px}
 /* left-handed touch layout: the buttons go bottom-left, so the HUD column, icon bar and pause swap to the right */
 body.touch.lefty .hud-tl,body.touch.lefty .hud-bc,body.touch.lefty #map,body.touch.lefty #guide,body.touch.lefty #growtut{left:auto;right:calc(10px + var(--safe-r))}
 body.touch.lefty #hudbar{right:auto;left:calc(62px + var(--safe-l));justify-content:flex-start}body.touch.lefty #tpause{right:auto;left:calc(10px + var(--safe-l))}
@@ -439,7 +441,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
       <div><kbd>WASD</kbd> Move</div><div><kbd>Mouse</kbd> Look</div>
       <div><kbd>Click</kbd> Punch</div><div><kbd>1–5</kbd> Abilities</div>
       <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Menu · <kbd>K</kbd> Skills</div>
-      <div><kbd>Z</kbd> Lock on · <kbd>X</kbd> Dash</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
+      <div><kbd>Z</kbd> Lock on</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
     </div>
     <p class="muted" id="menu-touch" hidden>Left side: move · right side: look · buttons: fight and fly.</p>
     <div class="cta"><button class="go" id="start" type="button">Play</button><span id="menu-sub"></span></div>

@@ -466,7 +466,7 @@ function gatherLights(){
 const ID=M4.create(),WHITE=[1,1,1,1];
 // out in space the flat city, its lakes and the ocean plane would poke through the round Earth: past these distances only the planet is drawn
 // (a camera pulled far back behind a giant construct keeps them: the reach grows with how far the camera sits from you)
-const WATER_VIS=SPACE.y,CITY_VIS=9000;
+const WATER_VIS=CEIL,CITY_VIS=9000;
 const camReach=()=>state==='play'&&!voidbornAway()?camDist:0;
 const cityVisible=()=>Math.hypot(camPos.x,camPos.y,camPos.z)<CITY_VIS+camReach();
 function drawItem(mesh,M,tint,unlit,emis){
