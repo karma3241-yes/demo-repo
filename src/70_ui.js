@@ -14,7 +14,11 @@ const hud={root:$('hud'),hname:$('hname'),htier:$('htier'),lvl:$('lvl'),xpb:$('x
   clock:$('clock'),mode:$('mode'),hpb:$('hpb'),hpt:$('hpt'),enb:$('enb'),enb2:$('enb2'),ent:$('ent'),en:$('enm'),shbar:$('shbar'),shb:$('shb'),hotbar:$('hotbar'),
   cross:$('cross'),prompt:$('prompt'),charge:$('charge'),chargeb:$('chargeb'),toasts:$('toasts'),feed:$('feed'),tags:$('tags'),
   bossbar:$('bossbar'),bossname:$('bossname'),bossb:$('bossb'),keys:$('keys'),vig:$('vig'),flash:$('flash')};
+// the first minute of a first session is quiet: only gold toasts (the welcome, rewards) and red ones (an answer to what you just pressed) show; the guide panel is the teacher
+let playStartT=null;
+const quietMinute=()=>playStartT!==null&&time-playStartT<60&&Object.values(save.stats).every(v=>!v);
 function toast(title,sub='',cls=''){
+  if(cls!=='gold'&&cls!=='red'&&quietMinute())return;
   const e=el('div',{class:'toast panel '+cls},el('b',{text:title}),sub?el('span',{text:sub}):null);
   hud.toasts.appendChild(e);while(hud.toasts.children.length>3)hud.toasts.firstChild.remove();
   setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),500);},2800);

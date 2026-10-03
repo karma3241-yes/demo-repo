@@ -209,9 +209,9 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--energy);flex:none
 #safeprobe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l)}
 /* phones are played sideways */
 #rotate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:24px;text-align:center;background:var(--bg)}
-#rotate .ico{width:72px;height:72px;color:var(--gold);animation:rot 2.4s ease-in-out infinite}#rotate b{display:block;margin-top:14px;font:400 22px var(--display);letter-spacing:.04em}#rotate span{display:block;margin-top:6px;color:var(--ink-dim);font-size:14px}
+#rotate .ico{width:72px;height:72px;color:var(--gold);animation:rot 1.6s ease-in-out infinite}#rotate b{display:block;margin-top:14px;font:400 22px var(--display);letter-spacing:.04em}#rotate span{display:block;margin-top:6px;color:var(--ink-dim);font-size:14px}
 #glreset{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:24px;text-align:center;background:var(--bg);cursor:pointer}#glreset b{display:block;font:400 22px var(--display);letter-spacing:.04em}#glreset span{display:block;margin-top:6px;color:var(--ink-dim);font-size:14px}
-@keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+@keyframes rot{0%,25%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
 #lockpill{position:fixed;left:50%;top:62%;transform:translateX(-50%);z-index:3;padding:9px 20px;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;pointer-events:none;animation:pillPulse 1.6s ease-in-out infinite}
 @keyframes pillPulse{50%{opacity:.55}}
 body.touch #keys,body.touch #prompt,body.touch #clock,body.touch #mode{display:none}
@@ -433,7 +433,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
 <div id="vig"></div>
 <div id="flash"></div>
 <div id="touch" hidden><div id="tlayer"></div><div id="stick"><div id="knob"></div></div><div id="tbtns"></div><button class="tb" id="tpause" type="button" aria-label="Pause"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button></div><div id="safeprobe"></div>
-<div id="rotate" hidden><div><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg><b>Turn your phone sideways</b><span>Skyline Guardian is played in landscape.</span></div></div>
+<div id="rotate" hidden><div><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg><b>Turn your phone sideways to play</b><span>Skyline Guardian is played in landscape.</span></div></div>
 
 <div id="lockpill" class="panel" hidden>Click to look around</div>
 <div id="glreset" hidden><div><b>Graphics were reset</b><span>Your progress is saved. Tap to continue.</span></div></div>

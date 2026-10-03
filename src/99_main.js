@@ -58,6 +58,7 @@ function updateHud(dt){
 function refreshMenu(){const b=$('start');menuButtons();b.textContent=save.character?'Continue as '+save.character.name:'Play';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name:'You start as the Ring Bearer · change powers any time';}
 function startPlay(first){
   if(P.showcase||first||!P.placed){const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.12;P.vel.set(0,0,0);P.showcase=false;P.placed=true;}
+  if(first&&playStartT===null)playStartT=time;
   SFX.init();SFX.setVolume(save.settings.volume);state='play';$('menu').hidden=true;hud.root.hidden=false;
   applyLook();buildHotbar();buildTouchButtons();applyTouchUI();applyTravStyle(false);
   if(save.settings.autoLock&&!touchOn())requestLock();
