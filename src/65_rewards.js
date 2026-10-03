@@ -57,7 +57,7 @@ function renderTrials(){
   if(!any)B.append(el('p',{class:'muted',text:'All your power keys are unlocked.'}));
   const tv=ch.movement[0],tn=PRESETS[tv]?PRESETS[tv].name:POWERS[tv].name;
   B.append(el('h3',{text:'Traversal'}));
-  if(masteryLevel(tv)>=MASTERY_MAX-0.01&&!trialOn('trav'))B.append(el('p',{class:'muted',text:'Your traversal is already mastered.'}));
+  if(masteryLevel(tv)>=MASTERY_FULL-0.01&&!trialOn('trav'))B.append(el('p',{class:'muted',text:'Your traversal is already mastered.'}));
   else row(tn+' at full mastery','Top speed, the full speed dial and the biggest constructs, right now','trav',tn+' mastered');
   B.append(el('h3',{text:'A power at LV 10'}));
   for(const id of ch.abilities){if(!POWERS[id]||(save.powerLevels[LEVEL_OF(id)]|0)>=CONFIG.powerMax)continue;row(POWERS[id].name+' at LV 10','Full strength and the biggest size for '+TRIAL_MIN+' minutes','lv:'+LEVEL_OF(id),POWERS[id].name+' LV 10');}

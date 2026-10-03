@@ -98,11 +98,12 @@ function togglePower(id){
     P.shieldOn=true;P.shield=pstat('energyShield','absorb');ringFx(P.pos.x,P.pos.y+1.3,P.pos.z,0.5,3,0.3,[.4,.85,1]);SFX.tone('sine',400,900,0.3,0.12);
   }
 }
-const flySpeed=()=>{const m=save.character&&save.character.movement[0],id=POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?m:'flight';
-  if(PBAL){const v=POWERS[id].speed;return lerp(v[0]*1.15,v[1],(statLevel(id)-1)/(CONFIG.powerMax-1));} // CrazyGames: flight starts a bit faster than the website's
-  return pstat(id,'speed');};
+const flySpeed=()=>{const m=save.character&&save.character.movement[0],id=POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?m:'flight',ov=1+0.01*travOver(); // +1% a mastery level above 10
+  if(PBAL){const v=POWERS[id].speed;return lerp(v[0]*1.15,v[1],(statLevel(id)-1)/(CONFIG.powerMax-1))*ov;} // CrazyGames: flight starts a bit faster than the website's
+  return pstat(id,'speed')*ov;};
 // CrazyGames: the Shift boost and the space speed-up grow with traversal mastery too
 const travK=()=>save.character?mk(save.character.movement[0]):0;
+const travOver=()=>save.character?masteryOver(save.character.movement[0]):0; // mastery levels above 10
 const flyBoost=()=>PBAL?lerp(2,POWERS.flight.boost,travK()):POWERS.flight.boost;
 // hold F on the ground to charge, let go to blast off into the sky (a tap still just toggles flight)
 function flyChargeStart(){

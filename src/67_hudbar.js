@@ -15,6 +15,7 @@ const HUDBAR=[
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
   {id:'powers',glyph:'swap',key:'J',code:'KeyJ',tip:()=>'Change powers'+(save.rechoiceAt?'':' · free the first time'),act:()=>{if(sheetOpen)closeSheet();tryRechoose();},pulse:()=>!!save.guide.done&&!save.guide.swap},
   {id:'look',glyph:'shirt',key:'I',code:'KeyI',tip:'Appearance',act:()=>sheetToggle('look'),on:()=>sheetOpen==='look'},
+  {id:'daily',glyph:'calendar',key:'5',code:'Digit5',tip:'Daily rewards',act:()=>{if(sheetOpen==='daily')closeSheet();else openDaily();},on:()=>sheetOpen==='daily'},
   {id:'mp',glyph:'people',key:'6',code:'Digit6',tip:'Multiplayer',act:()=>sheetToggle('mp'),on:()=>sheetOpen==='mp'||MP.online()},
   {id:'set',glyph:'gear',key:'7',code:'Digit7',tip:'Settings',act:()=>sheetToggle('set'),on:()=>sheetOpen==='set'},
   {id:'unlocks',glyph:'steps',key:'8',code:'Digit8',tip:'What you unlock',act:()=>sheetToggle('unlocks'),on:()=>sheetOpen==='unlocks'},

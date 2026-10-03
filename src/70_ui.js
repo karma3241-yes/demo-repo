@@ -120,13 +120,13 @@ function openSheet(name){if(name==='skills')guideDone('skills');if(name==='unloc
   sheetOpen=name;sheet.hidden=false;sheet.classList.toggle('side',name==='look');renderSheet();
   const f=sheet.querySelector('button,input');if(f)f.focus({preventScroll:true});
 }
-function closeSheet(){if(!sheetOpen)return;const was=sheetOpen;sheetOpen=null;sheet.hidden=true;persist();if(was==='look'){applyLook();syncPlayerDoc(true);}if(was==='keytrial')keyTrialClosed();}
+function closeSheet(){if(!sheetOpen)return;const was=sheetOpen;sheetOpen=null;sheet.hidden=true;persist();if(was==='look'){applyLook();syncPlayerDoc(true);}if(was==='keytrial')keyTrialClosed();if(was==='daily'){dailyShow=0;if(dailyResume){dailyResume=false;resume();}}}
 $('sheet-x').addEventListener('click',closeSheet);
 sheet.addEventListener('mousedown',e=>{if(e.target===sheet)closeSheet();});
 function renderSheet(){
   if(!sheetOpen)return;const y=sheetBody.scrollTop;sheetBody.textContent='';
-  sheetTitle.textContent={skills:'Skills',look:'Appearance',lb:'Leaderboard',set:'Settings',mp:'Multiplayer',trials:'Try locked powers',cos:'Cosmetics',keytrial:'Unlock this power?',unlocks:'What you unlock'}[sheetOpen];
-  ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings,mp:renderMP,trials:renderTrials,cos:renderCosmetics,keytrial:renderKeyTrial,unlocks:renderUnlocks})[sheetOpen]();
+  sheetTitle.textContent={skills:'Skills',look:'Appearance',lb:'Leaderboard',set:'Settings',mp:'Multiplayer',trials:'Try locked powers',cos:'Cosmetics',keytrial:'Unlock this power?',unlocks:'What you unlock',daily:'Daily rewards'}[sheetOpen];
+  ({skills:renderSkills,look:()=>renderLook(sheetBody),lb:renderLB,set:renderSettings,mp:renderMP,trials:renderTrials,cos:renderCosmetics,keytrial:renderKeyTrial,unlocks:renderUnlocks,daily:renderDaily})[sheetOpen]();
   sheetBody.scrollTop=y;
 }
 // ---- what you unlock (8): power keys by level (CrazyGames), then what mastery and the Morph Band open ----
@@ -148,7 +148,7 @@ function renderUnlocks(){
   if(isRing()||armorForms()){const arm=armorForms(),by={};for(const id of CON_IDS){const C=CONSTRUCTS[id];if(!!C.armor!==arm||!(C.unlock>1))continue;(by[C.unlock]=by[C.unlock]||[]).push(C.name+(trialOn('con:'+id)?' (trying it)':''));}
     for(const k in by)rows.push({lv:+k,got:ml>=+k,badge:'M '+k,icon:powerIcon(m),title:by[k].join(' · '),sub:arm?'Suit form':by[k].length>1?'Constructs':'Construct'});}
   else{const N=MASTERY_NOTES[m]||{};for(const k in N)rows.push({lv:+k,got:ml>=+k,badge:'M '+k,icon:powerIcon(m),title:N[k]});}
-  if(rows.length)list(mn+' mastery',rows,'Mastery '+Math.floor(ml)+' · grows as you use it');
+  if(rows.length)list(mn+' mastery',rows,'Mastery '+Math.floor(ml)+' of '+MASTERY_MAX+' · grows as you use it');
   if(hasPower('morphBand')){const bl=powerLevel('morphBand');
     list('Morph Band',ALIEN_IDS.map(id=>({lv:ALIENS[id].unlock,got:bl>=ALIENS[id].unlock,badge:'LV '+ALIENS[id].unlock,icon:powerIcon('morphBand'),title:ALIENS[id].name,sub:ALIENS[id].blurb})),'Band LV '+bl+' · upgrade it in Skills');}
 }
@@ -166,7 +166,7 @@ function renderSkills(){
     el('p',{class:'muted',text:'You get '+CONFIG.progression.spPerLevel+' skill points every level. Upgrading a power costs as many points as the level it goes up to. Passives cost 1 point per level.'}));
   sheetBody.appendChild(el('h3',{text:'Your powers'}));
   for(const id of save.character.movement){const m=masteryLevel(id);
-    sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:(PRESETS[id]?PRESETS[id].name:POWERS[id].name)+'  ·  Mastery '+m.toFixed(1)+'/'+MASTERY_MAX}),el('p',{text:'Traversal grows by using it: the more you travel this way, the higher, faster and bigger it gets. It does not cost skill points.'}),el('div',{class:'bar xp'},el('i',{style:'width:'+(m/MASTERY_MAX*100).toFixed(1)+'%'}))));}
+    sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:(PRESETS[id]?PRESETS[id].name:POWERS[id].name)+'  ·  Mastery '+(m<MASTERY_FULL?m.toFixed(1):Math.floor(m))+' / '+MASTERY_MAX}),el('p',{text:'Traversal grows by using it: the more you travel this way, the higher, faster and bigger it gets. It does not cost skill points.'}),el('div',{class:'bar xp'},el('i',{style:'width:'+(m/MASTERY_MAX*100).toFixed(1)+'%'}))));}
   for(const id of [...new Set([...save.character.abilities.map(LEVEL_OF),save.character.body,...(hasPower('morphBand')?['morphBand']:[]),...(hasTrav('armorFlight')?['suitBattery']:[])])]){
     if(!POWERS[id]||POWERS[id].cat==='body'&&POWERS[id].hidden&&!POWERS[id].sig)continue; // hidden bodies have no level, except the ones whose signature move levels with them
     const lvl=powerLevel(id),max=lvl>=CONFIG.powerMax,cost=CONFIG.powerUpgradeCost(lvl);

@@ -50,7 +50,7 @@ function updateHud(dt){
   // the touch buttons follow what you're doing in updateTouchHud (81_touch.js)
   if(lastHud.alien!==(P.alien?P.alien.id:'')){lastHud.alien=P.alien?P.alien.id:'';buildHotbar();buildTouchButtons();}
   setText($('online'),'online',MP.status());
-  drawMinimap(P.yaw);drawLockMark();
+  drawMinimap(P.yaw);drawLockMark();updateHints();
 }
 
 // ================================================================
@@ -72,7 +72,7 @@ function startPlay(first){
 $('start').addEventListener('click',()=>{SFX.init();if(!save.character)startAsRingBearer();else startPlay(false);});
 $('m-lb').addEventListener('click',()=>openSheet('lb'));$('m-mp').addEventListener('click',()=>openSheet('mp'));$('p-mp').addEventListener('click',()=>openSheet('mp'));$('m-set').addEventListener('click',()=>openSheet('set'));
 $('resume').addEventListener('click',resume);
-$('p-skills').addEventListener('click',()=>openSheet('skills'));$('p-look').addEventListener('click',()=>openSheet('look'));
+$('p-daily').addEventListener('click',()=>openDaily());$('p-skills').addEventListener('click',()=>openSheet('skills'));$('p-look').addEventListener('click',()=>openSheet('look'));
 $('p-lb').addEventListener('click',()=>openSheet('lb'));if(PBAL)$('m-lb').hidden=$('p-lb').hidden=true; // no leaderboard on CrazyGames (see 67_hudbar.js)$('p-set').addEventListener('click',()=>openSheet('set'));
 $('create-x').addEventListener('click',closeCreator);
 $('p-powers').addEventListener('click',tryRechoose);

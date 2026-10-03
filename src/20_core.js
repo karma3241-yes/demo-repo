@@ -209,12 +209,13 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   if(f.heroConv){ // old flight builds keep the flying mastery they earned
     if(oldMv.includes('flight')){const id=f.character.movement[0];f.mastery[id]=Math.max(f.mastery[id]||0,f.mastery.flight||0);}
     f.sp+=refundDropped(f.powerLevels,oldIds,ownedIds(f.character));}
-  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.savedAt=num(s.savedAt,0,0,1e15);f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
+  f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.savedAt=num(s.savedAt,0,0,1e15);f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.js
+  f.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
   if(GFX_TIERS[s.gfxAuto])f.gfxAuto=s.gfxAuto; // the tier the fps watch settled on
   f.goal=typeof s.goal==='number'?Math.floor(num(s.goal,0,-1,99)):-1; // -1: a save from before goals
   if(s.daily&&typeof s.daily==='object'){const d=s.daily;if(typeof d.last==='string'&&/^\d{4}-\d\d-\d\d$/.test(d.last))f.daily.last=d.last;if(Number.isInteger(d.streak)&&d.streak>=0&&d.streak<=7)f.daily.streak=d.streak;} // last claim (local date) and the streak
-  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks','swap'])if(s.guide[k]===true)f.guide[k]=true;
+  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks','swap','lockNear'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
 const save=loadSave();GFX_SAVE=save;
@@ -239,20 +240,28 @@ const powerLevel=id=>trialOn('lv:'+LEVEL_OF(id))?CONFIG.powerMax:clamp(save.powe
 // and locked things can be tried for 10 minutes with an ad (see 65_rewards.js). The website and claude.ai keep today's balance.
 const PBAL=window.__PORTAL__==='crazygames';
 // CrazyGames basic launch: ads aren't allowed yet, so every ad (and the reward icons) is off, and your traversal starts
-// fully mastered so players see the best of it (levels and skill points work as usual). For full launch set this to false.
+// at mastery 10 (the old maximum) so players see the best of it, then grows to 100 (levels and skill points work as usual). For full launch set this to false.
 const BASIC_LAUNCH=PBAL&&true;
-const MASTERY_MAX=10,MASTERY_K=PBAL?9000:1500;
+// Mastery runs 1..100 on one curve. 1..10 is the old balance (same early pace: level 10 at 3K points); above 10 it keeps growing
+// slower: level = 10+90*t^0.7 with t=(points-3K)/6K, so 20 comes ~2300 points later (CG), 50 at ~17k and 100 at 9K points total.
+// mk() stays 0..1 (0..10) so every existing consumer is unchanged; masteryOver() (levels above 10) adds the soft extras
+// (flight and web speed +1% a level, construct size). BASIC_LAUNCH and the 'trav' trial start your hero at level 10: basic launch
+// counts 3K free points on top of the ones you earn so it still grows with play; a trial just floors at 10.
+const MASTERY_MAX=100,MASTERY_FULL=10,MASTERY_K=PBAL?9000:1500,MASTERY_P10=3*MASTERY_K,MASTERY_P100=9*MASTERY_K;
 function trialOn(k){return PBAL&&!!save.trials&&save.trials[k]>Date.now();}
-const masteryLevel=id=>(BASIC_LAUNCH||trialOn('trav'))&&save.character&&id===save.character.movement[0]?MASTERY_MAX:1+(MASTERY_MAX-1)*(1-Math.exp(-(save.mastery[id]||0)/MASTERY_K));
-const mk=id=>(masteryLevel(id)-1)/(MASTERY_MAX-1); // 0 at the start, 1 when mastered
+const masteryAt=m=>m<MASTERY_P10?1+(MASTERY_FULL-1)*(1-Math.exp(-m/MASTERY_K))/(1-Math.exp(-3)):Math.min(MASTERY_MAX,MASTERY_FULL+(MASTERY_MAX-MASTERY_FULL)*Math.pow((m-MASTERY_P10)/(MASTERY_P100-MASTERY_P10),0.7));
+const masteryLevel=id=>{const m=save.mastery[id]||0,cur=!!save.character&&id===save.character.movement[0];
+  if(cur&&BASIC_LAUNCH)return masteryAt(m+MASTERY_P10);if(cur&&trialOn('trav'))return Math.max(MASTERY_FULL,masteryAt(m));return masteryAt(m);};
+const mk=id=>clamp((masteryLevel(id)-1)/(MASTERY_FULL-1),0,1); // 0 at the start, 1 at level 10
+const masteryOver=id=>Math.max(0,masteryLevel(id)-MASTERY_FULL); // levels above 10 (0..90)
 function addMastery(id,n){if(!save.character||!(n>0))return;const before=Math.floor(masteryLevel(id));save.mastery[id]=(save.mastery[id]||0)+n;const after=Math.floor(masteryLevel(id));
-  if(after>before&&typeof feed==='function')feed((PRESETS[id]?PRESETS[id].name:POWERS[id]?POWERS[id].name:'Jumping')+' mastery '+after,MASTERY_NOTES[id]&&MASTERY_NOTES[id][after]||'You can go further, faster');}
+  if(after>before&&(after<=MASTERY_FULL||after%5===0)&&typeof feed==='function')feed((PRESETS[id]?PRESETS[id].name:POWERS[id]?POWERS[id].name:'Jumping')+' mastery '+after,MASTERY_NOTES[id]&&MASTERY_NOTES[id][after]||(after>MASTERY_FULL?'Faster and bigger again':'You can go further, faster'));}
 const MASTERY_NOTES={webSwing:{3:'Backflips and twists unlocked',5:'Web wings glide further',7:'Corner boosts and slingshot launches hit harder',9:'Faster swings than ever'},
   superSpeed:{3:'Speed dial reaches higher',6:'Phasing lasts longer',9:'Near light speed'},powerRing:{3:'Mech construct unlocked',5:'Huge mech unlocked',7:'Dragon unlocked',9:'Bigger constructs than ever'},
   flight:{5:'Supersonic flight',9:'Mach speed'},stormFlight:{5:'Supersonic flight',9:'Mach speed'},armorFlight:{5:'Supersonic flight',9:'Mach speed'},solarFlight:{5:'Supersonic flight',9:'Faster than sound'},jump:{5:'Super jumps go much higher'}};
 for(const id of ['ironFlight','bladeFlight','elasticFlight','titanFlight','bandFlight'])MASTERY_NOTES[id]=MASTERY_NOTES.flight; // the new fliers grow like plain flight
 // traversal stats grow with mastery (use), never below the level they were upgraded to before
-const statLevel=id=>POWERS[id].cat==='movement'?Math.max(powerLevel(id),masteryLevel(id)):powerLevel(id);
+const statLevel=id=>POWERS[id].cat==='movement'?Math.min(CONFIG.powerMax,Math.max(powerLevel(id),masteryLevel(id))):powerLevel(id); // pstat lerps 1..10, so mastery above 10 is clamped here
 const lvlK=id=>(powerLevel(id)-1)/(CONFIG.powerMax-1); // 0 at level 1, 1 at max: drives how strong a power looks
 function pstat(id,name,lvl){const v=POWERS[id][name];const r=Array.isArray(v)?lerp(v[0],v[1],((lvl||statLevel(id))-1)/(CONFIG.powerMax-1)):v;
   // a grown power (hold its key and scroll) reaches further and hits harder while it is being cast

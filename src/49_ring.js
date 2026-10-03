@@ -19,7 +19,8 @@ const OATH='Through fear and doubt my will holds fast. What I imagine, I make la
 let conPick='bubble',armorPick='aJet',oathOpen=false,oathStart=0,oathFree=false,oathBusyT=-9;
 const isRing=()=>hasTrav('powerRing')&&!P.alien;
 const ringMk=()=>mk('powerRing');
-const conSize=()=>0.8+0.45*ringMk(); // constructs grow with ring mastery
+const conOver=id=>1+masteryOver(id||(armorForms()?'armorFlight':'powerRing'))/30; // mastery above 10 makes constructs bigger: x1 at 10, x4 at 100
+const conSize=()=>(0.8+0.45*ringMk())*(1+(conOver()-1)/2); // constructs grow with ring mastery (half of the extra goes to the base size, all of it to the grow cap)
 const conUnlocked=()=>{const arm=armorForms(),l=masteryLevel(arm?'armorFlight':'powerRing');return CON_IDS.filter(id=>!!CONSTRUCTS[id].armor===arm&&(CONSTRUCTS[id].unlock<=l||trialOn('con:'+id)));};
 const conDef=()=>P.construct?CONSTRUCTS[P.construct.id]:null;
 const conScale=id=>(CONSTRUCTS[id].scale||1)*(CONSTRUCTS[id].scale?conSize()*conGrow(id):1);
@@ -29,7 +30,7 @@ const CON_GROW={mul:1.2,cost:0.9,refund:0.25,earth:120000};
 const conGrow=id=>P.construct&&P.construct.id===id?P.construct.grow||1:1;
 // how big a construct is before it grows (metres, roughly its longest side)
 function conBase(id){const C=CONSTRUCTS[id];return C.scale?2.7*C.scale*conSize():C.len||4;}
-const conMaxGrow=id=>PBAL?2+28*mk(conOwner(id)):Math.max(1,CON_GROW.earth/conBase(id)); // CrazyGames: 2x, up to 30x with mastery
+const conMaxGrow=id=>PBAL?(2+28*mk(conOwner(id)))*conOver(conOwner(id)):Math.max(1,CON_GROW.earth/conBase(id)); // CrazyGames: 2x, up to 30x with mastery
 function conBody(){const K=P.construct;if(!K)return;const C=CONSTRUCTS[K.id];if(!C.scale)return;const sc=conScale(K.id);
   // the body stays narrow enough to walk down a street; anything inside the mech's feet gets trampled instead
   P.radius=0.8*Math.max(1,Math.min(sc*0.7,9));P.height=2.7*sc;}
