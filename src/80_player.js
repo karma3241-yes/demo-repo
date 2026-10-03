@@ -227,7 +227,7 @@ function updatePlayer(dt){
   if(P.car){driveCar(dt,inF,inR);return;}
   if(voidbornLocked()){P.vel.set(0,0,0);return;} // Voidborn stands frozen until the masks agree
   if(P.lantern&&!oathFree&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // typing the oath: suspended where you are, construct and all (saying it leaves you free)
-  spiderTick(dt);
+  spiderTick(dt);webAssist();
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
   const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=(P.alien&&P.alien.phase>0)||P.phasing;
@@ -271,8 +271,7 @@ function updatePlayer(dt){
       if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
     }
     const prevY=P.pos.y,prevX=P.pos.x,prevZ=P.pos.z;P.pos.addS(P.vel,dt);if(P.swim)swimShore(prevX,prevZ);
-    if(P.web){const W=P.web;let dx=P.pos.x-W.x,dy=P.pos.y+1.6-W.y,dz=P.pos.z-W.z;const d=Math.hypot(dx,dy,dz)||1;
-      if(d>W.L){dx/=d;dy/=d;dz/=d;P.pos.x-=dx*(d-W.L);P.pos.y-=dy*(d-W.L);P.pos.z-=dz*(d-W.L);const vr=P.vel.x*dx+P.vel.y*dy+P.vel.z*dz;if(vr>0){P.vel.x-=dx*vr;P.vel.y-=dy*vr;P.vel.z-=dz*vr;}}}
+    if(P.web)ropePos(P.pos,P.vel,P.web,dt,P.web.target?MOVE.tetherK:MOVE.ropeK); // soft rope fix: never a visible snap
     if(phasing){const gb=baseY(P.pos.x,P.pos.z);P.grounded=false;if(P.pos.y<=gb){P.pos.y=gb;if(P.vel.y<0)P.vel.y=0;P.grounded=true;}}
     else{const pvx=P.vel.x,pvy=P.vel.y,pvz=P.vel.z,vpre=Math.hypot(pvx,pvy,pvz);const col=collideBody(P.pos,P.vel,prevY,P.radius,P.height,swimFloor());P.grounded=col.grounded||(!!P.swim&&swimFloats());
       if(col.wall&&(P.flying||P.rush||(P.alien&&P.alien.dashing))&&vpre>70&&!P.car){const w=col.wall;

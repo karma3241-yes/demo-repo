@@ -2822,28 +2822,53 @@ function ragColorsSuper(m){const suit=m.metal?SILVER:m.suit;return {torso:suit,t
 // automatically. Keep holding and it chains to the next anchor after each upswing;
 // let go (or press Space) at the bottom-to-top of the arc for a speed boost.
 // Anyone can wall run: sprint (or fly past fast) into a wall to run up it or along it.
-const MOVE={webRange:[90,170],chainAngle:0.55,releaseBoost:1.12,swingJump:16,zipSpeed:75,
-  runUp:20,runUpFast:30,runSide:24,runTime:1.5,sideTime:1.8,leapUp:21,leapOut:17};
-let webHeld=false;
+const MOVE={webRange:[90,170],chainAngle:0.7,releaseBoost:1.12,swingJump:16,zipSpeed:75,
+  runUp:20,runUpFast:30,runSide:24,runTime:1.5,sideTime:1.8,leapUp:21,leapOut:17,
+  // smart anchor: candidate targets (forward m / height m / sideways m) ahead of the player, ideal pick, rope feel
+  webFwd:[18,28,40,54],webH:[16,28,42],webLat:[0,8,-8,18,-18],webMaxD:90,webIdealF:34,webIdealH:30,
+  reelT:0.45,reelK:0.86,ropeK:12,tetherK:30,groundClear:4.6};
+let webHeld=false,webSide=0,chainWait=0,noAnchorT=-9;
 const hasWeb=()=>hasPower('webSwing')&&!P.alien;
 const webRange=()=>pstat('webSwing','range');
-// find a building point above and ahead to swing from (anchor assist)
+// where the player wants to go (flat): WASD vs the camera, else the current motion, else camera forward
+function intentDir(){
+  const inF=clamp((keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)+touchIn.y,-1,1),inR=clamp((keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+touchIn.x,-1,1);
+  const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);let x=fx*inF+Math.cos(P.yaw)*inR,z=fz*inF-Math.sin(P.yaw)*inR,l=Math.hypot(x,z);
+  if(l<0.3){const hs=Math.hypot(P.vel.x,P.vel.z);if(hs>8){x=P.vel.x;z=P.vel.z;l=hs;}else{x=fx;z=fz;l=1;}}
+  return [x/l,z/l];
+}
+// smart anchor: the game picks a building side/edge ahead (the way you want to go), above you, a little to one side
+// (alternating with the last one), with a clear line. Never the ground, water or sky. null = nothing to swing from.
 function findAnchor(R){
-  let fx=camF.x,fz=camF.z;const hs=Math.hypot(P.vel.x,P.vel.z);if(hs>12&&!keys.KeyS){fx=fx*0.4+P.vel.x/hs*0.6;fz=fz*0.4+P.vel.z/hs*0.6;}
-  const fl=Math.hypot(fx,fz)||1;fx/=fl;fz/=fl;
-  const ox=P.pos.x,oy=P.pos.y+2,oz=P.pos.z;let best=null,bs=-1e9;
-  for(const el of [0.95,0.8,1.1,0.65,1.25])for(const side of [0,0.35,-0.35,0.7,-0.7]){
-    const c=Math.cos(side),s=Math.sin(side),dx=fx*c-fz*s,dz=fx*s+fz*c,ce=Math.cos(el),dy=Math.sin(el);
-    const t=rayCity(ox,oy,oz,dx*ce,dy,dz*ce,R);if(t>=R||t<9)continue;
-    const y=oy+dy*t;if(y<P.pos.y+6)continue;
-    const score=t*0.4-Math.abs(side)*18-Math.abs(el-0.9)*12+Math.min(y-P.pos.y,45)*0.3-Math.max(0,y-P.pos.y-60)*0.6;
-    if(score>bs){bs=score;best={x:ox+dx*ce*t,y,z:oz+dz*ce*t,t};}}
+  const [dx,dz]=intentDir(),ox=P.pos.x,oy=P.pos.y+1.6,oz=P.pos.z,mx=Math.min(R,MOVE.webMaxD),px=dz,pz=-dx;let best=null,bs=-1e9;
+  for(const fd of MOVE.webFwd)for(const h of MOVE.webH)for(const lat of MOVE.webLat){
+    const tx=dx*fd+px*lat,tz=dz*fd+pz*lat,tl=Math.hypot(tx,h,tz),tm=Math.min(mx,tl*1.8),ux=tx/tl,uy=h/tl,uz=tz/tl;
+    const t=rayCity(ox,oy,oz,ux,uy,uz,tm);if(t>=tm-0.01||!RAYHIT.b||t<12||RAYHIT.ny>0.5)continue; // first thing the ray meets must be a wall or underside
+    const ax=ox+ux*t+RAYHIT.nx*0.2,ay=oy+uy*t+RAYHIT.ny*0.2,az=oz+uz*t+RAYHIT.nz*0.2,ry=ay-P.pos.y;if(ry<8||ry>80)continue;
+    const fw=(ax-ox)*dx+(az-oz)*dz,lt=(ax-ox)*px+(az-oz)*pz;if(fw<10)continue;
+    const score=-Math.abs(fw-MOVE.webIdealF)*0.6-Math.abs(ry-MOVE.webIdealH)*0.5-Math.abs(Math.abs(lt)-9)*0.35-Math.max(0,Math.abs(lt)-22)*0.8+(webSide&&lt*webSide<0&&Math.abs(lt)>3?6:0)-(t>70?(t-70)*0.3:0);
+    if(score>bs){bs=score;best={x:ax,y:ay,z:az,t,side:Math.sign(lt)};}}
   return best;
 }
+// rope constraint helpers (pure: pos/vel are {x,y,z}; the body hangs from its chest, 1.6 m up)
+function ropeD(pos,W){const dx=pos.x-W.x,dy=pos.y+1.6-W.y,dz=pos.z-W.z;return [dx,dy,dz,Math.hypot(dx,dy,dz)||1];}
+// keep the rope taut as you close in; shorten (reel in) at most `rate` m/s toward `lo` without ever leaving more than 0.25 m of gap
+function ropeLen(pos,W,dt,rate,lo){const d=ropeD(pos,W)[3];
+  if(d<W.L)W.L=Math.min(W.L,Math.max(6,(W.L0||0)*0.55,d,W.L-40*dt)); // (not shorter than 55% of the first length, so a flyby never ends in a tiny circle)
+  if(rate>0)W.L=Math.min(W.L,Math.max(lo,W.L-rate*dt,d-0.25));}
+// velocity constraint: no outward speed along a taut rope (tangential kept); while reeling, ease the inward speed toward `rate`
+function ropeVel(pos,vel,W,rate,dt){const q=ropeD(pos,W),d=q[3];if(d<W.L-0.05)return;const ux=q[0]/d,uy=q[1]/d,uz=q[2]/d;let vr=vel.x*ux+vel.y*uy+vel.z*uz;
+  if(vr>0){vel.x-=ux*vr;vel.y-=uy*vr;vel.z-=uz*vr;vr=0;}
+  if(rate>0&&vr>-rate){const a=(vr+rate)*Math.min(1,5*dt);vel.x-=ux*a;vel.y-=uy*a;vel.z-=uz*a;}}
+// soft position fix: a little overshoot is eased back over a few frames (never a snap), then outward velocity is dropped again
+function ropePos(pos,vel,W,dt,k){const q=ropeD(pos,W),d=q[3];if(d<=W.L)return;const ux=q[0]/d,uy=q[1]/d,uz=q[2]/d,c=(d-W.L)*Math.min(1,k*dt);
+  pos.x-=ux*c;pos.y-=uy*c;pos.z-=uz*c;const vr=vel.x*ux+vel.y*uy+vel.z*uz;if(vr>0){vel.x-=ux*vr;vel.y-=uy*vr;vel.z-=uz*vr;}}
 function attachWeb(pt){
-  const h=handPoint(),d=Math.hypot(pt.x-h.x,pt.y-h.y,pt.z-h.z);
-  const gy=groundY(P.pos.x,P.pos.z,P.pos.y+1);
-  P.web={x:pt.x,y:pt.y,z:pt.z,L:Math.max(8,Math.min(d*0.88,pt.y-gy-3)),t:time};P.flying=false;P.wall=null;P.wallRun=null;P.charging=false;P.zip=null;
+  // the rope is exactly as long as the gap: your position never moves; outward speed is turned sideways instead of lost
+  const dx=P.pos.x-pt.x,dy=P.pos.y+1.6-pt.y,dz=P.pos.z-pt.z,d=Math.hypot(dx,dy,dz)||1,vr=(P.vel.x*dx+P.vel.y*dy+P.vel.z*dz)/d;
+  if(vr>0){P.vel.x-=dx/d*vr;P.vel.y-=dy/d*vr;P.vel.z-=dz/d*vr;const tl=P.vel.len();if(tl>1){const k=vr*0.55/tl;P.vel.x*=1+k;P.vel.y*=1+k;P.vel.z*=1+k;}}
+  const L=Math.max(6,d);P.web={x:pt.x,y:pt.y,z:pt.z,L,Lt:Math.min(L,Math.max(8,d*MOVE.reelK)),L0:L,t:time};if(pt.side)webSide=pt.side;
+  P.flying=false;P.wall=null;P.wallRun=null;P.charging=false;P.zip=null;
   SFX.tone('triangle',1200,500,0.12,0.08);
 }
 function webPress(){
@@ -2862,14 +2887,24 @@ function webPress(){
     if(d<R*0.6){if(!spend(POWERS.webSwing.energy)){noEnergy();return;}tetherTo(a,d);SFX.tone('triangle',1100,500,0.12,0.08);return;}}
   // Zip style (V wheel): right click pulls you straight to where you aim instead of swinging
   if(hasTrav('webSwing')&&travStyle('webSwing')==='zip'){if(!webZip(true)){PS.webSwing.flash=0.3;feed('Nothing to zip to','Aim at a wall or rooftop within '+Math.round(R*0.8)+' m');}return;}
-  // aimed surface above you, else the anchor assist
-  let pt=null;
-  if(aim.hitAny&&aim.surface&&!(aim.ny>0.5&&aim.y<2)&&aim.y>P.pos.y+3){const d=Math.hypot(aim.x-h.x,aim.y-h.y,aim.z-h.z);if(d<=R)pt={x:aim.x,y:aim.y,z:aim.z};}
-  if(!pt)pt=findAnchor(R);
-  if(!pt){PS.webSwing.flash=0.3;feed('Nothing to swing from','Webs need a building within '+Math.round(R)+' m');return;}
+  // the game picks the anchor (you only steer): a building ahead in the direction you want to go
+  const pt=findAnchor(R);
+  if(!pt){if(P.grounded){webHop();return;}if(time-noAnchorT>3){noAnchorT=time;PS.webSwing.flash=0.3;feed('Nothing to swing from','Webs need a building ahead and above you');}return;}
   if(!spend(POWERS.webSwing.energy)){noEnergy();return;}
   if(P.grounded){P.vel.y=Math.max(P.vel.y,17);P.grounded=false;P.pos.y+=0.2;}
   attachWeb(pt);
+}
+// no building to swing from but you are on the ground: a short web-pull forward and up
+function webHop(){
+  if(!spend(4)){noEnergy();return;}
+  const [dx,dz]=intentDir(),h=handPoint(),tx=P.pos.x+dx*22,tz=P.pos.z+dz*22,ty=groundY(tx,tz,P.pos.y+8)+0.4;
+  tracer(h.x,h.y,h.z,tx,ty,tz,[.95,.95,1],0.07,0.25);P.vel.set(dx*22,15,dz*22);P.grounded=false;P.pos.y+=0.2;PS.webSwing.flash=0.3;SFX.whoosh();
+  burst(P.pos.x,P.pos.y+0.3,P.pos.z,10,6,0.4,DUST,1,-2,2);
+}
+// holding the web button after a chain found nothing: keep looking for a moment so you re-attach as soon as a building shows up
+function webAssist(){
+  if(!webHeld||P.web||P.zip||time>chainWait||!hasWeb()||P.grounded||P.flying||P.wings||P.wall||P.wallRun||P.swim||P.car||!canAct()||time-(P.assistT||-9)<0.1)return;
+  P.assistT=time;const pt=findAnchor(webRange());if(pt&&P.en>=POWERS.webSwing.energy*0.5){P.en-=POWERS.webSwing.energy*0.5;chainWait=0;attachWeb(pt);}
 }
 // ---- web tether: hold right click on someone to stay webbed on; if they run or fly off, you get dragged along ----
 function tetherShielded(a){
@@ -2899,16 +2934,26 @@ function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
   const W=P.web,f=Math.max(pstat('webSwing','force'),PBAL?1.2:0); // CrazyGames: swings start a bit faster than the website's
   if(W.target&&!tetherTick(W))return;
   P.vel.y-=CONFIG.move.gravity*0.9*dt;
-  P.vel.x+=(fwdX*inF+rX*inR)*26*f*dt;P.vel.z+=(fwdZ*inF+rZ*inR)*26*f*dt;
-  // gravity assist through the bottom of the arc, gentle reel-in keeps the arc off the ground
-  const gy=groundY(P.pos.x,P.pos.z,P.pos.y+1),dy=P.pos.y+1.6-W.y;
-  if(dy<-W.L*0.6&&P.pos.y>gy+1.5){const hs=Math.hypot(P.vel.x,P.vel.z)||1;P.vel.x+=P.vel.x/hs*8*dt;P.vel.z+=P.vel.z/hs*8*dt;}
-  if(P.pos.y<gy+3&&!W.target)W.L=Math.max(8,Math.min(W.L,W.y-gy-3.5)); // never drag along the street
+  // pendulum: how close to the bottom of the arc (1 = straight below the anchor), input pushes harder there
+  const gy=groundY(P.pos.x,P.pos.z,P.pos.y+1),dyA=P.pos.y+1.6-W.y,down=clamp(-dyA/Math.max(W.L,1),0,1);
+  let ix=fwdX*inF+rX*inR,iz=fwdZ*inF+rZ*inR;const il=Math.hypot(ix,iz);
+  if(il>0.05){const m=Math.min(il,1);ix/=il;iz/=il;const acc=26*f*dt*m*(0.5+0.7*down);P.vel.x+=ix*acc;P.vel.z+=iz*acc;
+    // the swing plane turns gradually toward where you want to go (speed kept, nothing fights you)
+    const hs=Math.hypot(P.vel.x,P.vel.z);if(hs>6&&!W.target){const vx=P.vel.x/hs,vz=P.vel.z/hs;if(vx*ix+vz*iz>-0.3){const k=Math.min(1,1.6*m*dt*(0.4+0.6*down)),nx=vx+(ix-vx)*k,nz=vz+(iz-vz)*k,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hs;P.vel.z=nz/nl*hs;}}}
+  // gravity assist through the bottom of the arc
+  if(down>0.6&&P.pos.y>gy+1.5){const hs=Math.hypot(P.vel.x,P.vel.z)||1;P.vel.x+=P.vel.x/hs*8*dt;P.vel.z+=P.vel.z/hs*8*dt;}
   P.vel.mul(1-0.03*dt);{const v=P.vel.len(),cap=(PBAL?80+25*webMk():70+35*webMk())*(1+0.01*masteryOver('webSwing'));if(v>cap)P.vel.mul(cap/v);}
-  // chain: past the anchor on the upswing, let go and grab the next one
+  // rope: stays taut, reels in a little after the attach (the swoop), never drags along the street; speed along it is limited, position is never snapped
+  let rr_=0;
+  if(!W.target){ropeLen(P.pos,W,dt,0,6);
+    if(time-W.t<MOVE.reelT&&W.L>W.Lt){const r=(W.L0-W.Lt)/MOVE.reelT;ropeLen(P.pos,W,dt,r,W.Lt);rr_=r;}
+    const lcap=Math.max(8,W.y-gy-MOVE.groundClear);if(P.pos.y<gy+3&&W.L>lcap){ropeLen(P.pos,W,dt,14,lcap);rr_=Math.max(rr_,14);}}
+  ropeVel(P.pos,P.vel,W,rr_,dt);
+  // chain: past the bottom and rising beyond ~45 degrees in front of the anchor, let go and grab the next one (picked before letting go)
   const ax=P.pos.x-W.x,az=P.pos.z-W.z,hs=Math.hypot(P.vel.x,P.vel.z);
-  if(!W.target&&webHeld&&time-W.t>0.5&&hs>8&&(ax*P.vel.x+az*P.vel.z)>0&&P.vel.y>-2&&(P.pos.y+1.6-W.y)>-W.L*MOVE.chainAngle){
-    const R=webRange();webRelease(true);webHeld=true;const pt=findAnchor(R);if(pt&&P.en>=POWERS.webSwing.energy*0.5){P.en-=POWERS.webSwing.energy*0.5;attachWeb(pt);}}
+  if(!W.target&&webHeld&&time-W.t>0.5&&hs>8&&(ax*P.vel.x+az*P.vel.z)>0&&P.vel.y>-2&&dyA>-W.L*MOVE.chainAngle){
+    const R=webRange(),pt=findAnchor(R);webRelease(true);webHeld=true;
+    if(pt&&P.en>=POWERS.webSwing.energy*0.5){P.en-=POWERS.webSwing.energy*0.5;attachWeb(pt);}else chainWait=time+0.9;}
 }
 // ---- web zip / point launch: Space in mid-air (web swingers) ----
 function webZip(fromGround){
@@ -7765,7 +7810,7 @@ function updatePlayer(dt){
   if(P.car){driveCar(dt,inF,inR);return;}
   if(voidbornLocked()){P.vel.set(0,0,0);return;} // Voidborn stands frozen until the masks agree
   if(P.lantern&&!oathFree&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // typing the oath: suspended where you are, construct and all (saying it leaves you free)
-  spiderTick(dt);
+  spiderTick(dt);webAssist();
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
   const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
   const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=(P.alien&&P.alien.phase>0)||P.phasing;
@@ -7809,8 +7854,7 @@ function updatePlayer(dt){
       if(P.charging){P.chargeT+=dt;if(!P.grounded)P.charging=false;}
     }
     const prevY=P.pos.y,prevX=P.pos.x,prevZ=P.pos.z;P.pos.addS(P.vel,dt);if(P.swim)swimShore(prevX,prevZ);
-    if(P.web){const W=P.web;let dx=P.pos.x-W.x,dy=P.pos.y+1.6-W.y,dz=P.pos.z-W.z;const d=Math.hypot(dx,dy,dz)||1;
-      if(d>W.L){dx/=d;dy/=d;dz/=d;P.pos.x-=dx*(d-W.L);P.pos.y-=dy*(d-W.L);P.pos.z-=dz*(d-W.L);const vr=P.vel.x*dx+P.vel.y*dy+P.vel.z*dz;if(vr>0){P.vel.x-=dx*vr;P.vel.y-=dy*vr;P.vel.z-=dz*vr;}}}
+    if(P.web)ropePos(P.pos,P.vel,P.web,dt,P.web.target?MOVE.tetherK:MOVE.ropeK); // soft rope fix: never a visible snap
     if(phasing){const gb=baseY(P.pos.x,P.pos.z);P.grounded=false;if(P.pos.y<=gb){P.pos.y=gb;if(P.vel.y<0)P.vel.y=0;P.grounded=true;}}
     else{const pvx=P.vel.x,pvy=P.vel.y,pvz=P.vel.z,vpre=Math.hypot(pvx,pvy,pvz);const col=collideBody(P.pos,P.vel,prevY,P.radius,P.height,swimFloor());P.grounded=col.grounded||(!!P.swim&&swimFloats());
       if(col.wall&&(P.flying||P.rush||(P.alien&&P.alien.dashing))&&vpre>70&&!P.car){const w=col.wall;
@@ -8694,7 +8738,7 @@ applyTouchUI();refreshMenu();updateEnv(0);applyLook();MP.init();
 requestAnimationFrame(frame);
 if(!Portal.pending){autoReady=true;autoStart();}else setTimeout(()=>{autoReady=true;autoStart();},4000); // the portal SDK never answered: start anyway
 if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},actors,humans,drones,vehicles,rivals,crimes,orbs,keys,
-  start:()=>$('start').click(),look:(y,p)=>{P.yaw=y;P.pitch=p;},setTod:v=>{tod=v;},abilityDown,abilityUp,punch,toggleFlight,webPress,webRelease,
+  start:()=>$('start').click(),look:(y,p)=>{P.yaw=y;P.pitch=p;},setTod:v=>{tod=v;},abilityDown,abilityUp,punch,toggleFlight,webPress,webRelease,intentDir,get web(){return P.web;},
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
