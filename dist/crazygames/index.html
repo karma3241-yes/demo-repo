@@ -469,6 +469,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
 </div>
 <div id="pause" class="overlay" hidden><div class="box"><p class="big" id="pause-title">Paused</p><p class="sub" id="pause-note" hidden>You're in a multiplayer room, so the game keeps going while this menu is open.</p>
   <div class="pause-btns"><button class="go" id="resume" type="button">Resume</button></div>
+  <p class="sub" id="p-daily" hidden></p><p class="muted" id="p-saved" hidden>Progress saved</p>
   <div class="pause-btns"><button class="ghost" id="p-skills" type="button">Skills</button><button class="ghost" id="p-look" type="button">Appearance</button><button class="ghost" id="p-powers" type="button">Change powers</button><button class="ghost" id="p-mp" type="button">Multiplayer</button><button class="ghost" id="p-lb" type="button">Leaderboard</button><button class="ghost" id="p-set" type="button">Settings</button></div>
 </div></div>
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
@@ -1712,7 +1713,7 @@ const BAD_PART=/fuck|fck|fuk|shit|cunt|bitch|nigg|fagg|whore|slut|porn|penis|vag
 function safeName(s){const n=cleanName(s);const t=n.toLowerCase().replace(/[0134579@$]/g,c=>({0:'o',1:'i',3:'e',4:'a',5:'s',7:'t',9:'g','@':'a','$':'s'})[c]);
   return BAD_PART.test(t.replace(/[^a-z]/g,''))||t.split(/[^a-z]+/).some(w=>BAD_WORD.test(w))?'':n;}
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
-function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},goal:0,mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
+function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},goal:0,daily:{last:'',streak:0},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
 // what each flier gets from plain flight (and the Shifter's Morph Band, which lives on V and takes no key). Defined here because loadSave needs it.
 const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'],armorFlight:['flight'],solarFlight:['flight'],
@@ -1774,6 +1775,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   f.ring=num(s.ring,100,0,RING_MAX);f.battery=num(s.battery,300,0,300);f.bolt=num(s.bolt,100,0,100);f.cal=num(s.cal,100,0,100);f.oathKnown=s.oathKnown===true;f.savedAt=num(s.savedAt,0,0,1e15);f.trials={};if(s.trials&&typeof s.trials==='object')for(const k in s.trials){const v=+s.trials[k];if(v>Date.now()&&v<Date.now()+36e5)f.trials[k]=v;}f.cos=s.cos&&typeof s.cos==='object'?s.cos:null; // cleaned in 65_rewards.jsf.xSeen=Array.isArray(s.xSeen)?s.xSeen.filter(v=>Number.isInteger(v)&&v>=0&&v<100).slice(-100):[];f.bounty=Math.round(num(s.bounty,0,0,1e6));
   if(f.migrated){const m=f.level*150;for(const k of [f.character.movement[0],'jump'])f.mastery[k]=Math.max(f.mastery[k]||0,m);}
   f.goal=typeof s.goal==='number'?Math.floor(num(s.goal,0,-1,99)):-1; // -1: a save from before goals
+  if(s.daily&&typeof s.daily==='object'){const d=s.daily;if(typeof d.last==='string'&&/^\d{4}-\d\d-\d\d$/.test(d.last))f.daily.last=d.last;if(Number.isInteger(d.streak)&&d.streak>=0&&d.streak<=7)f.daily.streak=d.streak;} // last claim (local date) and the streak
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks','swap'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
@@ -6664,6 +6666,32 @@ function updateGoal(){
   }catch(e){logErr(e);}
 }
 // ================================================================
+// Daily reward: one claim per local date, a streak of up to 7 days. save.daily={last:'YYYY-MM-DD',streak:0..7}
+// A clock moved backwards (today < last) never claims. The pure rules sit between the PURE markers (tested in Node).
+// PURE-BEGIN
+const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); // local date, not UTC
+const dayBefore=s=>dayStr(new Date(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10)-1,12)); // noon dodges DST edges; Date rolls month and year
+function dailyStep(last,streak,today){if(today===last||today<last)return null;return last&&dayBefore(today)===last?Math.min(streak+1,7):1;} // the new streak, or null for no claim
+const dailyReward=n=>n>=7?{xp:500,sp:2}:{xp:150*n,sp:0};
+const dailyText=r=>(r.sp?'+'+r.sp+' skill points, ':'')+'+'+r.xp+' XP';
+// PURE-END
+let dailyPend=false;
+function dailyNext(){ // the line for the menus: today's reward if it is not claimed yet, otherwise tomorrow's
+  if(!save.character||!save.daily)return '';
+  const d=save.daily,n=dailyStep(d.last,d.streak,dayStr(new Date()));
+  return n!==null?'Play today: Day '+n+' reward ('+dailyText(dailyReward(n))+')':'Come back tomorrow: Day '+Math.min(d.streak+1,7)+' reward ('+dailyText(dailyReward(Math.min(d.streak+1,7)))+')';
+}
+function claimDaily(){ // called by startPlay; the claim lands 3 s later, after the welcome toast (and is skipped if you leave before that)
+  if(window.__SKYLINE_TEST__||dailyPend||!save.character)return;dailyPend=true;
+  later(3,()=>{dailyPend=false;try{
+    const d=save.daily,t=dayStr(new Date()),n=dailyStep(d.last,d.streak,t);if(n===null)return;
+    d.last=t;d.streak=n;const r=dailyReward(n);
+    toast('Day '+n+' reward',dailyText(r),'gold');SFX.chime();
+    if(r.sp)save.sp+=r.sp;addXP(r.xp);persist();if(sheetOpen==='skills')renderSheet();
+  }catch(e){logErr(e);}});
+}
+function dailyPause(){const a=$('p-daily'),s=$('p-saved'),t=dailyNext();a.textContent=t;a.hidden=!t;s.hidden=false;} // the pause menu has just saved
+// ================================================================
 // Icons: small line drawings for the HUD icon bar and the power cards
 // ================================================================
 // Every glyph is drawn on a 24×24 grid with round 2px strokes in the current text colour, so CSS picks the colour.
@@ -7443,7 +7471,7 @@ document.addEventListener('pointerlockchange',()=>{const now=document.pointerLoc
 document.addEventListener('pointerlockerror',()=>lockFail());
 function setPaused(v){
   paused=v;lockPill(!v&&lockPend&&state==='play');$('pause').hidden=!v||creating;if(v)renderPortalButtons();{const on=v&&MP.online();$('pause-title').textContent=on?'Menu':'Paused';$('pause-note').hidden=!on;}if(dialOpen)closeDial();
-  if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<4;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();}
+  if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<4;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();dailyPause();}
 }
 function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
@@ -8453,7 +8481,7 @@ function updateHud(dt){
 // ================================================================
 // Main loop
 // ================================================================
-function refreshMenu(){const b=$('start');menuButtons();b.textContent=save.character?'Continue as '+save.character.name:'Play';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name:'You start as the Ring Bearer · change powers any time';}
+function refreshMenu(){const b=$('start');menuButtons();b.textContent=save.character?'Continue as '+save.character.name:'Play';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name+(dailyNext()?' · '+dailyNext():''):'You start as the Ring Bearer · change powers any time';}
 function startPlay(first){
   if(P.showcase||first||!P.placed){const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.12;P.vel.set(0,0,0);P.showcase=false;P.placed=true;}
   if(first&&playStartT===null)playStartT=time;
@@ -8462,7 +8490,7 @@ function startPlay(first){
   if(save.settings.autoLock&&!touchOn())requestLock();
   P.hp=maxHp();P.en=maxEn();
   toast(first?'Welcome to Nova Bay':'Welcome back, '+save.character.name,first?'Crimes show up on your minimap. Stop them, or join in.':'LV '+save.level+' · '+repTier(save.reputation).name,'gold');
-  syncPlayerDoc(true);renderGuide();Portal.onPlay();
+  syncPlayerDoc(true);renderGuide();Portal.onPlay();claimDaily();
   if(save.heroConv)later(3,()=>{toast('Heroes updated','Every hero now has 4 keys plus V. Skill points from removed powers were refunded. Your next hero change is free.','gold');save.heroConv=false;persist();});
   askMic();
 }

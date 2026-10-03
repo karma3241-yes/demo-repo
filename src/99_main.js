@@ -56,7 +56,7 @@ function updateHud(dt){
 // ================================================================
 // Main loop
 // ================================================================
-function refreshMenu(){const b=$('start');menuButtons();b.textContent=save.character?'Continue as '+save.character.name:'Play';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name:'You start as the Ring Bearer · change powers any time';}
+function refreshMenu(){const b=$('start');menuButtons();b.textContent=save.character?'Continue as '+save.character.name:'Play';$('menu-sub').textContent=save.character?'LV '+save.level+' · '+repTier(save.reputation).name+(dailyNext()?' · '+dailyNext():''):'You start as the Ring Bearer · change powers any time';}
 function startPlay(first){
   if(P.showcase||first||!P.placed){const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.12;P.vel.set(0,0,0);P.showcase=false;P.placed=true;}
   if(first&&playStartT===null)playStartT=time;
@@ -65,7 +65,7 @@ function startPlay(first){
   if(save.settings.autoLock&&!touchOn())requestLock();
   P.hp=maxHp();P.en=maxEn();
   toast(first?'Welcome to Nova Bay':'Welcome back, '+save.character.name,first?'Crimes show up on your minimap. Stop them, or join in.':'LV '+save.level+' · '+repTier(save.reputation).name,'gold');
-  syncPlayerDoc(true);renderGuide();Portal.onPlay();
+  syncPlayerDoc(true);renderGuide();Portal.onPlay();claimDaily();
   if(save.heroConv)later(3,()=>{toast('Heroes updated','Every hero now has 4 keys plus V. Skill points from removed powers were refunded. Your next hero change is free.','gold');save.heroConv=false;persist();});
   askMic();
 }
