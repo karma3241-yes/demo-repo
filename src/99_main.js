@@ -22,14 +22,15 @@ function updateHud(dt){
   const sp=P.vel.len();
   setText(hud.mode,'mode',P.dead?'Down':inSpace()?spaceMode():P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.phasing?'Phasing':timeStopT>0?'Time stopped':frozenT>0?'Frozen in time':P.speeding?'Super speed x'+Math.min(P.dial,dialMax()):isSpeed()?'On foot · dial x'+Math.min(P.dial,dialMax())+(P.fastMode?' · fast mode':''):P.charging?'Charging':P.swim?(P.pos.y<SWIM_Y-1?'Diving':'Swimming'):P.wade?'Wading':P.grounded?'On foot':'Airborne');
   for(const s of slotEls){
+    if(s.vs){const v=vAction();if(s.s.hidden!==!v)s.s.hidden=!v;if(!v)continue;const k=v.key+v.name;if(s.vk!==k){s.vk=k;s.kb.textContent=touchOn()?'':v.key;s.nm.textContent=v.name;}
+      const mb=v.name==='Morph'||v.name==='Revert',f=v.name==='Morph'&&band.cd>0?band.cd/pstat('morphBand','recharge'):0,c=Math.round(clamp(f,0,1)*100);if(s.cdv!==c){s.cdv=c;s.cd.style.setProperty('--p',c+'%');s.cd.hidden=c<=0;}
+      s.s.classList.toggle('on',mb&&(!!P.alien||dialOpen));s.s.classList.toggle('bad',mb&&PS.morphBand.flash>0);continue;}
     if(s.bandTimer){setW(s.bandTimer,'bt',P.alien?P.alien.t/P.alien.max:0);s.s.classList.toggle('bad',!!P.alien&&P.alien.t<5);continue;}
     if(s.alien!==undefined){if(!P.alien)continue;const ab=ALIENS[P.alien.id].abilities[s.alien],f=ab.cd?P.alien.cds[s.alien]/ab.cd:0,v=Math.round(f*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}
       s.s.classList.toggle('on',(ab.channel&&P.alien.channel)||(ab.id==='phase'&&P.alien.phase>0)||(ab.id==='veil'&&P.invisible>0)||(ab.id==='crystalArmor'&&P.alien.armor>0));continue;}
     if(s.i!=null&&PBAL){const L=slotLocked(s.i);s.s.classList.toggle('locked',L);s.s.classList.toggle('next',L&&s.i===nextLockedSlot());if(L){const t='Unlocks at LV '+KIT_LV[s.i];if(s.lvt!==t){s.lvt=t;s.lv.textContent=t;}continue;}}
     const st=PS[s.id],c=POWERS[s.id];
-    if(s.id==='morphBand'){s.s.classList.toggle('on',!!P.alien||dialOpen);s.s.classList.toggle('bad',st.flash>0);const f=band.cd>0?band.cd/pstat('morphBand','recharge'):0,v=Math.round(clamp(f,0,1)*100);
-      if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}continue;}
     const active=st.holding||((s.id==='metalSkin'||s.id==='metalForms')&&P.metal)||(s.id==='energyShield'&&P.shieldOn)||(s.id==='telekinesis'&&!!P.tk)||(s.id==='flight'&&P.flying)||(s.trav&&P.flying)||(s.id==='ringShield'&&P.ringShield)||(s.id==='invisibility'&&P.cloak)||(s.id==='slowTime'&&P.slowOn)||(s.id==='superSpeed'&&P.speeding)||(s.id==='webSwing'&&!!P.web)||(s.id==='wallClimb'&&!!P.wall);
     s.s.classList.toggle('on',active);s.s.classList.toggle('bad',st.flash>0);s.s.classList.toggle('dim',meterBlocks(s.id));
     if(s.cd){const f=c.cooldown?st.cd/pstat(s.id,'cooldown'):0;const v=Math.round(f*100);if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}}

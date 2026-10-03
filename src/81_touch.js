@@ -5,7 +5,7 @@
 // free to look. The buttons sit in rings around PUNCH in the bottom-right corner, like Roblox:
 //   ring A (closest): JUMP, your traversal (FLY, WEB, RUN, DIVE), BOOST (hold = Shift) and LOCK. While flying JUMP turns into UP
 //                     and FLY into LAND (same spot), DOWN takes LOCK's slot and LOCK moves to the outer ring.
-//   ring B: your five powers (the next locked one greyed out with its level), or an alien's powers.
+//   ring B: your four powers (the next locked one greyed out with its level), or an alien's powers.
 //   ring C (and D when it fills up): buttons that come and go with what you're doing: the Build button (ring / suit, always on top), USE (get in a car, help
 //                     someone up, eat...), the wheel (V on a keyboard), OATH, GROW/SHRINK while you hold a power or
 //                     sit in a construct, and so on.
@@ -59,12 +59,10 @@ function buildTouchButtons(){
     const b=tbMake('p'+i,'a'+i,powerIcon(id),lk?'LV '+KIT_LV[i]:SHORT[id]||POWERS[id].name.split(' ')[0],'B','ab'+(lk?' lockd':''));b.prepend(el('i',{class:'cd',hidden:true}));});
   // ring C, in the order they should sit (nearest the top first)
   tbMake('land','fly','land','Land','A1','trav');tbMake('use','use','hand','Use','C','use');
-  tbMake('revert','band','band','Revert','C','dn2');tbMake('morph','band','band','Morph','C'); // the Shifter's Morph Band is on V, not on a key (Session G2 reworks this button)
   tbMake('grow','grow','grow','Grow','C');tbMake('shrink','shrink','shrink','Shrink','C');
   tbMake('alt','alt','star','Alt','C');tbMake('cx','cx','burst','Special','C');tbMake('tkmore','tkmore','orbit','Grab+','C');
-  // one button for the ring / suit: tap to pick and build, tap again to put it away (it keeps the top slot of the ring)
-  if(isRing()||armorForms())tbMake('wheel','conpick',isRing()?'ring':'helmet',P.construct?'Put away':isRing()?'Build':'Form','C');
-  else tbMake('wheel','travdial','wheel','Style','C');
+  // the V button: one wheel button for every hero that has a V (or B) action; its label follows vAction() (it keeps the top slot of the ring)
+  {const v=vAction();tbMake('wheel','vkey',v?v.icon:'wheel',v?v.name:'Wheel','C');}
   tbMake('oath','oath','oath','Oath','C');tbMake('rebuild','rebuild','rebuild','Rebuild','C');
   tbMake('fast','fast','run','Fast','C');tbMake('phase','phase','phase','Walls','C');tbMake('dial','dialcycle','dialUp','Dial','C');
   tbMake('suit','suit','shirt','Suit','C');
@@ -78,23 +76,23 @@ function tbWanted(){
   on.add('punch');on.add('boost');on.add('lock');
   if(fly){on.add('down');on.add('up');if(!P.alien)on.add('land');}else{on.add('jump');
     if(P.swim)on.add('dive');else if(!P.alien&&m==='webSwing')on.add('web');else if(!P.alien&&m==='superSpeed')on.add('run');else if(flyer)on.add('fly');}
-  for(let i=0;i<5;i++)if(TB['p'+i])on.add('p'+i);
+  for(let i=0;i<4;i++)if(TB['p'+i])on.add('p'+i);
   if(nearestInteract())on.add('use');
-  if(P.alien){on.add('revert');return on;}
-  if(hasPower('morphBand'))on.add('morph');
+  if(P.alien){on.add('wheel');return on;}
   if(heldSlot>=0||con){on.add('grow');on.add('shrink');}
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
-  if(isRing()||armorForms()||(hasTravWheel()&&!hasPower('morphBand')))on.add('wheel');
+  if(vAction())on.add('wheel');
   if(isRing()&&!con){on.add('oath');on.add('rebuild');}
   if(isSpeed()){on.add('fast');on.add('phase');on.add('dial');}
   if(!con)on.add('suit');
   return on;
 }
-const TB_ORDER_C=['wheel','morph','lock','use','revert','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit'];
+const TB_ORDER_C=['wheel','lock','use','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit'];
 function layoutTouch(force){
   if(!touchOn()||state!=='play')return;
   if(!force&&time-tbT<0.15)return;tbT=time;
+  {const v=vAction(),w=TB.wheel,sm=w&&w.b.querySelector('small');if(v&&sm&&sm.textContent!==v.name){sm.textContent=v.name;sm.className=v.name.length>5?'long':'';w.b.setAttribute('aria-label',v.name);}} // label follows vAction (Put away / Revert)
   const on=tbWanted(),W=innerWidth,H=innerHeight,k=tScale(),hand=tHand();
   const sig=[...on].join()+'|'+W+'x'+H+'|'+k+hand;if(sig===tbSig)return;tbSig=sig;
   const side=hand==='l'?safeIn('l'):safeIn('r'),sb=safeIn('b'),st=safeIn('t');
@@ -140,9 +138,9 @@ function touchAct(a,down){
   if(down&&!canAct())return;
   if(dialOpen)return;
   if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
-  else if(/^a[0-4]$/.test(a)){if(P.car)return;const i=+a[1];if(down){heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');}else{if(heldSlot===i)heldSlot=-1;abilityUp(i);}}
+  else if(/^a[0-3]$/.test(a)){if(P.car)return;const i=+a[1];if(down){heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');}else{if(heldSlot===i)heldSlot=-1;abilityUp(i);}}
   else if(a==='con'){if(down)summonConstruct();}
-  else if(a==='conpick'){if(down){if(isRing()&&ringLocked())oathBusy();else if(P.construct)dismissConstruct();else{openDial(isRing()?'construct':'armor');guideDone('wheel');}}}
+  else if(a==='vkey'){if(down)vPress();}
   else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
@@ -154,8 +152,6 @@ function touchAct(a,down){
   else if(a==='fly'){if(down){if(!flyChargeStart())toggleFlight();}else flyChargeRelease();}
   else if(a==='web'){if(down)webPress();else webRelease();}
   else if(a==='use'){if(down)interact();}
-  else if(a==='band'){if(down)bandPress();}
-  else if(a==='travdial'){if(down&&hasTravWheel()){openDial('trav');guideDone('wheel');}}
   else if(a==='fast'){if(down)toggleFastMode();}
   else if(a==='tkmore'){if(down)tkGrabMore();}
   else if(a==='suit'){if(down)suitToggle();}

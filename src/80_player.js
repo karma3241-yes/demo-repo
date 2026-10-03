@@ -5,7 +5,7 @@ const keys={};let mouseL=false,mmbLook=false,rmbLook=false,locked=false,lockFail
 const touchIn={x:0,y:0};let lookT=-9;
 const sensK=()=>0.0023*save.settings.sens;
 function look(dx,dy,k=1){P.yaw-=dx*sensK()*k;P.pitch=clamp(P.pitch+(save.settings.invertY?1:-1)*dy*sensK()*k,-1.3,1.25);lookT=time;}
-const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2,Digit4:3,Digit5:4};
+const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2,Digit4:3};
 const DIAL_CODES={Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,Digit6:5,Digit7:6};
 addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
@@ -55,7 +55,7 @@ function vHoldEnd(ts){
   if(dialOpen&&dialSel>=0)dialConfirm();
 }
 addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyV')vHoldEnd(e.timeStamp);if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
-addEventListener('blur',()=>{clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<5;i++)abilityUp(i,true);webRelease();P.charging=false;});
+addEventListener('blur',()=>{clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<4;i++)abilityUp(i,true);webRelease();P.charging=false;});
 canvas.addEventListener('mousedown',e=>{
   if(state!=='play'||touchOn())return;
   if(paused){if(!sheetOpen&&!creating)resume();return;}
@@ -83,7 +83,7 @@ document.addEventListener('pointerlockchange',()=>{const now=document.pointerLoc
 document.addEventListener('pointerlockerror',()=>lockFail());
 function setPaused(v){
   paused=v;lockPill(!v&&lockPend&&state==='play');$('pause').hidden=!v||creating;if(v)renderPortalButtons();{const on=v&&MP.online();$('pause-title').textContent=on?'Menu':'Paused';$('pause-note').hidden=!on;}if(dialOpen)closeDial();
-  if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<5;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();}
+  if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<4;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();}
 }
 function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}

@@ -244,7 +244,7 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
 .slot.alien{border-color:rgba(176,108,255,.55)}.slot.alien small{color:#c89bff}
 .slot.band{border-color:rgba(176,108,255,.55)}.slot.band .tbar{width:74px;height:4px;margin-top:3px}.bar.tbar i{background:linear-gradient(90deg,#6a2cc4,#c89bff)}
 .slot.band.bad{border-color:var(--health)}
-.slot.bandslot{border-color:rgba(176,108,255,.45)}.slot.bandslot.on{border-color:#c89bff;box-shadow:0 0 12px rgba(176,108,255,.5) inset}
+.slot.vslot{border-color:rgba(255,210,100,.6);pointer-events:auto;cursor:pointer}.slot.vslot[hidden]{display:none}.slot.vslot kbd{border-color:rgba(255,210,100,.6)}.slot.vslot.on{border-color:#c89bff;box-shadow:0 0 12px rgba(176,108,255,.5) inset}.slot.vslot.bad{border-color:var(--health)}
 .pick.special{border-color:rgba(176,108,255,.4)}.pick.special .cat{color:#c89bff}.pick.special.on{border-color:#c89bff;background:rgba(176,108,255,.14);box-shadow:0 0 0 1px #c89bff inset}
 #dial{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:radial-gradient(circle at center,rgba(40,14,70,.55),rgba(3,5,12,.75) 70%)}
 #dial-ring{position:relative;width:min(560px,92vw,92vh);aspect-ratio:1;border-radius:50%;border:2px solid rgba(176,108,255,.35);box-shadow:0 0 60px rgba(176,108,255,.25) inset}
@@ -445,7 +445,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
     <p class="pitch">Stop the crimes all over Nova Bay, or commit them. Every fight earns XP and new powers.</p>
     <div class="controls" id="menu-controls">
       <div><kbd>WASD</kbd> Move</div><div><kbd>Mouse</kbd> Look</div>
-      <div><kbd>Click</kbd> Punch</div><div><kbd>1–5</kbd> Abilities</div>
+      <div><kbd>Click</kbd> Punch</div><div><kbd>1–4</kbd> Abilities</div>
       <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Menu · <kbd>K</kbd> Skills</div>
       <div><kbd>Z</kbd> Lock on</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
     </div>

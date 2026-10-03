@@ -28,20 +28,21 @@ function feed(title,sub=''){
   hud.feed.appendChild(e);while(hud.feed.children.length>5)hud.feed.firstChild.remove();
   setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),500);},3200);
 }
-const SLOT_KEYS=['1','2','3','4','5'],SLOT_ALT=['Q','E','R','',''];
+const SLOT_KEYS=['1','2','3','4'],SLOT_ALT=['Q','E','R',''];
 let slotEls=[];
 function buildHotbar(){
   hud.hotbar.textContent='';slotEls=[];renderHeroKeys();fitMoves();if(!save.character)return;
   if(P.alien){const a=ALIENS[P.alien.id];
     a.abilities.forEach((ab,i)=>{const cd=el('i',{class:'cd'});const s=el('div',{class:'slot alien'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:ab.name}),el('small',{text:a.name}));hud.hotbar.appendChild(s);slotEls.push({alien:i,s,cd});});
-    const tb=el('i');const s=el('div',{class:'slot move band'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Revert'}),el('div',{class:'bar tbar'},tb));hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});
+    const tb=el('i');const s=el('div',{class:'slot move band vslot'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Revert'}),el('div',{class:'bar tbar'},tb));s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});
     return;}
   save.character.abilities.forEach((id,i)=>{
     const cd=el('i',{class:'cd'});const lv=el('small');
-    const s=el('div',{class:'slot'+(id==='morphBand'?' bandslot':''),'data-cat':POWERS[id].cat},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]+(id==='morphBand'?' · V':'')}),el('span',{class:'nm',text:POWERS[id].name}),lv);
+    const s=el('div',{class:'slot','data-cat':POWERS[id].cat},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:POWERS[id].name}),lv);
     if(PBAL)s.addEventListener('click',()=>{if(slotLocked(i)&&state==='play'){P.lockMsgT=-9;lockedSlotMsg(i);}});
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd,lv,i});
   });
+  {const cd=el('i',{class:'cd',hidden:true}),kb=el('kbd'),nm=el('span',{class:'nm'});const s=el('div',{class:'slot vslot',hidden:true},cd,kb,nm);s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({vs:true,s,cd,kb,nm});} // the V / B slot: filled in by the per-frame update
   for(const id of save.character.movement){
     const lv=el('small');const pre=PRESETS[id];const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':POWERS[id].key}),el('span',{class:'nm',text:pre?pre.name:POWERS[id].name}),lv);
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd:null,lv,trav:true});
@@ -381,6 +382,18 @@ function dialItems(){
 // ---- traversal styles (V wheel for the Web Runner, the Tempest and the Speedster) ----
 const TRAV_GLOW={webSwing:'#e8ecff',stormFlight:'#8fb4ff',superSpeed:'#ffd23c'};
 const hasTravWheel=()=>!!save.character&&!P.alien&&!!TRAV_STYLES[save.character.movement[0]];
+// the one key beside the 4 powers (hotbar V slot and the touch wheel button): V opens a wheel, B puts a construct away. null = no such key
+function vAction(){
+  if(!save.character)return null;
+  if(isRing())return P.construct?{key:'B',name:'Put away',icon:'ring'}:{key:'V',name:'Constructs',icon:'ring'};
+  if(hasPower('morphBand'))return {key:'V',name:P.alien?'Revert':'Morph',icon:'band'};
+  if(armorForms())return P.construct?{key:'B',name:'Put away',icon:'helmet'}:{key:'V',name:'Suit forms',icon:'helmet'};
+  if(hasTravWheel())return {key:'V',name:'Style',icon:'wheel'};
+  return null;}
+// what clicking the slot or tapping the button does: the same as the key
+function vPress(){const v=vAction();if(!v||state!=='play'||dialOpen||P.dead)return;
+  if(v.key==='B'){summonConstruct();return;}
+  if(isRing()){if(ringLocked())oathBusy();else openDial('construct');}else if(hasPower('morphBand'))bandPress();else if(armorForms())openDial('armor');else openDial('trav');}
 function setTravStyle(id,k){if(!save.settings.travStyle)save.settings.travStyle={};save.settings.travStyle[id]=k;persist();applyTravStyle(true);renderHeroKeys();}
 // puts the chosen style into effect (on picking it, on starting to play and after changing powers)
 function applyTravStyle(announce){
@@ -414,8 +427,8 @@ function closeDial(){dialOpen=false;dialEl.hidden=true;}
 const hasWheel=()=>!!save.character&&(isRing()||armorForms()||hasPower('morphBand')||hasTravWheel());
 const wheelWhat=()=>isRing()?'pick a construct':armorForms()?'pick a suit form':hasPower('morphBand')?'pick an alien':'pick how you get around';
 const GUIDE=[['move','Move around','WASD to move, mouse to look',()=>'Drag the '+(save.settings.tHand==='l'?'right':'left')+' side to move'],
-  ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>(isRing()?'Tap PICK':armorForms()?'Tap FORMS':hasPower('morphBand')?'Use the Morph Band power':'Tap WHEEL')+' to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
-  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press K','Tap the star icon'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
+  ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>'Tap the '+(vAction()||{name:'wheel'}).name.toUpperCase()+' button to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
+  ['ability','Use a power','Press 1 to 4','Tap a power button'],['skills','Open your skills','Press K','Tap the star icon'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
 function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
   for(const [k,t,kb,tc] of guideList()){const s=touchOn()?tc:kb;list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:typeof s==='function'?s():s})));}fitMoves();}

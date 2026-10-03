@@ -55,7 +55,7 @@ function renderHeroKeys(){
   else if(m)K('F','Fly · hold on the ground to charge a launch');
   if(c){H('Your powers');c.abilities.forEach((id,i)=>{const p=POWERS[id];if(!p)return;
       K(String(i+1)+(i<3?' · '+'QER'[i]:''),p.name+(PBAL&&typeof slotLocked==='function'&&slotLocked(i)?' · unlocks at LV '+KIT_LV[i]:''));});
-    K('Hold 1–5 · wheel','Size a power (up to ×30), let go to use it');}
+    K('Hold 1–4 · wheel','Size a power (up to ×30), let go to use it');}
   H('Fighting');K('Click','Punch · hold to keep swinging');K('Z','Lock on');K('G','Get in a car · help someone up');
   if(m){H(PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Your hero');
     if(m==='powerRing'){K('B','Build your construct (the last one you picked)');K('V','Construct wheel · in a construct: tap to step out, hold to switch');
@@ -63,6 +63,10 @@ function renderHeroKeys(){
     if(m==='armorFlight'){K('Forge Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
     if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');
     if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
+    if(m==='ironFlight')K('1','Metal Forms: turn to steel · tap again to change your hand · hold to turn back');
+    if(m==='bladeFlight')K('1','Blade Leap: lunge through enemies · your claws heal you');
+    if(m==='elasticFlight')K('1','Stretch Strike: grab whoever you aim at and slam them down');
+    if(m==='titanFlight')K('1','Giant Form: grow tall as a tower');
     if(hasPower('morphBand'))K('V','Morph Band: pick an alien · tap again to change back');
     if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
     if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');

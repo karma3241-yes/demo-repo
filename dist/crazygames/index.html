@@ -244,7 +244,7 @@ body.touch #bossbar{top:62px;left:calc(50% + 40px);width:min(300px,calc(100% - 2
 .slot.alien{border-color:rgba(176,108,255,.55)}.slot.alien small{color:#c89bff}
 .slot.band{border-color:rgba(176,108,255,.55)}.slot.band .tbar{width:74px;height:4px;margin-top:3px}.bar.tbar i{background:linear-gradient(90deg,#6a2cc4,#c89bff)}
 .slot.band.bad{border-color:var(--health)}
-.slot.bandslot{border-color:rgba(176,108,255,.45)}.slot.bandslot.on{border-color:#c89bff;box-shadow:0 0 12px rgba(176,108,255,.5) inset}
+.slot.vslot{border-color:rgba(255,210,100,.6);pointer-events:auto;cursor:pointer}.slot.vslot[hidden]{display:none}.slot.vslot kbd{border-color:rgba(255,210,100,.6)}.slot.vslot.on{border-color:#c89bff;box-shadow:0 0 12px rgba(176,108,255,.5) inset}.slot.vslot.bad{border-color:var(--health)}
 .pick.special{border-color:rgba(176,108,255,.4)}.pick.special .cat{color:#c89bff}.pick.special.on{border-color:#c89bff;background:rgba(176,108,255,.14);box-shadow:0 0 0 1px #c89bff inset}
 #dial{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:radial-gradient(circle at center,rgba(40,14,70,.55),rgba(3,5,12,.75) 70%)}
 #dial-ring{position:relative;width:min(560px,92vw,92vh);aspect-ratio:1;border-radius:50%;border:2px solid rgba(176,108,255,.35);box-shadow:0 0 60px rgba(176,108,255,.25) inset}
@@ -445,7 +445,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
     <p class="pitch">Stop the crimes all over Nova Bay, or commit them. Every fight earns XP and new powers.</p>
     <div class="controls" id="menu-controls">
       <div><kbd>WASD</kbd> Move</div><div><kbd>Mouse</kbd> Look</div>
-      <div><kbd>Click</kbd> Punch</div><div><kbd>1–5</kbd> Abilities</div>
+      <div><kbd>Click</kbd> Punch</div><div><kbd>1–4</kbd> Abilities</div>
       <div><kbd>Space</kbd> Jump, hold for super jump</div><div><kbd>Tab</kbd> Menu · <kbd>K</kbd> Skills</div>
       <div><kbd>Z</kbd> Lock on</div><div><kbd>G</kbd> Cars · help people</div><div><kbd>L</kbd> Lock / unlock mouse</div><div><kbd>Esc</kbd> Pause</div>
     </div>
@@ -4190,7 +4190,7 @@ function renderHeroKeys(){
   else if(m)K('F','Fly · hold on the ground to charge a launch');
   if(c){H('Your powers');c.abilities.forEach((id,i)=>{const p=POWERS[id];if(!p)return;
       K(String(i+1)+(i<3?' · '+'QER'[i]:''),p.name+(PBAL&&typeof slotLocked==='function'&&slotLocked(i)?' · unlocks at LV '+KIT_LV[i]:''));});
-    K('Hold 1–5 · wheel','Size a power (up to ×30), let go to use it');}
+    K('Hold 1–4 · wheel','Size a power (up to ×30), let go to use it');}
   H('Fighting');K('Click','Punch · hold to keep swinging');K('Z','Lock on');K('G','Get in a car · help someone up');
   if(m){H(PRESETS[m]?PRESETS[m].name:POWERS[m]?POWERS[m].name:'Your hero');
     if(m==='powerRing'){K('B','Build your construct (the last one you picked)');K('V','Construct wheel · in a construct: tap to step out, hold to switch');
@@ -4198,6 +4198,10 @@ function renderHeroKeys(){
     if(m==='armorFlight'){K('Forge Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
     if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');
     if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
+    if(m==='ironFlight')K('1','Metal Forms: turn to steel · tap again to change your hand · hold to turn back');
+    if(m==='bladeFlight')K('1','Blade Leap: lunge through enemies · your claws heal you');
+    if(m==='elasticFlight')K('1','Stretch Strike: grab whoever you aim at and slam them down');
+    if(m==='titanFlight')K('1','Giant Form: grow tall as a tower');
     if(hasPower('morphBand'))K('V','Morph Band: pick an alien · tap again to change back');
     if(hasPower('telekinesis'))K('Right click · Click','While lifting: grab more · slam down');
     if(hasPower('titanGrowth'))K('G','As a giant: pick up and throw cars');
@@ -6495,7 +6499,7 @@ Portal.init();
 // ================================================================
 // Everything here is for the CrazyGames build (PBAL); the website and claude.ai never lock a key or show an ad button.
 // Rewarded ads are always optional: nothing is out of reach without them, they only get you there sooner.
-const KIT_LV=[1,2,4,6,9];                 // the level each power key (1-5) opens at
+const KIT_LV=[1,2,3,5];                   // the level each power key (1-4) opens at
 const TRIAL_MIN=10;
 const slotLocked=i=>PBAL&&save.level<KIT_LV[i]&&!trialOn('key'+i);
 // The next key to open shows greyed out on the hotbar (and as a grey touch button) with its level; the ones after it stay
@@ -6897,20 +6901,21 @@ function feed(title,sub=''){
   hud.feed.appendChild(e);while(hud.feed.children.length>5)hud.feed.firstChild.remove();
   setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),500);},3200);
 }
-const SLOT_KEYS=['1','2','3','4','5'],SLOT_ALT=['Q','E','R','',''];
+const SLOT_KEYS=['1','2','3','4'],SLOT_ALT=['Q','E','R',''];
 let slotEls=[];
 function buildHotbar(){
   hud.hotbar.textContent='';slotEls=[];renderHeroKeys();fitMoves();if(!save.character)return;
   if(P.alien){const a=ALIENS[P.alien.id];
     a.abilities.forEach((ab,i)=>{const cd=el('i',{class:'cd'});const s=el('div',{class:'slot alien'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:ab.name}),el('small',{text:a.name}));hud.hotbar.appendChild(s);slotEls.push({alien:i,s,cd});});
-    const tb=el('i');const s=el('div',{class:'slot move band'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Revert'}),el('div',{class:'bar tbar'},tb));hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});
+    const tb=el('i');const s=el('div',{class:'slot move band vslot'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Revert'}),el('div',{class:'bar tbar'},tb));s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});
     return;}
   save.character.abilities.forEach((id,i)=>{
     const cd=el('i',{class:'cd'});const lv=el('small');
-    const s=el('div',{class:'slot'+(id==='morphBand'?' bandslot':''),'data-cat':POWERS[id].cat},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]+(id==='morphBand'?' · V':'')}),el('span',{class:'nm',text:POWERS[id].name}),lv);
+    const s=el('div',{class:'slot','data-cat':POWERS[id].cat},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:POWERS[id].name}),lv);
     if(PBAL)s.addEventListener('click',()=>{if(slotLocked(i)&&state==='play'){P.lockMsgT=-9;lockedSlotMsg(i);}});
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd,lv,i});
   });
+  {const cd=el('i',{class:'cd',hidden:true}),kb=el('kbd'),nm=el('span',{class:'nm'});const s=el('div',{class:'slot vslot',hidden:true},cd,kb,nm);s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({vs:true,s,cd,kb,nm});} // the V / B slot: filled in by the per-frame update
   for(const id of save.character.movement){
     const lv=el('small');const pre=PRESETS[id];const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':POWERS[id].key}),el('span',{class:'nm',text:pre?pre.name:POWERS[id].name}),lv);
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd:null,lv,trav:true});
@@ -7250,6 +7255,18 @@ function dialItems(){
 // ---- traversal styles (V wheel for the Web Runner, the Tempest and the Speedster) ----
 const TRAV_GLOW={webSwing:'#e8ecff',stormFlight:'#8fb4ff',superSpeed:'#ffd23c'};
 const hasTravWheel=()=>!!save.character&&!P.alien&&!!TRAV_STYLES[save.character.movement[0]];
+// the one key beside the 4 powers (hotbar V slot and the touch wheel button): V opens a wheel, B puts a construct away. null = no such key
+function vAction(){
+  if(!save.character)return null;
+  if(isRing())return P.construct?{key:'B',name:'Put away',icon:'ring'}:{key:'V',name:'Constructs',icon:'ring'};
+  if(hasPower('morphBand'))return {key:'V',name:P.alien?'Revert':'Morph',icon:'band'};
+  if(armorForms())return P.construct?{key:'B',name:'Put away',icon:'helmet'}:{key:'V',name:'Suit forms',icon:'helmet'};
+  if(hasTravWheel())return {key:'V',name:'Style',icon:'wheel'};
+  return null;}
+// what clicking the slot or tapping the button does: the same as the key
+function vPress(){const v=vAction();if(!v||state!=='play'||dialOpen||P.dead)return;
+  if(v.key==='B'){summonConstruct();return;}
+  if(isRing()){if(ringLocked())oathBusy();else openDial('construct');}else if(hasPower('morphBand'))bandPress();else if(armorForms())openDial('armor');else openDial('trav');}
 function setTravStyle(id,k){if(!save.settings.travStyle)save.settings.travStyle={};save.settings.travStyle[id]=k;persist();applyTravStyle(true);renderHeroKeys();}
 // puts the chosen style into effect (on picking it, on starting to play and after changing powers)
 function applyTravStyle(announce){
@@ -7283,8 +7300,8 @@ function closeDial(){dialOpen=false;dialEl.hidden=true;}
 const hasWheel=()=>!!save.character&&(isRing()||armorForms()||hasPower('morphBand')||hasTravWheel());
 const wheelWhat=()=>isRing()?'pick a construct':armorForms()?'pick a suit form':hasPower('morphBand')?'pick an alien':'pick how you get around';
 const GUIDE=[['move','Move around','WASD to move, mouse to look',()=>'Drag the '+(save.settings.tHand==='l'?'right':'left')+' side to move'],
-  ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>(isRing()?'Tap PICK':armorForms()?'Tap FORMS':hasPower('morphBand')?'Use the Morph Band power':'Tap WHEEL')+' to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
-  ['ability','Use a power','Press 1 to 5','Tap a power button'],['skills','Open your skills','Press K','Tap the star icon'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
+  ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>'Tap the '+(vAction()||{name:'wheel'}).name.toUpperCase()+' button to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
+  ['ability','Use a power','Press 1 to 4','Tap a power button'],['skills','Open your skills','Press K','Tap the star icon'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
 function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
   for(const [k,t,kb,tc] of guideList()){const s=touchOn()?tc:kb;list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:typeof s==='function'?s():s})));}fitMoves();}
@@ -7304,7 +7321,7 @@ const keys={};let mouseL=false,mmbLook=false,rmbLook=false,locked=false,lockFail
 const touchIn={x:0,y:0};let lookT=-9;
 const sensK=()=>0.0023*save.settings.sens;
 function look(dx,dy,k=1){P.yaw-=dx*sensK()*k;P.pitch=clamp(P.pitch+(save.settings.invertY?1:-1)*dy*sensK()*k,-1.3,1.25);lookT=time;}
-const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2,Digit4:3,Digit5:4};
+const SLOT_CODES={Digit1:0,KeyQ:0,Digit2:1,KeyE:1,Digit3:2,KeyR:2,Digit4:3};
 const DIAL_CODES={Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,Digit6:5,Digit7:6};
 addEventListener('keydown',e=>{
   const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;
@@ -7354,7 +7371,7 @@ function vHoldEnd(ts){
   if(dialOpen&&dialSel>=0)dialConfirm();
 }
 addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyV')vHoldEnd(e.timeStamp);if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
-addEventListener('blur',()=>{clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<5;i++)abilityUp(i,true);webRelease();P.charging=false;});
+addEventListener('blur',()=>{clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<4;i++)abilityUp(i,true);webRelease();P.charging=false;});
 canvas.addEventListener('mousedown',e=>{
   if(state!=='play'||touchOn())return;
   if(paused){if(!sheetOpen&&!creating)resume();return;}
@@ -7382,7 +7399,7 @@ document.addEventListener('pointerlockchange',()=>{const now=document.pointerLoc
 document.addEventListener('pointerlockerror',()=>lockFail());
 function setPaused(v){
   paused=v;lockPill(!v&&lockPend&&state==='play');$('pause').hidden=!v||creating;if(v)renderPortalButtons();{const on=v&&MP.online();$('pause-title').textContent=on?'Menu':'Paused';$('pause-note').hidden=!on;}if(dialOpen)closeDial();
-  if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<5;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();}
+  if(v){mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<4;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);if(locked)document.exitPointerLock();persist();}
 }
 function resume(){if(sheetOpen)closeSheet();setPaused(false);if(save.settings.autoLock&&!touchOn())requestLock();}
 function closeCreator(){creating=false;draft=null;creator.hidden=true;applyLook();if(state==='play')setPaused(true);else $('menu').hidden=false;}
@@ -7656,7 +7673,7 @@ function updatePlayer(dt){
 // free to look. The buttons sit in rings around PUNCH in the bottom-right corner, like Roblox:
 //   ring A (closest): JUMP, your traversal (FLY, WEB, RUN, DIVE), BOOST (hold = Shift) and LOCK. While flying JUMP turns into UP
 //                     and FLY into LAND (same spot), DOWN takes LOCK's slot and LOCK moves to the outer ring.
-//   ring B: your five powers (the next locked one greyed out with its level), or an alien's powers.
+//   ring B: your four powers (the next locked one greyed out with its level), or an alien's powers.
 //   ring C (and D when it fills up): buttons that come and go with what you're doing: the Build button (ring / suit, always on top), USE (get in a car, help
 //                     someone up, eat...), the wheel (V on a keyboard), OATH, GROW/SHRINK while you hold a power or
 //                     sit in a construct, and so on.
@@ -7710,12 +7727,10 @@ function buildTouchButtons(){
     const b=tbMake('p'+i,'a'+i,powerIcon(id),lk?'LV '+KIT_LV[i]:SHORT[id]||POWERS[id].name.split(' ')[0],'B','ab'+(lk?' lockd':''));b.prepend(el('i',{class:'cd',hidden:true}));});
   // ring C, in the order they should sit (nearest the top first)
   tbMake('land','fly','land','Land','A1','trav');tbMake('use','use','hand','Use','C','use');
-  tbMake('revert','band','band','Revert','C','dn2');tbMake('morph','band','band','Morph','C'); // the Shifter's Morph Band is on V, not on a key (Session G2 reworks this button)
   tbMake('grow','grow','grow','Grow','C');tbMake('shrink','shrink','shrink','Shrink','C');
   tbMake('alt','alt','star','Alt','C');tbMake('cx','cx','burst','Special','C');tbMake('tkmore','tkmore','orbit','Grab+','C');
-  // one button for the ring / suit: tap to pick and build, tap again to put it away (it keeps the top slot of the ring)
-  if(isRing()||armorForms())tbMake('wheel','conpick',isRing()?'ring':'helmet',P.construct?'Put away':isRing()?'Build':'Form','C');
-  else tbMake('wheel','travdial','wheel','Style','C');
+  // the V button: one wheel button for every hero that has a V (or B) action; its label follows vAction() (it keeps the top slot of the ring)
+  {const v=vAction();tbMake('wheel','vkey',v?v.icon:'wheel',v?v.name:'Wheel','C');}
   tbMake('oath','oath','oath','Oath','C');tbMake('rebuild','rebuild','rebuild','Rebuild','C');
   tbMake('fast','fast','run','Fast','C');tbMake('phase','phase','phase','Walls','C');tbMake('dial','dialcycle','dialUp','Dial','C');
   tbMake('suit','suit','shirt','Suit','C');
@@ -7729,23 +7744,23 @@ function tbWanted(){
   on.add('punch');on.add('boost');on.add('lock');
   if(fly){on.add('down');on.add('up');if(!P.alien)on.add('land');}else{on.add('jump');
     if(P.swim)on.add('dive');else if(!P.alien&&m==='webSwing')on.add('web');else if(!P.alien&&m==='superSpeed')on.add('run');else if(flyer)on.add('fly');}
-  for(let i=0;i<5;i++)if(TB['p'+i])on.add('p'+i);
+  for(let i=0;i<4;i++)if(TB['p'+i])on.add('p'+i);
   if(nearestInteract())on.add('use');
-  if(P.alien){on.add('revert');return on;}
-  if(hasPower('morphBand'))on.add('morph');
+  if(P.alien){on.add('wheel');return on;}
   if(heldSlot>=0||con){on.add('grow');on.add('shrink');}
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
-  if(isRing()||armorForms()||(hasTravWheel()&&!hasPower('morphBand')))on.add('wheel');
+  if(vAction())on.add('wheel');
   if(isRing()&&!con){on.add('oath');on.add('rebuild');}
   if(isSpeed()){on.add('fast');on.add('phase');on.add('dial');}
   if(!con)on.add('suit');
   return on;
 }
-const TB_ORDER_C=['wheel','morph','lock','use','revert','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit'];
+const TB_ORDER_C=['wheel','lock','use','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit'];
 function layoutTouch(force){
   if(!touchOn()||state!=='play')return;
   if(!force&&time-tbT<0.15)return;tbT=time;
+  {const v=vAction(),w=TB.wheel,sm=w&&w.b.querySelector('small');if(v&&sm&&sm.textContent!==v.name){sm.textContent=v.name;sm.className=v.name.length>5?'long':'';w.b.setAttribute('aria-label',v.name);}} // label follows vAction (Put away / Revert)
   const on=tbWanted(),W=innerWidth,H=innerHeight,k=tScale(),hand=tHand();
   const sig=[...on].join()+'|'+W+'x'+H+'|'+k+hand;if(sig===tbSig)return;tbSig=sig;
   const side=hand==='l'?safeIn('l'):safeIn('r'),sb=safeIn('b'),st=safeIn('t');
@@ -7791,9 +7806,9 @@ function touchAct(a,down){
   if(down&&!canAct())return;
   if(dialOpen)return;
   if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
-  else if(/^a[0-4]$/.test(a)){if(P.car)return;const i=+a[1];if(down){heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');}else{if(heldSlot===i)heldSlot=-1;abilityUp(i);}}
+  else if(/^a[0-3]$/.test(a)){if(P.car)return;const i=+a[1];if(down){heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');}else{if(heldSlot===i)heldSlot=-1;abilityUp(i);}}
   else if(a==='con'){if(down)summonConstruct();}
-  else if(a==='conpick'){if(down){if(isRing()&&ringLocked())oathBusy();else if(P.construct)dismissConstruct();else{openDial(isRing()?'construct':'armor');guideDone('wheel');}}}
+  else if(a==='vkey'){if(down)vPress();}
   else if(a==='oath'){if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
@@ -7805,8 +7820,6 @@ function touchAct(a,down){
   else if(a==='fly'){if(down){if(!flyChargeStart())toggleFlight();}else flyChargeRelease();}
   else if(a==='web'){if(down)webPress();else webRelease();}
   else if(a==='use'){if(down)interact();}
-  else if(a==='band'){if(down)bandPress();}
-  else if(a==='travdial'){if(down&&hasTravWheel()){openDial('trav');guideDone('wheel');}}
   else if(a==='fast'){if(down)toggleFastMode();}
   else if(a==='tkmore'){if(down)tkGrabMore();}
   else if(a==='suit'){if(down)suitToggle();}
@@ -8362,14 +8375,15 @@ function updateHud(dt){
   const sp=P.vel.len();
   setText(hud.mode,'mode',P.dead?'Down':inSpace()?spaceMode():P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.phasing?'Phasing':timeStopT>0?'Time stopped':frozenT>0?'Frozen in time':P.speeding?'Super speed x'+Math.min(P.dial,dialMax()):isSpeed()?'On foot · dial x'+Math.min(P.dial,dialMax())+(P.fastMode?' · fast mode':''):P.charging?'Charging':P.swim?(P.pos.y<SWIM_Y-1?'Diving':'Swimming'):P.wade?'Wading':P.grounded?'On foot':'Airborne');
   for(const s of slotEls){
+    if(s.vs){const v=vAction();if(s.s.hidden!==!v)s.s.hidden=!v;if(!v)continue;const k=v.key+v.name;if(s.vk!==k){s.vk=k;s.kb.textContent=touchOn()?'':v.key;s.nm.textContent=v.name;}
+      const mb=v.name==='Morph'||v.name==='Revert',f=v.name==='Morph'&&band.cd>0?band.cd/pstat('morphBand','recharge'):0,c=Math.round(clamp(f,0,1)*100);if(s.cdv!==c){s.cdv=c;s.cd.style.setProperty('--p',c+'%');s.cd.hidden=c<=0;}
+      s.s.classList.toggle('on',mb&&(!!P.alien||dialOpen));s.s.classList.toggle('bad',mb&&PS.morphBand.flash>0);continue;}
     if(s.bandTimer){setW(s.bandTimer,'bt',P.alien?P.alien.t/P.alien.max:0);s.s.classList.toggle('bad',!!P.alien&&P.alien.t<5);continue;}
     if(s.alien!==undefined){if(!P.alien)continue;const ab=ALIENS[P.alien.id].abilities[s.alien],f=ab.cd?P.alien.cds[s.alien]/ab.cd:0,v=Math.round(f*100);
       if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}
       s.s.classList.toggle('on',(ab.channel&&P.alien.channel)||(ab.id==='phase'&&P.alien.phase>0)||(ab.id==='veil'&&P.invisible>0)||(ab.id==='crystalArmor'&&P.alien.armor>0));continue;}
     if(s.i!=null&&PBAL){const L=slotLocked(s.i);s.s.classList.toggle('locked',L);s.s.classList.toggle('next',L&&s.i===nextLockedSlot());if(L){const t='Unlocks at LV '+KIT_LV[s.i];if(s.lvt!==t){s.lvt=t;s.lv.textContent=t;}continue;}}
     const st=PS[s.id],c=POWERS[s.id];
-    if(s.id==='morphBand'){s.s.classList.toggle('on',!!P.alien||dialOpen);s.s.classList.toggle('bad',st.flash>0);const f=band.cd>0?band.cd/pstat('morphBand','recharge'):0,v=Math.round(clamp(f,0,1)*100);
-      if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}const lv='LV '+powerLevel(s.id);if(s.lvt!==lv){s.lvt=lv;s.lv.textContent=lv;}continue;}
     const active=st.holding||((s.id==='metalSkin'||s.id==='metalForms')&&P.metal)||(s.id==='energyShield'&&P.shieldOn)||(s.id==='telekinesis'&&!!P.tk)||(s.id==='flight'&&P.flying)||(s.trav&&P.flying)||(s.id==='ringShield'&&P.ringShield)||(s.id==='invisibility'&&P.cloak)||(s.id==='slowTime'&&P.slowOn)||(s.id==='superSpeed'&&P.speeding)||(s.id==='webSwing'&&!!P.web)||(s.id==='wallClimb'&&!!P.wall);
     s.s.classList.toggle('on',active);s.s.classList.toggle('bad',st.flash>0);s.s.classList.toggle('dim',meterBlocks(s.id));
     if(s.cd){const f=c.cooldown?st.cd/pstat(s.id,'cooldown'):0;const v=Math.round(f*100);if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}}

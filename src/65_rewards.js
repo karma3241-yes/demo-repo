@@ -3,7 +3,7 @@
 // ================================================================
 // Everything here is for the CrazyGames build (PBAL); the website and claude.ai never lock a key or show an ad button.
 // Rewarded ads are always optional: nothing is out of reach without them, they only get you there sooner.
-const KIT_LV=[1,2,4,6,9];                 // the level each power key (1-5) opens at
+const KIT_LV=[1,2,3,5];                   // the level each power key (1-4) opens at
 const TRIAL_MIN=10;
 const slotLocked=i=>PBAL&&save.level<KIT_LV[i]&&!trialOn('key'+i);
 // The next key to open shows greyed out on the hotbar (and as a grey touch button) with its level; the ones after it stay
