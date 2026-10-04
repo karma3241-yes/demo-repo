@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Skyline Guardian</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +16,7 @@
   --display:"Bungee", Impact, "Arial Black", system-ui, sans-serif;--hud:"Chakra Petch", "Segoe UI", system-ui, sans-serif;
 }
 [hidden]{display:none!important}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--hud);-webkit-user-select:none;user-select:none}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--hud);-webkit-user-select:none;user-select:none;touch-action:pan-x pan-y} /* no pinch or double-tap zoom anywhere (scrolling sheets still pan) */
 #gl{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
 .panel{background:var(--panel);border:1px solid var(--edge);border-radius:6px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .bar{position:relative;height:8px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
@@ -233,8 +233,10 @@ body.touch #keys,body.touch #prompt,body.touch #clock,body.touch #mode{display:n
 body.touch .hud-tr{top:8px;right:auto;left:50%;transform:translateX(-50%);background:rgba(4,8,18,.55);padding:3px 8px;text-align:center}body.touch .hud-tr:has(#online:empty){display:none}
 body.touch .hud-tl{top:calc(10px + var(--safe-t));left:calc(10px + var(--safe-l));padding:7px 9px;min-width:0;width:176px;box-sizing:border-box;gap:5px}
 body.touch .stats{gap:2px 8px;font-size:10px;letter-spacing:.05em}
-body.touch .hud-bc{top:calc(108px + var(--safe-t));bottom:auto;left:calc(10px + var(--safe-l));transform:none;width:176px;justify-items:stretch}
-body.touch .meters{grid-template-columns:1fr;gap:6px;padding:7px 9px}
+/* touch: health and energy are two thin lines at the bottom centre (between the stick and the buttons), the label above each */
+body.touch .hud-bc{top:auto;bottom:calc(10px + var(--safe-b));left:50%;transform:translateX(-50%);width:min(230px,calc(100% - 520px));justify-items:stretch;gap:4px}
+body.touch .meters{grid-template-columns:1fr;gap:5px;padding:0;background:none;border:0;border-radius:0;backdrop-filter:none;-webkit-backdrop-filter:none}
+body.touch .meter{gap:2px}body.touch .meter span{font-size:9px;letter-spacing:.18em;text-shadow:0 0 4px rgba(0,0,0,.9)}body.touch .meter .bar{height:4px}
 body.touch .hotbar{display:none}
 body.touch #map{top:calc(192px + var(--safe-t));bottom:auto;left:calc(10px + var(--safe-l));width:104px;height:104px}
 body.touch #toasts{top:max(26%,134px);left:45%;width:clamp(220px,calc(100% - 540px),320px)}
@@ -283,7 +285,7 @@ body.touch #oath{top:calc(52px + var(--safe-t));bottom:auto;width:min(560px,calc
 body.touch #oath.mini{left:50%;right:auto;transform:translateX(-50%);text-align:center;width:clamp(260px,calc(100% - 400px),440px);padding:8px 10px;background:rgba(4,8,18,.78);border:1px solid rgba(93,255,134,.4);border-radius:12px}body.touch #oath.mini p{color:rgba(233,243,255,.75)}body.touch #oath-next{min-height:40px;padding:0 16px}body.touch #oath input{min-height:40px}
 body.touch #oath{top:calc(var(--vv-top,0px) + 6px + var(--safe-t));max-height:calc(var(--vv-h,100vh) - 12px);overflow:auto}body.touch #oath.kb{padding:6px 10px}body.touch #oath.kb h3,body.touch #oath.kb small{display:none}body.touch #oath.kb p{font-size:12px;margin-bottom:4px;line-height:1.3}body.touch #oath.kb input{min-height:34px;padding:6px 10px}
 /* left-handed touch layout: the buttons go bottom-left, so the HUD column, icon bar and pause swap to the right */
-body.touch.lefty .hud-tl,body.touch.lefty .hud-bc,body.touch.lefty #map,body.touch.lefty #guide,body.touch.lefty #growtut{left:auto;right:calc(10px + var(--safe-r))}
+body.touch.lefty .hud-tl,body.touch.lefty #map,body.touch.lefty #guide,body.touch.lefty #growtut{left:auto;right:calc(10px + var(--safe-r))}
 body.touch.lefty #hudbar{right:auto;left:calc(62px + var(--safe-l));justify-content:flex-start}body.touch.lefty #tpause{right:auto;left:calc(10px + var(--safe-l))}
 body.touch.lefty #toasts{left:55%}body.touch.lefty #dial-x{right:auto;left:calc(12px + var(--safe-l))}
 #dial-x{display:none}body.touch #dial-x{display:block;position:absolute;right:calc(12px + var(--safe-r));top:calc(10px + var(--safe-t));z-index:2}body.touch #dial.all #dial-ring{width:min(calc(100% - 96px),960px);justify-self:start}
@@ -339,10 +341,9 @@ body.touch #growtut:not([hidden])~#guide{display:none}
 /* starter goal pill: desktop sits under the icon bar (top is set from script); touch takes Getting started's place in the left column */
 #goal{position:absolute;left:16px;top:130px;max-width:330px;box-sizing:border-box;padding:6px 10px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;font-size:12px;line-height:1.3;border-color:rgba(255,201,60,.45)}
 #goal b{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}#goal em{font-style:normal;font-size:11px;font-weight:700;color:var(--gold)}#goal em:empty{display:none}
-body.touch #goal{left:calc(10px + var(--safe-l));top:calc(310px + var(--safe-t))!important;width:176px;max-width:none;padding:5px 8px;font-size:11px}
+body.touch #goal{left:calc(10px + var(--safe-l));width:176px;max-width:none;padding:5px 8px;font-size:11px}
 body.touch.lefty #goal{left:auto;right:calc(10px + var(--safe-r))}
 body.touch #growtut:not([hidden])~#goal{display:none}
-@media (max-height:520px){body.touch #goal{top:calc(186px + var(--safe-t))!important}}
 #hudbar{position:absolute;left:16px;top:122px;display:flex;flex-wrap:wrap;gap:6px;max-width:330px;pointer-events:none}
 .hbtn{pointer-events:auto;position:relative;width:40px;height:40px;padding:0;display:grid;place-items:center;color:var(--ink);background:var(--panel);border:1px solid var(--edge);border-radius:10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;transition:border-color .15s,background .15s}
 .hbtn:hover{background:rgba(79,216,255,.16);border-color:var(--energy)}.hbtn:focus-visible{outline:2px solid var(--energy);outline-offset:2px}
@@ -352,6 +353,9 @@ body.touch #growtut:not([hidden])~#goal{display:none}
 .hbtn .dot{position:absolute;right:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);display:none}.hbtn.badge .dot{display:block}
 .hbtn:hover::after{content:attr(data-tip);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);white-space:nowrap;padding:4px 8px;font:600 12px var(--hud);color:var(--ink);background:rgba(4,8,18,.92);border:1px solid var(--edge);border-radius:6px;pointer-events:none;z-index:3}
 #hb-xp{color:var(--gold)}#hb-refill{color:#7dffb0}#hb-trials{color:#c89bff}#hb-cos{color:#ff9bd2}
+/* the arrow folds the icon row away (toward the pause button on touch, toward the left edge on desktop) */
+#hb-fold{width:26px;height:40px;border-radius:8px}#hb-fold .ico{width:16px;height:16px;transition:transform .2s;transform:rotate(180deg)}#hudbar.folded #hb-fold .ico{transform:none}body.touch #hb-fold .ico{transform:none}body.touch #hudbar.folded #hb-fold .ico{transform:rotate(180deg)}
+#hudbar.folded .hbtn:not(#hb-fold){display:none}
 body.touch #hudbar{top:calc(8px + var(--safe-t))!important;left:auto;right:calc(62px + var(--safe-r));max-width:calc(100% - 290px);justify-content:flex-end}body.touch .hbtn{width:40px;height:40px}body.touch .hbtn kbd,body.touch .hbtn.kbm{display:none}
 .ico{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pick .pico{width:28px;height:28px;margin-bottom:2px}
@@ -2822,7 +2826,7 @@ function lockToggle(){
 function updateLock(dt){
   if(lockT&&(!lockValid(lockT)||P.car||P.dead)){const was=lockT;lockT=null;
     const beaten=!was.alive||was.downed>0||(was.kind==='remote'&&(was.flags&FLAG.dead));
-    if(beaten&&!P.car&&!P.dead){lockT=nextLock(was);if(lockT)SFX.tone('sine',500,900,0.08,0.05);}}
+    if(beaten&&!P.car&&!P.dead){lockT=was.kind==='korb'?kathanaPickAny():nextLock(was);if(lockT)SFX.tone('sine',500,900,0.08,0.05);}}
   if(!lockT)return;
   const c=center(lockT),dx=c.x-P.pos.x,dy=c.y-(P.pos.y+1.8),dz=c.z-P.pos.z,h=Math.hypot(dx,dz)||1;
   const wantYaw=Math.atan2(-dx,-dz),wantPitch=clamp(Math.atan2(dy,h)-0.12,-1.1,0.9),k=damp(time-lookT<0.25?3:9,dt);
@@ -7353,6 +7357,7 @@ const GLYPHS={
   dialUp:'<path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4-5"/><path d="M17 4h4M19 2v4"/>',
   dialDn:'<path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l-4-5"/><path d="M17 4h4"/>',
   steps:'<path d="M3 20h5v-5h5v-5h5V5h3"/><path d="M3 20h18"/>',
+  expand:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',shrink:'<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>',chev:'<path d="M9 6l6 6-6 6"/>',
   trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8M9.5 18h5"/>',
   x2:'<path d="M4 8l6 8M10 8l-6 8"/><path d="M13.5 9.5a3 3 0 0 1 6 0c0 2.5-6 4-6 6.5h6"/>',
   refill:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M11 9.5v5M8.5 12h5"/>',
@@ -8439,7 +8444,8 @@ function kFightStart(){
   if(KA.orbs.length!==4)kOrbsMake();kSyncOrbs();
   KA.fight=true;KA.atk=null;KA.cd=2.2;kFly(12);
   objective('Shatter the four orbs · 4 left');
-  toast('Kathana, the Seer of All','Her body cannot be hurt. Shatter the four orbs · '+(touchOn()?'Attack':'Click')+' fires the Solar Lance · Z locks on','red');
+  toast('Kathana, the Seer of All','Her body cannot be hurt. Shatter the four orbs · '+(touchOn()?'Attack':'Click')+' fires the Solar Lance','red');
+  later(1.3,()=>{if(KA.fight&&inVoid())toast('Lock onto the orbs',touchOn()?'Tap the Lock button, tap again for the next orb':'Press Z (or the Lock button) to lock on, Z again for the next orb','gold');});
 }
 // the boss bar (99_main.js updateHud): the four orbs' health together. true = I drew it
 function kathanaBar(){
@@ -9175,6 +9181,7 @@ function pfPress(){
   if(!KQ.on||KQ.phase!=='mash')return;KQ.meter=Math.min(1,KQ.meter+0.085);KQ.n++;
   SFX.tone('square',420+KQ.meter*800,520+KQ.meter*900,0.06,0.05);
   const e=qteEl();e.classList.remove('hit');void e.offsetWidth;e.classList.add('hit');
+  if(KQ.meter>=1){$('q-f').style.width='100%';pfQteWin();} // win on the press: qteTick decays the meter first, so it would sit at 99%
 }
 addEventListener('keydown',e=>{if(KQ.on&&KQ.phase==='mash'&&e.code==='Space'){e.preventDefault();if(!e.repeat)pfPress();}},true);
 addEventListener('pointerdown',e=>{if(KQ.on&&KQ.phase==='mash')pfPress();},true);
@@ -9600,6 +9607,7 @@ function invSwPress(){
   const W=INV.sw;if(!W||W.ph!=='mash')return;
   W.meter=Math.min(1,W.meter+0.055);W.cb+=0.02;W.pulse=1;W.n++;SFX.tone('square',420+W.meter*800,520+W.meter*900,0.06,0.05);
   const e=qteEl();e.classList.remove('hit');void e.offsetWidth;e.classList.add('hit');
+  if(W.meter>=1)invSwBurst(); // burst on the press itself, before the per-frame decay can drop it under 1
 }
 addEventListener('keydown',e=>{if(INV.sw&&INV.sw.ph==='mash'&&e.code==='Space'){e.preventDefault();if(!e.repeat)invSwPress();}},true);
 addEventListener('pointerdown',e=>{if(INV.sw&&INV.sw.ph==='mash')invSwPress();},true);
@@ -10951,8 +10959,17 @@ function sovereignWin(){ // test hook: skip to the ending
 // and shrinks to fit (folding "Getting started" down to its next step if it has to), so it never needs scrolling.
 // The leaderboard sits under the icons on the left (the full board opens from it, the main menu or the pause menu).
 // The CrazyGames build has no leaderboard at all: the shared board lives on claude.ai, and pointing players there is cross-promotion.
+// fullscreen (phones): the Fullscreen API where the page may use it (not in an iframe without allow=fullscreen, not on iPhone Safari)
+const fsOk=()=>!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+const fsOn=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+function fsToggle(){
+  try{if(fsOn()){const x=document.exitFullscreen||document.webkitExitFullscreen;x&&x.call(document);}
+    else{const d=document.documentElement,r=d.requestFullscreen||d.webkitRequestFullscreen;r&&Promise.resolve(r.call(d)).catch(()=>{});}}catch(e){}
+}
+let hudFold=false; // the icon row folded away (the arrow next to it); kept for the session
 const rewardsLater=()=>{const st=save.stats||{};return BASIC_LAUNCH||!(st.crimesStopped||st.crimesCommitted||save.level>1);};
 const HUDBAR=[
+  {id:'fs',glyph:'expand',key:'',code:'',tip:()=>fsOn()?'Leave fullscreen':'Fullscreen',act:()=>fsToggle(),on:()=>fsOn(),hide:()=>!fsOk()||!touchOn(),touch:true},
   {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
   {id:'powers',glyph:'swap',key:'J',code:'KeyJ',tip:()=>'Change powers'+(save.rechoiceAt?'':' · free the first time'),act:()=>{if(sheetOpen)closeSheet();tryRechoose();},pulse:()=>!!save.guide.done&&!save.guide.swap},
@@ -10972,7 +10989,7 @@ const HUDBAR=[
   {id:'trials',glyph:'unlock',key:',',code:'Comma',portal:true,tip:'Try locked powers',act:()=>sheetToggle('trials'),hide:()=>rewardsLater(),off:()=>!Portal.ads(),on:()=>sheetOpen==='trials'},
   {id:'cos',glyph:'sparkle',key:'.',code:'Period',portal:true,tip:'Cosmetics',act:()=>sheetToggle('cos'),hide:()=>rewardsLater(),off:()=>!Portal.ads(),on:()=>sheetOpen==='cos'},
 ];
-const HUDBAR_KEYS={};for(const b of HUDBAR)if(!b.portal||PBAL)HUDBAR_KEYS[b.code]=b;
+const HUDBAR_KEYS={};for(const b of HUDBAR)if(b.code&&(!b.portal||PBAL))HUDBAR_KEYS[b.code]=b;
 const hbVal=(v)=>typeof v==='function'?v():v;
 function sheetToggle(name){if(sheetOpen===name)closeSheet();else openSheet(name);}
 let hudbarT=0;
@@ -10982,13 +10999,17 @@ function buildHudbar(){
     const btn=el('button',{class:'hbtn',type:'button',id:'hb-'+b.id,onclick:e=>{e.stopPropagation();if(state==='play')b.act();}});
     btn.appendChild(glyph(b.glyph));btn.appendChild(el('kbd',{text:b.key}));btn.appendChild(el('i',{class:'dot'}));
     if(b.touch===false)btn.classList.add('kbm');bar.appendChild(btn);b.el=btn;}
+  const fold=el('button',{class:'hbtn',type:'button',id:'hb-fold',onclick:e=>{e.stopPropagation();hudFold=!hudFold;updateHudbar(true);}});
+  fold.appendChild(glyph('chev'));fold.appendChild(el('i',{class:'dot'}));bar.appendChild(fold);
   updateHudbar(true);
 }
 function updateHudbar(force){
   if(!force&&time-hudbarT<0.25)return;hudbarT=time;
   for(const b of HUDBAR){const e=b.el;if(!e)continue;const tip=hbVal(b.tip)||'';
     if(e.dataset.tip!==tip){e.dataset.tip=tip;e.setAttribute('aria-label',tip+' ('+b.key+')');}
-    e.hidden=!!(b.hide&&b.hide());e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));e.classList.toggle('pulse',!!(b.pulse&&b.pulse()));}
+    e.hidden=!!(b.hide&&b.hide());if(b.id==='fs'){const g=e.querySelector('svg');g.innerHTML=GLYPHS[fsOn()?'shrink':'expand'];}e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));e.classList.toggle('pulse',!!(b.pulse&&b.pulse()));}
+  const fb=$('hb-fold');if(fb){$('hudbar').classList.toggle('folded',hudFold);fb.setAttribute('aria-label',hudFold?'Show the menu buttons':'Hide the menu buttons');fb.dataset.tip=fb.getAttribute('aria-label');
+    fb.classList.toggle('badge',hudFold&&HUDBAR.some(b=>b.el&&!b.el.hidden&&b.el.classList.contains('badge')));}
   // sit just under the name panel, whatever its height
   const tl=document.querySelector('.hud-tl'),bar=$('hudbar');if(tl&&bar&&!touchOn()){const top=(tl.offsetTop+tl.offsetHeight+8)+'px';if(bar.style.top!==top)bar.style.top=top;}
   updateLBMini();
@@ -11975,6 +11996,9 @@ function updatePlayer(dt){
 //                     sit in a construct, and so on.
 // Settings has the button size and a left-handed layout (everything mirrored). In portrait a "turn your phone" screen
 // covers the game.
+// no page zoom: pinch (iOS gesture events) and ctrl+wheel; the viewport meta and touch-action in the CSS cover the rest
+for(const g of ['gesturestart','gesturechange','gestureend'])addEventListener(g,e=>e.preventDefault());
+addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault();},{passive:false});
 const tl=$('tlayer'),stick=$('stick'),knob=$('knob'),tbtns=$('tbtns');let stickId=null,lookId=null,sx0=0,sy0=0,lx=0,ly=0;
 const tHand=()=>save.settings.tHand==='l'?'l':'r',tSizeMul=()=>({s:0.86,m:1,l:1.16})[save.settings.tSize]||1;
 // the phone's notch and rounded corners (CrazyGames app, iOS): read from a probe padded by env(safe-area-inset-*)
@@ -12087,7 +12111,7 @@ function layoutTouch(force){
 }
 // the left column (name, meters, minimap, Getting started or the grow tip) stacks itself, so a taller panel (a wanted
 // badge, a bounty) pushes the rest down instead of covering it
-const LEFT_COL=['.hud-tl','.hud-bc','#map','#growtut','#guide'];let leftT=-9;
+const LEFT_COL=['.hud-tl','#guide','#growtut','#goal','#map'];let leftT=-9;
 function stackLeft(on){if(!on){for(const q of LEFT_COL){const e=document.querySelector(q);if(e)e.style.top='';}return;}
   if(time-leftT<0.25)return;leftT=time;let y=safeIn('t')+10;
   for(const q of LEFT_COL){const e=document.querySelector(q);if(!e||e.hidden||getComputedStyle(e).display==='none')continue;const t=Math.round(y)+'px';if(e.style.top!==t)e.style.top=t;y+=e.offsetHeight+8;}}

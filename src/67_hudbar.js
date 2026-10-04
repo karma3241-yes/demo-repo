@@ -9,8 +9,17 @@
 // and shrinks to fit (folding "Getting started" down to its next step if it has to), so it never needs scrolling.
 // The leaderboard sits under the icons on the left (the full board opens from it, the main menu or the pause menu).
 // The CrazyGames build has no leaderboard at all: the shared board lives on claude.ai, and pointing players there is cross-promotion.
+// fullscreen (phones): the Fullscreen API where the page may use it (not in an iframe without allow=fullscreen, not on iPhone Safari)
+const fsOk=()=>!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+const fsOn=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+function fsToggle(){
+  try{if(fsOn()){const x=document.exitFullscreen||document.webkitExitFullscreen;x&&x.call(document);}
+    else{const d=document.documentElement,r=d.requestFullscreen||d.webkitRequestFullscreen;r&&Promise.resolve(r.call(d)).catch(()=>{});}}catch(e){}
+}
+let hudFold=false; // the icon row folded away (the arrow next to it); kept for the session
 const rewardsLater=()=>{const st=save.stats||{};return BASIC_LAUNCH||!(st.crimesStopped||st.crimesCommitted||save.level>1);};
 const HUDBAR=[
+  {id:'fs',glyph:'expand',key:'',code:'',tip:()=>fsOn()?'Leave fullscreen':'Fullscreen',act:()=>fsToggle(),on:()=>fsOn(),hide:()=>!fsOk()||!touchOn(),touch:true},
   {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
   {id:'powers',glyph:'swap',key:'J',code:'KeyJ',tip:()=>'Change powers'+(save.rechoiceAt?'':' · free the first time'),act:()=>{if(sheetOpen)closeSheet();tryRechoose();},pulse:()=>!!save.guide.done&&!save.guide.swap},
@@ -30,7 +39,7 @@ const HUDBAR=[
   {id:'trials',glyph:'unlock',key:',',code:'Comma',portal:true,tip:'Try locked powers',act:()=>sheetToggle('trials'),hide:()=>rewardsLater(),off:()=>!Portal.ads(),on:()=>sheetOpen==='trials'},
   {id:'cos',glyph:'sparkle',key:'.',code:'Period',portal:true,tip:'Cosmetics',act:()=>sheetToggle('cos'),hide:()=>rewardsLater(),off:()=>!Portal.ads(),on:()=>sheetOpen==='cos'},
 ];
-const HUDBAR_KEYS={};for(const b of HUDBAR)if(!b.portal||PBAL)HUDBAR_KEYS[b.code]=b;
+const HUDBAR_KEYS={};for(const b of HUDBAR)if(b.code&&(!b.portal||PBAL))HUDBAR_KEYS[b.code]=b;
 const hbVal=(v)=>typeof v==='function'?v():v;
 function sheetToggle(name){if(sheetOpen===name)closeSheet();else openSheet(name);}
 let hudbarT=0;
@@ -40,13 +49,17 @@ function buildHudbar(){
     const btn=el('button',{class:'hbtn',type:'button',id:'hb-'+b.id,onclick:e=>{e.stopPropagation();if(state==='play')b.act();}});
     btn.appendChild(glyph(b.glyph));btn.appendChild(el('kbd',{text:b.key}));btn.appendChild(el('i',{class:'dot'}));
     if(b.touch===false)btn.classList.add('kbm');bar.appendChild(btn);b.el=btn;}
+  const fold=el('button',{class:'hbtn',type:'button',id:'hb-fold',onclick:e=>{e.stopPropagation();hudFold=!hudFold;updateHudbar(true);}});
+  fold.appendChild(glyph('chev'));fold.appendChild(el('i',{class:'dot'}));bar.appendChild(fold);
   updateHudbar(true);
 }
 function updateHudbar(force){
   if(!force&&time-hudbarT<0.25)return;hudbarT=time;
   for(const b of HUDBAR){const e=b.el;if(!e)continue;const tip=hbVal(b.tip)||'';
     if(e.dataset.tip!==tip){e.dataset.tip=tip;e.setAttribute('aria-label',tip+' ('+b.key+')');}
-    e.hidden=!!(b.hide&&b.hide());e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));e.classList.toggle('pulse',!!(b.pulse&&b.pulse()));}
+    e.hidden=!!(b.hide&&b.hide());if(b.id==='fs'){const g=e.querySelector('svg');g.innerHTML=GLYPHS[fsOn()?'shrink':'expand'];}e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));e.classList.toggle('pulse',!!(b.pulse&&b.pulse()));}
+  const fb=$('hb-fold');if(fb){$('hudbar').classList.toggle('folded',hudFold);fb.setAttribute('aria-label',hudFold?'Show the menu buttons':'Hide the menu buttons');fb.dataset.tip=fb.getAttribute('aria-label');
+    fb.classList.toggle('badge',hudFold&&HUDBAR.some(b=>b.el&&!b.el.hidden&&b.el.classList.contains('badge')));}
   // sit just under the name panel, whatever its height
   const tl=document.querySelector('.hud-tl'),bar=$('hudbar');if(tl&&bar&&!touchOn()){const top=(tl.offsetTop+tl.offsetHeight+8)+'px';if(bar.style.top!==top)bar.style.top=top;}
   updateLBMini();

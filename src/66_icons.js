@@ -31,6 +31,7 @@ const GLYPHS={
   dialUp:'<path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4-5"/><path d="M17 4h4M19 2v4"/>',
   dialDn:'<path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l-4-5"/><path d="M17 4h4"/>',
   steps:'<path d="M3 20h5v-5h5v-5h5V5h3"/><path d="M3 20h18"/>',
+  expand:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',shrink:'<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>',chev:'<path d="M9 6l6 6-6 6"/>',
   trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8M9.5 18h5"/>',
   x2:'<path d="M4 8l6 8M10 8l-6 8"/><path d="M13.5 9.5a3 3 0 0 1 6 0c0 2.5-6 4-6 6.5h6"/>',
   refill:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M11 9.5v5M8.5 12h5"/>',

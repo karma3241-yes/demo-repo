@@ -126,7 +126,7 @@ function layoutTouch(force){
 }
 // the left column (name, meters, minimap, Getting started or the grow tip) stacks itself, so a taller panel (a wanted
 // badge, a bounty) pushes the rest down instead of covering it
-const LEFT_COL=['.hud-tl','.hud-bc','#map','#growtut','#guide'];let leftT=-9;
+const LEFT_COL=['.hud-tl','#guide','#growtut','#goal','#map'];let leftT=-9;
 function stackLeft(on){if(!on){for(const q of LEFT_COL){const e=document.querySelector(q);if(e)e.style.top='';}return;}
   if(time-leftT<0.25)return;leftT=time;let y=safeIn('t')+10;
   for(const q of LEFT_COL){const e=document.querySelector(q);if(!e||e.hidden||getComputedStyle(e).display==='none')continue;const t=Math.round(y)+'px';if(e.style.top!==t)e.style.top=t;y+=e.offsetHeight+8;}}

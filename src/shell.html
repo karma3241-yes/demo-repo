@@ -233,8 +233,10 @@ body.touch #keys,body.touch #prompt,body.touch #clock,body.touch #mode{display:n
 body.touch .hud-tr{top:8px;right:auto;left:50%;transform:translateX(-50%);background:rgba(4,8,18,.55);padding:3px 8px;text-align:center}body.touch .hud-tr:has(#online:empty){display:none}
 body.touch .hud-tl{top:calc(10px + var(--safe-t));left:calc(10px + var(--safe-l));padding:7px 9px;min-width:0;width:176px;box-sizing:border-box;gap:5px}
 body.touch .stats{gap:2px 8px;font-size:10px;letter-spacing:.05em}
-body.touch .hud-bc{top:calc(108px + var(--safe-t));bottom:auto;left:calc(10px + var(--safe-l));transform:none;width:176px;justify-items:stretch}
-body.touch .meters{grid-template-columns:1fr;gap:6px;padding:7px 9px}
+/* touch: health and energy are two thin lines at the bottom centre (between the stick and the buttons), the label above each */
+body.touch .hud-bc{top:auto;bottom:calc(10px + var(--safe-b));left:50%;transform:translateX(-50%);width:min(230px,calc(100% - 520px));justify-items:stretch;gap:4px}
+body.touch .meters{grid-template-columns:1fr;gap:5px;padding:0;background:none;border:0;border-radius:0;backdrop-filter:none;-webkit-backdrop-filter:none}
+body.touch .meter{gap:2px}body.touch .meter span{font-size:9px;letter-spacing:.18em;color:var(--ink);text-shadow:0 0 4px rgba(0,0,0,.95),0 0 2px #000}body.touch .meter .bar{height:4px}
 body.touch .hotbar{display:none}
 body.touch #map{top:calc(192px + var(--safe-t));bottom:auto;left:calc(10px + var(--safe-l));width:104px;height:104px}
 body.touch #toasts{top:max(26%,134px);left:45%;width:clamp(220px,calc(100% - 540px),320px)}
@@ -283,7 +285,7 @@ body.touch #oath{top:calc(52px + var(--safe-t));bottom:auto;width:min(560px,calc
 body.touch #oath.mini{left:50%;right:auto;transform:translateX(-50%);text-align:center;width:clamp(260px,calc(100% - 400px),440px);padding:8px 10px;background:rgba(4,8,18,.78);border:1px solid rgba(93,255,134,.4);border-radius:12px}body.touch #oath.mini p{color:rgba(233,243,255,.75)}body.touch #oath-next{min-height:40px;padding:0 16px}body.touch #oath input{min-height:40px}
 body.touch #oath{top:calc(var(--vv-top,0px) + 6px + var(--safe-t));max-height:calc(var(--vv-h,100vh) - 12px);overflow:auto}body.touch #oath.kb{padding:6px 10px}body.touch #oath.kb h3,body.touch #oath.kb small{display:none}body.touch #oath.kb p{font-size:12px;margin-bottom:4px;line-height:1.3}body.touch #oath.kb input{min-height:34px;padding:6px 10px}
 /* left-handed touch layout: the buttons go bottom-left, so the HUD column, icon bar and pause swap to the right */
-body.touch.lefty .hud-tl,body.touch.lefty .hud-bc,body.touch.lefty #map,body.touch.lefty #guide,body.touch.lefty #growtut{left:auto;right:calc(10px + var(--safe-r))}
+body.touch.lefty .hud-tl,body.touch.lefty #map,body.touch.lefty #guide,body.touch.lefty #growtut{left:auto;right:calc(10px + var(--safe-r))}
 body.touch.lefty #hudbar{right:auto;left:calc(62px + var(--safe-l));justify-content:flex-start}body.touch.lefty #tpause{right:auto;left:calc(10px + var(--safe-l))}
 body.touch.lefty #toasts{left:55%}body.touch.lefty #dial-x{right:auto;left:calc(12px + var(--safe-l))}
 #dial-x{display:none}body.touch #dial-x{display:block;position:absolute;right:calc(12px + var(--safe-r));top:calc(10px + var(--safe-t));z-index:2}body.touch #dial.all #dial-ring{width:min(calc(100% - 96px),960px);justify-self:start}
@@ -339,10 +341,9 @@ body.touch #growtut:not([hidden])~#guide{display:none}
 /* starter goal pill: desktop sits under the icon bar (top is set from script); touch takes Getting started's place in the left column */
 #goal{position:absolute;left:16px;top:130px;max-width:330px;box-sizing:border-box;padding:6px 10px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;font-size:12px;line-height:1.3;border-color:rgba(255,201,60,.45)}
 #goal b{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}#goal em{font-style:normal;font-size:11px;font-weight:700;color:var(--gold)}#goal em:empty{display:none}
-body.touch #goal{left:calc(10px + var(--safe-l));top:calc(310px + var(--safe-t))!important;width:176px;max-width:none;padding:5px 8px;font-size:11px}
+body.touch #goal{left:calc(10px + var(--safe-l));width:176px;max-width:none;padding:5px 8px;font-size:11px}
 body.touch.lefty #goal{left:auto;right:calc(10px + var(--safe-r))}
 body.touch #growtut:not([hidden])~#goal{display:none}
-@media (max-height:520px){body.touch #goal{top:calc(186px + var(--safe-t))!important}}
 #hudbar{position:absolute;left:16px;top:122px;display:flex;flex-wrap:wrap;gap:6px;max-width:330px;pointer-events:none}
 .hbtn{pointer-events:auto;position:relative;width:40px;height:40px;padding:0;display:grid;place-items:center;color:var(--ink);background:var(--panel);border:1px solid var(--edge);border-radius:10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;transition:border-color .15s,background .15s}
 .hbtn:hover{background:rgba(79,216,255,.16);border-color:var(--energy)}.hbtn:focus-visible{outline:2px solid var(--energy);outline-offset:2px}
@@ -352,6 +353,9 @@ body.touch #growtut:not([hidden])~#goal{display:none}
 .hbtn .dot{position:absolute;right:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);display:none}.hbtn.badge .dot{display:block}
 .hbtn:hover::after{content:attr(data-tip);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);white-space:nowrap;padding:4px 8px;font:600 12px var(--hud);color:var(--ink);background:rgba(4,8,18,.92);border:1px solid var(--edge);border-radius:6px;pointer-events:none;z-index:3}
 #hb-xp{color:var(--gold)}#hb-refill{color:#7dffb0}#hb-trials{color:#c89bff}#hb-cos{color:#ff9bd2}
+/* the arrow folds the icon row away (toward the pause button on touch, toward the left edge on desktop) */
+#hb-fold{width:26px;height:40px;border-radius:8px}#hb-fold .ico{width:16px;height:16px;transition:transform .2s;transform:rotate(180deg)}#hudbar.folded #hb-fold .ico{transform:none}body.touch #hb-fold .ico{transform:none}body.touch #hudbar.folded #hb-fold .ico{transform:rotate(180deg)}
+#hudbar.folded .hbtn:not(#hb-fold){display:none}
 body.touch #hudbar{top:calc(8px + var(--safe-t))!important;left:auto;right:calc(62px + var(--safe-r));max-width:calc(100% - 290px);justify-content:flex-end}body.touch .hbtn{width:40px;height:40px}body.touch .hbtn kbd,body.touch .hbtn.kbm{display:none}
 .ico{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pick .pico{width:28px;height:28px;margin-bottom:2px}
