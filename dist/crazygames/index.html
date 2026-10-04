@@ -9812,7 +9812,7 @@ function cyUpdate(Z,dt){
   const S=save.story;
   if(CY.intro&&!CUT&&time-(CY.introT||0)>16){CY.intro=false;const e=$('cytitle');if(e)e.classList.remove('on');} // an interrupted intro (a room opened) must not leave the objective off
   CY.objT-=dt;if(CY.objT<=0){CY.objT=1.5;if(!CY.intro&&!CUT&&!ASK&&!ZF.phase)cyObjective(false);}
-  if(!P.dead&&!cutLocked()&&time-CY.enterT>6&&S.tower<2){const lx=P.pos.x-CYO.x,lz=P.pos.z-CYO.z,ly=P.pos.y-CYO.y;if(Math.abs(lx)<9&&lz>CYARCH.z0+6&&lz<CYARCH.z1+2&&ly<21&&ly>-1)towerEnter();}
+  if(!P.dead&&!cutLocked()&&time-CY.enterT>6&&S.tower<2){const lx=P.pos.x-CYO.x,lz=P.pos.z-CYO.z,ly=P.pos.y-CYO.y;if(Math.abs(lx)<CYARCH.w+1&&lz>CYARCH.z0-3&&lz<CYARCH.z1+2&&ly<CYARCH.h+2&&ly>-1)towerEnter();} // reaching the arch's mouth is enough (stopping at the glow used to do nothing)
 }
 // ---- drawing: cars, drones, the gate, fountains, beacons, the shield ----
 function cyCarDraw(c,t){
