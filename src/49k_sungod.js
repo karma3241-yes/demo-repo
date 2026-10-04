@@ -12,7 +12,8 @@ const sunGodOn=()=>SG.on;
 const sgSpeedMul=()=>SG.on?1.5:1;
 const SUN_B=PLANETS.find(b=>b.sun);
 const sgBig=a=>a.kind==='boss'||(a.maxHp||0)>3000||!!a.bigBoss; // bosses take fixed big numbers, everyone else goes down at once
-function sgHit(a,bossDmg,type,opt){return Damage.apply(P,a,sgBig(a)?bossDmg:Math.ceil((a.hp||50)*2+100),type,opt);}
+function sgHit(a,bossDmg,type,opt){const m=a.sgCap&&a.sgCap[type]; // a.sgCap: a boss's own damage caps per type (the Perfect Form)
+  return Damage.apply(P,a,sgBig(a)?bossDmg*(m||1):Math.ceil((a.hp||50)*2+100),type,opt);}
 const SGL={},SG_GOLD={suit:[1,.78,.2,1],suit2:[1,.93,.55,1],cape:[1,.52,.08,1],acc:[1,1,.85,1]},SG_DARK={suit:[.05,.04,.07,1],suit2:[.85,.62,.14,1],cape:[.03,.02,.06,1],acc:[1,.8,.3,1]};
 // the look drawSuper uses while Sun God is on: gold, or black and gold during Eclipse
 function sgLook(m){if(PR.on)return prismLook(m);return SG.on?Object.assign(SGL,m,SG.ecl?SG_DARK:SG_GOLD,{metal:false,armor:false,capeOn:true}):m;}
@@ -91,7 +92,7 @@ function sgImplode(H){const R=H.R;
   hitProps(H.x,Math.min(H.y,6),H.z,R*0.6,P,40);explode(H.x,H.y,H.z,3);ringFx(H.x,H.y,H.z,1,R*1.5,0.7,[1,.8,.4]);ringFx(H.x,H.y,H.z,1,R,0.5,[1,1,1]);
   burst(H.x,H.y,H.z,140,80,1.2,[[1,.85,.3],[.7,.45,1],[1,1,1]],3,0,1.2);addShake(1.2);SFX.boom(1,1.8);}
 // 4 Eclipse: the dark mode. 4 s of darkness while a chain of dark bolts knocks down every hostile and neutral NPC within 250 m
-const SG_ECL_KINDS=new Set(['human','drone','rival','heli','boss']);
+const SG_ECL_KINDS=new Set(['human','drone','rival','heli','boss','kperfect']);
 function sgEclipse(){
   const c=center(P),cx=c.x,cy=c.y,cz=c.z,list=[];
   for(const a of actors){if(!a.alive||a.held||a===P||!SG_ECL_KINDS.has(a.kind))continue;const d=Math.hypot(a.pos.x-cx,a.pos.y-cy,a.pos.z-cz);if(d<250)list.push({a,d});}

@@ -32,7 +32,7 @@ function storyTick(dt){
 // (an object or a function of progress). The camera glides from -> to over dur seconds. The player stands still and takes no damage, the world keeps running; Space,
 // Esc, Enter or a tap skips it after 1 s (onEnd still runs). With control:true the player keeps playing: only the bars and the caption show.
 let CUT=null;
-function cutLocked(){return !!(CUT&&!CUT.control)||ZF.phase>0||REW.on||time<ST.graceT;} // the player frozen: no powers, no moving, no damage (also for a moment after a skip, so the tap isn't a punch)
+function cutLocked(){return !!(CUT&&!CUT.control)||ZF.phase>0||REW.on||time<ST.graceT||!!(KQ&&KQ.on);} // the player frozen: no powers, no moving, no damage (also for a moment after a skip, so the tap isn't a punch)
 function cutscene(o){
   o=o||{};if(CUT)cutEnd(false);
   CUT={dur:Math.max(0.3,o.dur||5),t:0,from:o.from,to:o.to||o.from,look:o.look,text:o.text||'',lb:o.letterbox!==false,control:!!o.control,skippable:!o.control&&o.skippable!==false,fov:o.fov||0,onTick:o.onTick,onEnd:o.onEnd,capOn:false,skipOn:false};

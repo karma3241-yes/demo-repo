@@ -148,7 +148,7 @@ void main(){vec4 w=uM*vec4(aPos,1.0);vW=w.xyz;vN=mat3(uM)*aNor;vC=aCol;vD=aDat;v
 const MAIN_FS=`#version 300 es
 precision highp float;precision highp sampler2DShadow;
 in vec3 vW;in vec3 vN;in vec3 vC;in vec2 vD;in vec4 vL;
-uniform vec4 uTint;uniform float uUnlit;uniform float uEmis;
+uniform vec4 uTint;uniform float uUnlit;uniform float uEmis;uniform vec4 uClip;
 uniform vec3 uLDir;uniform vec3 uLCol;uniform vec3 uSky;uniform vec3 uGnd;uniform vec3 uFogC;uniform vec2 uFog;
 uniform vec3 uCam;uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uShTexel;uniform float uNoFog;
 uniform sampler2DShadow uShadow;uniform float uShOn;
@@ -161,8 +161,21 @@ float shadowF(){if(uShOn<0.5)return 1.0;vec3 p=vL.xyz/vL.w*0.5+0.5;
   return s/9.0;}
 vec3 outc(vec3 c){return pow(aces(c*uExpo),vec3(1.0/2.2));}
 void main(){
+  if(dot(vec4(vW,1.0),uClip)<0.0)discard; // a clip plane (Kathana's body splitting in two, 66g_kperfect.js); all zeros = off
   vec3 n=normalize(vN);float mat=vD.x;vec3 base=vC*uTint.rgb;vec3 emis=vec3(0.0);float spec=0.2;float shin=40.0;
   if(mat>5.5&&mat<6.5){o=vec4(outc(vC*uTint.rgb*1.6),uTint.a);return;}
+  if(mat>7.5){ // polished chrome / pearl (the Perfect Form): a studio reflection of its own, so it looks the same in the white arena as anywhere
+    vec3 V1=normalize(uCam-vW);float nd=max(dot(n,V1),0.0),fr=pow(1.0-nd,3.0);vec3 R=reflect(-V1,n);float up=R.y;
+    vec3 env=up>0.0?mix(vec3(0.9,0.95,1.1),vec3(0.14,0.27,0.66),clamp(up*1.3,0.0,1.0)):mix(vec3(0.66,0.64,0.74),vec3(0.07,0.07,0.12),clamp(-up*2.2,0.0,1.0));
+    env*=0.12+0.88*smoothstep(0.02,0.5,abs(up));
+    env+=vec3(2.6,2.5,2.3)*pow(max(dot(R,normalize(uLDir)),0.0),40.0);
+    env+=vec3(1.5,1.7,2.1)*smoothstep(0.86,0.9,dot(R,normalize(vec3(-0.6,0.5,-0.55))));
+    vec3 pearl=0.5+0.5*cos(6.2831*(vec3(0.0,0.33,0.67)+fr*0.9+vW.y*0.12+uTime*0.04));
+    vec3 c2=vC*uTint.rgb*env*(0.95+0.3*fr)+pearl*0.2*fr;
+    float band=smoothstep(0.94,1.0,0.5+0.5*sin(vW.x*0.9+vW.y*2.6+vW.z*0.7-uTime*2.2));
+    c2+=vec3(1.0,0.95,0.85)*band*0.6*(0.3+fr);
+    float fg2=smoothstep(uFog.x,uFog.y,length(uCam-vW))*(1.0-uNoFog);
+    o=vec4(outc(mix(c2,uFogC,fg2*0.6)),uTint.a);return;}
   if(mat>0.5&&mat<1.5){
     if(abs(n.y)<0.5){
       float st=floor(vD.y/1000.0),sd=mod(vD.y,1000.0);
@@ -395,10 +408,10 @@ const MESH={
 // Draw queue
 // ================================================================
 const F_SH=1,F_UN=2,F_ADD=4,F_BL=8,F_NF=16; // F_NF: no distance fog (the story's UFO is seen from anywhere in the city)
-const drawList=[];let dlN=0;
+const drawList=[];let dlN=0,CLIPQ=null; // CLIPQ: a plane [nx,ny,nz,d] stamped on what is queued next (keeps dot(n,p)+d >= 0), null = none
 const matPool=[];let mpi=0;
 function tmpM(){if(mpi>=matPool.length)matPool.push(new Float32Array(16));return matPool[mpi++];}
-function queue(mesh,M,tint,flags=0,emis=0){let d=drawList[dlN];if(!d){d={};drawList[dlN]=d;}dlN++;d.mesh=mesh;d.M=M;d.tint=tint;d.flags=flags;d.emis=emis;}
+function queue(mesh,M,tint,flags=0,emis=0){let d=drawList[dlN];if(!d){d={};drawList[dlN]=d;}dlN++;d.mesh=mesh;d.M=M;d.tint=tint;d.flags=flags;d.emis=emis;d.clip=CLIPQ;}
 function child(parent,tx,ty,tz,rx=0,ry=0,rz=0,sx=1,sy=1,sz=1){M4.compose(TM,tx,ty,tz,rx,ry,rz,sx,sy,sz);return M4.mul(tmpM(),parent,TM);}
 function at(tx,ty,tz,rx=0,ry=0,rz=0,sx=1,sy=1,sz=1){return M4.compose(tmpM(),tx,ty,tz,rx,ry,rz,sx,sy,sz);}
 

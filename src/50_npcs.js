@@ -28,6 +28,7 @@ function spawnHuman(role,x,z,opt={}){
   if(role==='boss')h.name='Boss '+pick(['Vince','Marla','Knuckles','Silk','Duke','Ruby']);
   h.onDefeat=()=>{h.deadT=6;if(!h.air){h.air=true;h.vel.set(0,3,0);h.tumble=rr(3,5);}startRagdoll(h,h.vel.x,h.vel.y,h.vel.z);scare(h.pos.x,h.pos.z,18);};
   h.onHit=src=>{if(h.role==='civilian'){if(src)npcFlee(h,src.pos.x,src.pos.z);}else if(src&&src!==h)h.target=src;};
+  if(superOn())humanSuper(h); // after Kathana's fall (66g_kperfect.js)
   humans.push(h);actors.push(h);return h;
 }
 function npcFlee(h,x,z){if(h.role!=='civilian'||!h.alive||h.state==='victim'&&h.crime)return;h.state='flee';h.fx=x;h.fz=z;h.st=rr(4,7);}

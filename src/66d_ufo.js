@@ -70,7 +70,7 @@ function ufoDraw(){
 }
 // ---- the event: arrival, waiting, getting in, leaving ----
 function ufoTick(dt){
-  const S=save.story;
+  const S=save.story;if(S.ufo===4){UFO.on=false;return;} // skipped for good (Kathana's fall)
   if(S.ufo>=1&&S.ufo<=2&&!UFO.on&&!UFO.leaving){UFO.on=true;UFO.y=UFO_Y;UFO.waitT=0;UFO.waitMax=ufoFlier()?60:15;} // it stays across sessions
   if(UFO.on)UFO.rot+=dt*0.04;
   if(!CUT&&state==='play'){if(UFO.leaving)UFO.leaving=false;if(S.ufo===1&&UFO.on&&UFO.y!==UFO_Y)UFO.y=UFO_Y;} // a cutscene cut short (a room opened) leaves the saucer where it belongs
@@ -90,7 +90,7 @@ function ufoTick(dt){
 }
 // the saucer arrives (the 8 s cutscene); quick skips the cutscene (tests)
 function ufoArrive(quick){
-  const S=save.story;if(UFO.on&&S.ufo>=1)return;
+  const S=save.story;if(S.ufo===4||(UFO.on&&S.ufo>=1))return;
   S.ufo=1;persist();UFO.on=true;UFO.waitT=0;UFO.waitMax=ufoFlier()?60:15;UFO.x=0;UFO.z=0;
   if(quick||state!=='play'){UFO.y=UFO_Y;return;}
   const ex=P.pos.x,ez=P.pos.z,hx=ex-UFO.x,hz=ez-UFO.z,hl=Math.hypot(hx,hz);let cx=ex,cz=ez;

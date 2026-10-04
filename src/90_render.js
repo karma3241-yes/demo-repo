@@ -278,7 +278,7 @@ function drawHuman(h){
   const L=h.look,e=h.flash*0.8,sh=q<55*55?F_SH:0;
   if(L.hair===undefined){L.hair=Math.random()<0.1?null:pick(HAIRS);L.long=Math.random()<0.35;L.shoe=pick(SHOES);}
   if(h.rag){drawRagdoll(h,ragColorsHuman(h));return;}
-  const root=at(h.pos.x,h.pos.y,h.pos.z,h.rx,h.yaw,0);
+  const root=at(h.pos.x,h.pos.y+(h.sp==='hover'&&!h.air?0.3+0.06*Math.sin(time*3+h.phase):0),h.pos.z,h.rx,h.yaw,0);
   if(q>80*80){queue(MESH.box,child(root,0,1.0,0,0,0,0,0.5,1.9,0.32),L.shirt,0,e);queue(MESH.sphere,child(root,0,2.0,0,0,0,0,0.2,0.23,0.21),L.skin,0,e);return;}
   const mv=Math.min(h.moving/4,1),sw=Math.sin(h.phase)*mv*0.7,run=h.moving>5?1:0;
   // torso, hips, neck, head
@@ -292,6 +292,8 @@ function drawHuman(h){
   if(L.mask)queue(MESH.box,child(root,0,1.88,0.1,0,0,0,0.38,0.1,0.2),[.05,.05,.06,1],0,e);
   if(L.gold)queue(MESH.box,child(root,0,1.5,0.16,0,0,0,0.12,0.12,0.02),GOLDA,0);
   if(L.badge)queue(MESH.box,child(root,-0.13,1.47,0.16,0,0,0,0.08,0.1,0.02),GOLDA,0);
+  if(h.sp==='hover'&&q<70*70){const c=SUP.cols[h.spi];queue(MESH.ring,at(h.pos.x,h.pos.y+0.06,h.pos.z,0,0,0,0.85,1,0.85),[c[0],c[1],c[2],0.95],F_BL);queue(MESH.disc,at(h.pos.x,h.pos.y+0.05,h.pos.z,0,0,0,0.8,1,0.8),[c[0],c[1],c[2],0.3],F_BL);}
+  if(h.pw>0&&q<60*60){const c=SUP.cols[h.spi];queue(MESH.glowSphere,child(root,0,1.1,0,0,0,0,0.6,1.2,0.6),[c[0],c[1],c[2],0.22],F_BL);}
   // legs with knees
   for(const side of [-1,1]){const ph=h.phase+(side>0?Math.PI:0),kn=Math.max(0,Math.sin(ph))*mv*(0.6+run*0.5);
     const hip=child(root,side*0.13,0.94,0,side*sw,0,0);queue(MESH.box,child(hip,0,-0.23,0,0,0,0,0.2,0.46,0.22),L.pants,sh,e);
@@ -304,6 +306,7 @@ function drawHuman(h){
     const s=child(root,side*0.34,1.6,0,ax,0,side*0.08);queue(MESH.box,child(s,0,-0.16,0,0,0,0,0.15,0.34,0.16),L.shirt,sh,e);
     const eb=child(s,0,-0.32,0,el,0,0);queue(MESH.box,child(eb,0,-0.14,0,0,0,0,0.13,0.3,0.14),L.police||L.badge?L.shirt:L.skin,0,e);
     queue(MESH.sphere,child(eb,0,-0.32,0,0,0,0,0.075,0.08,0.075),L.skin,0,e);
+    if(h.sp==='fist'&&q<70*70){const c=SUP.cols[h.spi];queue(MESH.glowSphere,child(eb,0,-0.34,0,0,0,0,0.17,0.17,0.17),[c[0],c[1],c[2],1],0);queue(MESH.glowSphere,child(eb,0,-0.34,0,0,0,0,0.38,0.38,0.38),[c[0],c[1],c[2],0.4],F_BL);}
     if(side>0&&aimGun)queue(MESH.box,child(eb,0,-0.32,0.12,0,0,0,0.07,0.12,0.34),DARKGUN,0);
   }
 }
@@ -467,7 +470,7 @@ function gatherLights(){
     const col=L.c?[0.9,0.9,0.8]:[1,0.72,0.42];PL_COL[k*3]=col[0]*fade;PL_COL[k*3+1]=col[1]*fade;PL_COL[k*3+2]=col[2]*fade;}
   return n;
 }
-const ID=M4.create(),WHITE=[1,1,1,1];
+const ID=M4.create(),WHITE=[1,1,1,1],ZERO4=new Float32Array(4);
 // out in space the flat city, its lakes and the ocean plane would poke through the round Earth: past these distances only the planet is drawn
 // (a camera pulled far back behind a giant construct keeps them: the reach grows with how far the camera sits from you)
 const WATER_VIS=CEIL,CITY_VIS=9000;
@@ -500,7 +503,7 @@ function render(){
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);
   if(!zone&&camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);if(camPos.y<SEA_Y)drawItem(seabedMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
   if(cityVisible()){drawItem(groundMesh,ID,WHITE,false,0);drawItem(lakeMesh,ID,WHITE,false,0);drawItem(cityMesh,ID,WHITE,false,0);}
-  for(let i=0;i<dlN;i++){const d=drawList[i];if(d.flags&(F_ADD|F_BL))continue;drawItem(d.mesh,d.M,d.tint,d.flags&F_UN,d.emis,d.flags&F_NF);}
+  {let lc=null;for(let i=0;i<dlN;i++){const d=drawList[i];if(d.flags&(F_ADD|F_BL))continue;if(d.clip!==lc){lc=d.clip;gl.uniform4fv(MAIN.u.uClip,lc||ZERO4);}drawItem(d.mesh,d.M,d.tint,d.flags&F_UN,d.emis,d.flags&F_NF);}if(lc)gl.uniform4fv(MAIN.u.uClip,ZERO4);}
   gl.enable(gl.BLEND);gl.depthMask(false);gl.disable(gl.CULL_FACE);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   for(let i=0;i<dlN;i++){const d=drawList[i];if(!(d.flags&F_BL))continue;drawItem(d.mesh,d.M,d.tint,true,0);}

@@ -19,7 +19,7 @@ const KA={on:false,stage:0,phase:'',t:0,rise:0,open:0,fight:false,lost:false,vis
   hint:0,markers:[],shadow:true};
 const arenaSG=()=>SG.on&&SG.src==='arena';
 const godSafe=()=>PR.on||(SG.on&&SG.src!=='arena');
-const destroyAvail=()=>!!save.story&&(save.story.ufo>=2||save.story.destroy===true);
+const destroyAvail=()=>!!save.story&&(save.story.ufo===2||save.story.ufo===3||save.story.destroy===true);
 const kDmg=f=>maxHp()*f/CONFIG.health.npcTaken; // damage that takes a fraction f of your (arena) health pool
 const inVoid=()=>!!(zone&&zone.id==='void');
 // ---- colours ----
@@ -73,7 +73,7 @@ function prismDraw(){
 }
 // once per frame from storyTick (solo, playing, alive)
 function kathanaTick(dt){
-  prismTick(dt);
+  prismTick(dt);superTick(dt);
   const a=destroyAvail();
   if(a!==KA.availSeen){const first=KA.availSeen===null;KA.availSeen=a;if(!PR.on&&!SG.on){buildHotbar();buildTouchButtons();}if(a&&!first)feed('Destroy unlocked',touchOn()?'The DESTROY button':'Press Enter');}
 }
@@ -148,11 +148,12 @@ function kBuild(Z){
   zoneBake(Z);
 }
 function kathanaEnter(){
-  KA.t=0;KA.rise=0;KA.open=0;KA.fight=false;KA.vis=true;KA.split=0;KA.dead=0;KA.flood=0;KA.atk=null;KA.cd=2.5;KA.last='';KA.eyeGlow=0;KA.beam=null;KA.yaw=0;KA.by=-215;KA.stage=1;KA.shots.length=0;KA.waves.length=0;KA.fx.length=0;
+  KA.t=0;KA.rise=0;KA.open=0;KA.fight=false;KA.vis=true;KA.split=0;KA.dead=0;KA.flood=0;KA.atk=null;KA.cd=2.5;KA.last='';KA.eyeGlow=0;KA.beam=null;KA.yaw=0;KA.by=-215;KA.stage=1;KA.shots.length=0;KA.waves.length=0;KA.fx.length=0;KA.sink=0;KA.gone=false;KA.scream=0;KA.jit=0;KA.cracks=[];pfClear();
   KA.bx=KAR.x;KA.bz=KAR.z-280;
   kHandsInit();kLight();
 }
 function kathanaLeave(){
+  pfClear();KA.cracks=[];KA.gone=false;KA.sink=0;KA.split=0;KA.scream=0;KA.jit=0;
   for(const o of KA.orbs)if(o.a)removeActor(o.a);KA.orbs.length=0;kClearShots();
   if(SG.on&&SG.src==='arena')sunGodEnd(true);
   if(PR.on)prismEnd('lost');
@@ -164,6 +165,7 @@ function kathanaLeave(){
 function kRiseStart(){
   if(!inVoid())return;KA.phase='rise';
   const S=save.story;if(S.kathana<1){S.kathana=1;persist();}
+  if(S.kp===1&&S.kathana<2){pfRetryStart();return;} // a retry starts at the Perfect Form: no orbs to redo
   const o=KAR;kOrbsMake();
   cutscene({dur:7.6,control:false,letterbox:true,skippable:true,fov:76,text:'KATHANA, THE SEER OF ALL',
     from:{x:o.x-20,y:6,z:o.z+105},to:{x:o.x-70,y:46,z:o.z-70},look:k=>({x:o.x,y:22+135*k*k*(3-2*k),z:KA.bz+10}),
@@ -189,16 +191,19 @@ function kFightStart(){
 }
 // the boss bar (99_main.js updateHud): the four orbs' health together. true = I drew it
 function kathanaBar(){
+  if(pfBar())return true;
   if(!(KA.on&&KA.fight&&inVoid()))return false;
   hud.bossbar.hidden=false;setText(hud.bossname,'bn','KATHANA, THE SEER OF ALL');setW(hud.bossb,'boss',kHpFrac());return true;
 }
 function kHpFrac(){let h=0;for(const o of KA.orbs)if(!o.dead)h+=Math.max(0,o.a.hp);return h/(4*KO_HP);}
 // ---- lock-on: Z steps from orb to orb in the arena ----
 function kathanaPickAny(){
+  if(inVoid()&&PF.fight)return pfPickLock(null);
   if(!inVoid()||!KA.fight)return null;let best=null,bd=1e9;
   for(const o of KA.orbs){if(o.dead||!o.a.alive)continue;const d=Math.hypot(o.a.pos.x-P.pos.x,o.a.pos.z-P.pos.z);if(d<bd){bd=d;best=o.a;}}return best;
 }
 function kathanaNextLock(cur){
+  if(inVoid()&&cur&&cur.kind==='kperfect')return pfPickLock(cur);
   if(!inVoid()||!cur||cur.kind!=='korb')return null;
   const l=KA.orbs.filter(o=>!o.dead&&o.a.alive).map(o=>o.a),i=l.indexOf(cur);return i>=0&&i+1<l.length?l[i+1]:null;
 }
@@ -210,6 +215,8 @@ function kathanaLose(){
   KA.lost=true;KA.fight=false;KA.atk=null;KA.beam=null;kClearShots();
   P.dead=false;$('dead').hidden=true;P.hp=maxHp();P.vel.set(0,0,0);lockT=null;
   const S=save.story;if(S.kathana<1){S.kathana=1;persist();}
+  if(KA.stage===2&&S.kathana<2){S.kp=1;persist();} // knocked out at the Perfect Form: the retry starts there
+  pfStop();
   if(!leaveZone(KA.ret,()=>toast('Kathana casts you out','Destroy again when ready.','red'))){KA.lost=false;zoneAbort();}
 }
 function korbBreak(i){
@@ -222,12 +229,7 @@ function korbBreak(i){
   if(lockT===a)lockT=null;
   if(KA.dead>=4){KA.fight=false;KA.atk=null;KA.beam=null;kClearShots();later(1.8,()=>{if(KA.on&&inVoid()&&!KA.lost)kathanaStage2();});}
 }
-// STUB for the next phase: Kathana screams and splits (P7). For now the fight just ends with a win.
-function kathanaStage2(){
-  KA.stage=2;KA.fight=false;const S=save.story;if(S.kathana<1){S.kathana=1;persist();}
-  toast('Kathana screams...','The orbs are gone','red');SFX.tone('sawtooth',120,40,2.4,0.25);SFX.boom(1,2.4);addShake(1);
-  later(3,()=>{if(KA.on&&inVoid()&&!KA.lost&&!ZF.phase)leaveZone(KA.ret,()=>toast('Kathana vanishes','For now.','gold'));});
-}
+// kathanaStage2() (the scream, the split, the Perfect Form) is in 66g_kperfect.js
 // test hook: every orb gone at once
 function kathanaWinStage1(){for(const o of KA.orbs){if(o.dead)continue;o.a.hp=0;o.a.alive=false;korbBreak(o.i);}}
 // ================================================================
@@ -256,7 +258,7 @@ function kathanaUpdate(dt){
   if(KA.rise>=1||KA.phase==='fight'){KA.yaw=angLerp(KA.yaw,Math.atan2(dxp,dzp),damp(0.8,dt));
     if(dist>230&&KA.fight){const sp=Math.min(10,(dist-230)*0.5)*dt;KA.bx+=dxp/dist*sp;KA.bz+=dzp/dist*sp;}}
   else KA.yaw=angLerp(KA.yaw,Math.atan2(dxp,dzp),damp(1.2,dt));
-  KA.by=-215*(1-KA.rise)+Math.sin(KA.t*0.5)*1.4*KA.rise;
+  KA.by=-215*(1-KA.rise)+Math.sin(KA.t*0.5)*1.4*KA.rise-KA.sink*290+(KA.jit?Math.sin(KA.t*73)*KA.jit:0);
   KA.src.pos.set(KA.bx,60,KA.bz);
   // arms: slow drift, or what the attack asks for
   const hs=KA.hands;
@@ -271,11 +273,12 @@ function kathanaUpdate(dt){
   if(KA.fight&&!P.dead&&!KA.lost)kAttacks(dt);
   kWaves(dt);kShots(dt);if(KA.lost)KA.beam=null;
   for(let i=KA.fx.length-1;i>=0;i--){const f=KA.fx[i];f.t+=dt;if(f.t>=f.dur)KA.fx.splice(i,1);}
-  KA.eyeGlow=KA.atk&&KA.atk.type==='gaze'?KA.atk.glow:Math.max(0,KA.eyeGlow-dt*1.5);
+  KA.eyeGlow=KA.atk&&KA.atk.type==='gaze'?KA.atk.glow:Math.max(KA.scream||0,KA.eyeGlow-dt*1.5);
+  pfUpdate(dt);
   // the arena's wall (a soft push, then a hard stop) and her body (you can't stand inside her)
   if(!P.dead){const ox=P.pos.x-KAR.x,oz=P.pos.z-KAR.z,r=Math.hypot(ox,oz);
     if(r>455){const push=(r-455)*1.6*dt;P.vel.x-=ox/r*push*30;P.vel.z-=oz/r*push*30;if(r>498){P.pos.x=KAR.x+ox/r*498;P.pos.z=KAR.z+oz/r*498;}}
-    const bx=P.pos.x-KA.bx,bz=P.pos.z-KA.bz,br=Math.hypot(bx,bz);if(br<48&&P.pos.y<92&&KA.rise>0.5){P.pos.x=KA.bx+bx/(br||1)*48;P.pos.z=KA.bz+bz/(br||1)*48;}}
+    const bx=P.pos.x-KA.bx,bz=P.pos.z-KA.bz,br=Math.hypot(bx,bz);if(br<48&&P.pos.y<92&&KA.rise>0.5&&!KA.gone&&KA.sink<0.3){P.pos.x=KA.bx+bx/(br||1)*48;P.pos.z=KA.bz+bz/(br||1)*48;}}
 }
 function kSyncOrbs(){
   for(const o of KA.orbs){if(o.dead)continue;const h=KA.hands[o.i],w=kwa(h.x,h.y+17,h.z);o.a.pos.set(w[0],w[1],w[2]);o.a.vel.set(0,0,0);o.a.held=false;o.a.stun=0;o.a.alive=o.a.hp>0;o.a.radius=11*(0.72+0.28*clamp(o.a.hp/KO_HP,0,1));}
@@ -371,15 +374,15 @@ function ks(x,y,z,rx,ry,rz,col,mesh){const w=kwa(x,y,z);queue(mesh||MESH.sphere,
 function kbeam(a,b,w,col,mesh,fl){queue(mesh||MESH.box,M4.beam(tmpM(),a[0],a[1],a[2],b[0],b[1],b[2],w),col,fl||0);}
 function kathanaDraw(){
   const Z=ZONES.void,t=time;
-  if(KA.vis&&KA.rise>0.001)kBody(t);
-  if(KA.rise>0.001)kHandsDraw(t);
-  if(KA.eyeGlow>0.02&&KA.vis){const g=KA.eyeGlow,w=kwa(0,176,28),r=2+13*g;queue(MESH.glowSphere,at(w[0],w[1],w[2],0,0,0,r,r,r),[1,.35,.1,1],0);queue(KGS,at(w[0],w[1],w[2],0,0,0,r*2.4,r*2.4,r*2.4),[1,.5,.15,0.3],F_BL);} // the gaze charging
+  if(KA.gone){}else if(KA.split>0.004)kSplitDraw(t);else{if(KA.vis&&KA.rise>0.001)kBody(t);if(KA.rise>0.001)kHandsDraw(t);}
+  kCracksDraw();pfDraw(t);
+  if(KA.eyeGlow>0.02&&KA.vis&&!KA.gone&&KA.split<0.004){const g=KA.eyeGlow,w=kwa(0,176,28),r=2+13*g;queue(MESH.glowSphere,at(w[0],w[1],w[2],0,0,0,r,r,r),[1,.35,.1,1],0);queue(KGS,at(w[0],w[1],w[2],0,0,0,r*2.4,r*2.4,r*2.4),[1,.5,.15,0.3],F_BL);} // the gaze charging
   kMarkers(t);
   // soft shadows (blobs on the floor): under you, under her, under her hands
   if(KA.flood>0.4){
     const sh=(x,z,r,a)=>queue(MESH.disc,at(x,0.12,z,0,0,0,r,1,r),[0.05,0.05,0.12,a*KA.flood],F_BL);
     {const h=Math.max(0,P.pos.y),r=1.3+h*0.04;sh(P.pos.x,P.pos.z,r,Math.max(0.1,0.32-h*0.004));}
-    if(KA.vis&&KA.rise>0.5){sh(KA.bx,KA.bz,62,0.26);for(const hd of KA.hands){const w=kwa(hd.x,hd.y,hd.z),h=Math.max(0,w[1]),r=16+h*0.05;sh(w[0],w[2],r,Math.max(0.07,0.24-h*0.0016));}}
+    if(KA.vis&&KA.rise>0.5&&!KA.gone){sh(KA.bx,KA.bz,62*(1-KA.sink),0.26*(1-KA.sink));for(const hd of KA.hands){const w=kwa(hd.x,hd.y,hd.z),h=Math.max(0,w[1]),r=16+h*0.05;sh(w[0],w[2],r,Math.max(0.07,0.24-h*0.0016));}}
     for(const s of KA.shots)if(s.alive)sh(s.pos.x,s.pos.z,2.4,0.2);
   }
   // shockwaves: a low orange ring on the floor, tall enough that you must jump or fly over it
@@ -412,7 +415,7 @@ function kMarkers(t){
 const KIN=[.06,.04,.14,1],KIN2=[.03,.02,.08,1];
 function kbz(x,y,z,sx,sy,sz,col,rz){const w=kwa(x,y,z);queue(MESH.box,at(w[0],w[1],w[2],0,KA.yaw,rz||0,sx,sy,sz),col,0);}
 function kBody(t){
-  const e=KA.open,g=KA.eyeGlow,sp=KA.split;
+  const e=KA.open,g=KA.eyeGlow,sp=0; // (the split is drawn by kSplitDraw)
   // the robe: six ink-dark tiers with gold bands, a bone panel down the front
   for(let k=0;k<6;k++){const r=54-k*3.6,y=6+k*14;kc(0,y,0,r,14.2,r,k%2?KIN2:KIN);kc(0,y+7.2,0,r+0.9,1.8,r+0.9,KGD);}
   kb(0,44,53,22,84,3,KST);kb(0,44,54.8,2.6,80,1,KGD);kb(-8,44,54.8,1.2,80,1,KGD2);kb(8,44,54.8,1.2,80,1,KGD2);
@@ -452,8 +455,9 @@ function kBody(t){
   for(let k=0;k<12;k++){const a=t*0.07+k*TAU/12,r=118+(k%3)*18,y=40+(k*37%150)+Math.sin(t*0.4+k)*4,s=5+(k%4)*2.4,w=kwa(Math.sin(a)*r,y,Math.cos(a)*r);
     queue(MESH.box,at(w[0],w[1],w[2],t*0.2+k,t*0.3+k*2,0,s,s*1.4,s*0.9),k%2?KST2:KST,0);}
 }
-function kHandsDraw(t){
+function kHandsDraw(t,side){
   for(const h of KA.hands){
+    if(side&&h.side!==side)continue;
     const S=h.s,H=[h.x,h.y,h.z],E=kElbow(S,H,h.side),dead=h.dead,sc=dead?KDK:KST,sc2=dead?[.12,.11,.15,1]:KST2,
       ws=kwa(S[0],S[1],S[2]),we=kwa(E[0],E[1],E[2]),wh=kwa(H[0],H[1],H[2]);
     kbeam(ws,we,16,sc,MESH.box);kbeam(we,wh,12,sc2,MESH.box);
