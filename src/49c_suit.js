@@ -62,8 +62,8 @@ function renderHeroKeys(){
       K('Click · Right click · X','Construct attacks');K('Wheel · [ ]','Grow or shrink your construct');K('Hold O','Recite the oath to recharge the ring');K('Y','Rebuild every broken building');}
     if(m==='armorFlight'){K('Forge Tower','Land on its roof or pad to recharge the battery');K('B · '+(hasPower('morphBand')?'N':'V'),'Suit forms: turn into your last form · pick one');}
     if(m==='stormFlight')K('G on a tall roof','Call the storm to recharge your lightning');
-    if(m==='superSpeed')K('G at a shop','Eat to refill your calories');
-    if(m==='solarFlight'){K('V','Sun God: 60 s invincible with four sun powers, then a 90 s wait · fly into the Sun for 120 s with no wait');K('1 2 3 4 (as Sun God)','Solar Lance (hold) · Heat Wave · Collapsing Star · Eclipse');}
+    if(m==='superSpeed'){K('G at a shop','Eat to refill your calories');if(ufoBoost())K('X','Rewind: turn back the last 10 seconds (20 s to recharge)');}
+    if(m==='solarFlight'){K('V','Sun God: '+sgVDur()+' s invincible with four sun powers, then a '+sgVCd()+' s wait · fly into the Sun for 120 s with no wait');K('1 2 3 4 (as Sun God)','Solar Lance (hold) · Heat Wave · Collapsing Star · Eclipse');}
     if(m==='ironFlight')K('1','Metal Forms: turn to steel · tap again to change your hand · hold to turn back');
     if(m==='bladeFlight')K('1','Blade Leap: lunge through enemies · your claws heal you');
     if(m==='elasticFlight')K('1','Stretch Strike: grab whoever you aim at and slam them down');

@@ -39,7 +39,7 @@ addEventListener('keydown',e=>{
   if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&P.web){swingBoost();return;}
   if(e.code==='KeyC'&&hasWeb()&&!P.grounded&&!P.flying&&spiderAirTrick())return;
   if(e.code in SLOT_CODES){const i=SLOT_CODES[e.code];heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');return;}
-  if(e.code==='KeyX'){if(P.construct&&constructX())return;return;}
+  if(e.code==='KeyX'){if(P.construct&&constructX())return;if(rewindKey())return;return;}
   if((e.code==='BracketRight'||e.code==='Equal'||e.code==='BracketLeft'||e.code==='Minus')&&growStep(e.code==='BracketRight'||e.code==='Equal'?1:-1))return;
   if(isSpeed()){if(e.code==='KeyF'){toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
   if(e.code==='KeyF'){if(!flyChargeStart())toggleFlight();}else if(e.code==='Space')pressJump();
@@ -251,6 +251,7 @@ function updatePlayer(dt){
     else if(P.burstT>0){P.burstT-=dt;if(!P.flying&&!P.grounded)P.vel.y-=CONFIG.move.gravity*0.35*dt;}
     else if(P.swim)swimStep(dt,inF,inR,fwdX,fwdZ,rX,rZ,slowMul,shift);
     else if(P.zip)zipStep(dt);
+    else if(P.reel)reelStep(dt);
     else if(P.web)swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ);else if(P.wings)wingStep(dt);else if(conDrive()&&!P.flying)driveConstruct(dt,inF,inR,shift);else if(P.flying){
       const cp=Math.cos(P.pitch),sp=Math.sin(P.pitch);
       let tx=fwdX*cp*inF+rX*inR,ty=sp*inF+((keys.Space?1:0)-(keys.KeyC?1:0)),tz=fwdZ*cp*inF+rZ*inR;const l=Math.hypot(tx,ty,tz);if(l>1){tx/=l;ty/=l;tz/=l;}
@@ -318,7 +319,7 @@ function updatePlayer(dt){
   let tl=0,tr=0,kl=0,kr=0,al=0,ar=0,el=-0.25,er=-0.25,alz=-0.12,arz=0.12,cape=0.15;
   if(P.wallRun){const c=Math.sin(time*16);tl=c*0.9;tr=-c*0.9;kl=Math.max(0,-c)*1.3+0.2;kr=Math.max(0,c)*1.3+0.2;al=-c*0.9-0.3;ar=c*0.9-0.3;el=er=-1.2;cape=0.9;
     if(P.wallRun.mode==='side'){bank=0;}}
-  else if(P.zip){ar=-3.0;er=0;al=-3.0;el=0;tl=0.2;tr=-0.1;kl=0.4;kr=0.2;cape=1.2;}
+  else if(P.zip||P.reel){ar=-3.0;er=0;al=-3.0;el=0;tl=0.2;tr=-0.1;kl=0.4;kr=0.2;cape=1.2;}
   else if(P.wall){const c=Math.sin(time*8)*(Math.abs(inF)+Math.abs(inR)>0.1?1:0);al=-2.6+c*0.4;ar=-2.6-c*0.4;tl=0.4+c*0.3;tr=0.4-c*0.3;kl=0.9-c*0.4;kr=0.9+c*0.4;el=er=-0.6;cape=0.1;}
   else if(P.web){ar=-3.0;er=0;al=-0.6;el=-0.9;tl=0.3;tr=-0.2;kl=0.6;kr=0.3;cape=clamp(sp3/30,0.3,1.4);}
   else if(P.wings){al=ar=-0.1;alz=-1.45;arz=1.45;el=er=0;tl=0.12;tr=-0.12;kl=kr=0.15;cape=1.2;}

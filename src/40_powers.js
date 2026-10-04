@@ -101,8 +101,8 @@ function togglePower(id){
   }
 }
 const flySpeed=()=>{const m=save.character&&save.character.movement[0],id=POWERS[m]&&POWERS[m].preset&&POWERS[m].speed?m:'flight',ov=1+0.01*travOver(); // +1% a mastery level above 10
-  if(PBAL){const v=POWERS[id].speed;return lerp(v[0]*1.15,v[1],(statLevel(id)-1)/(CONFIG.powerMax-1))*ov;} // CrazyGames: flight starts a bit faster than the website's
-  return pstat(id,'speed')*ov;};
+  if(PBAL){const v=POWERS[id].speed;return lerp(v[0]*1.15,v[1],(statLevel(id)-1)/(CONFIG.powerMax-1))*ov*boostMul('speed');} // CrazyGames: flight starts a bit faster than the website's
+  return pstat(id,'speed')*ov*boostMul('speed');};
 // CrazyGames: the Shift boost and the space speed-up grow with traversal mastery too
 const travK=()=>save.character?mk(save.character.movement[0]):0;
 const travOver=()=>save.character?masteryOver(save.character.movement[0]):0; // mastery levels above 10
@@ -162,7 +162,7 @@ function bolt(x,y,z,remote,k=remote?0.5:lvlK('lightning')){const bw=0.55+0.9*k;
 }
 const TOGGLE_FN={},CHANNEL_FN={};
 // ring charge: the Ring Bearer spends this instead of energy, and it only refills with the oath
-function ringSpend(n){if(!hasTrav('powerRing'))return spend(n);if(save.ring<n)return false;save.ring-=n;return true;}
+function ringSpend(n){if(!hasTrav('powerRing'))return spend(n);if(ringInf())return true;if(save.ring<n)return false;save.ring-=n;return true;}
 const POWER_FN={
   fireball(){faceAim();const h=handPoint(),d=dirTo(h,aim.x,aim.y,aim.z),sp=POWERS.fireball.speed;
     fireProj({kind:'fire',owner:P,x:h.x,y:h.y,z:h.z,vx:d[0]*sp,vy:d[1]*sp,vz:d[2]*sp,dmg:pstat('fireball','damage'),radius:pstat('fireball','radius'),
@@ -313,7 +313,7 @@ function tkDrop(){if(!P.tk)return;const T=P.tk;P.tk=null;for(const a of [T.a,...
 function stopAllPowers(){
   for(const k in PS)PS[k].holding=false;
   if(P.alien)P.alien.channel=false;
-  P.flying=false;P.metal=false;P.shieldOn=false;P.shield=0;P.web=null;P.wall=null;P.charging=false;P.slam=false;P.speeding=false;P.wallRun=null;P.zip=null;
+  P.flying=false;P.metal=false;P.shieldOn=false;P.shield=0;P.web=null;P.wall=null;P.charging=false;P.slam=false;P.speeding=false;P.wallRun=null;P.zip=null;P.reel=null;
   if(P.tk)tkDrop();beam=null;SFX.setLaser(false);SFX.setWind(0);if(P.construct)dismissConstruct(true);P.ringShield=false;P.cloak=false;closeOath();endGiant();
 }
 function updatePowers(dt){
@@ -323,7 +323,7 @@ function updatePowers(dt){
   if(!canAct()){for(const k in PS)PS[k].holding=false;}
   if(save.character)for(const id of save.character.abilities){
     const c=POWERS[id],s=PS[id];if(c.type!=='channel'||!s.holding)continue;
-    const cost=c.energyPerSec*dt;
+    const cost=c.energyPerSec*dt*boostMul('cost');
     if(heroMeter()){if(!payEn(cost,id,true)){s.holding=false;noEnergy(id);continue;}}
     else{if(P.en<cost){s.holding=false;noEnergy(id);continue;}P.en-=cost;P.lastSpend=time;}
     withCast(id,()=>{if(id==='laserVision'){laserTick(dt);lasering=true;}else if(id==='repulsors')repulsorTick(dt);else if(CHANNEL_FN[id])CHANNEL_FN[id](dt);else iceTick(dt);});
@@ -331,7 +331,7 @@ function updatePowers(dt){
   if(ice){iceVisuals();if(!PS.iceCloud.holding){ice.t-=dt;if(ice.t<=0)ice=null;}}
   SFX.setLaser(lasering);
   if(P.tk)tkTick(dt);
-  const drainT=(n)=>{if(heroMeter())return true;P.en=Math.max(0,P.en-n*dt);if(CONFIG.energy.togglesBlockRegen)P.lastSpend=time;return P.en>0;};
+  const drainT=(n)=>{if(heroMeter())return true;P.en=Math.max(0,P.en-n*dt*boostMul('cost'));if(CONFIG.energy.togglesBlockRegen)P.lastSpend=time;return P.en>0;};
   if(P.flying&&!P.alien&&!isRing()&&!drainT(pstat('flight','drain'))){P.flying=false;feed('Out of energy','You stopped flying');}
   if(P.metal&&!drainT(POWERS.metalSkin.drain)){P.metal=false;feed('Out of energy','Metal Skin wore off');}
   if(P.speeding&&!drainT(pstat('superSpeed','drain')))P.speeding=false;

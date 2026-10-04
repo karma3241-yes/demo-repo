@@ -376,6 +376,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
   #create .sheet-card,#sheet.side .sheet-card{width:100%;max-height:58vh;border-radius:14px 14px 0 0;padding:14px 16px}
 }
  #gl.slowmo{filter:saturate(.55) contrast(1.08) hue-rotate(-8deg)}
+  #gl.rewind{filter:grayscale(.55) sepia(.6) hue-rotate(172deg) saturate(1.7) brightness(1.05) contrast(1.05)}
  #gl.tstop{filter:saturate(.12) contrast(1.15) brightness(1.04) sepia(.18)}
 #lockmark{position:absolute;left:0;top:0;width:46px;height:46px;border:2px solid #ff5a3d;border-radius:8px;box-shadow:0 0 10px rgba(255,90,61,.7);clip-path:polygon(0 0,35% 0,35% 12%,12% 12%,12% 35%,0 35%,0 65%,12% 65%,12% 88%,35% 88%,35% 100%,65% 100%,65% 88%,88% 88%,88% 65%,100% 65%,100% 35%,88% 35%,88% 12%,65% 12%,65% 0,100% 0,100% 100%,0 100%);pointer-events:none}
 #combo{position:absolute;left:50%;top:calc(50% - 64px);transform:translateX(-50%);font-family:var(--display);font-size:22px;color:#fff1b8;text-shadow:0 2px 0 #7a3a00,0 0 12px rgba(255,160,40,.7);pointer-events:none}
@@ -457,7 +458,7 @@ body.cutfull #hud,body.cutfull #touch{opacity:0;transition:opacity .4s}
 #ask{position:fixed;inset:0;z-index:8;display:grid;place-items:center;padding:16px;background:rgba(3,5,12,.55)}
 #ask .ask-card{width:min(460px,100%);box-sizing:border-box;padding:20px 22px;text-align:center;border-color:rgba(255,201,60,.55);box-shadow:0 0 40px rgba(255,201,60,.18)}
 #ask .ask-head{font-family:var(--display);font-size:24px;letter-spacing:.05em;color:var(--gold)}
-#ask p{margin:10px 0 18px;font-size:15px;line-height:1.45;color:var(--ink)}
+#ask p{margin:10px 0 18px;font-size:15px;line-height:1.45;color:var(--ink)}#ask p.bold{margin:12px 0 10px;font-size:17px;font-weight:700;color:#fff1b8}#ask .ask-card p+p{margin-top:0}#ask .ask-card .ask-head+p{margin-top:12px}
 #ask .ask-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 #ask .go{font-size:17px;padding:12px 20px}#ask .ghost{padding:12px 18px}
 #ask kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-right:8px;border-radius:5px;border:1px solid currentColor;font:700 11px var(--hud);vertical-align:middle}

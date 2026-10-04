@@ -6,7 +6,8 @@
 // 4 Eclipse (the dark mode: the screen goes dark and every living thing around you is knocked down by dark bolts).
 // Hooks for later phases: sunGodOn(), Bus 'sunGodEnd' ({src}), save.guide.sgV / sgSun.
 const SG={on:false,t:0,max:60,src:'v',cd:0,cds:[0,0,0,0],lance:false,waves:[],ecl:null,armed:true,hintT:0,fx:0,dark:0,tint:0,lastTxt:''};
-const SG_NAMES=['Solar Lance','Heat Wave','Collapsing Star','Eclipse'],SG_CD=[0,3,12,30],SG_V_CD=90;
+const SG_NAMES=['Solar Lance','Heat Wave','Collapsing Star','Eclipse'],SG_CD=[0,3,12,30];
+const sgSeed=()=>ufoBoost()&&hasTrav('solarFlight'),sgVDur=()=>sgSeed()?90:60,sgVCd=()=>sgSeed()?20:90; // UFO boost (Star Seed): V lasts 90 s and comes back after 20 s
 const sunGodOn=()=>SG.on;
 const sgSpeedMul=()=>SG.on?1.5:1;
 const SUN_B=PLANETS.find(b=>b.sun);
@@ -20,7 +21,7 @@ function sunGodStart(src,force){
   if(state!=='play'||P.dead||(!force&&(!hasTrav('solarFlight')||!canAct())))return false;
   if(src==='v'&&SG.cd>0){feed('Sun God is recharging',Math.ceil(SG.cd)+' s left');SFX.tone('square',300,200,0.12,0.06);return false;}
   if(P.alien)revertAlien(true);stopAllPowers();
-  SG.on=true;SG.src=src==='sun'?'sun':'v';SG.t=SG.max=src==='sun'?120:60;SG.cds=[0,0,0,0];SG.lance=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
+  SG.on=true;SG.src=src==='sun'?'sun':'v';SG.t=SG.max=src==='sun'?120:sgVDur();SG.cds=[0,0,0,0];SG.lance=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
   P.hp=maxHp();P.en=maxEn();P.flying=true;P.grounded=false;P.vel.y=Math.max(P.vel.y,6);P.stun=0;
   const c=center(P),cx=c.x,cy=c.y,cz=c.z;ringFx(cx,cy,cz,1,24,0.7,[1,.85,.35]);ringFx(cx,cy,cz,1,14,0.45,[1,1,.9]);burst(cx,cy,cz,120,30,1.2,[[1,.85,.3],[1,.6,.15],[1,1,.85]],2,0,1.6);
   flashWhite=0.7;SFX.transform();SFX.boom(1,1.4);addShake(0.5);
@@ -30,14 +31,14 @@ function sunGodStart(src,force){
 function sunGodEnd(silent){
   if(!SG.on)return;const src=SG.src;
   SG.on=false;SG.lance=false;SG.ecl=null;SG.waves.length=0;beam=null;SFX.setLaser(false);P.flash=0;
-  if(src==='v')SG.cd=SG_V_CD;
+  if(src==='v')SG.cd=sgVCd();
   if(SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
     if(d<SUN_B.r+900){const k=(SUN_B.r+1100)/(d||1),nx=d>1e-3?dx*k:0,ny=d>1e-3?dy*k:SUN_B.r+1100,nz=d>1e-3?dz*k:0;P.pos.set(SUN_B.x+nx,SUN_B.y+ny,SUN_B.z+nz);P.vel.set(0,0,0);P.sunT=time+3;} // the Sun lets go of you
   }
   const c=center(P);ringFx(c.x,c.y,c.z,1,18,0.6,[1,.85,.35]);burst(c.x,c.y,c.z,70,16,1,[[1,.85,.3],[1,1,.85]],1.6,0,1.6);flashWhite=Math.max(flashWhite,0.6);SFX.tone('sine',1200,200,0.5,0.1);
   buildHotbar();buildTouchButtons();sgHud(false);
-  if(!silent){toast('The Sun God fades',src==='v'?'Back in '+SG_V_CD+' s':'The Sun will feed you again','gold');
-    if(!save.guide.sgSun){save.guide.sgSun=true;persist();later(2.6,()=>{if(state==='play')toast('Try V, then fly into the Sun',touchOn()?'V: the sun button · the Sun gives you 120 s':'V gives 60 s · the Sun gives you 120 s','gold');});}}
+  if(!silent){toast('The Sun God fades',src==='v'?'Back in '+sgVCd()+' s':'The Sun will feed you again','gold');
+    if(!save.guide.sgSun){save.guide.sgSun=true;persist();later(2.6,()=>{if(state==='play')toast('Try V, then fly into the Sun',touchOn()?'V: the sun button · the Sun gives you 120 s':'V gives '+sgVDur()+' s · the Sun gives you 120 s','gold');});}}
   Bus.emit('sunGodEnd',{src,silent:!!silent});}
 // ---- the four skills ----
 function sgAbilityDown(slot){

@@ -38,7 +38,9 @@ function meterBlocks(id){const m=heroMeter();if(!m)return false;
   if(m.key==='ring')return save.ring<=0;
   if(m.key==='bolt')return save.bolt<=0&&LIGHTNING_IDS.has(id)&&id!=='stormHammer';
   return save.cal<=0&&id==='timeStop';}
-const cdMul=()=>hungry()?3:1;
+const cdMul=()=>(hungry()?3:1)*boostMul('cd');
+// UFO boost: the Ring Bearer's ring, the Armored Inventor's battery and the Tempest's lightning never run down
+const ringInf=()=>ufoBoost()&&hasTrav('powerRing'),meterInf=m=>!!m&&ufoBoost()&&(m.key==='battery'||m.key==='bolt'||m.key==='ring');
 let meterMsgT=-9;
 function meterOut(m){if(m.key==='ring'){ringOut();return;}if(time-meterMsgT<2)return;meterMsgT=time;
   if(m.key==='battery')feed('Suit on standby','Fly to Forge Tower to recharge');
@@ -60,7 +62,7 @@ function tallRoofHere(){if(P.pos.y<TALL_ROOF-2)return null;
   return null;}
 function callStorm(){
   if(P.stormCall||!(heroMeter()&&heroMeter().key==='bolt'))return;
-  if(save.bolt>=99.5){feed('Your hammer is fully charged','');return;}
+  if(save.bolt>=99.5){feed('Your '+(stormAxe()?'axe':'hammer')+' is fully charged','');return;}
   P.stormCall={t:0,next:0.15};P.flying=false;feed('Calling the storm','Hold still');SFX.tone('sawtooth',80,300,1.5,0.08);
 }
 function nearestShopToEat(){if(!(heroMeter()&&heroMeter().key==='cal')||save.cal>=99.5||P.pos.y>6)return null;let best=null,bd=7;
@@ -72,7 +74,7 @@ function eatAt(s){const before=save.cal;save.cal=100;P.en=maxEn();
 function updateMeters(dt){
   const m=heroMeter();if(!m){P.stormCall=null;return;}
   P.en=maxEn(); // these heroes run on their meter instead of energy
-  const cap=meterCap(m);if(!(save[m.key]>=0))save[m.key]=cap;save[m.key]=Math.min(save[m.key],cap);
+  const cap=meterCap(m);if(!(save[m.key]>=0))save[m.key]=cap;save[m.key]=Math.min(save[m.key],cap);if(meterInf(m))save[m.key]=m.key==='ring'?Math.max(save.ring,100):cap;
   if(m.key==='battery'){
     if(P.flying&&save.battery>0&&P.suited!==false){save.battery=Math.max(0,save.battery-0.08*dt);if(save.battery<=0)meterEmpty(m);}
     if(atInventorTower()&&save.battery<cap&&!P.dead){const was=save.battery;save.battery=Math.min(cap,save.battery+cap*0.2*dt);
@@ -92,5 +94,5 @@ function updateMeters(dt){
   }
 }
 function meterPrompt(){const m=heroMeter();if(!m)return '';
-  if(m.key==='bolt'&&save.bolt<99.5&&!P.stormCall&&tallRoofHere())return 'G · Raise your hammer and call the storm';
+  if(m.key==='bolt'&&save.bolt<99.5&&!P.stormCall&&tallRoofHere())return 'G · Raise your '+(stormAxe()?'axe':'hammer')+' and call the storm';
   return '';}

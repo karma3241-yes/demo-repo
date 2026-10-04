@@ -12,7 +12,7 @@ const P={isPlayer:true,kind:'player',alive:true,pos:new V3(0,0,20),vel:new V3(),
 P.hp=maxHp();P.en=maxEn();
 const _c={x:0,y:0,z:0};
 function center(a){if(a===P){_c.x=P.pos.x;_c.y=P.pos.y+1.3;_c.z=P.pos.z;}else{_c.x=a.pos.x;_c.y=a.pos.y+(a.cy||0);_c.z=a.pos.z;}return _c;}
-function spend(n,id){if(heroMeter())return payEn(n,id);if(P.en<n)return false;P.en-=n;P.lastSpend=time;return true;}
+function spend(n,id){n*=boostMul('cost');if(heroMeter())return payEn(n,id);if(P.en<n)return false;P.en-=n;P.lastSpend=time;return true;}
 function addShake(v){shake=Math.min(1.5,shake+v*(REDUCED?0.2:1));}
 
 function knock(t,src,power,up=0.45){
@@ -62,7 +62,7 @@ const Damage={
     if(!t.alive)return 0;
     if(t.kind==='prop'&&src!==P&&!(src&&src.kind==='remote'))return 0;
     if(t.kind==='remote')return src===P?MP.hit(t,amount,type,opt):(WS.host&&src?WS.npcHit(t,src,amount,type,opt):0);
-    if(src===P){dmgNum(t,amount);hitMarkT=time;}
+    if(src===P){amount*=boostMul('dmgAll');dmgNum(t,amount);hitMarkT=time;}
     if(t.kind==='human'&&t.role==='civilian'&&t.hp-amount<=0&&src!==P&&!t.downed){t.hp=1;t.downed=25;t.flash=1;t.state='downed';if(opt.knock)knock(t,src,opt.knock);Bus.emit('damaged',{source:src,target:t,amount,type});return amount;}
     t.hp-=amount;t.flash=1;t.lastHit=time;
     if(opt.stun)t.stun=Math.max(t.stun||0,opt.stun);

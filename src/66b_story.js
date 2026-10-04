@@ -18,7 +18,7 @@ function storyTick(dt){
   try{
     const solo=storySolo();
     if(!solo){if(CUT)cutEnd(false);if(ASK)askClose(null);if(zone)zoneAbort();}
-    zoneFadeTick(dt);cutTick(dt);
+    zoneFadeTick(dt);cutTick(dt);boostTick(dt);
     if(solo&&state==='play'&&!P.dead){
       if(storyActiveNow())save.story.act+=dt;
       ufoTick(dt);
@@ -32,7 +32,7 @@ function storyTick(dt){
 // (an object or a function of progress). The camera glides from -> to over dur seconds. The player stands still and takes no damage, the world keeps running; Space,
 // Esc, Enter or a tap skips it after 1 s (onEnd still runs). With control:true the player keeps playing: only the bars and the caption show.
 let CUT=null;
-function cutLocked(){return !!(CUT&&!CUT.control)||ZF.phase>0||time<ST.graceT;} // the player frozen: no powers, no moving, no damage (also for a moment after a skip, so the tap isn't a punch)
+function cutLocked(){return !!(CUT&&!CUT.control)||ZF.phase>0||REW.on||time<ST.graceT;} // the player frozen: no powers, no moving, no damage (also for a moment after a skip, so the tap isn't a punch)
 function cutscene(o){
   o=o||{};if(CUT)cutEnd(false);
   CUT={dur:Math.max(0.3,o.dur||5),t:0,from:o.from,to:o.to||o.from,look:o.look,text:o.text||'',lb:o.letterbox!==false,control:!!o.control,skippable:!o.control&&o.skippable!==false,fov:o.fov||0,onTick:o.onTick,onEnd:o.onEnd,capOn:false,skipOn:false};
@@ -100,6 +100,16 @@ function askYesNo(title,text,yesLabel,noLabel,onYes,onNo){
   if(ASK||state!=='play'||paused||!storySolo())return false;
   const root=el('div',{id:'ask',role:'dialog','aria-modal':'true'},el('div',{class:'ask-card panel'},el('div',{class:'ask-head',text:title}),el('p',{text}),
     el('div',{class:'ask-btns'},el('button',{type:'button',class:'go',onclick:()=>askClose(true)},el('kbd',{text:'Y'}),yesLabel||'Yes'),el('button',{type:'button',class:'ghost',onclick:()=>askClose(false)},el('kbd',{text:'N'}),noLabel||'No'))));
+  return askShow(root,onYes,onNo);
+}
+// a gold info panel with one button (the UFO reward): askInfo(title,[text or {b:'bold line'} ...],buttonLabel,onClose)
+function askInfo(title,lines,btn,onClose){
+  if(ASK||state!=='play'||paused||!storySolo())return false;
+  const ps=lines.map(l=>typeof l==='string'?el('p',{text:l}):el('p',{class:'bold',text:l.b}));
+  return askShow(el('div',{id:'ask',role:'dialog','aria-modal':'true'},el('div',{class:'ask-card panel'},el('div',{class:'ask-head',text:title}),...ps,
+    el('div',{class:'ask-btns'},el('button',{type:'button',class:'go',onclick:()=>askClose(true)},el('kbd',{text:'Y'}),btn||'Got it')))),onClose,onClose);
+}
+function askShow(root,onYes,onNo){
   document.body.appendChild(root);ASK={root,onYes,onNo};
   paused=true;mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<4;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);
   if(locked){manualUnlock=true;document.exitPointerLock();} // paused is set first, so letting go of the mouse doesn't open the pause menu

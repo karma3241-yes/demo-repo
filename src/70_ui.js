@@ -35,7 +35,7 @@ function buildHotbar(){
   if(SG.on){sgBuildHotbar();return;}
   if(P.alien){const a=ALIENS[P.alien.id];
     a.abilities.forEach((ab,i)=>{const cd=el('i',{class:'cd'});const s=el('div',{class:'slot alien'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:ab.name}),el('small',{text:a.name}));hud.hotbar.appendChild(s);slotEls.push({alien:i,s,cd});});
-    const tb=el('i');const s=el('div',{class:'slot move band vslot'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Revert'}),el('div',{class:'bar tbar'},tb));s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});
+    const tb=el('i');const s=el('div',{class:'slot move band vslot'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:shiftMaster()?'Aliens':'Revert'}),el('div',{class:'bar tbar'},tb));s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({bandTimer:tb,s});
     return;}
   save.character.abilities.forEach((id,i)=>{
     const cd=el('i',{class:'cd'});const lv=el('small');
@@ -44,6 +44,7 @@ function buildHotbar(){
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd,lv,i});
   });
   {const cd=el('i',{class:'cd',hidden:true}),kb=el('kbd'),nm=el('span',{class:'nm'});const s=el('div',{class:'slot vslot',hidden:true},cd,kb,nm);s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({vs:true,s,cd,kb,nm});} // the V / B slot: filled in by the per-frame update
+  if(rewindOn()){const cd=el('i',{class:'cd',hidden:true}),s=el('div',{class:'slot rewslot'},cd,el('kbd',{text:touchOn()?'':'X'}),el('span',{class:'nm',text:'⟲ Rewind'}));s.addEventListener('click',()=>rewind());hud.hotbar.appendChild(s);slotEls.push({rw:true,s,cd});} // Chrono Core: an extra slot after V
   for(const id of save.character.movement){
     const lv=el('small');const pre=PRESETS[id];const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':POWERS[id].key}),el('span',{class:'nm',text:pre?pre.name:POWERS[id].name}),lv);
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd:null,lv,trav:true});
@@ -154,7 +155,8 @@ function renderUnlocks(){
   else{const N=MASTERY_NOTES[m]||{};for(const k in N)rows.push({lv:+k,got:ml>=+k,badge:'M '+k,icon:powerIcon(m),title:N[k]});}
   if(rows.length)list(mn+' mastery',rows,'Mastery '+Math.floor(ml)+' of '+MASTERY_MAX+' · grows as you use it');
   if(hasPower('morphBand')){const bl=powerLevel('morphBand');
-    list('Morph Band',ALIEN_IDS.map(id=>({lv:ALIENS[id].unlock,got:bl>=ALIENS[id].unlock,badge:'LV '+ALIENS[id].unlock,icon:powerIcon('morphBand'),title:ALIENS[id].name,sub:ALIENS[id].blurb})),'Band LV '+bl+' · upgrade it in Skills');}
+    list('Morph Band',ALIEN_IDS.map(id=>({lv:ALIENS[id].unlock,got:shiftMaster()||bl>=ALIENS[id].unlock,badge:'LV '+ALIENS[id].unlock,icon:powerIcon('morphBand'),title:ALIENS[id].name,sub:ALIENS[id].blurb})),'Band LV '+bl+' · upgrade it in Skills');}
+  boostList(B);
 }
 const STAT_LABELS={bounces:'Bounces',duration:'Duration',damage:'Damage',dps:'Damage per second',radius:'Radius',speed:'Speed',drain:'Energy per second',mult:'Speed multiplier',range:'Range',force:'Swing force',
   stun:'Stun',slow:'Slow',absorb:'Absorbs',dr:'Damage reduction',throwDmg:'Throw damage',knock:'Knockback',burnDps:'Burn per second',hitDmg:'Bump damage',capacity:'Capacity'};
@@ -187,7 +189,7 @@ function renderSkills(){
   }
   const rr_=respecRow();if(rr_)sheetBody.appendChild(rr_);
   if(hasPower('morphBand')){sheetBody.appendChild(el('h3',{text:'Morph Band aliens'}));const lv=powerLevel('morphBand');
-    for(const id of ALIEN_IDS){const a=ALIENS[id],on=a.unlock<=lv;sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:a.name+(on?'':'  ·  unlocks at band LV '+a.unlock)}),el('p',{text:a.blurb+' '+a.abilities.map(x=>x.name).join(', ')+'.'})));}}
+    for(const id of ALIEN_IDS){const a=ALIENS[id],on=shiftMaster()||a.unlock<=lv;sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:a.name+(on?'':'  ·  unlocks at band LV '+a.unlock)}),el('p',{text:a.blurb+' '+a.abilities.map(x=>x.name).join(', ')+'.'})));}}
 }
 function spentPoints(){let n=0;for(const k in save.powerLevels){const l=save.powerLevels[k];for(let q=1;q<l;q++)n+=CONFIG.powerUpgradeCost(q);}for(const k in save.passives)n+=(save.passives[k]|0)*CONFIG.passiveCost;return n;}
 let respecArmed=false;
@@ -384,7 +386,7 @@ function dialItems(){
     return (TRAV_STYLES[id]||[]).map(([k,n,d])=>({name:n,blurb:k===cur?'In use':d,on:true,glow,info:n+' · '+d,pick:()=>setTravStyle(id,k)}));}
   if(dialKind==='armor')return ARMOR_IDS.map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Armored Inventor mastery '+c.unlock+(Portal.ads()?' · click to try':''),glow:'#ff6a3d',info:c.name+' · '+c.attacks,pick:()=>summonConstruct(id)};});
   if(dialKind==='construct')return CON_PAGES.flat().map(id=>{const c=CONSTRUCTS[id];return {name:c.name,blurb:c.blurb,on:conUnlocked().includes(id),trialKey:'con:'+id,lock:'Ring mastery '+c.unlock+(Portal.ads()?' · click to try':''),glow:'#5dff86',cost:c.cost,info:c.name+' · '+c.attacks+' · '+c.cost+' charge',pick:()=>summonConstruct(id)};});
-  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),trialKey:'al:'+id,lock:'Band LV '+a.unlock+(Portal.ads()?' · click to try':''),glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · ')+(a.xQuiz?' · '+xTime(voidbornDuration())+' if the masks agree (Energy raises it)':''),pick:()=>transformInto(id)};});
+  return ALIEN_IDS.map(id=>{const a=ALIENS[id];return {name:a.name,blurb:a.blurb,on:aliensUnlocked().includes(id),trialKey:'al:'+id,lock:'Band LV '+a.unlock+(Portal.ads()?' · click to try':''),glow:a.glow,info:a.name+' · '+a.abilities.map(x=>x.name).join(' · ')+(shiftMaster()&&P.alien&&P.alien.id===id?' · pick it again to turn back':'')+(a.xQuiz?' · '+xTime(voidbornDuration())+' if the masks agree (Energy raises it)':''),pick:()=>transformInto(id)};});
 }
 // ---- traversal styles (V wheel for the Web Runner, the Tempest and the Speedster) ----
 const TRAV_GLOW={webSwing:'#e8ecff',stormFlight:'#8fb4ff',superSpeed:'#ffd23c'};
@@ -393,7 +395,7 @@ const hasTravWheel=()=>!!save.character&&!P.alien&&!!TRAV_STYLES[save.character.
 function vAction(){
   if(!save.character)return null;
   if(isRing())return P.construct?{key:'B',name:'Put away',icon:'ring'}:{key:'V',name:'Constructs',icon:'ring'};
-  if(hasPower('morphBand'))return {key:'V',name:P.alien?'Revert':'Morph',icon:'band'};
+  if(hasPower('morphBand'))return {key:'V',name:P.alien?(shiftMaster()?'Aliens':'Revert'):'Morph',icon:'band'};
   if(armorForms())return P.construct?{key:'B',name:'Put away',icon:'helmet'}:{key:'V',name:'Suit forms',icon:'helmet'};
   if(hasTrav('solarFlight')&&!P.alien)return {key:'V',name:'Sun God',icon:'sun'};
   if(hasTravWheel())return {key:'V',name:'Style',icon:'wheel'};

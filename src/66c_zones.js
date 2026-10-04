@@ -35,7 +35,7 @@ function zoneSwitch(Z,at){
   stopAllPowers();lockT=null;comboN=0;
   if(!Z.built){Z.built=true;Z.build();}
   zone=Z;const a=at||Z.spawn||{x:0,y:0,z:0},o=Z.origin;
-  P.pos.set(o.x+a.x,o.y+(a.y||0),o.z+a.z);P.vel.set(0,0,0);if(a.yaw!==undefined)P.yaw=a.yaw;P.pitch=-0.1;P.grounded=true;P.floatT=0;P.web=null;P.wall=null;
+  P.pos.set(o.x+a.x,o.y+(a.y||0),o.z+a.z);P.vel.set(0,0,0);if(a.yaw!==undefined)P.yaw=a.yaw;P.pitch=-0.1;P.grounded=true;P.floatT=0;P.web=null;P.reel=null;P.wall=null;
   camDist=8;projs.length=0;debris.length=0;tracers.length=0;
   if(Z.enter)try{Z.enter();}catch(e){logErr(e);}
 }

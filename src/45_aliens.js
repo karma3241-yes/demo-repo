@@ -24,17 +24,20 @@ const ALIEN_IDS=Object.keys(ALIENS);
 const BAND_COL=[.62,.36,1];
 const band={cd:0};
 const tornados=[],spikes=[];
-const aliensUnlocked=()=>ALIEN_IDS.filter(id=>ALIENS[id].unlock<=powerLevel('morphBand')||trialOn('al:'+id));
+// UFO boost (Master Control): every alien, no time limit, no recharge, and V switches straight to another alien
+const shiftMaster=()=>ufoBoost()&&hasTrav('bandFlight');
+const aliensUnlocked=()=>ALIEN_IDS.filter(id=>shiftMaster()||ALIENS[id].unlock<=powerLevel('morphBand')||trialOn('al:'+id));
 const alienDef=()=>P.alien?ALIENS[P.alien.id]:null;
 const alienMul=()=>pstat('morphBand','power');
 function bandPress(){
   if(!hasPower('morphBand')||!canAct())return;
-  if(P.alien){revertAlien(false);return;}
+  if(P.alien){if(shiftMaster()){openDial();return;}revertAlien(false);return;}
   if(band.cd>0){PS.morphBand.flash=0.4;feed('Morph Band recharging',Math.ceil(band.cd)+' s left');SFX.tone('square',300,200,0.12,0.06);return;}
   openDial();
 }
 function transformInto(id){
-  const a=ALIENS[id];if(!a||!aliensUnlocked().includes(id)||P.alien)return;
+  const a=ALIENS[id];if(!a||!aliensUnlocked().includes(id))return;
+  if(P.alien){if(!shiftMaster())return;if(P.alien.id===id){revertAlien(false);return;}revertAlien(true);} // Master Control: switch without going back to your hero first
   const frac=P.hp/maxHp();stopAllPowers();
   const dur=a.xQuiz?voidbornDuration():pstat('morphBand','duration');
   P.alien={id,t:dur,max:dur,cds:[0,0,0],armor:0,veil:0,phase:0,channel:false,warn:0};
@@ -50,7 +53,7 @@ function revertAlien(silent){
   if(P.alien.phase>0)unphase();if(P.alien.xq)voidbornEnd();
   P.alien=null;P.radius=0.8;P.height=2.7;P.hp=Math.max(1,frac*maxHp());P.invisible=0;
   if(a&&a.flies&&!hasPower('flight'))P.flying=false;
-  band.cd=pstat('morphBand','recharge');
+  band.cd=shiftMaster()?0:pstat('morphBand','recharge');
   if(!silent){const c=center(P);ringFx(c.x,c.y,c.z,1,6,0.4,BAND_COL);burst(c.x,c.y,c.z,40,10,0.8,[BAND_COL,[1,1,1]],1.2,0,2);SFX.tone('sine',1200,300,0.4,0.1);}
   buildHotbar();buildTouchButtons();MP.bump();
 }
@@ -127,7 +130,7 @@ function updateAliens(dt){
   if(P.alien){const A=P.alien,a=alienDef();
     for(let i=0;i<3;i++)if(A.cds[i]>0)A.cds[i]=Math.max(0,A.cds[i]-dt);
     if(A.xq&&A.xq.stage!=='play'){if(state==='play'&&!P.dead)voidbornTick(dt);} // the masks hold the clock until he is free
-    else if(state==='play'&&!P.dead){A.t-=dt;if(A.t<5&&A.t>0){A.warn-=dt;if(A.warn<=0){A.warn=1;SFX.tone('square',900,900,0.08,0.06);}}if(A.t<=0){revertAlien(false);feed('Morph Band timed out','Recharging for '+Math.ceil(band.cd)+' s');}}
+    else if(shiftMaster()){A.t=A.max;}else if(state==='play'&&!P.dead){A.t-=dt;if(A.t<5&&A.t>0){A.warn-=dt;if(A.warn<=0){A.warn=1;SFX.tone('square',900,900,0.08,0.06);}}if(A.t<=0){revertAlien(false);feed('Morph Band timed out','Recharging for '+Math.ceil(band.cd)+' s');}}
     if(A.armor>0)A.armor-=dt;if(P.invisible>0)P.invisible-=dt;
     if(A.phase>0){A.phase-=dt;if(A.phase<=0)unphase();}
     if(A.channel&&a.abilities.some(x=>x.id==='frostBreath')){const m=alienMul(),c=center(P);coneHit(18,0.75,25*m*dt,{},'ice');

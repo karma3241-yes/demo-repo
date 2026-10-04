@@ -30,7 +30,7 @@ const CON_GROW={mul:1.2,cost:0.9,refund:0.25,earth:120000};
 const conGrow=id=>P.construct&&P.construct.id===id?P.construct.grow||1:1;
 // how big a construct is before it grows (metres, roughly its longest side)
 function conBase(id){const C=CONSTRUCTS[id];return C.scale?2.7*C.scale*conSize():C.len||4;}
-const conMaxGrow=id=>PBAL?(2+28*mk(conOwner(id)))*conOver(conOwner(id)):Math.max(1,CON_GROW.earth/conBase(id)); // CrazyGames: 2x, up to 30x with mastery
+const conMaxGrow=id=>ringInf()&&conOwner(id)==='powerRing'?Math.max(1,CON_GROW.earth/conBase(id)):PBAL?(2+28*mk(conOwner(id)))*conOver(conOwner(id)):Math.max(1,CON_GROW.earth/conBase(id)); // CrazyGames: 2x, up to 30x with mastery
 function conBody(){const K=P.construct;if(!K)return;const C=CONSTRUCTS[K.id];if(!C.scale)return;const sc=conScale(K.id);
   // the body stays narrow enough to walk down a street; anything inside the mech's feet gets trampled instead
   P.radius=0.8*Math.max(1,Math.min(sc*0.7,9));P.height=2.7*sc;}
@@ -38,7 +38,7 @@ const sizeLabel=m=>m>=1000?(m/1000).toFixed(m>=10000?0:1)+' km':Math.round(m)+' 
 function conGrowStep(dir){
   const K=P.construct;if(!K||!canAct())return false;const C=CONSTRUCTS[K.id],g=K.grow||1,mx=conMaxGrow(K.id);
   const ng=dir>0?Math.min(mx,g*CON_GROW.mul):Math.max(1,g/CON_GROW.mul);
-  if(Math.abs(ng-g)<1e-6){if(time-(K.maxMsg||-9)>3){K.maxMsg=time;feed(dir>0?(PBAL?C.name+' is as big as your mastery allows (×'+Math.round(mx*10)/10+')':C.name+' is as big as the Earth'):C.name+' is back to normal size','');}return true;}
+  if(Math.abs(ng-g)<1e-6){if(time-(K.maxMsg||-9)>3){K.maxMsg=time;feed(dir>0?(PBAL&&!ringInf()?C.name+' is as big as your mastery allows (×'+Math.round(mx*10)/10+')':C.name+' is as big as the Earth'):C.name+' is back to normal size','');}return true;}
   if(ng>g){if(conFuel()<CON_GROW.cost+0.5){ringOut();return true;}conBurn(CON_GROW.cost);}
   else if(armorForms())save.battery=Math.min(meterCap(METERS.armorFlight),save.battery+CON_GROW.cost*CON_GROW.refund*0.25);else save.ring=Math.min(Math.max(100,save.ring),save.ring+CON_GROW.cost*CON_GROW.refund);
   K.grow=ng;conBody();if(ng>g)growTutDone();const c=center(P),sz=conBase(K.id)*ng;ringFx(c.x,P.pos.y+0.3,c.z,1,Math.min(4*sz,CON_GROW.earth),0.4,C.armor?ARMOR_FX:RING_C);
@@ -54,7 +54,7 @@ const conCam=()=>{const c=conDef();if(!c)return 1;const b=c.cam?c.cam:P.construc
 // constructs run on ring charge, or on the suit battery for the Armored Inventor's suit forms (4 ring points = 1 battery point)
 const armorForms=()=>hasTrav('armorFlight')&&!P.alien;
 const conFuel=()=>armorForms()?save.battery*4:save.ring;
-function conBurn(n){if(armorForms())save.battery=Math.max(0,save.battery-n*0.25);else save.ring=Math.max(0,save.ring-n);}
+function conBurn(n){if(ringInf()&&!armorForms())return;if(armorForms())save.battery=Math.max(0,save.battery-n*0.25);else save.ring=Math.max(0,save.ring-n);}
 const conOwner=id=>CONSTRUCTS[id]&&CONSTRUCTS[id].armor?'armorFlight':'powerRing';
 function ringOut(){if(armorForms()){meterOut(METERS.armorFlight);return;}feed('Ring charge is empty',oathHoldMode()?(touchOn()?'Hold OATH to recite the oath':'Hold O to recite the oath'):'Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
 function summonConstruct(id){

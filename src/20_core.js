@@ -227,7 +227,17 @@ function persist(){save.savedAt=Date.now();const j=JSON.stringify(save);try{loca
 const touchOn=()=>save.settings.controls==='touch'||(save.settings.controls==='auto'&&IS_TOUCH_DEVICE);
 
 const pv=k=>save.passives[k]|0;
-const maxHp=()=>(CONFIG.health.base+CONFIG.health.perLevel*pv('vitality'))*(P.alien?ALIENS[P.alien.id].hp:1);
+// UFO boosts (66e_boost.js): once the item is taken (story.ufo>=2) every hero gets its own boost, whichever hero you play (checked at use time). boostMul(kind,id):
+// 'hp' all heroes x1.2; 'dmg' (by power id) the Tempest's hammer x1.6 and the Armored Inventor's blasts x1.5; 'dmgAll' Ironclad/Nightblade/Slingshot/Goliath x1.5 on every hit;
+// 'speed' flight x1.3 (those four) or swing cap x1.25 (Web Runner); 'cost' x0.5 and 'cd' x0.7 for those four.
+const ufoBoost=()=>!!save.story&&save.story.ufo>=2;
+const BOOST_ALL=['ironFlight','bladeFlight','elasticFlight','titanFlight'],BOOST_ARC=['repulsors','energyBlast','coreBeam'];
+function boostMul(kind,id){
+  if(!ufoBoost()||!save.character)return 1;const h=save.character.movement[0],all=BOOST_ALL.includes(h);
+  switch(kind){case 'hp':return 1.2;case 'dmgAll':return all?1.5:1;case 'speed':return all?1.3:h==='webSwing'?1.25:1;case 'cost':return all?0.5:1;case 'cd':return all?0.7:1;
+    case 'dmg':return h==='armorFlight'&&BOOST_ARC.includes(id)?1.5:h==='stormFlight'&&id==='stormHammer'?1.6:1;}
+  return 1;}
+const maxHp=()=>(CONFIG.health.base+CONFIG.health.perLevel*pv('vitality'))*(P.alien?ALIENS[P.alien.id].hp:1)*boostMul('hp');
 const maxEn=()=>CONFIG.energy.base+CONFIG.energy.perLevel*pv('energy');
 const enRegen=()=>CONFIG.energy.regen*(1+CONFIG.energy.regenBonus*pv('energy'));
 const hpRegen=()=>CONFIG.health.baseRegen+CONFIG.health.healPerLevel*pv('healing')+(hasPower('bladeClaws')?4+powerLevel('bladeClaws')*0.6:0);
@@ -266,7 +276,8 @@ for(const id of ['ironFlight','bladeFlight','elasticFlight','titanFlight','bandF
 // traversal stats grow with mastery (use), never below the level they were upgraded to before
 const statLevel=id=>POWERS[id].cat==='movement'?Math.min(CONFIG.powerMax,Math.max(powerLevel(id),masteryLevel(id))):powerLevel(id); // pstat lerps 1..10, so mastery above 10 is clamped here
 const lvlK=id=>(powerLevel(id)-1)/(CONFIG.powerMax-1); // 0 at level 1, 1 at max: drives how strong a power looks
-function pstat(id,name,lvl){const v=POWERS[id][name];const r=Array.isArray(v)?lerp(v[0],v[1],((lvl||statLevel(id))-1)/(CONFIG.powerMax-1)):v;
+function pstat(id,name,lvl){const v=POWERS[id][name];let r=Array.isArray(v)?lerp(v[0],v[1],((lvl||statLevel(id))-1)/(CONFIG.powerMax-1)):v;
+  if(!lvl&&typeof r==='number'&&(name==='damage'||name==='dps'))r*=boostMul('dmg',id); // UFO boost
   // a grown power (hold its key and scroll) reaches further and hits harder while it is being cast
   if(typeof castK!=='undefined'&&castK>1&&typeof r==='number'&&!lvl){if(name==='radius'||name==='range'||name==='reach')return r*castK;if(name==='damage'||name==='dps'||name==='throwDmg')return r*Math.sqrt(castK);}
   return r;}

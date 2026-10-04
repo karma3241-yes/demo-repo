@@ -5,7 +5,7 @@
 // yet, 1 waiting, 2 item taken, 3 done). Fly up into the hole in its belly, or say yes to the popup (after 60 s, 15 s for heroes that can't fly) and be beamed up.
 // Inside (ZONES.ufo, parked at z=40000) are a hangar, corridors, four rooms with aliens (lab, engine room, holding cells, control deck) and a vault whose door opens
 // once all four rooms are cleared. The item on its pedestal depends on the hero (UFO_ITEMS); touching it saves save.story.item and calls ufoReward(id). Then you are
-// sent back above the city and the saucer flies off (5 s cutscene). The rewards themselves come in the next phase (see ufoReward / ufoWebReel).
+// sent back above the city and the saucer flies off (5 s cutscene). The rewards live in 66e_boost.js (boostGranted); the Web Runner's reel is ufoWebReel below.
 const UFO={on:false,x:0,y:420,z:0,rot:0,mesh:null,waitT:0,waitMax:60,leaving:false,lift:null};
 const UFO_R=130,UFO_Y=420,UFO_HOLE=20; // saucer radius, hover height, radius of the opening in its belly
 // the item each hero fetches: name, what it will do (next phase), glow colour
@@ -20,8 +20,22 @@ const UFO_ITEMS={
 const ufoHero=()=>save.character?save.character.movement[0]:'ironFlight';
 const ufoItem=()=>UFO_ITEMS[ufoHero()]||UFO_ITEMS.ironFlight;
 const ufoFlier=()=>hasPower('flight'); // Speedster and Web Runner can't fly up to it
-function ufoReward(id){toast('Reward: '+(UFO_ITEMS[id]||ufoItem()).name,'','gold');} // TODO next phase: apply the per-hero reward (Master Control, storm axe, rewind, ring without limits ...)
-function ufoWebReel(){} // TODO next phase: Web Runner webs the UFO from space and is reeled up to it
+// taking the item turns the boosts on for every hero (ufoBoost(), 66e_boost.js): the panel says what the current hero got
+function ufoReward(id){boostGranted(id);}
+// Web Runner: pressing web while looking at the saucer (or anywhere under it, aiming up more than 25 degrees) webs its belly and reels you up at a steady 45 m/s (80_player.js reelStep).
+// Returns true when it took the press (44_movement.js webPress), false for a normal swing.
+function ufoWebReel(){
+  const S=save.story;if(!hasTrav('webSwing')||P.alien||S.ufo!==1||!UFO.on||zone||CUT||ASK||ZF.phase||UFO.leaving||Math.abs(UFO.y-UFO_Y)>5||!storySolo())return false;
+  const ox=P.pos.x,oy=P.pos.y+1.6,oz=P.pos.z,tx=UFO.x,ty=UFO.y-26,tz=UFO.z,dx=tx-ox,dy=ty-oy,dz=tz-oz,d=Math.hypot(dx,dy,dz)||1;
+  if(P.pos.y>ty-6)return false; // the hull is above you only when you are below the opening
+  const ang=Math.acos(clamp((camF.x*dx+camF.y*dy+camF.z*dz)/d,-1,1)),sat=Math.atan2(UFO_R*0.9,d),hd=Math.hypot(dx,dz);
+  if(!(ang<sat+0.12||(hd<700&&camF.y>Math.sin(0.436))))return false; // looking at the saucer, or up under it
+  if(!spend(POWERS.webSwing.energy)){noEnergy();return true;}
+  P.web=null;P.wall=null;P.wallRun=null;P.zip=null;P.flying=false;P.charging=false;if(P.grounded){P.grounded=false;P.pos.y+=0.2;P.vel.y=Math.max(P.vel.y,4);}
+  P.reel={t:0,x:tx,y:ty,z:tz,pd:d,pt:time};SFX.tone('triangle',1400,500,0.14,0.09);feed('Reeling up to the UFO','Keep holding the web button · let go to stop');
+  const h=handPoint();tracer(h.x,h.y,h.z,h.x+dx/d*30,h.y+dy/d*30,h.z+dz/d*30,[.95,.95,1],0.08,0.3);
+  return true;
+}
 // ---- the saucer in the sky ----
 const UP={sph:primSphere(56,28),cyl:primCyl(56),tor:primTorus(1,0.09,64,10),cone:primCyl(24,0.02,1,true)}; // smooth parts for the saucer (the shared ones are low-poly)
 const UGLOW=primMesh(UP.sph,6);
@@ -64,13 +78,13 @@ function ufoTick(dt){
   if(S.ufo===0&&S.act>=180&&free&&!inSpace()&&!P.car)ufoArrive(false);
   if(S.ufo===2&&free&&!UFO.leaving)ufoLeaveCut(); // item taken but the cutscene never ran (died or left early): play it now
   if(S.ufo===1&&UFO.on&&!zone){
-    const want=ufoFlier()?'Fly up into the UFO':'Get up to the UFO';
+    const want=ufoFlier()?'Fly up into the UFO':hasTrav('webSwing')?'Web the UFO to pull yourself up':'Get up to the UFO';
     if(OBJ.text!==want)objective(want);if(!OBJ.mark||OBJ.mark.label!=='UFO')objectiveMark(UFO.x,UFO.y-26,UFO.z,'UFO');
     if(free){
       if(storyActiveNow())UFO.waitT+=dt;
       if(UFO.waitT>=UFO.waitMax)ufoAsk();
       const dx=P.pos.x-UFO.x,dz=P.pos.z-UFO.z;
-      if(dx*dx+dz*dz<UFO_HOLE*UFO_HOLE&&P.pos.y>UFO.y-38&&P.pos.y<UFO.y-12&&!P.dead){SFX.whoosh();enterZone('ufo');}
+      if(dx*dx+dz*dz<UFO_HOLE*UFO_HOLE&&P.pos.y>UFO.y-38&&P.pos.y<UFO.y-12&&!P.dead){P.reel=null;SFX.whoosh();enterZone('ufo');}
     }
   }
 }
@@ -89,7 +103,7 @@ function ufoArrive(quick){
 }
 function ufoAsk(){
   if(ASK||CUT||ZF.phase)return;
-  askYesNo('Start the story?','The UFO is waiting. Beam up now?','Beam me up','Not now',()=>{UFO.waitT=0;ufoBeamUp();},()=>{UFO.waitT=0;UFO.waitMax=180;}); // No: ask again after 3 more active minutes
+  askYesNo('Start the story?',hasTrav('webSwing')?'Web the UFO to pull yourself up, or be beamed up now?':'The UFO is waiting. Beam up now?','Beam me up','Not now',()=>{UFO.waitT=0;ufoBeamUp();},()=>{UFO.waitT=0;UFO.waitMax=180;}); // No: ask again after 3 more active minutes
 }
 // a column of light lifts you for 2 s, then you are inside
 function ufoBeamUp(){

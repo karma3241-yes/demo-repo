@@ -33,7 +33,7 @@ function rechargeGoal(){
   if(m.key==='ring')return {hint:'Ring low · '+(touchOn()?'hold OATH':'hold O')+' to recite the oath and recharge',col:'#5dff86'};
   if(m.key==='battery'){if(atInventorTower())return {hint:'Recharging at Forge Tower',col:'#ff6a3d'};if(!invTower)return null;
     return {x:invTower.x,y:invTower.top+8,z:invTower.z,icon:'🔋',label:'Forge Tower',col:'#ff6a3d',hint:(save.battery<=0?'Suit on standby':'Battery low')+' · fly to Forge Tower to recharge'};}
-  if(m.key==='bolt'){if(tallRoofHere())return {hint:(touchOn()?'Tap USE':'Press G')+' to raise your hammer and call the storm',col:'#8fd8ff'};
+  if(m.key==='bolt'){if(tallRoofHere())return {hint:(touchOn()?'Tap USE':'Press G')+' to raise your '+(stormAxe()?'axe':'hammer')+' and call the storm',col:'#8fd8ff'};
     if(time-goalCache.t>1||goalCache.key!=='bolt'){goalCache={t:time,key:'bolt',g:nearestTallRoof()};}const r=goalCache.g;if(!r)return null;
     return {x:r.x,y:r.y+8,z:r.z,icon:'⚡',label:'Tall roof',col:'#8fd8ff',hint:'Lightning low · land on a tall roof and '+(touchOn()?'tap USE':'press G')+' to call the storm'};}
   if(m.key==='cal'){if(nearestShopToEat())return {hint:(touchOn()?'Tap USE':'Press G')+' to eat here',col:'#ffc93c'};

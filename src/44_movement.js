@@ -57,6 +57,7 @@ function attachWeb(pt){
 function webPress(){
   webHeld=true;
   if(!hasWeb()||!canAct())return;
+  if(ufoWebReel())return; // the UFO is up there: the web reels you up to it (66d_ufo.js)
   const R=webRange(),h=handPoint();
   // yank a close target (or the locked one) instead of swinging
   // (keep holding to stay webbed on: see tether below)
@@ -71,7 +72,7 @@ function webPress(){
   // Zip style (V wheel): right click pulls you straight to where you aim instead of swinging
   if(hasTrav('webSwing')&&travStyle('webSwing')==='zip'){if(!webZip(true)){PS.webSwing.flash=0.3;feed('Nothing to zip to','Aim at a wall or rooftop within '+Math.round(R*0.8)+' m');}return;}
   // the game picks the anchor (you only steer): a building ahead in the direction you want to go
-  const pt=findAnchor(R);
+  const pt=findAnchor(R)||skyAnchor(); // Graviton Web Gland: in the air a web can hold on to the sky
   if(!pt){if(P.grounded){webHop();return;}if(time-noAnchorT>3){noAnchorT=time;PS.webSwing.flash=0.3;feed('Nothing to swing from','Webs need a building ahead and above you');}return;}
   if(!spend(POWERS.webSwing.energy)){noEnergy();return;}
   if(P.grounded){P.vel.y=Math.max(P.vel.y,17);P.grounded=false;P.pos.y+=0.2;}
@@ -105,7 +106,7 @@ function tetherTick(W){
   return true;
 }
 function webRelease(boost=true){
-  webHeld=false;if(!P.web)return;const W=P.web;P.web=null;if(W.target)boost=false;
+  webHeld=false;if(P.reel)reelStop();if(!P.web)return;const W=P.web;P.web=null;if(W.target)boost=false;
   if(boost&&!P.grounded){const hs=Math.hypot(P.vel.x,P.vel.z);
     // best release: moving forward and starting to rise
     const good=P.vel.y>-4&&hs>10;P.vel.x*=good?MOVE.releaseBoost:1.03;P.vel.z*=good?MOVE.releaseBoost:1.03;P.vel.y+=good?7:3;
@@ -125,7 +126,7 @@ function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
     const hs=Math.hypot(P.vel.x,P.vel.z);if(hs>6&&!W.target){const vx=P.vel.x/hs,vz=P.vel.z/hs;if(vx*ix+vz*iz>-0.3){const k=Math.min(1,1.6*m*dt*(0.4+0.6*down)),nx=vx+(ix-vx)*k,nz=vz+(iz-vz)*k,nl=Math.hypot(nx,nz)||1;P.vel.x=nx/nl*hs;P.vel.z=nz/nl*hs;}}}
   // gravity assist through the bottom of the arc
   if(down>0.6&&P.pos.y>gy+1.5){const hs=Math.hypot(P.vel.x,P.vel.z)||1;P.vel.x+=P.vel.x/hs*8*dt;P.vel.z+=P.vel.z/hs*8*dt;}
-  P.vel.mul(1-0.03*dt);{const v=P.vel.len(),cap=(PBAL?80+25*webMk():70+35*webMk())*(1+0.01*masteryOver('webSwing'));if(v>cap)P.vel.mul(cap/v);}
+  P.vel.mul(1-0.03*dt);{const v=P.vel.len(),cap=(PBAL?80+25*webMk():70+35*webMk())*(1+0.01*masteryOver('webSwing'))*boostMul('speed');if(v>cap)P.vel.mul(cap/v);}
   // rope: stays taut, reels in a little after the attach (the swoop), never drags along the street; speed along it is limited, position is never snapped
   let rr_=0;
   if(!W.target){ropeLen(P.pos,W,dt,0,6);
@@ -135,7 +136,7 @@ function swingStep(dt,inF,inR,fwdX,fwdZ,rX,rZ){
   // chain: past the bottom and rising beyond ~45 degrees in front of the anchor, let go and grab the next one (picked before letting go)
   const ax=P.pos.x-W.x,az=P.pos.z-W.z,hs=Math.hypot(P.vel.x,P.vel.z);
   if(!W.target&&webHeld&&time-W.t>0.5&&hs>8&&(ax*P.vel.x+az*P.vel.z)>0&&P.vel.y>-2&&dyA>-W.L*MOVE.chainAngle){
-    const R=webRange(),pt=findAnchor(R);webRelease(true);webHeld=true;
+    const R=webRange(),pt=findAnchor(R)||skyAnchor();webRelease(true);webHeld=true;
     if(pt&&P.en>=POWERS.webSwing.energy*0.5){P.en-=POWERS.webSwing.energy*0.5;attachWeb(pt);}else chainWait=time+0.9;}
 }
 // ---- web zip / point launch: Space in mid-air (web swingers) ----

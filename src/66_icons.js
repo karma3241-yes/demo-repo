@@ -27,6 +27,7 @@ const GLYPHS={
   wheel:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/>',
   oath:'<path d="M9 21h6M10 18h4M8 18l-1-6h10l-1 6"/><path d="M7 12a5 5 0 0 1 10 0"/><path d="M12 2v3M5 5l1.8 1.8M19 5l-1.8 1.8"/>',
   rebuild:'<path d="M4 21V9l5-3v15M9 21V4l6 3v14M15 21v-9l5 2v7"/><path d="M2 21h20"/>',
+  rewind:'<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/>',
   dialUp:'<path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4-5"/><path d="M17 4h4M19 2v4"/>',
   dialDn:'<path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l-4-5"/><path d="M17 4h4"/>',
   steps:'<path d="M3 20h5v-5h5v-5h5V5h3"/><path d="M3 20h18"/>',

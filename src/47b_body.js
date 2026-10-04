@@ -88,8 +88,9 @@ function drawBody(){
     const k=P.fCharge?clamp((P.chargeT||0)/1.5,0,1):0,M=P.fCharge?child(H,0,-0.1,0,0,time*(12+26*k),0):P.flying?child(H,0,-0.05,0,time*16,0,0):H;
     if(P.fCharge){queue(MESH.box,child(M,0.55,0,0,0,0,Math.PI/2,0.1,1.1,0.1),HANDLE_C,F_SH);queue(MESH.mbox,child(M,1.15,0,0,0,0,0,0.34,0.34,0.55),HAMMER_C,F_SH);
       const hp=child(M,1.15,0,0);queue(MESH.ring,M4.alignY(tmpM(),H[12],H[13],H[14],0,1,0,1.2),[.6,.75,1,0.25+0.5*k],F_ADD);
+      if(stormAxe())axeBlade(M,1.15,0,0,0.8);
       if(Math.random()<0.3+0.6*k){tracer(hp[12],hp[13],hp[14],hp[12]+rr(-1.5,1.5),hp[13]+rr(-1,1.5),hp[14]+rr(-1.5,1.5),[.6,.75,1],0.06,0.1);emit(hp[12],hp[13],hp[14],rr(-6,6),rr(-2,2),rr(-6,6),0.35,[.8,.85,.9],1,0,1);}}
-    else{queue(MESH.box,child(M,0,-0.35,0,0,0,0,0.1,0.75,0.1),HANDLE_C,F_SH);queue(MESH.mbox,child(M,0,-0.8,0,0,0,0,0.55,0.34,0.34),HAMMER_C,F_SH);}
+    else{queue(MESH.box,child(M,0,-0.35,0,0,0,0,0.1,0.75,0.1),HANDLE_C,F_SH);queue(MESH.mbox,child(M,0,-0.8,0,0,0,0,0.55,0.34,0.34),HAMMER_C,F_SH);if(stormAxe())axeBlade(M,0,-0.8,0,0.8);}
     if(P.flying){const s=0.9+Math.sin(time*20)*0.1;queue(MESH.ring,M4.alignY(tmpM(),H[12],H[13],H[14],Math.sin(P.heroYaw),0,Math.cos(P.heroYaw),s),[.6,.75,1,0.6],F_ADD);if(Math.random()<0.15)tracer(H[12],H[13],H[14],H[12]+rr(-2,2),H[13]+rr(-2,2),H[14]+rr(-2,2),[.6,.75,1],0.05,0.08);}}
   if(hasPower('armorSuit')&&P.flying&&P.suited!==false){const H=P.hand,g=0.35+Math.random()*0.15;queue(MESH.glowSphere,at(H[12],H[13],H[14],0,0,0,g,g,g),[1,.85,.55,0.8],F_ADD);
     for(const sd of [-1,1]){const c=Math.cos(P.heroYaw),sn=Math.sin(P.heroYaw);queue(MESH.glowSphere,at(P.pos.x+c*sd*0.25,P.pos.y+0.1,P.pos.z-sn*sd*0.25,0,0,0,g*1.2,g*1.6,g*1.2),[1,.75,.45,0.8],F_ADD);}}

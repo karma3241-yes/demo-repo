@@ -72,7 +72,7 @@ function updateHeroAbilities(dt){
     T.x=nx;T.y=ny;T.z=nz;
     for(const a of actors){if(!a.alive||a===P||T.hit.has(a)||a.kind==='prop'||a.held)continue;const c=center(a);if(Math.hypot(c.x-T.x,c.y-T.y,c.z-T.z)>(a.radius||1)+1.2)continue;
       T.hit.add(a);
-      if(T.kind==='hammer'){Damage.apply(P,a,pstat('stormHammer','damage')*strengthMul(),'shock',{stun:pstat('stormHammer','stun'),kv:a.kind==='vehicle'?null:[T.vx*0.35,12,T.vz*0.35]});if(!T.bolted){T.bolted=true;bolt(c.x,c.y,c.z);areaDamage(c.x,c.y,c.z,6,pstat('stormHammer','damage')*0.4,P,{type:'shock',stun:0.5,exclude:a});}}
+      if(T.kind==='hammer'){Damage.apply(P,a,pstat('stormHammer','damage')*strengthMul(),'shock',{stun:pstat('stormHammer','stun'),kv:a.kind==='vehicle'?null:[T.vx*0.35,12,T.vz*0.35]});if(!T.bolted||stormAxe()){T.bolted=true;bolt(c.x,c.y,c.z);areaDamage(c.x,c.y,c.z,6,pstat('stormHammer','damage')*0.4,P,{type:'shock',stun:0.5,exclude:a});}}
       else{Damage.apply(P,a,pstat('ricochetShield','damage')*strengthMul(),'slash',{stun:pstat('ricochetShield','stun'),knock:8});SFX.tone('triangle',1600,900,0.08,0.08);burst(c.x,c.y,c.z,14,8,0.3,SPARK,1,10,1);
         if(!T.back&&T.left>0){T.left--;T.target=nearestFoe(c.x,c.y,c.z,32,T.hit);T.t=0;if(!T.target)T.back=true;}else T.back=true;}}
     hitProps(T.x,T.y,T.z,1,P,14);
@@ -109,7 +109,7 @@ function updateHeroAbilities(dt){
 }
 function drawHeroAbilities(){
   for(const T of thrown){
-    if(T.kind==='hammer'){const M=at(T.x,T.y,T.z,T.spin,Math.atan2(T.vx,T.vz),0);queue(MESH.mbox,child(M,0,0.35,0,0,0,0,0.7,0.42,0.42),HAMMER_C,F_SH);queue(MESH.box,child(M,0,-0.2,0,0,0,0,0.12,0.8,0.12),HANDLE_C,F_SH);
+    if(T.kind==='hammer'){const M=at(T.x,T.y,T.z,T.spin,Math.atan2(T.vx,T.vz),0);queue(MESH.mbox,child(M,0,0.35,0,0,0,0,0.7,0.42,0.42),HAMMER_C,F_SH);queue(MESH.box,child(M,0,-0.2,0,0,0,0,0.12,0.8,0.12),HANDLE_C,F_SH);if(stormAxe())axeBlade(M,0,0.35,0,1);
       queue(MESH.glowSphere,at(T.x,T.y,T.z,0,0,0,1,1,1),[.6,.75,1,0.25],F_ADD);if(Math.random()<0.5)tracer(T.x,T.y,T.z,T.x+rr(-2,2),T.y+rr(-2,2),T.z+rr(-2,2),[.6,.75,1],0.06,0.08);}
     else{const M=at(T.x,T.y,T.z,0,T.spin,0);queue(MESH.mcyl,child(M,0,0,0,0,0,0,0.75,0.08,0.75),DISC_C,F_SH);queue(MESH.cyl,child(M,0,0.02,0,0,0,0,0.5,0.08,0.5),DISC_B,0);queue(MESH.mcyl,child(M,0,0.04,0,0,0,0,0.22,0.08,0.22),DISC_C,0);}}
   for(const W of wells){const k=Math.min(1,W.t/0.6),p=1+Math.sin(time*10)*0.05,s=(1.2+W.t*0.4)*k*p;

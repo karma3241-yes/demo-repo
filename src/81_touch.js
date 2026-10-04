@@ -66,7 +66,7 @@ function buildTouchButtons(){
   {const v=vAction();tbMake('wheel','vkey',v?v.icon:'wheel',v?v.name:'Wheel','C');}
   tbMake('oath','oath','oath','Oath','C');tbMake('rebuild','rebuild','rebuild','Rebuild','C');
   tbMake('fast','fast','run','Fast','C');tbMake('phase','phase','phase','Walls','C');tbMake('dial','dialcycle','dialUp','Dial','C');
-  tbMake('suit','suit','shirt','Suit','C');
+  tbMake('suit','suit','shirt','Suit','C');tbMake('rewind','rewind','rewind','Rewind','C');
   layoutTouch(true);
 }
 // which buttons fit what you're doing right now
@@ -87,9 +87,10 @@ function tbWanted(){
   if(isRing()&&!con){on.add('oath');on.add('rebuild');}
   if(isSpeed()){on.add('fast');on.add('phase');on.add('dial');}
   if(!con)on.add('suit');
+  if(rewindOn())on.add('rewind');
   return on;
 }
-const TB_ORDER_C=['wheel','lock','use','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit'];
+const TB_ORDER_C=['wheel','lock','use','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit','rewind'];
 function layoutTouch(force){
   if(!touchOn()||state!=='play')return;
   if(!force&&time-tbT<0.15)return;tbT=time;
@@ -161,6 +162,7 @@ function touchAct(a,down){
   else if(a==='dialdn'){if(down)turnDial(-1);}
   // one touch button for the speed dial: each tap is one step faster, and past the top it starts again at x1 (in Slow Time: slower)
   else if(a==='dialcycle'){if(down){if(P.slowOn)turnDial(1);else if((P.dial|0)>=dialMax()){P.dial=1;feed('Speed dial x1','Tap DIAL to go faster');}else turnDial(1);}}
+  else if(a==='rewind'){if(down)rewind();}
   else if(a==='lock'){if(down)lockToggle();}
 }
 function applyTouchUI(){const t=touchOn();document.body.classList.toggle('touch',t);document.body.classList.toggle('lefty',t&&tHand()==='l');$('touch').hidden=!(t&&state==='play');$('menu-controls').hidden=t;$('menu-touch').hidden=!t;
