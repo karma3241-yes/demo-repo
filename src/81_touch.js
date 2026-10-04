@@ -11,6 +11,9 @@
 //                     sit in a construct, and so on.
 // Settings has the button size and a left-handed layout (everything mirrored). In portrait a "turn your phone" screen
 // covers the game.
+// no page zoom: pinch (iOS gesture events) and ctrl+wheel; the viewport meta and touch-action in the CSS cover the rest
+for(const g of ['gesturestart','gesturechange','gestureend'])addEventListener(g,e=>e.preventDefault());
+addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault();},{passive:false});
 const tl=$('tlayer'),stick=$('stick'),knob=$('knob'),tbtns=$('tbtns');let stickId=null,lookId=null,sx0=0,sy0=0,lx=0,ly=0;
 const tHand=()=>save.settings.tHand==='l'?'l':'r',tSizeMul=()=>({s:0.86,m:1,l:1.16})[save.settings.tSize]||1;
 // the phone's notch and rounded corners (CrazyGames app, iOS): read from a probe padded by env(safe-area-inset-*)
