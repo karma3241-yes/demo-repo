@@ -8183,7 +8183,8 @@ const KA={on:false,stage:0,phase:'',t:0,rise:0,open:0,fight:false,lost:false,vis
   hint:0,markers:[],shadow:true};
 const arenaSG=()=>SG.on&&SG.src==='arena';
 const godSafe=()=>PR.on||(SG.on&&SG.src!=='arena');
-const destroyAvail=()=>!!save.story&&(save.story.ufo===2||save.story.ufo===3||save.story.destroy===true);
+const kathanaDone=()=>!!save.story&&save.story.kathana>=2; // Destroy and Kathana are one-time only: once she is beaten the button is gone for every hero, the Prism form's too
+const destroyAvail=()=>!!save.story&&!kathanaDone()&&(save.story.ufo===2||save.story.ufo===3||save.story.destroy===true);
 const kDmg=f=>maxHp()*f/CONFIG.health.npcTaken; // damage that takes a fraction f of your (arena) health pool
 const inVoid=()=>!!(zone&&zone.id==='void');
 // ---- colours ----
@@ -8238,15 +8239,16 @@ function prismDraw(){
 // once per frame from storyTick (solo, playing, alive)
 function kathanaTick(dt){
   prismTick(dt);superTick(dt);
-  const a=destroyAvail();
-  if(a!==KA.availSeen){const first=KA.availSeen===null;KA.availSeen=a;if(!PR.on&&!SG.on){buildHotbar();buildTouchButtons();}if(a&&!first)feed('Destroy unlocked',touchOn()?'The DESTROY button':'Press Enter');}
+  const a=destroyAvail(),sig=a+(kathanaDone()?'d':''); // the Prism skill goes with kathana>=2 too, so rebuild on that flip as well
+  if(sig!==KA.availSeen){const first=KA.availSeen===null;KA.availSeen=sig;if(!SG.on&&(!PR.on||!first)){buildHotbar();buildTouchButtons();}if(a&&!first)feed('Destroy unlocked',touchOn()?'The DESTROY button':'Press Enter');}
 }
 // ---- the hotbar and touch button of the Prism form, and the Destroy slot ----
 function prBuildHotbar(){
+  if(kathanaDone())return; // the form stays, its DESTROY skill is gone
   const s=el('div',{class:'slot prism'},el('kbd',{text:touchOn()?'':'1'}),el('span',{class:'nm',text:'DESTROY'}),el('small',{text:'Prism'}));s.addEventListener('click',()=>{if(canAct())destroyStart(true);});
   hud.hotbar.appendChild(s);slotEls.push({pr:true,s});
 }
-function prTouchButtons(){const b=tbMake('p0','a0','burst','DESTROY','B','ab prismb');b.prepend(el('i',{class:'cd',hidden:true}));}
+function prTouchButtons(){if(kathanaDone())return;const b=tbMake('p0','a0','burst','DESTROY','B','ab prismb');b.prepend(el('i',{class:'cd',hidden:true}));}
 function prDestroySlot(){
   const s=el('div',{class:'slot dz'},el('kbd',{text:touchOn()?'':'Enter'}),el('span',{class:'nm',text:'DESTROY'}),el('small',{text:'Kathana'}));s.addEventListener('click',()=>destroyKey());
   hud.hotbar.appendChild(s);slotEls.push({pr:true,s});
@@ -8256,17 +8258,20 @@ function prDestroySlot(){
 // ================================================================
 // Enter / the slot / the touch button: Prism form goes straight in; the others (UFO done) get the popup. Returns true when it took the key.
 function destroyKey(){
+  if(kathanaDone())return false;
   if(state!=='play'||paused||P.dead||ASK||dialOpen||cutLocked()||zone||KA.on||!storySolo())return false;
   if(PR.on){destroyStart(true);return true;}
   if(!destroyAvail())return false;
   destroyStart(false);return true;
 }
 function destroyStart(skipAsk){
+  if(kathanaDone())return false; // safety net: she can only be fought once
   if(!storySolo()||state!=='play'||P.dead||zone||cutLocked()||ASK||ZF.phase||KA.on||P.car)return false;
   if(skipAsk){kathanaBegin();return true;}
   return askYesNo('Destroy everything?','This starts the hardest fight in the game.','Destroy','Not yet',kathanaBegin);
 }
 function kathanaBegin(){
+  if(kathanaDone())return false;
   if(KA.on||zone||ZF.phase||state!=='play'||P.dead)return false;
   KA.on=true;KA.phase='enter';KA.lost=false;KA.stage=1;
   KA.ret=P.pos.y>CEIL?{x:-80,y:44,z:0,yaw:Math.PI/2,fly:true}:null; // from space (the Prism form's Sun) the way back is above the city
