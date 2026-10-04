@@ -65,7 +65,8 @@ function meleeTargets(fx,fy,fz,reach){
   return out;
 }
 function punch(){
-  if(!canAct()||P.punchCd>0||P.tk||P.car)return;
+  if(!canAct()||P.punchCd>0||P.tk||P.car||P.lockDash)return;
+  if(lockDashStart())return; // locked on and out of reach: zip to the target first, the dash throws this punch when it arrives
   if(time-comboT>COMBAT.chain||comboN>=4)comboN=0;
   comboN++;comboT=time;const fin=comboN===4,lk=!!(lockT&&lockT.alive);P.punchCd=fin?(lk?COMBAT.lockEndlag:COMBAT.endlag):(lk?COMBAT.lockGap:COMBAT.gap);
   P.punchN=comboN;P.punchT=time;P.punchArm=comboN%2?1:-1;
@@ -75,7 +76,7 @@ function punch(){
   let fx=camF.x,fy=P.flying?camF.y:0,fz=camF.z;
   if(lockT&&lockT.alive){const c=center(lockT);fx=c.x-P.pos.x;fy=P.flying||air?c.y-(P.pos.y+1.3):0;fz=c.z-P.pos.z;}
   const fl=Math.hypot(fx,fy,fz)||1;fx/=fl;fy/=fl;fz/=fl;P.heroYaw=Math.atan2(fx,fz);
-  // close the gap to a locked target (lunge), like a battlegrounds M1
+  // close the gap to a locked target (lunge), like a battlegrounds M1 (longer or higher gaps are the lock dash above)
   if(lockT&&lockT.alive){const c=center(lockT),d=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);if(d>COMBAT.reach&&d<COMBAT.lunge+COMBAT.reach){const s=Math.min(34,(d-COMBAT.reach+1)*6);
     P.vel.x=fx*s;P.vel.z=fz*s;if(hang||P.flying)P.vel.y=fy*s;P.burstT=0.14;}}
   if(air)P.airHangs=(P.airHangs|0)+1;
@@ -121,10 +122,41 @@ function dashPress(){
   P.burstT=COMBAT.dashTime;P.iframeT=COMBAT.iframe;dashCd=COMBAT.dashCd;P.web=null;
   SFX.whoosh();for(let i=0;i<14;i++)emit(P.pos.x,P.pos.y+rr(0.3,2.2),P.pos.z,-dx*rr(4,10),rr(0,2),-dz*rr(4,10),0.35,[.85,.9,1],1.2,0,2);
 }
+// ---- lock dash: attacking a locked target that is out of reach zips you to it (up into the air too), then throws the punch ----
+let ldSkip=false;
+const LD={range:40,min:45,max:60,maxT:0.7};
+function lockDashStart(){
+  if(ldSkip||!lockT||!lockT.alive||P.flying||P.web||P.wall||P.wallRun||P.swim||P.zip||P.reel||P.construct||P.charging)return false;
+  const AL=P.alien?ALIENS[P.alien.id]:null,reach=COMBAT.reach*(AL?Math.max(1,AL.scale*0.8):1)+(AL?0:bodyReach());
+  const c=center(lockT),dx=c.x-P.pos.x,dy=c.y-(P.pos.y+1.3),dz=c.z-P.pos.z,dh=Math.hypot(dx,dz),rad=lockT.radius||1;
+  if(Math.hypot(dx,dy*0.7,dz)<reach+rad+0.5)return false; // already close enough to hit
+  if(dh>COMBAT.reach&&dh<COMBAT.lunge+COMBAT.reach&&Math.abs(dy)<2.5)return false; // a short hop on the level is the old lunge in punch()
+  const stop=Math.max(1.5,reach-0.5+(rad-1)*0.6),d=Math.hypot(dx,dy,dz),go=Math.min(LD.range,d-stop);if(go<1)return false;
+  P.lockDash={tgt:lockT,left:go,t:0,sp:clamp(go/0.35,LD.min,LD.max),stop,px:P.pos.x,py:P.pos.y,pz:P.pos.z};
+  P.iframeT=Math.max(P.iframeT||0,0.2);P.heroYaw=Math.atan2(dx,dz);P.charging=false;
+  SFX.whoosh();ringFx(P.pos.x,P.pos.y+1.2,P.pos.z,0.4,5,0.25,[.85,.92,1],[dx,dy,dz]);
+  return true;
+}
+function lockDashEnd(arrive){
+  const L=P.lockDash;if(!L)return;P.lockDash=null;
+  P.vel.x*=0.15;P.vel.z*=0.15;P.vel.y=clamp(P.vel.y*0.2,-5,5);P.burstT=0;if(!P.grounded)P.floatT=Math.max(P.floatT,0.3);
+  if(arrive&&lockT===L.tgt&&lockT.alive&&canAct()){ldSkip=true;P.punchCd=0;punch();ldSkip=false;} // the click that started the dash lands now (the chain counts it once)
+}
+function updateLockDash(dt){
+  const L=P.lockDash;if(!L)return;
+  if(lockT!==L.tgt||!L.tgt.alive||P.dead||P.car||P.stun>0||P.flying||P.web||P.wall||!canAct()){lockDashEnd(false);return;}
+  const c=center(L.tgt),dx=c.x-P.pos.x,dy=c.y-(P.pos.y+1.3),dz=c.z-P.pos.z,d=Math.hypot(dx,dy,dz)||1;L.t+=dt;
+  const blocked=L.t>0.08&&Math.hypot(P.pos.x-L.px,P.pos.y-L.py,P.pos.z-L.pz)<L.sp*dt*0.25; // a wall in the way: stop and punch from here
+  if(d<=L.stop+0.2||L.left<=0.05||L.t>LD.maxT||blocked){lockDashEnd(true);return;}
+  const step=Math.min(L.sp*dt,d-L.stop,L.left),s=step/Math.max(dt,1e-4);L.left-=step;L.px=P.pos.x;L.py=P.pos.y;L.pz=P.pos.z;
+  P.vel.set(dx/d*s,dy/d*s,dz/d*s);if(P.grounded&&P.vel.y<0)P.vel.y=0;P.vel.y=Math.max(P.vel.y,-20);
+  P.burstT=Math.max(P.burstT,0.05);P.heroYaw=Math.atan2(dx,dz);P.iframeT=Math.max(P.iframeT||0,0.1);
+  const ux=dx/d,uy=dy/d,uz=dz/d;for(let i=0;i<2;i++)emit(P.pos.x,P.pos.y+rr(0.3,2.2),P.pos.z,-ux*rr(4,10),-uy*rr(2,6)+rr(0,1),-uz*rr(4,10),0.35,[.85,.9,1],1.2,0,2);
+}
 function updateCombat(dt){
   updateCharge(dt);
   if(dashCd>0)dashCd-=dt;if(P.iframeT>0)P.iframeT-=dt;if(P.grounded||P.wall||P.web||P.flying)airDash=true;
-  updateLock(dt);
+  updateLock(dt);updateLockDash(dt);
 }
 // ---- impacts: launched bodies crater whatever they hit ----
 function crater(x,y,z,nx,ny,nz,r,col){
