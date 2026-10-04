@@ -224,7 +224,7 @@ function iceVisuals(){
 const tkLevel=()=>powerLevel('telekinesis');
 const tkMax=()=>1+Math.floor((tkLevel()-1)/3);
 function tkCanLift(a,quiet){
-  if(!a||a.kind==='boss'||a.kind==='prop'||a.kind==='heli'||a.held||a===P.car)return false;
+  if(!a||a.kind==='boss'||a.bigBoss||a.kind==='prop'||a.kind==='heli'||a.held||a===P.car)return false;
   if(a.kind==='remote'&&!MP.net())return false;
   if(a.kind==='vehicle'){if(a.state!=='road'&&a.state!=='parked')return false;const need=a.vtype==='truck'?6:3;
     if(tkLevel()<need&&!(P.tk&&P.tk.giant)){if(!quiet)feed('Too heavy for now','Telekinesis LV '+need+' lifts '+(a.vtype==='truck'?'trucks':'cars'));return false;}}

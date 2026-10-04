@@ -17,6 +17,7 @@ class V3{
   constructor(x=0,y=0,z=0){this.x=x;this.y=y;this.z=z;}
   set(x,y,z){this.x=x;this.y=y;this.z=z;return this;}
   copy(v){this.x=v.x;this.y=v.y;this.z=v.z;return this;}
+  clone(){return new V3(this.x,this.y,this.z);}
   add(v){this.x+=v.x;this.y+=v.y;this.z+=v.z;return this;}
   addS(v,s){this.x+=v.x*s;this.y+=v.y*s;this.z+=v.z*s;return this;}
   mul(s){this.x*=s;this.y*=s;this.z*=s;return this;}
@@ -258,7 +259,7 @@ out vec2 vP;void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&
 const SKY_FS=`#version 300 es
 precision highp float;in vec2 vP;out vec4 o;
 uniform vec3 uFwd;uniform vec3 uRight;uniform vec3 uUp;uniform vec2 uTan;uniform vec3 uSunDir;uniform vec3 uZen;uniform vec3 uHor;uniform vec3 uSunCol;
-uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uSpace;uniform float uCy;uniform vec3 uCSun;uniform vec3 uCMoon;
+uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uSpace;uniform float uCy;uniform float uCDis;uniform vec3 uCSun;uniform vec3 uCMoon;
 ${GLSL_COMMON}
 // the cyber world's sky (66i_cyber.js): a blue gradient with faint grid lines, a synthetic sun (disc, rings, hex cells) and a faceted moon with glowing seams
 float hexS(vec2 p,out vec2 id){vec2 r=vec2(1.0,1.7320508);vec2 h=r*0.5;vec2 a=mod(p,r)-h;vec2 b=mod(p-h,r)-h;vec2 g=dot(a,a)<dot(b,b)?a:b;id=p-g;vec2 q=abs(g);return 0.5-max(dot(q,vec2(0.5,0.8660254)),q.x);}
@@ -274,7 +275,7 @@ vec3 cyberSky(vec3 d){
   float gl=max(1.0-smoothstep(0.0,gw.x*1.5+0.004,gd.x),1.0-smoothstep(0.0,gw.y*1.5+0.004,gd.y));
   col+=vec3(0.2,0.5,1.0)*gl*smoothstep(-0.02,0.12,h)*(0.05+0.07*uNight);
   vec3 t1=normalize(cross(uCSun,vec3(0.0,1.0,0.0))),t2=cross(t1,uCSun);float cs=dot(d,uCSun);
-  col+=vec3(0.3,0.75,1.0)*(pow(max(cs,0.0),70.0)*0.55+pow(max(cs,0.0),6.0)*0.1)*step(-0.2,uCSun.y);
+  col+=vec3(0.3,0.75,1.0)*(pow(max(cs,0.0),70.0)*0.55+pow(max(cs,0.0),6.0)*0.1)*step(-0.2,uCSun.y)*uCDis;
   if(cs>0.9&&uCSun.y>-0.2){
     const float R=0.1;vec2 q=vec2(dot(d,t1),dot(d,t2))/(R*cs);float rq=length(q);
     if(rq<1.0){
@@ -283,14 +284,14 @@ vec3 cyberSky(vec3 d){
       vec3 base=mix(vec3(1.25,1.55,1.9),vec3(0.3,0.8,1.6),smoothstep(0.15,1.0,rq));
       base*=0.62+0.38*smoothstep(0.35,0.95,rg);
       base=mix(base,vec3(0.08,0.45,1.4),hl*0.6);base+=vec3(0.6,0.95,1.0)*step(0.9,h21(id+floor(uTime*0.8)))*0.3*(1.0-hl);
-      col=mix(col,base,smoothstep(1.0,0.96,rq));
+      col=mix(col,base,smoothstep(1.0,0.96,rq)*uCDis);
     }else if(rq<1.75){
       float a=atan(q.y,q.x);float r1=smoothstep(0.035,0.0,abs(rq-1.18));float r2=smoothstep(0.025,0.0,abs(rq-1.42))*step(0.45,fract(a*1.9099+uTime*0.06));float r3=smoothstep(0.02,0.0,abs(rq-1.62))*step(0.6,fract(a*3.8197-uTime*0.1));
-      col+=vec3(0.35,0.85,1.3)*(r1*0.9+r2*0.7+r3*0.55);
+      col+=vec3(0.35,0.85,1.3)*(r1*0.9+r2*0.7+r3*0.55)*uCDis;
     }
   }
   vec3 m1=normalize(cross(uCMoon,vec3(0.0,1.0,0.0))),m2=cross(m1,uCMoon);float cm=dot(d,uCMoon);
-  col+=vec3(0.45,0.7,1.0)*pow(max(cm,0.0),160.0)*0.5*step(-0.2,uCMoon.y);
+  col+=vec3(0.45,0.7,1.0)*pow(max(cm,0.0),160.0)*0.5*step(-0.2,uCMoon.y)*uCDis;
   if(cm>0.95&&uCMoon.y>-0.2){
     const float R2=0.075;vec2 q=vec2(dot(d,m1),dot(d,m2))/(R2*cm);float rq=length(q);
     if(rq<1.0){
@@ -301,7 +302,7 @@ vec3 cyberSky(vec3 d){
       float lit=0.5+0.5*clamp(dot(FN[fi],normalize(vec3(-0.45,0.55,0.7))),-0.2,1.0);
       vec3 mc=vec3(0.62,0.8,1.0)*(0.5+0.5*lit)*(0.82+0.3*h21(vec2(float(fi),3.7)));
       mc=mix(mc,vec3(0.35,1.1,1.6),seam*0.9);mc+=vec3(0.25,0.5,1.0)*pow(rq,5.0)*0.5;
-      col=mix(col,mc*1.15,smoothstep(1.0,0.95,rq));
+      col=mix(col,mc*1.15,smoothstep(1.0,0.95,rq)*uCDis);
     }
   }
   return col;
@@ -316,7 +317,7 @@ void main(){
   float sd=max(dot(d,uSunDir),0.0);
   col+=uSunCol*(smoothstep(0.9994,0.9997,sd)*6.0+pow(sd,10.0)*0.12)*step(-0.1,uSunDir.y);
   float md=max(dot(d,-uSunDir),0.0);
-  col+=vec3(0.75,0.8,1.0)*(smoothstep(0.99955,0.9998,md)*1.6+pow(md,80.0)*0.08)*uNight;
+  col+=vec3(0.75,0.8,1.0)*(smoothstep(0.99955,0.9998,md)*1.6+pow(md,80.0)*0.08)*uNight*step(-100.0,uCMoon.y);
   if(h>0.0){
     vec3 q=d*260.0;vec3 ip=floor(q);float s=h31(ip);
     float star=step(0.9972,s)*smoothstep(0.42,0.0,length(fract(q)-0.5))*uNight*smoothstep(0.0,0.2,h);

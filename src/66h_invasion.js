@@ -23,7 +23,7 @@ for(const k in INV_V){const V=INV_V[k];V.c4=[V.col[0]*.5,V.col[1]*.5,V.col[2]*.5
 const INV_SKIN=[.46,.56,.5,1],INV_DARK=[.05,.055,.075,1];
 const invActive=()=>storySolo()&&!!save.story&&(INV.state==='battle'||INV.state==='cut'||INV.state==='win'); // the fleet event is running
 const invBattle=()=>INV.state==='battle'&&storySolo();
-const invFlyOk=()=>storySolo()&&!!save.story&&(save.story.invasion===2||INV.state==='battle'||INV.state==='cut'||INV.state==='win'); // every hero can fly during the event
+const invFlyOk=()=>storySolo()&&!!save.story&&(save.story.invasion===2||save.story.tower>=2||INV.state==='battle'||INV.state==='cut'||INV.state==='win'); // every hero can fly during the event
 const invFarOn=()=>!!save.story&&save.story.invasion===1&&!zone&&state==='play'; // the fleet is far up: the far plane reaches it (90_render.js)
 // ---- the fleet: 4 ship designs, 100 ships ----
 function primWedge(){ // a flat triangular prism: the nose points +z, the flat tail faces -z, 1 x 1 x 1
@@ -315,11 +315,11 @@ function lsTick0(dt){ // watching for full speed
   if(OBJ.text!==want&&!ASK)objective(want);
 }
 const LSC={x:0,y:0,z:0},LSL={x:0,y:0,z:0};
-function lsStart(){
+function lsStart(dest){ // dest 'cyber' (default: the invasion's jump) or 'earth' (the way back, after the Sovereign, wormholeTo in 66j_spire.js)
   if(INV.ls||state!=='play'||CUT)return;
   let dx=P.vel.x,dy=P.vel.y,dz=P.vel.z,l=Math.hypot(dx,dy,dz);if(l<5){dx=camF.x;dy=camF.y;dz=camF.z;l=1;}dx/=l;dy/=l;dz/=l;
   let rx=dz,rz=-dx,rl=Math.hypot(rx,rz);if(rl<1e-3){rx=1;rz=0;rl=1;}rx/=rl;rz/=rl;const ux=dy*rz,uy=dz*rx-dx*rz,uz=-dy*rx; // right = up x d, up = d x right
-  INV.ls={t:0,d:{x:dx,y:dy,z:dz},r:{x:rx,y:0,z:rz},u:{x:ux,y:uy,z:uz},v0:Math.max(l,300),sp:Math.max(l,300),u0:0,sfx:false};INV.lsHold=0;
+  INV.ls={t:0,d:{x:dx,y:dy,z:dz},r:{x:rx,y:0,z:rz},u:{x:ux,y:uy,z:uz},v0:Math.max(l,300),sp:Math.max(l,300),u0:0,sfx:false,dest:dest==='earth'?'earth':'cyber'};INV.lsHold=0;
   P.flying=true;P.heroYaw=Math.atan2(dx,dz);P.tilt=Math.atan2(Math.hypot(dx,dz),dy);P.bank=0;const A=P.anim;A.armL=A.armR=-2.95;A.armLz=-0.1;A.armRz=0.1;
   objective(null);objectiveMark(null);lockT=null;SFX.tone('sawtooth',80,2600,2.2,0.12);SFX.tone('sine',200,3000,3.5,0.1);
   const cam=k=>{const L=INV.ls,d=L.d,j=Math.min(1,L.t/1.5)*0.35,back=9+3*Math.min(1,L.t/2);LSC.x=P.pos.x-d.x*back+rr(-j,j);LSC.y=P.pos.y+1.5-d.y*back+rr(-j,j);LSC.z=P.pos.z-d.z*back+rr(-j,j);return LSC;};
@@ -333,7 +333,7 @@ function lsTick(k,dt,C){
   if(!L.sfx&&t>1.3){L.sfx=true;SFX.boom(0.9,0.5);flashWhite=Math.max(flashWhite,0.6);}
   if(t>4.35)flashWhite=Math.max(flashWhite,smooth(4.35,5.0,t));
 }
-function lsEnd(){if(INV.ls)cyberArrive();}
+function lsEnd(){if(!INV.ls)return;if(INV.ls.dest==='earth')earthArrive();else cyberArrive();}
 // cyberArrive() (called above) is in 66i_cyber.js: the hyper-advanced civilisation.
 // ---- the tick ----
 function invTick(dt){
@@ -403,6 +403,7 @@ function invDraw1(a){
   if(a.bs==='wind'&&a.vt==='brute')queue(MESH.glowSphere,child(root,0,0.4,0,0,0,0,2.2,2.2,2.2),[1,.6,.1,0.35],F_ADD);
 }
 function invDraw(){
+  if(INV.ls&&storySolo()&&state==='play')lsDraw(); // (the wormhole also opens inside the cyber world)
   if(!storySolo()||state!=='play'||zone)return;
   for(const b of INV.blasts){const k=b.t/1.5,r=b.s*(0.4+k*1.3);queue(UGLOW,at(b.x,b.y,b.z,0,0,0,r,r,r),[1,.75,.4,0.8*(1-k)],F_ADD);queue(UGLOW,at(b.x,b.y,b.z,0,0,0,r*1.6,r*1.6,r*1.6),[1,.4,.2,0.2*(1-k)],F_ADD);if(k<0.3)queue(UGLOW,at(b.x,b.y,b.z,0,0,0,r*0.55,r*0.55,r*0.55),[1,1,1,1-k*3],F_ADD);}
   if(INV.fleet.length&&(save.story.invasion===1||INV.state==='win'))invFleetDraw();
@@ -410,7 +411,6 @@ function invDraw(){
     if(a.aim){const A=a.aim,ox=a.pos.x+A.dx*1.6,oy=a.pos.y+a.cy+A.dy*1.6,oz=a.pos.z+A.dz*1.6,lock=A.t>=1.25,w=lock?0.16+0.1*Math.sin(time*40):0.06;queue(MESH.glowBox,M4.beam(tmpM(),ox,oy,oz,ox+A.dx*300,oy+A.dy*300,oz+A.dz*300,w),[1,lock?.15:.35,.25,lock?1:0.7],F_ADD);}
     if(a.bm){const b=a.bm,k=b.t/0.3;queue(MESH.glowBox,M4.beam(tmpM(),b.sx,b.sy,b.sz,b.ex,b.ey,b.ez,1.1*k),[.9,.5,1,0.55*k],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),b.sx,b.sy,b.sz,b.ex,b.ey,b.ez,0.55*k),[1,1,1,k],F_ADD);}}
   for(const o of INV.orbs){const q=0.9+0.12*Math.sin(o.t*20);queue(MESH.glowSphere,at(o.x,o.y,o.z,0,0,0,0.9*q,0.9*q,0.9*q),[.7,1,.45,1],0);queue(MESH.glowSphere,at(o.x,o.y,o.z,0,0,0,3.2*q,3.2*q,3.2*q),[.4,1,.3,0.3],F_ADD);const f=Math.min(1,o.t/3.2),r2=9*f;queue(MESH.ring,at(o.x,o.y,o.z,Math.PI/2,0,0,r2,1,r2),[.7,1,.4,0.12+0.2*f],F_ADD);}
-  if(INV.ls)lsDraw();
 }
 // the wormhole: streaks, thin rings and a dark tube round the camera path (the world fades into it), a bright end in front
 const RING2=primMesh(primRing(0.96,72),6);

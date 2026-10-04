@@ -51,6 +51,11 @@ function zoneExit(to){
   zone=null;const r=to||zoneRet||{x:SPAWNS[0][0],y:0,z:SPAWNS[0][1],yaw:SPAWNS[0][2]};zoneRet=null;
   P.pos.set(r.x,r.y,r.z);P.vel.set(0,0,0);if(r.yaw!==undefined)P.yaw=r.yaw;P.pitch=-0.1;P.flying=!!r.fly;P.grounded=!r.fly;P.floatT=0;camDist=8;projs.length=0;debris.length=0;tracers.length=0;
 }
+// from one zone straight into another (the cyber world <-> the Apex Spire): fade out, leave the first zone, switch to the second, fade in
+function zoneHop(id,at,after){
+  const Z=ZONES[id];if(!zone||!Z||ZF.phase||state!=='play')return false;
+  return zoneFade(()=>{const Z0=zone;if(Z0&&Z0.leave)try{Z0.leave();}catch(e){logErr(e);}zone=null;zoneSwitch(Z,at);},after);
+}
 function zoneAbort(){ // straight out, no fade: dying inside a zone, or a multiplayer room opening
   if(!zone)return;ZF.phase=0;ZF.fn=null;ZF.after=null;ZF.t=0;$('fade').style.opacity='0';zoneExit();
 }
@@ -102,7 +107,7 @@ function zonePlayerPost(){
     if(hit){SFX.boom(0.55,0.5);addShake(0.3);}
   }
   ZS.on=false;
-  const B=Z.bounds;if(B){const o=Z.origin;
+  const B=INV.ls?null:Z.bounds;if(B){const o=Z.origin; // (the wormhole jump out of a zone is not held in)
     if(P.pos.x<o.x+B.x0){P.pos.x=o.x+B.x0;if(P.vel.x<0)P.vel.x=0;}else if(P.pos.x>o.x+B.x1){P.pos.x=o.x+B.x1;if(P.vel.x>0)P.vel.x=0;}
     if(P.pos.z<o.z+B.z0){P.pos.z=o.z+B.z0;if(P.vel.z<0)P.vel.z=0;}else if(P.pos.z>o.z+B.z1){P.pos.z=o.z+B.z1;if(P.vel.z>0)P.vel.z=0;}
     if(B.y1&&P.pos.y>o.y+B.y1-P.height){P.pos.y=o.y+B.y1-P.height;if(P.vel.y>0)P.vel.y=0;}}

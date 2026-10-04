@@ -150,7 +150,7 @@ function safeName(s){const n=cleanName(s);const t=n.toLowerCase().replace(/[0134
   return BAD_PART.test(t.replace(/[^a-z]/g,''))||t.split(/[^a-z]+/).some(w=>BAD_WORD.test(w))?'':n;}
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
 // the story (66b_story.js): stage numbers per event, 0 = not started; act = seconds of active play. Later events add their own stage field here.
-function storyFresh(){return {act:0,ufo:0,item:'',destroy:false,kathana:0,kp:0,invasion:0,cyber:0,tower:0};}
+function storyFresh(){return {act:0,ufo:0,item:'',destroy:false,kathana:0,kp:0,invasion:0,cyber:0,tower:0,tf:0};}
 function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},gfxAuto:'',goal:0,daily:{last:'',streak:0},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0},story:storyFresh()};}
 // what each flier gets from plain flight (and the Shifter's Morph Band, which lives on V and takes no key). Defined here because loadSave needs it.
@@ -217,7 +217,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   if(GFX_TIERS[s.gfxAuto])f.gfxAuto=s.gfxAuto; // the tier the fps watch settled on
   f.goal=typeof s.goal==='number'?Math.floor(num(s.goal,0,-1,99)):-1; // -1: a save from before goals
   if(s.daily&&typeof s.daily==='object'){const d=s.daily;if(typeof d.last==='string'&&/^\d{4}-\d\d-\d\d$/.test(d.last))f.daily.last=d.last;if(Number.isInteger(d.streak)&&d.streak>=0&&d.streak<=7)f.daily.streak=d.streak;} // last claim (local date) and the streak
-  if(s.story&&typeof s.story==='object'){const t=s.story,st=f.story;st.act=num(t.act,0,0,1e9);for(const k of ['ufo','kathana','kp','invasion','cyber','tower'])st[k]=Math.floor(num(t[k],0,0,30));st.item=isHero(t.item)?t.item:'';st.destroy=t.destroy===true;} // the story: only known fields, ints are stages
+  if(s.story&&typeof s.story==='object'){const t=s.story,st=f.story;st.act=num(t.act,0,0,1e9);for(const k of ['ufo','kathana','kp','invasion','cyber','tower','tf'])st[k]=Math.floor(num(t[k],0,0,30));st.item=isHero(t.item)?t.item:'';st.destroy=t.destroy===true;} // the story: only known fields, ints are stages
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks','swap','lockNear','sgV','sgSun'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }

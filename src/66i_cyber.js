@@ -3,7 +3,7 @@
 // ================================================================
 // Arrival: the light-speed jump (66h_invasion.js, lsEnd) calls cyberArrive(): enterZone('cyber') onto a landing pad above the south outskirts, a 5.5 s skyline cutscene
 // ("A world beyond ours"), the title card CONQUER THE WORLD, then the objective: fly to the Apex Spire's entrance. save.story.cyber: 0 not there, 1 arrived (go to the
-// entrance), 2 went in (towerEnter(): a stub, the next phase builds the tower and sets 3/tower). With cyber 1 or 2 and tower < 2 a loaded game starts here (cyberTick):
+// entrance), 2 went in (towerEnter() in 66j_spire.js hops into the Apex Spire: story.tower 1 = inside, 2 = the Sovereign is beaten and the real sky is back, see cyReal / cyberEnding there). With cyber 1 or 2 and tower < 2 a loaded game starts here (cyberTick):
 // the solar system is "gone" until the tower's boss falls (next phase restores it). Dying here puts you back on the pad (cyberRespawn).
 // ZONES.cyber sits at local origin CYO (z=120000), 3000 x 3000 m (x, z in +-1500), floor y=0, x1.3 player speed (zone.speed, 80_player.js). Layout (cyBuild): a grid of
 // 150 m cells, avenues 30 m wide and boulevards (every second line) 40 m, a 330 m plaza in the middle with the Apex Spire (120 m podium, 600 m needle), towers 36-420 m taller
@@ -25,11 +25,14 @@ const inCyber=()=>!!(zone&&zone.id==='cyber');
 // ---- time of day: the sky, the light, the fog (blue all day, deep blue at night) ----
 function cyEnv(){
   const L=CYZ.light,d=1-env.night,sy=env.sun[1],dusk=Math.exp(-Math.pow(sy*5,2));
+  if(cyReal()){CY.sun=env.sun;L.dir=env.ldir;L.lcol=env.lcol.map(c=>Math.min(1.3,c*0.5));L.sky=mix3([.08,.13,.3],[.4,.5,.72],d);L.gnd=mix3([.04,.06,.12],[.26,.28,.36],d);L.fogC=env.hor.map(c=>c*0.97);L.night=env.night;return;} // the real sky is back (66j_spire.js): the real Sun's light and haze
   CY.zen=mix3([.008,.02,.12],[.012,.07,.42],d);CY.hor=mix3(mix3([.03,.08,.26],[.2,.48,.92],d),[.5,.45,.95],dusk*0.4);CY.sun=env.sun;
   const a=(tod-0.25)*TAU+2.2,mx=Math.cos(a),my=Math.sin(a),mz=-0.45,ml=Math.hypot(mx,my,mz);CY.moon=[mx/ml,my/ml,mz/ml];
   L.dir=env.ldir;L.lcol=mix3([.2,.3,.6],[.9,.95,1.1],d);L.sky=mix3([.08,.13,.3],[.32,.42,.62],d);L.gnd=mix3([.04,.06,.12],[.2,.24,.36],d);L.fogC=CY.hor.map(c=>c*0.97);L.night=env.night;
 }
 function cySkyU(s){ // the sky pass's uniforms while in the cyber world (render in 90_render.js)
+  if(cyReal()){gl.uniform1f(s.uCy,0);gl.uniform1f(s.uCDis,1);gl.uniform3f(s.uCMoon,0,-999,0);gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uSpace,0);return;} // the real sky: the normal sky pass, Sun and Moon bodies are drawn by spSkyDraw
+  gl.uniform1f(s.uCDis,SPR.dis);
   gl.uniform1f(s.uCy,1);gl.uniform3fv(s.uZen,CY.zen);gl.uniform3fv(s.uHor,CY.hor);gl.uniform3fv(s.uCSun,CY.sun);gl.uniform3fv(s.uCMoon,CY.moon);gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uSpace,0);
 }
 // ---- building the world ----
@@ -137,7 +140,8 @@ function cyBuild(Z){
   for(const r of geos){if(!r.g.idx.length)continue;Z.regions.push({mesh:r.g.mesh(),x0:r.x0+ox,x1:r.x1+ox,z0:r.z0+oz,z1:r.z1+oz,y0:-1,y1:r.y1});}
   const sg=new Geo(),T=1,Y=CYTOP,sc=[1,1,1];
   sg.box(-CYH-T+ox,0,-CYH+oz,-CYH+ox,Y,CYH+oz,sc,10);sg.box(CYH+ox,0,-CYH+oz,CYH+T+ox,Y,CYH+oz,sc,10);sg.box(-CYH+ox,0,-CYH-T+oz,CYH+ox,Y,-CYH+oz,sc,10);sg.box(-CYH+ox,0,CYH+oz,CYH+ox,Y,CYH+T+oz,sc,10);sg.box(-CYH+ox,Y,-CYH+oz,CYH+ox,Y+T,CYH+oz,sc,10);
-  Z.shield=sg.mesh();zoneBake(Z);
+  Z.shield=sg.mesh();{const s2=new Geo();s2.box(-CYH-T+ox,0,-CYH+oz,-CYH+ox,Y,CYH+oz,sc,10);s2.box(CYH+ox,0,-CYH+oz,CYH+T+ox,Y,CYH+oz,sc,10);s2.box(-CYH+ox,0,-CYH-T+oz,CYH+ox,Y,-CYH+oz,sc,10);s2.box(-CYH+ox,0,CYH+oz,CYH+ox,Y,CYH+T+oz,sc,10);Z.shield2=s2.mesh();} // (shield2: the walls without the ceiling, after the ending)
+  zoneBake(Z);
   // ---- the flying cars: lanes along the boulevards, at several heights ----
   const lines=[-300,300,-600,600,-300,300,-900,900,-1200,1200,-600,600],ys=[18,26,36,48,62,78,100,128,160,200],cols=[[.95,.97,1],[.95,.97,1],[.7,.85,1],[.55,.78,1]];
   for(let n=0;n<120;n++){const dir=n%2?1:-1,ax=((n>>1)%2),line=lines[((n*5)>>1)%lines.length];
@@ -188,7 +192,7 @@ function cyDroneUpdate(dt){
 function cyShield(dt){
   if(P.dead||cutLocked())return;
   const o=CYO,lx=P.pos.x-o.x,lz=P.pos.z-o.z,ty=CYTOP-P.height-(P.pos.y-o.y);
-  const F=[[1,0,0,CYB-lx],[-1,0,0,CYB+lx],[0,0,1,CYB-lz],[0,0,-1,CYB+lz],[0,1,0,ty]]; // outward normal, distance to the limit
+  const F=[[1,0,0,CYB-lx],[-1,0,0,CYB+lx],[0,0,1,CYB-lz],[0,0,-1,CYB+lz]];if(!(save.story.tower>=2||SPR.ending))F.push([0,1,0,ty]); // outward normal, distance to the limit (no ceiling once the Sovereign is down: you can leave by the sky)
   let near=1e9;
   for(const f of F){const d=f[3];if(d<near)near=d;if(d>=60)continue;
     const s=1-Math.max(d,0)/60,vo=P.vel.x*f[0]+P.vel.y*f[1]+P.vel.z*f[2];
@@ -199,13 +203,15 @@ function cyShield(dt){
 }
 // ---- entering the world ----
 function cyEnter(Z){
-  CY.on=true;CY.said=false;CY.enterT=time;CY.objT=0;CY.droneT=0;zoneRet={x:SPAWNS[0][0],y:0,z:SPAWNS[0][1],yaw:SPAWNS[0][2],fly:false}; // (the way back, for the next phase: the city's spawn)
+  CYZ.bounds.y1=save.story.tower>=2||SPR.ending?0:CYTOP;CY.on=true;CY.said=false;CY.enterT=time;CY.objT=0;CY.droneT=0;zoneRet={x:SPAWNS[0][0],y:0,z:SPAWNS[0][1],yaw:SPAWNS[0][2],fly:false}; // (the way back, for the next phase: the city's spawn)
   cyEnv();for(let k=0;k<80&&CY.folks.length<26;k++)cyFolk();while(CY.drones.length<5)cyDroneSpawn();
   if(!CY.intro)cyObjective(true);
 }
 function cyLeave(Z){for(const h of CY.folks.slice())removeActor(h);CY.folks.length=0;for(const d of CY.drones.slice())removeActor(d);CY.drones.length=0;objective(null);objectiveMark(null);CY.on=false;}
 function cyObjective(force){
-  const S=save.story,want=S.cyber>=2?'Climb the Apex Spire':"Fly to the Apex Spire's entrance";
+  const S=save.story;
+  if(S.tower>=2){objectiveMark(null);const w=SPR.hint?'Fly up at full speed to travel to Earth':'';if(OBJ.text!==w)objective(w||null);return;} // after the ending: only the travel hint
+  const want=S.cyber>=2?'Climb the Apex Spire':"Fly to the Apex Spire's entrance";
   if(force||OBJ.text!==want||!OBJ.mark)objective(want);if(force||!OBJ.mark)objectiveMark(CYO.x,10,CYO.z+CYARCH.z0-2,'Entrance');
 }
 function cyUpdate(Z,dt){
@@ -216,13 +222,6 @@ function cyUpdate(Z,dt){
   if(CY.intro&&!CUT&&time-(CY.introT||0)>16){CY.intro=false;const e=$('cytitle');if(e)e.classList.remove('on');} // an interrupted intro (a room opened) must not leave the objective off
   CY.objT-=dt;if(CY.objT<=0){CY.objT=1.5;if(!CY.intro&&!CUT&&!ASK&&!ZF.phase)cyObjective(false);}
   if(!P.dead&&!cutLocked()&&time-CY.enterT>6&&S.tower<2){const lx=P.pos.x-CYO.x,lz=P.pos.z-CYO.z,ly=P.pos.y-CYO.y;if(Math.abs(lx)<9&&lz>CYARCH.z0+6&&lz<CYARCH.z1+2&&ly<21&&ly>-1)towerEnter();}
-}
-// the entrance: a stub for the next phase (the tower's three floors and the boss). It marks the story and asks for the climb.
-function towerEnter(){
-  const S=save.story;CY.enterT=time;
-  toast('The doors open...','The Apex Spire is waiting. Climb it.','cyan');SFX.chime();flashWhite=Math.max(flashWhite,0.55);
-  if(S.cyber<2){S.cyber=2;persist();}
-  objective('Climb the Apex Spire');
 }
 // ---- drawing: cars, drones, the gate, fountains, beacons, the shield ----
 function cyCarDraw(c,t){
@@ -247,7 +246,8 @@ function cyDroneDraw(d,t){
 }
 function cyDraw(Z){
   const t=time,o=CYO;
-  if(Z.shield)queue(Z.shield,ID,WHITE,F_BL);
+  {const sh=save.story.tower>=2||SPR.ending?Z.shield2:Z.shield;if(sh)queue(sh,ID,WHITE,F_BL);}
+  if(cyReal())spSkyDraw();
   for(const c of CY.cars)cyCarDraw(c,t);
   for(const d of CY.drones)cyDroneDraw(d,t);
   // the light gate at the end of the entrance
@@ -267,7 +267,9 @@ function cyDraw(Z){
 // ---- the story: arriving, the title card, going back in after a reload ----
 function cyberArrive(){
   const S=save.story;S.invasion=3;S.cyber=Math.max(S.cyber,1);persist();INV.ls=null;INV.state='idle';INV.fleet.length=0;objective(null);objectiveMark(null);
-  P.hp=maxHp();P.en=maxEn();CY.intro=true;CY.introT=time;flashWhite=1;
+  P.hp=maxHp();P.en=maxEn();flashWhite=1;
+  if(S.tower>=2){enterZone('cyber',CYAT,()=>toast('The Cyber World','Fly up at full speed to travel back to Earth','cyan'));return;} // after the ending: a plain arrival, no story
+  CY.intro=true;CY.introT=time;
   const go=()=>cyberIntro();
   if(zone&&zone.id==='cyber')go();else if(!enterZone('cyber',CYAT,go)){CY.intro=false;}
 }
@@ -284,8 +286,8 @@ function cyberTitle(){
 // loading a game that is past the jump but not past the tower: start here (the solar system is gone until the tower's boss is beaten)
 function cyberTick(dt){
   const S=save.story;if(!S||S.cyber<1||S.cyber>2||S.tower>=2)return;
-  if(zone||CUT||ASK||ZF.phase||P.dead||state!=='play'||INV.ls||CY.intro||paused||Portal.inAd)return;
-  enterZone('cyber',S.cyber>=2?CYFRONT:CYAT);
+  if(zone||CUT||ASK||ZF.phase||P.dead||state!=='play'||INV.ls||(CY.intro&&time-(CY.introT||0)<16)||paused||Portal.inAd)return;
+  if(S.tower===1)enterZone('spire',spStartAt(Math.min(3,S.tf+1)));else enterZone('cyber',S.cyber>=2?CYFRONT:CYAT); // (tower 1: you were inside the Spire)
 }
 function cyberRespawn(){
   if(!inCyber())return false;

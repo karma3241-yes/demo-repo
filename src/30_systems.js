@@ -20,17 +20,17 @@ function knock(t,src,power,up=0.45){
   let l=Math.hypot(dx,dz);if(l<1e-3){dx=rr(-1,1);dz=rr(-1,1);l=Math.hypot(dx,dz)||1;}dx/=l;dz/=l;
   if(t===P){P.vel.x+=dx*power;P.vel.z+=dz*power;if(!P.flying){P.vel.y=Math.max(P.vel.y,power*up);P.grounded=false;}return;}
   if(t.kind==='human'){t.air=true;t.vel.set(dx*power,power*up+3,dz*power);t.tumble=rr(4,9)*(Math.random()<0.5?-1:1);}
-  else if(t.kind==='drone'||t.kind==='rival'||t.kind==='alien'||t.kind==='invader'){t.vel.x+=dx*power;t.vel.z+=dz*power;t.vel.y+=power*up;}
+  else if(t.kind==='drone'||t.kind==='rival'||t.kind==='alien'||t.kind==='invader'||t.kind==='cyborg'){t.vel.x+=dx*power;t.vel.z+=dz*power;t.vel.y+=power*up;}
 }
 // combo hits: explicit launch velocity, a small nudge, air-juggle float, and 'flung' so impacts crater
 function hitMotion(t,src,opt){
   if(opt.nudge&&!opt.kv){if(t.kind==='human'&&!t.air&&!t.hidden){t.pos.x+=opt.nudge[0];t.pos.z+=opt.nudge[1];}else if(t.kind==='rival'){t.pos.x+=opt.nudge[0];t.pos.z+=opt.nudge[1];}return;}
   const k=opt.kv;if(!k)return;
   if(t.kind==='human'){if(t.hidden||t.held)return;t.air=true;t.vel.set(k[0],k[1],k[2]);t.tumble=(opt.flung?rr(6,11):rr(1,3))*(Math.random()<0.5?-1:1);}
-  else if(t.kind==='drone'||t.kind==='rival'||t.kind==='alien'||t.kind==='invader'){t.vel.set(k[0],k[1],k[2]);}
+  else if(t.kind==='drone'||t.kind==='rival'||t.kind==='alien'||t.kind==='invader'||t.kind==='cyborg'){t.vel.set(k[0],k[1],k[2]);}
   else return;
   if(opt.float)t.floatT=opt.float;if(opt.apex)t.apexT=time;
-  if(opt.flung){t.flungT=time;t.flungBy=src;t.heavy=opt.heavy||0;if(t.kind!=='drone'&&t.kind!=='invader')startRagdoll(t,k[0],k[1],k[2]);}
+  if(opt.flung){t.flungT=time;t.flungBy=src;t.heavy=opt.heavy||0;if(t.kind!=='drone'&&t.kind!=='invader'&&t.kind!=='cyborg')startRagdoll(t,k[0],k[1],k[2]);}
 }
 const Damage={
   apply(src,t,amount,type='hit',opt={}){
@@ -86,6 +86,7 @@ function playerDown(killer){
 function respawn(){
   if(invRespawn())return; // the invasion battle: back at its start point (66h_invasion.js)
   if(cyberRespawn())return; // the cyber world has no way home: back at its arrival pad (66i_cyber.js)
+  if(spRespawn())return; // the Apex Spire: back at the start of the floor (66j_spire.js)
   if(zone)zoneAbort(); // died inside a story zone: back to the city first
   let s=SPAWNS[0],bd=1e18;for(const c of SPAWNS){const d=Math.hypot(c[0]-P.pos.x,c[1]-P.pos.z);if(d<bd){bd=d;s=c;}} // nearest spawn to where you fell
   if(P.alien)revertAlien(true);
@@ -131,6 +132,7 @@ Bus.on('defeated',({target,killer})=>{
   else if(target.kind==='rival'){xp=NPCS.rival.xp+NPCS.rival.xpPerLvl*target.level;rep=target.faction==='villain'?NPCS.rival.rep:-NPCS.rival.rep;if(target.bounty){xp*=2;rep*=2;}label=target.name+' defeated'+(target.bounty?' · bounty claimed':'');}
   else if(target.kind==='alien'){xp=55+save.level*2;label='Alien down';}
   else if(target.kind==='invader'){xp=70+save.level*2.5;label=target.name+' down';}
+  else if(target.kind==='cyborg'){xp=target.vt==='sov'?2500:target.elite?400+save.level*6:40+save.level*2.2;label=target.name+(target.vt==='sov'?' defeated':' down');}
   else if(target.kind==='boss'){const c=NPCS[target.type];xp=c.xp;rep=c.rep;label=(target.type==='ship'?'Mothership':'Titan mech')+' destroyed';}
   else return;
   save.stats.defeated++;addXP(xp);addRep(rep);
