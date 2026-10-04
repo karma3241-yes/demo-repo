@@ -56,6 +56,23 @@ function ufoMesh(){
   for(let k=0;k<48;k++){const a=k*TAU/48,c=k%3===0?[1,.4,.85]:k%3===1?[.25,.85,1]:[.85,.92,1];g.prim(UP.sph,Math.cos(a)*(UFO_R+3.5),0,Math.sin(a)*(UFO_R+3.5),0,0,0,2,2,2,c,6);} // rim lights
   return UFO.mesh=g.mesh();
 }
+// the saucer is solid: its hull is a flattened ellipsoid (the same 130 x 26 x 130 the mesh is drawn with). The player is pushed out along the surface and bounces off
+// a hard hit; the saucer takes no damage. The opening in the belly stays clear (that is the way in), and so does the web reel, which pulls you through its own path.
+let ufoHitT=-9;
+function ufoBlock(){
+  if(!UFO.on||zone||state!=='play'||P.reel||P.dead||UFO.leaving||!storySolo())return;
+  const R=P.radius,hh=P.height*0.5,a=UFO_R+3+R,b=26+hh+0.8,dx=P.pos.x-UFO.x,dy=P.pos.y+hh-UFO.y,dz=P.pos.z-UFO.z;
+  if(Math.abs(dx)>a||Math.abs(dz)>a||Math.abs(dy)>b)return;
+  if(dy<0&&dx*dx+dz*dz<(UFO_HOLE+4)*(UFO_HOLE+4))return;
+  const a2=a*a,b2=b*b,gx=dx/a2,gy=dy/b2,gz=dz/a2,d=Math.sqrt(dx*gx+dy*gy+dz*gz);if(d>=1)return;
+  const gl=Math.hypot(gx,gy,gz);let nx=0,ny=1,nz=0,step=b-dy;
+  if(gl>1e-9){nx=gx/gl;ny=gy/gl;nz=gz/gl;step=Math.min(a,(1-d)*d/gl+0.02);}
+  P.pos.x+=nx*step;P.pos.y+=ny*step;P.pos.z+=nz*step;
+  const vn=P.vel.x*nx+P.vel.y*ny+P.vel.z*nz;
+  if(vn<0){P.vel.x-=vn*nx*1.3;P.vel.y-=vn*ny*1.3;P.vel.z-=vn*nz*1.3; // cancel the way in, plus a little bounce
+    if(-vn>18&&time-ufoHitT>0.5){ufoHitT=time;addShake(clamp(-vn*0.012,0.2,0.8));SFX.crash(clamp(-vn*0.02,0.3,0.8));burst(P.pos.x,P.pos.y+hh,P.pos.z,10,8,0.4,SPARK,0.8,15,1);}}
+  if(ny>0.6){P.grounded=true;if(P.vel.y<0)P.vel.y=0;}
+}
 function ufoDraw(){
   const L=UFO.lift;
   if(L){const k=clamp(L.t/2.4,0,1),h=300;queue(MESH.tube,at(L.x,L.y0+h/2-4,L.z,0,0,0,2.2,h,2.2),[.7,.92,1,0.2],F_ADD);queue(MESH.tube,at(L.x,L.y0+h/2-4,L.z,0,0,0,4.2,h,4.2),[.5,.85,1,0.07],F_ADD);queue(MESH.ring,at(L.x,L.y0+0.2,L.z,0,0,0,3+k*3,1,3+k*3),[.8,.95,1,1-k*0.6],F_ADD);}

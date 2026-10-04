@@ -197,6 +197,7 @@ function playerBodies(prevY,prevX,prevZ,dt){
     const d=Math.hypot(dx,dz)||0.01,min=P.radius+0.45;if(d>=min)continue;
     if((sp>16||big&&sp>4)&&!P.speeding&&time-(h.bumpT||-9)>0.6){h.bumpT=time;Damage.apply(P,h,sp*0.5,'bump',{knock:Math.max(10,sp*0.8)});}
     else{const push=min-d;h.pos.x+=dx/d*push*0.8;h.pos.z+=dz/d*push*0.8;P.pos.x-=dx/d*push*0.2;P.pos.z-=dz/d*push*0.2;}}
+  ufoBlock(); // the saucer in the sky (66d_ufo.js)
   vehicleBlock(P.pos,P.vel,P.radius,P.height,prevY,false,big,dt,prevX,prevZ); // cars, trucks, helicopters, boats, hover cars: solid (50_npcs.js)
   if(VB.land)P.grounded=true;
   if(VB.hit){const v=VB.hit; // a hard hit hurts the vehicle (a giant's touch always does)

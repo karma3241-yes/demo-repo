@@ -236,7 +236,7 @@ body.touch .stats{gap:2px 8px;font-size:10px;letter-spacing:.05em}
 /* touch: health and energy are two thin lines at the bottom centre (between the stick and the buttons), the label above each */
 body.touch .hud-bc{top:auto;bottom:calc(10px + var(--safe-b));left:50%;transform:translateX(-50%);width:min(230px,calc(100% - 520px));justify-items:stretch;gap:4px}
 body.touch .meters{grid-template-columns:1fr;gap:5px;padding:0;background:none;border:0;border-radius:0;backdrop-filter:none;-webkit-backdrop-filter:none}
-body.touch .meter{gap:2px}body.touch .meter span{font-size:9px;letter-spacing:.18em;text-shadow:0 0 4px rgba(0,0,0,.9)}body.touch .meter .bar{height:4px}
+body.touch .meter{gap:2px}body.touch .meter span{font-size:9px;letter-spacing:.18em;color:var(--ink);text-shadow:0 0 4px rgba(0,0,0,.95),0 0 2px #000}body.touch .meter .bar{height:4px}
 body.touch .hotbar{display:none}
 body.touch #map{top:calc(192px + var(--safe-t));bottom:auto;left:calc(10px + var(--safe-l));width:104px;height:104px}
 body.touch #toasts{top:max(26%,134px);left:45%;width:clamp(220px,calc(100% - 540px),320px)}
@@ -7781,6 +7781,23 @@ function ufoMesh(){
   for(let k=0;k<48;k++){const a=k*TAU/48,c=k%3===0?[1,.4,.85]:k%3===1?[.25,.85,1]:[.85,.92,1];g.prim(UP.sph,Math.cos(a)*(UFO_R+3.5),0,Math.sin(a)*(UFO_R+3.5),0,0,0,2,2,2,c,6);} // rim lights
   return UFO.mesh=g.mesh();
 }
+// the saucer is solid: its hull is a flattened ellipsoid (the same 130 x 26 x 130 the mesh is drawn with). The player is pushed out along the surface and bounces off
+// a hard hit; the saucer takes no damage. The opening in the belly stays clear (that is the way in), and so does the web reel, which pulls you through its own path.
+let ufoHitT=-9;
+function ufoBlock(){
+  if(!UFO.on||zone||state!=='play'||P.reel||P.dead||UFO.leaving||!storySolo())return;
+  const R=P.radius,hh=P.height*0.5,a=UFO_R+3+R,b=26+hh+0.8,dx=P.pos.x-UFO.x,dy=P.pos.y+hh-UFO.y,dz=P.pos.z-UFO.z;
+  if(Math.abs(dx)>a||Math.abs(dz)>a||Math.abs(dy)>b)return;
+  if(dy<0&&dx*dx+dz*dz<(UFO_HOLE+4)*(UFO_HOLE+4))return;
+  const a2=a*a,b2=b*b,gx=dx/a2,gy=dy/b2,gz=dz/a2,d=Math.sqrt(dx*gx+dy*gy+dz*gz);if(d>=1)return;
+  const gl=Math.hypot(gx,gy,gz);let nx=0,ny=1,nz=0,step=b-dy;
+  if(gl>1e-9){nx=gx/gl;ny=gy/gl;nz=gz/gl;step=Math.min(a,(1-d)*d/gl+0.02);}
+  P.pos.x+=nx*step;P.pos.y+=ny*step;P.pos.z+=nz*step;
+  const vn=P.vel.x*nx+P.vel.y*ny+P.vel.z*nz;
+  if(vn<0){P.vel.x-=vn*nx*1.3;P.vel.y-=vn*ny*1.3;P.vel.z-=vn*nz*1.3; // cancel the way in, plus a little bounce
+    if(-vn>18&&time-ufoHitT>0.5){ufoHitT=time;addShake(clamp(-vn*0.012,0.2,0.8));SFX.crash(clamp(-vn*0.02,0.3,0.8));burst(P.pos.x,P.pos.y+hh,P.pos.z,10,8,0.4,SPARK,0.8,15,1);}}
+  if(ny>0.6){P.grounded=true;if(P.vel.y<0)P.vel.y=0;}
+}
 function ufoDraw(){
   const L=UFO.lift;
   if(L){const k=clamp(L.t/2.4,0,1),h=300;queue(MESH.tube,at(L.x,L.y0+h/2-4,L.z,0,0,0,2.2,h,2.2),[.7,.92,1,0.2],F_ADD);queue(MESH.tube,at(L.x,L.y0+h/2-4,L.z,0,0,0,4.2,h,4.2),[.5,.85,1,0.07],F_ADD);queue(MESH.ring,at(L.x,L.y0+0.2,L.z,0,0,0,3+k*3,1,3+k*3),[.8,.95,1,1-k*0.6],F_ADD);}
@@ -11600,7 +11617,7 @@ function openDial(kind='alien',keepPage){
   const two=kind==='construct',nIn=two?DIAL_INNER:list.length; // constructs: an inner ring (mechs, flyers, rides, weapons) and an outer ring (everything newer)
   list.forEach((a,i)=>{const inner=i<nIn,k=inner?i:i-nIn,n=inner?nIn:list.length-nIn,ang=k/n*TAU-Math.PI/2,rad=two?(inner?25:43):38;
     const b=el('button',{type:'button',class:'dslot'+(two?' mini':'')+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*rad).toFixed(1)}%;top:${(50+Math.sin(ang)*rad).toFixed(1)}%`,
-      onclick:()=>{if(a.on){closeDial();a.pick();}else dialTrial(a);},onmouseenter:()=>setDialSel(i)},two?null:el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:two?(a.on?a.cost+' charge':a.lock):a.on?a.blurb:a.lock}));
+      onclick:()=>{if(performance.now()-dialAt<450)return;if(a.on){closeDial();a.pick();}else dialTrial(a);},onmouseenter:()=>setDialSel(i)},two?null:el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:two?(a.on?a.cost+' charge':a.lock):a.on?a.blurb:a.lock}));
     b.style.setProperty('--g',a.glow);ring.appendChild(b);});
   if(kind==='construct')ring.appendChild(el('div',{class:'dpage'},'All '+list.length+' constructs'));
   $('dial-info').textContent=kind==='trav'?'Pick how you get around · '+(presetOf(save.character)||{name:'your hero'}).name:kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge'+(touchOn()?'':' · move toward the centre for the inner ring'):'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
@@ -11831,6 +11848,7 @@ function playerBodies(prevY,prevX,prevZ,dt){
     const d=Math.hypot(dx,dz)||0.01,min=P.radius+0.45;if(d>=min)continue;
     if((sp>16||big&&sp>4)&&!P.speeding&&time-(h.bumpT||-9)>0.6){h.bumpT=time;Damage.apply(P,h,sp*0.5,'bump',{knock:Math.max(10,sp*0.8)});}
     else{const push=min-d;h.pos.x+=dx/d*push*0.8;h.pos.z+=dz/d*push*0.8;P.pos.x-=dx/d*push*0.2;P.pos.z-=dz/d*push*0.2;}}
+  ufoBlock(); // the saucer in the sky (66d_ufo.js)
   vehicleBlock(P.pos,P.vel,P.radius,P.height,prevY,false,big,dt,prevX,prevZ); // cars, trucks, helicopters, boats, hover cars: solid (50_npcs.js)
   if(VB.land)P.grounded=true;
   if(VB.hit){const v=VB.hit; // a hard hit hurts the vehicle (a giant's touch always does)
