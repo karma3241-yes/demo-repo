@@ -513,6 +513,6 @@ function render(){
   SMOKE.draw(0.3+0.7*(1-env.night));
   gl.useProgram(MAIN.p);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
   for(let i=0;i<dlN;i++){const d=drawList[i];if(!(d.flags&F_ADD))continue;drawItem(d.mesh,d.M,d.tint,true,0);}
-  gl.useProgram(PART.p);gl.blendFunc(gl.ONE,gl.ONE);FX.draw(1);
+  gl.useProgram(PART.p);gl.blendFunc(gl.ONE,gl.ONE);FX.draw(1);invSwDraw();
   gl.disable(gl.BLEND);gl.depthMask(true);gl.bindVertexArray(null);
 }

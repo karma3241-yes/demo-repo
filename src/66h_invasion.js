@@ -8,7 +8,7 @@
 // Every hero can fly during the event (invFlyOk, used by toggleFlight / flyChargeStart; the battle also keeps you flying). Solo only (storySolo).
 // The fleet is 4 baked ship meshes drawn as 100 instances (F_NF: no fog, so it is a dark shape in the city sky). The invaders are actors of kind 'invader'
 // (faction 'alien', lockable, hostile), they live in INV.list; the bomber's orbs in INV.orbs.
-const INV={fleet:[],built:false,meshes:null,state:'idle',go:false,arm:null,freeT:0,wave:0,nw:1,live:false,pend:[],breath:0,spawnT:0,list:[],orbs:[],blasts:[],start:null,cutT:0,tickT:0,warnT:-99,near:0,winT:-1,boomI:0,order:null,ls:null,lsHold:0,lsPct:-1,seen:{},ws:null,msgT:0,hitT:0};
+const INV={fleet:[],built:false,meshes:null,state:'idle',go:false,arm:null,freeT:0,wave:0,nw:1,live:false,pend:[],breath:0,spawnT:0,list:[],orbs:[],blasts:[],start:null,cutT:0,tickT:0,warnT:-99,near:0,winT:-1,boomI:0,order:null,ls:null,lsHold:0,lsPct:-1,seen:{},ws:null,msgT:0,hitT:0,sw:null};
 const INV_C={x:0,y:4300,z:0},INV_R=2300,INV_CAP=25,INV_K=1.6; // INV_K: how big the ships are drawn
 const INV_WAVES=[{n:5,mix:{blaster:3,brute:2}},{n:15,mix:{blaster:5,brute:3,shield:4,blinker:3}},{n:60,mix:{blaster:13,brute:10,shield:10,lancer:10,bomber:9,blinker:8}}];
 const INV_V={ // armour colour, glow colour, health factor, size, a hint shown the first time one appears
@@ -119,6 +119,7 @@ function invRemove(a){removeActor(a);removeFrom(INV.list,a);if(lockT===a)lockT=n
 // dying in the battle: back at the start point after 3 s, the current wave starts over (cleared waves stay cleared)
 function invRespawn(){
   if(INV.state!=='battle')return false;
+  if(INV.sw)invSwAbort();
   const s=INV.start;clearInvaders();
   P.dead=false;P.pos.set(s.x,s.y,s.z);P.vel.set(0,0,0);P.yaw=s.yaw;P.pitch=s.pitch;P.flying=true;P.grounded=false;P.hp=maxHp();P.en=maxEn();P.stun=0;P.lastHit=-99;P.web=null;P.wall=null;camDist=8;projs.length=0;
   $('dead').hidden=true;flashWhite=Math.max(flashWhite,0.4);
@@ -163,12 +164,13 @@ function invOnDefeat(a){
   SFX.tone('sawtooth',600,80,0.4,0.08*SFX.vol(a.pos.x,a.pos.y,a.pos.z));a.aim=null;a.bm=null;
 }
 function invWaveTick(dt){
+  if(INV.sw)return;
   if(INV.breath>0){INV.breath-=dt;if(INV.breath<=0)invWaveStart(INV.nw);return;}
   if(INV.wave<1)return;
   const alive=invAlive();
   if(INV.pend.length&&alive<INV_CAP){INV.spawnT-=dt;if(INV.spawnT<=0){INV.spawnT=rr(0.25,0.5);invSpawn(INV.pend.pop());}}
   if(!INV.pend.length&&alive===0){
-    if(INV.wave>=3){invWin(false);return;}
+    if(INV.wave>=3){invSwStart();return;}
     INV.live=false;toast('Wave cleared','Wave '+INV.nw+' in 3 s','gold');SFX.chime();INV.breath=3;
   }
 }
@@ -278,6 +280,108 @@ function invUpdate(a,dt){
   for(const o of INV.list){if(o===a||!o.alive)continue;const ox=a.pos.x-o.pos.x,oy=a.pos.y-o.pos.y,oz=a.pos.z-o.pos.z,l=Math.hypot(ox,oy,oz),m=2.4*(a.sc+o.sc)*0.5;if(l<m&&l>0.01){const f=(m-l)*0.4/l;a.pos.x+=ox*f;a.pos.y+=oy*f;a.pos.z+=oz*f;}}
   if(a.bm){a.bm.t-=dt;if(a.bm.t<=0)a.bm=null;}
 }
+// ---- the last stand: ~1000 invaders rush you, you mash Space / tap to power up, a huge burst wipes them out, then invWin breaks the fleet ----
+// The swarm is NOT actors: one particle buffer (SW, a PSys used only for its GL buffer and draw), 4 points per invader (a head and three trail points) plus 13 for the aura, filled on the CPU
+// every frame and drawn in the particle pass (invSwDraw, called from 90_render.js). Each invader is a fixed unit direction + a radius multiplier: pos = you + dir * R * m,
+// R shrinks over time (the rush, then the slow close-in), the direction spreads from the fleet side to all round you. Presses add to the meter (aura size) and nudge the swarm
+// closer; the meter also rises by itself so nobody is stuck: the burst comes when the meter is full or the swarm arrives (at most SW_RUSH + SW_AUTO s).
+// save.story.invasion is still 1 during all this (invWin sets 2): quitting mid-way replays the battle, like quitting mid-wave.
+const SWN=1000,SW_RUSH=2.2,SW_AUTO=7,SWC={x:0,y:0,z:0},SWL={x:0,y:0,z:0};
+let SW=null,SWD=null;
+function invSwBuild(){
+  if(!SW)SW=new PSys(SWN*4+13,true,false);
+  if(SWD)return;SWD={w:new Float32Array(SWN*3),m:new Float32Array(SWN),c:new Float32Array(SWN*3),ph:new Float32Array(SWN)};
+  for(let i=0;i<SWN;i++){
+    const x=rr(-1,1),y=rr(-1,1),z=rr(-1,1),q=Math.cbrt(Math.random())/(Math.hypot(x,y,z)||1);SWD.w[i*3]=x*q;SWD.w[i*3+1]=y*q;SWD.w[i*3+2]=z*q;
+    SWD.m[i]=rr(0.7,1.3);SWD.ph[i]=rr(0,TAU);const h=Math.random()*6,f=h-Math.floor(h),v=[[1,f,0],[1-f,1,0],[0,1,f],[0,1-f,1],[f,0,1],[1,0,1-f]][Math.floor(h)%6]; // a vivid random hue
+    SWD.c[i*3]=0.25+v[0]*0.75;SWD.c[i*3+1]=0.25+v[1]*0.75;SWD.c[i*3+2]=0.25+v[2]*0.75;
+  }
+}
+function invSwStart(){
+  if(INV.sw)return;
+  if(state!=='play'||!storySolo()||P.dead){invWin(false);return;}
+  invSwBuild();INV.orbs.length=0;lockT=null;objective(null);
+  const c=center(P),dx=INV_C.x-c.x,dy=INV_C.y-c.y,dz=INV_C.z-c.z,l=Math.hypot(dx,dy,dz)||1,hl=Math.hypot(dx,dz)||1;
+  const W=INV.sw={t:0,ph:'rush',meter:0,auto:0,cb:0,bt:0,R:1700,R0:0,L:2,pulse:0,n:0,hum:0,wall:performance.now(),cx:c.x,cy:c.y,cz:c.z,fx:dx/l,fy:dy/l,fz:dz/l,hx:dx/hl,hz:dz/hl,cut:null}; // f: towards the fleet, h: the same on the ground
+  P.vel.set(0,0,0);P.flying=true;
+  W.cut=cutscene({dur:40,fov:62,letterbox:false,skippable:false,from:invSwCam,to:invSwCam,look:invSwLook,onEnd:()=>{if(INV.sw===W)invSwEnd();}});
+  SFX.tone('sawtooth',50,30,2.4,0.14);addShake(0.2);
+}
+function invSwCam(){ // behind you, swinging round to the side as the power grows; you stay near the middle of the picture
+  const W=INV.sw;if(!W){SWC.x=P.pos.x;SWC.y=P.pos.y+4;SWC.z=P.pos.z-12;return SWC;}
+  const a=0.9*smooth(0,1,W.t/9),ca=Math.cos(a),sa=Math.sin(a),bx=-W.hx*ca+W.hz*sa,bz=-W.hx*sa-W.hz*ca,d=lerp(15,11,W.meter)+(W.ph==='burst'?7*W.bt:0);
+  SWC.x=W.cx+bx*d;SWC.y=W.cy+lerp(3.5,1.2,W.meter)+(W.ph==='burst'?2*W.bt:0);SWC.z=W.cz+bz*d;return SWC;
+}
+function invSwLook(){
+  const W=INV.sw;if(!W){SWL.x=P.pos.x;SWL.y=P.pos.y+1.3;SWL.z=P.pos.z;return SWL;}
+  const k=lerp(26,2,smooth(0,3,W.t));SWL.x=W.cx+W.fx*k;SWL.y=W.cy+W.fy*k;SWL.z=W.cz+W.fz*k;return SWL;
+}
+function invSwPress(){
+  const W=INV.sw;if(!W||W.ph!=='mash')return;
+  W.meter=Math.min(1,W.meter+0.055);W.cb+=0.02;W.pulse=1;W.n++;SFX.tone('square',420+W.meter*800,520+W.meter*900,0.06,0.05);
+  const e=qteEl();e.classList.remove('hit');void e.offsetWidth;e.classList.add('hit');
+}
+addEventListener('keydown',e=>{if(INV.sw&&INV.sw.ph==='mash'&&e.code==='Space'){e.preventDefault();if(!e.repeat)invSwPress();}},true);
+addEventListener('pointerdown',e=>{if(INV.sw&&INV.sw.ph==='mash')invSwPress();},true);
+function invSwBurst(){
+  const W=INV.sw;if(!W||W.ph==='burst')return;W.ph='burst';W.bt=0;W.R0=W.R;W.meter=1;qteHide();
+  const x=W.cx,y=W.cy,z=W.cz;flashWhite=1;SFX.boom(1,2.4);SFX.boom(0.8,0.9);SFX.chime();SFX.tone('sine',200,2400,1.2,0.16);SFX.tone('sawtooth',900,60,1.1,0.1);addShake(1.2);
+  ringFx(x,y,z,1,150,1.0,[1,.9,.5]);ringFx(x,y,z,1,100,0.75,[1,1,1]);ringFx(x,y,z,1,230,1.4,[1,.6,.2]);ringFx(x,y,z,0.5,60,0.5,[.6,.8,1]);
+  burst(x,y,z,160,70,1.4,[[1,.9,.5],[1,1,1],[1,.7,.2]],2.4,0,1.2);
+}
+function invSwClear(){INV.sw=null;if(SW)SW.count=0;qteHide();}
+function invSwEnd(){ // the sequence is over (or was cut short): the fleet breaks apart, as it always did
+  const W=INV.sw;if(!W)return;invSwClear();if(CUT===W.cut)cutEnd(false);invWin(false);
+}
+function invSwAbort(){const W=INV.sw;if(!W)return;invSwClear();if(CUT===W.cut)cutEnd(false);} // you died or a room opened: nothing is won, the battle logic carries on
+function invSwTick(dt){
+  const W=INV.sw;if(!W)return;
+  if(P.dead){invSwAbort();return;}
+  if(CUT!==W.cut){invSwEnd();return;} // something else took the camera
+  if(performance.now()-W.wall>26000&&W.ph!=='burst')invSwBurst(); // a safety net in real time
+  W.t+=dt;W.pulse=Math.max(0,W.pulse-dt*4);P.vel.set(0,0,0);P.flying=true;
+  const cx=W.cx,cy=W.cy,cz=W.cz;let R=W.R;
+  if(W.ph==='rush'){const u=Math.min(1,W.t/SW_RUSH),e=1-Math.pow(1-u,3);R=lerp(1700,230,e);
+    if(u>=1){W.ph='mash';const q=qteEl();q.hidden=false;q.classList.remove('fail','hit');$('q-t').textContent='POWER UP';$('q-s').textContent=touchOn()?'TAP! TAP! TAP!':'mash SPACE';SFX.tone('sine',900,400,0.5,0.1);}}
+  if(W.ph==='mash'){
+    W.auto+=dt;W.meter=Math.max(Math.min(1,W.auto/SW_AUTO),W.meter-0.1*dt);const c=Math.min(1,W.auto/SW_AUTO+W.cb);R=26+204*Math.pow(1-c,1.3);
+    $('q-f').style.width=(W.meter*100).toFixed(1)+'%';$('q-tm').style.width=((1-c)*100).toFixed(1)+'%';
+    if(W.meter>=1||c>=1)invSwBurst();
+  }
+  const m=W.meter,bursting=W.ph==='burst';
+  if(bursting)W.bt+=dt;
+  W.cut.fov=62+10*m+(bursting?10*Math.min(1,W.bt*2):0);
+  addShake(bursting?0.05:0.012+0.05*m);
+  if((W.hum-=dt)<=0){W.hum=0.22;if(!bursting)SFX.tone('sawtooth',70+m*260,90+m*340,0.3,0.03+0.07*m);}
+  if(W.ph==='mash'){const n=1+(m*6|0),r0=1+5*m;for(let i=0;i<n;i++){const a=Math.random()*TAU;emit(cx+Math.cos(a)*r0*rr(0.3,1),cy-1+rr(0,1),cz+Math.sin(a)*r0*rr(0.3,1),0,rr(5,14)*(0.5+m),0,rr(0.5,1),Math.random()<0.5?[1,.9,.5]:[1,1,1],rr(0.7,1.6)*(0.6+m),0,0.4);}}
+  // the swarm: a head + 3 trail points per invader, written straight into the vertex buffer (no allocation); then the aura's soft sprites
+  const B=SW.buf,w=SWD.w,mm=SWD.m,cc=SWD.c,ph=SWD.ph,t=W.t,sp=0.45+1.75*smooth(0,1,t/11),spd=Math.abs(R-W.R)/Math.max(dt,1e-3),sgn=bursting?-1:1,tk=bursting?Math.max(0,1-W.bt/1.4):1;
+  W.L+=((bursting?16:R*(0.04+0.1*clamp(spd/300,0,1)))-W.L)*Math.min(1,dt*8);W.R=R;
+  const L=W.L/3*sgn,fx=W.fx,fy=W.fy,fz=W.fz,ex=SWC.x,ey=SWC.y,ez=SWC.z,on=smooth(0,0.5,t);let o=0;
+  for(let i=0;i<SWN;i++){
+    const i3=i*3;let dx=fx+sp*w[i3],dy=fy+sp*w[i3+1],dz=fz+sp*w[i3+2];const il=1/(Math.hypot(dx,dy,dz)||1);dx*=il;dy*=il;dz*=il;
+    const r=bursting?W.R0*mm[i]+(500+400*mm[i])*W.bt:R*mm[i]*(1+0.06*Math.sin(t*2.3+ph[i])),x=cx+dx*r,y=cy+dy*r,z=cz+dz*r;
+    const ddx=x-ex,ddy=y-ey,ddz=z-ez,dc=Math.sqrt(ddx*ddx+ddy*ddy+ddz*ddz),a=on*tk*smooth(8,40,dc)*(bursting?1:smooth(6,30,r))*1.3; // faint right at the camera and at you, so nothing blots the screen
+    const sz=4.5*(0.8+0.5*mm[i]),r0=cc[i3],g0=cc[i3+1],b0=cc[i3+2],tx=dx*L,ty=dy*L,tz=dz*L;
+    o=invSwPt(B,o,x,y,z,r0,g0,b0,a,sz);o=invSwPt(B,o,x+tx,y+ty,z+tz,r0,g0,b0,a*0.6,sz*0.8);o=invSwPt(B,o,x+tx*2,y+ty*2,z+tz*2,r0,g0,b0,a*0.38,sz*0.62);o=invSwPt(B,o,x+tx*3,y+ty*3,z+tz*3,r0,g0,b0,a*0.2,sz*0.45);
+  }
+  // the aura: soft round sprites (a glowing core, a flickering column of flame, a ring of sparks) that grow and brighten with the meter
+  const fl=1+0.12*Math.sin(t*37)+0.07*Math.sin(t*23+1),ab=bursting?Math.max(0,1-W.bt/1.2):1;
+  o=invSwPt(B,o,cx,cy,cz,1,.96,.8,(0.8+1.4*m)*ab,(2+4.5*m)*fl);
+  for(let j=0;j<5;j++)o=invSwPt(B,o,cx+0.25*Math.sin(t*9+j*2)*(1+m),cy-0.8+j*1.1*(1+m),cz+0.25*Math.cos(t*8+j*2)*(1+m),1,.72,.22,(0.3+0.7*m)*ab,(1.8+4.2*m)*(1-j*0.1)*fl);
+  for(let j=0;j<6;j++){const a=t*2.6+j*1.047,rd=0.8+2.6*m;o=invSwPt(B,o,cx+Math.cos(a)*rd,cy+0.5*Math.sin(t*3+j),cz+Math.sin(a)*rd,1,.5,.15,(0.2+0.45*m)*ab,1.6+3*m);}
+  o=invSwPt(B,o,cx,cy+0.5,cz,1,1,1,W.pulse*0.8*ab,6*W.pulse+0.1); // a flare on every press
+  SW.count=SWN*4+13;
+  if(bursting&&W.bt>=1.5)invSwEnd();
+}
+function invSwPt(B,o,x,y,z,r,g,b,a,sz){B[o]=x;B[o+1]=y;B[o+2]=z;B[o+3]=r;B[o+4]=g;B[o+5]=b;B[o+6]=a;B[o+7]=sz;return o+8;}
+function invSwDraw(){if(INV.sw&&SW&&SW.count)SW.draw(1);}
+function invSwAura(){ // two spinning rings round you, and the shockwave veil at the burst (the glow itself is in the particle buffer)
+  const W=INV.sw,m=W.meter,t=time,bu=W.ph==='burst',b=bu?Math.max(0,1-W.bt/1.2):1,r=(1.5+6.5*m)*(1+0.1*Math.sin(t*37)+W.pulse*0.25)*(bu?1+W.bt*2:1),x=W.cx,y=W.cy,z=W.cz;
+  queue(MESH.ring,at(x,y,z,0.35*Math.sin(t*1.3),t*2.2,0.2,r*1.2,1,r*1.2),[1,.85,.4,(0.06+0.3*m)*b],F_ADD);
+  queue(MESH.ring,at(x,y,z,1.2,-t*1.7,0.5*Math.sin(t),r*1.5,1,r*1.5),[1,.95,.7,(0.05+0.25*m)*b],F_ADD);
+  if(bu){const k=W.bt/1.5;queue(UGLOW,at(x,y,z,0,0,0,10+k*260,10+k*260,10+k*260),[1,.95,.75,0.35*(1-k)*(1-k)],F_ADD);}
+}
 // ---- victory: the fleet breaks apart ----
 function invWin(quick){
   const S=save.story;if(INV.state==='win'||INV.state==='done'||S.invasion>=2)return;invFleetBuild();
@@ -354,6 +458,7 @@ function lsEnd(){if(!INV.ls)return;if(INV.ls.dest==='earth')earthArrive();else c
 // cyberArrive() (called above) is in 66i_cyber.js: the hyper-advanced civilisation.
 // a room opened while the fleet event (or its light-speed jump) had you up in space: the event waits and you are put back on the ground
 function invMpGuard(){
+  if(INV.sw)invSwAbort();
   if(INV.list.length)clearInvaders();
   const was=INV.state==='battle'||INV.state==='cut'||INV.state==='win';
   if(was){INV.state='idle';INV.go=true;INV.freeT=0;}
@@ -363,7 +468,7 @@ function invMpGuard(){
 function invTick(dt){
   for(let i=INV.blasts.length-1;i>=0;i--){const b=INV.blasts[i];b.t+=dt;if(b.t>1.5)INV.blasts.splice(i,1);}
   const S=save.story;if(!S)return;
-  if(!storySolo()){if(INV.list.length)clearInvaders();if(INV.state==='battle'||INV.state==='cut'){INV.state='idle';INV.go=true;INV.freeT=0;}return;} // a multiplayer room: the event waits, and starts again when you are back alone
+  if(!storySolo()){if(INV.sw)invSwAbort();if(INV.list.length)clearInvaders();if(INV.state==='battle'||INV.state==='cut'){INV.state='idle';INV.go=true;INV.freeT=0;}return;} // a multiplayer room: the event waits, and starts again when you are back alone
   if(state!=='play')return;
   if(INV.arm===null)INV.arm=S.invasion===1;
   if(S.invasion===1||(S.invasion===2&&INV.state==='win'))invFleetBuild();
@@ -388,6 +493,7 @@ function invTick(dt){
     for(const a of INV.list.slice())invUpdate(a,dt*worldTimeK());
     invOrbTick(dt*worldTimeK());
   }
+  if(INV.sw)invSwTick(dt);
   if(INV.state==='win')invWinTick(dt);
   if(INV.state==='done')lsTick0(dt);
   if(INV.ls&&!CUT&&INV.ls.t>0.5)lsEnd(); // the jump cutscene was cut short
@@ -429,6 +535,7 @@ function invDraw1(a){
 function invDraw(){
   if(INV.ls&&storySolo()&&state==='play')lsDraw(); // (the wormhole also opens inside the cyber world)
   if(!storySolo()||state!=='play'||zone)return;
+  if(INV.sw)invSwAura();
   for(const b of INV.blasts){const k=b.t/1.5,r=b.s*(0.4+k*1.3);queue(UGLOW,at(b.x,b.y,b.z,0,0,0,r,r,r),[1,.75,.4,0.8*(1-k)],F_ADD);queue(UGLOW,at(b.x,b.y,b.z,0,0,0,r*1.6,r*1.6,r*1.6),[1,.4,.2,0.2*(1-k)],F_ADD);if(k<0.3)queue(UGLOW,at(b.x,b.y,b.z,0,0,0,r*0.55,r*0.55,r*0.55),[1,1,1,1-k*3],F_ADD);}
   if(INV.fleet.length&&(save.story.invasion===1||INV.state==='win'))invFleetDraw();
   for(const a of INV.list){invDraw1(a);
