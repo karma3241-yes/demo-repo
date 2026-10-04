@@ -197,7 +197,8 @@ function kFightStart(){
   if(KA.orbs.length!==4)kOrbsMake();kSyncOrbs();
   KA.fight=true;KA.atk=null;KA.cd=2.2;kFly(12);
   objective('Shatter the four orbs · 4 left');
-  toast('Kathana, the Seer of All','Her body cannot be hurt. Shatter the four orbs · '+(touchOn()?'Attack':'Click')+' fires the Solar Lance · Z locks on','red');
+  toast('Kathana, the Seer of All','Her body cannot be hurt. Shatter the four orbs · '+(touchOn()?'Attack':'Click')+' fires the Solar Lance','red');
+  later(1.3,()=>{if(KA.fight&&inVoid())toast('Lock onto the orbs',touchOn()?'Tap the Lock button, tap again for the next orb':'Press Z (or the Lock button) to lock on, Z again for the next orb','gold');});
 }
 // the boss bar (99_main.js updateHud): the four orbs' health together. true = I drew it
 function kathanaBar(){
