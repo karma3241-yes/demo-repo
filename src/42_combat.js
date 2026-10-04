@@ -42,7 +42,7 @@ function lockToggle(){
 function updateLock(dt){
   if(lockT&&(!lockValid(lockT)||P.car||P.dead)){const was=lockT;lockT=null;
     const beaten=!was.alive||was.downed>0||(was.kind==='remote'&&(was.flags&FLAG.dead));
-    if(beaten&&!P.car&&!P.dead){lockT=nextLock(was);if(lockT)SFX.tone('sine',500,900,0.08,0.05);}}
+    if(beaten&&!P.car&&!P.dead){lockT=was.kind==='korb'?kathanaPickAny():nextLock(was);if(lockT)SFX.tone('sine',500,900,0.08,0.05);}}
   if(!lockT)return;
   const c=center(lockT),dx=c.x-P.pos.x,dy=c.y-(P.pos.y+1.8),dz=c.z-P.pos.z,h=Math.hypot(dx,dz)||1;
   const wantYaw=Math.atan2(-dx,-dz),wantPitch=clamp(Math.atan2(dy,h)-0.12,-1.1,0.9),k=damp(time-lookT<0.25?3:9,dt);
