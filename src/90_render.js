@@ -71,7 +71,7 @@ function updateCamera(dt){
   }
   const fx=camF.x,fy=camF.y,fz=camF.z;let rx=-fz,rz=fx;const rl=Math.hypot(rx,rz)||1;rx/=rl;rz/=rl;camR.set(rx,0,rz);camU.set(-rz*fy,rz*fx-rx*fz,rx*fy);
   M4.lookAt(VIEW,camPos.x,camPos.y,camPos.z,camPos.x+fx,camPos.y+fy,camPos.z+fz,0,1,0);
-  {const hi=camPos.y>CEIL,cb=camBig();M4.perspective(PROJ,fov*Math.PI/180,W/H,Math.max(hi?clamp(camPos.y*0.002,0.3,4):0.3,Math.min(cb*0.02,400)),Math.max(hi?700000:4000,cb*400));}M4.mul(VP,PROJ,VIEW);
+  {const hi=camPos.y>CEIL,cb=camBig();M4.perspective(PROJ,fov*Math.PI/180,W/H,Math.max(hi?clamp(camPos.y*0.002,0.3,4):0.3,Math.min(cb*0.02,400)),Math.max(hi?700000:invFarOn()?16000:4000,cb*400));}M4.mul(VP,PROJ,VIEW);
   const menu=state!=='play'&&!preview;
   const fxp=menu?0:P.pos.x,fzp=menu?0:P.pos.z,fyp=menu?0:Math.min(P.pos.y,120),ext=menu?520:170,tex=ext*2/SHADOW;
   const ld=env.ldir,cxs=Math.round(fxp/tex)*tex,czs=Math.round(fzp/tex)*tex;
@@ -421,7 +421,7 @@ function buildDrawList(){
     else if(p.kind==='bolt'){let px=p.x,py=p.y,pz=p.z;for(let i=1;i<=3;i++){const qx=p.x-p.vx*0.012*i+rr(-.4,.4),qy=p.y-p.vy*0.012*i+rr(-.4,.4),qz=p.z-p.vz*0.012*i+rr(-.4,.4);queue(MESH.glowBox,M4.beam(tmpM(),px,py,pz,qx,qy,qz,0.18),[1,.9,.5,1],F_ADD);px=qx;py=qy;pz=qz;}queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.1,1.1,1.1),[1,.8,.3,0.5],F_ADD);}
     else if(p.kind==='ring'){const s=p.small?0.28:0.5*(p.big||1);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.02,p.y-p.vy*0.02,p.z-p.vz*0.02,s*0.7),[RING_C[0],RING_C[1],RING_C[2],1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,s*2.4,s*2.4,s*2.4),[RING_C[0],RING_C[1],RING_C[2],0.35],F_ADD);}
     else if(p.kind==='web'){queue(MESH.sphere,at(p.x,p.y,p.z,time*6,time*4,0,0.55,0.55,0.55),[.95,.95,1,1],0);}
-    else if(p.kind==='plasma'){const sc=p.sc||1;queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.5*sc,0.5*sc,0.5*sc),[.7,1,.55,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.5*sc,1.5*sc,1.5*sc),[.3,1,.3,0.35],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.05,p.y-p.vy*0.05,p.z-p.vz*0.05,0.3*sc),[.4,1,.3,0.5],F_ADD);}
+    else if(p.kind==='plasma'){const sc=p.sc||1,pc=p.pc;queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.5*sc,0.5*sc,0.5*sc),pc?[pc[0]*.4+.6,pc[1]*.4+.6,pc[2]*.4+.6,1]:[.7,1,.55,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.5*sc,1.5*sc,1.5*sc),pc?[pc[0],pc[1],pc[2],0.4]:[.3,1,.3,0.35],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.05,p.y-p.vy*0.05,p.z-p.vz*0.05,0.3*sc),pc?[pc[0],pc[1],pc[2],0.55]:[.4,1,.3,0.5],F_ADD);}
     else if(p.kind==='rocket'&&p.meteor){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,3,3,3),[1,.5,.2,1],0);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.15,p.y-p.vy*0.15,p.z-p.vz*0.15,2.2),[1,.4,.1,0.6],F_ADD);}
     else if(p.kind==='rocket'){const sc=p.sc||1;queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.03,p.y-p.vy*0.03,p.z-p.vz*0.03,0.5*sc),[1,.6,.3,1],0);if(sc>2)queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,sc,sc,sc),[1,.6,.3,0.5],F_ADD);}
     else{const sc=p.sc||1;queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.45*sc,0.45*sc,0.45*sc),[1,.25,.2,1],0);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.05,p.y-p.vy*0.05,p.z-p.vz*0.05,0.3*sc),[1,.2,.15,0.5],F_ADD);}}

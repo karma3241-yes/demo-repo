@@ -111,7 +111,7 @@ const travOver=()=>save.character?masteryOver(save.character.movement[0]):0; // 
 const flyBoost=()=>PBAL?lerp(2,POWERS.flight.boost,travK()):POWERS.flight.boost;
 // hold F on the ground to charge, let go to blast off into the sky (a tap still just toggles flight)
 function flyChargeStart(){
-  if(!hasPower('flight')||isSpeed()||P.alien||P.car||P.flying||!P.grounded||!canAct()||P.construct)return false;
+  if(!(hasPower('flight')||invFlyOk())||isSpeed()||P.alien||P.car||P.flying||!P.grounded||!canAct()||P.construct)return false;
   if(isRing()&&save.ring<=0)return false;
   P.charging=true;P.chargeT=0;P.fCharge=true;return true;
 }
@@ -144,7 +144,7 @@ function flyChargeTick(){
   if(k>=1&&Math.random()<0.15)addShake(0.05);
 }
 function toggleFlight(){
-  if(!hasPower('flight')||!canAct()||P.car)return;
+  if(!(hasPower('flight')||invFlyOk())||!canAct()||P.car)return;
   if(P.alien)return; // alien forms fly (or not) on their own
   if(!P.flying&&stormLeap()){hammerLeap(0.25);return;} // Hammer Leap style: F leaps instead of flying
   if(isRing()){if(!P.flying&&save.ring<=0){ringOut();return;}if(P.construct&&CONSTRUCTS[P.construct.id].drive)return;}

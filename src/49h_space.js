@@ -27,12 +27,13 @@ const inSpace=()=>P.pos.y>SPACE.y;
 function nearestBody(){let best=null,bd=1e12;for(const b of PLANETS){const d=Math.hypot(P.pos.x-b.x,P.pos.y-b.y,P.pos.z-b.z)-b.r;if(d<bd){bd=d;best=b;}}return {b:best,d:bd};}
 // flight speed multiplier: much faster the higher you are, slower again close to any surface
 function spaceSpeedMul(){
-  if(P.pos.y<=CEIL)return 1;const nb=nearestBody();
+  if(P.pos.y<=CEIL)return 1;if(invBattle())return 2.2; // the invasion: a fight at fighting speed
+  const nb=nearestBody();
   return Math.max(1,Math.min(1+(P.pos.y-CEIL)/40,(PBAL?10+80*travK():90)*(1+0.01*travOver()),1+Math.max(0,nb.d)/60,1+(P.pos.y)/60));
 }
 let spaceMsgT=-99,lastBody=null,wasSpace=false;
 function updateSpace(dt){
-  if(state!=='play'||P.dead)return;
+  if(state!=='play'||P.dead||INV.ls)return; // (the light-speed jump phases through the planets and the Sun)
   const sp=inSpace();
   if(sp&&!wasSpace&&time-spaceMsgT>20){spaceMsgT=time;toast('You made it to space','The Moon and the planets are out there · fly to one and land','cyan');}
   wasSpace=sp;

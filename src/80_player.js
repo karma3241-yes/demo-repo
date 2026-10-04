@@ -43,7 +43,7 @@ addEventListener('keydown',e=>{
   if(e.code in SLOT_CODES){const i=SLOT_CODES[e.code];heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');return;}
   if(e.code==='KeyX'){if(P.construct&&constructX())return;if(rewindKey())return;return;}
   if((e.code==='BracketRight'||e.code==='Equal'||e.code==='BracketLeft'||e.code==='Minus')&&growStep(e.code==='BracketRight'||e.code==='Equal'?1:-1))return;
-  if(isSpeed()){if(e.code==='KeyF'){toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
+  if(isSpeed()){if(e.code==='KeyF'){if(invFlyOk()&&!hasPower('flight'))toggleFlight();else toggleFastMode();return;}if(e.code==='KeyC'){togglePhase();return;}if(e.code==='BracketRight'||e.code==='Equal'){turnDial(1);return;}if(e.code==='BracketLeft'||e.code==='Minus'){turnDial(-1);return;}}
   if(e.code==='KeyF'){if(!flyChargeStart())toggleFlight();}else if(e.code==='Space')pressJump();
 });
 // Ring Bearer in a construct: tap V to step out of it, hold V to open the construct wheel (let go on a construct to switch to it)

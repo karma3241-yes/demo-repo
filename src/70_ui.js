@@ -109,6 +109,7 @@ function updateTags(){
     else if(time-(h.lastHit||-99)<3&&d<70*70)add(h.pos.x,h.pos.y+2.3,h.pos.z,'',null,h.hp,h.maxHp);}
   for(const dd of drones)if(dd.alive&&time-(dd.lastHit||-99)<3&&d2h(dd,P)<90*90)add(dd.pos.x,dd.pos.y+2.2,dd.pos.z,'',null,dd.hp,dd.maxHp);
   if(zone)for(const a of ualiens)if(a.alive&&time-(a.lastHit||-99)<3&&d2h(a,P)<90*90)add(a.pos.x,a.pos.y+(a.hover?3.4:2.9),a.pos.z,'',null,a.hp,a.maxHp);
+  for(const a of INV.list)if(a.alive&&(a===lockT||time-(a.lastHit||-99)<3)&&Math.hypot(a.pos.x-P.pos.x,a.pos.y-P.pos.y,a.pos.z-P.pos.z)<500)add(a.pos.x,a.pos.y+a.cy+1.5*a.sc,a.pos.z,a.name,INV_V[a.vt].css,a.hp,a.maxHp);
   for(const v of vehicles)if(v.alive&&(v.temp||v===P.car)&&time-(v.lastHit||-99)<3)add(v.pos.x,v.pos.y+3.4,v.pos.z,'',null,v.hp,v.maxHp);
   for(let i=n;i<tagPool.length;i++)tagPool[i].t.hidden=true;
   // floating damage numbers

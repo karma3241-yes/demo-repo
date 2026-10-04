@@ -493,7 +493,7 @@ function pfWorldBack(){
 function pfAfterWin(){
   const first=KW.first;KW.first=false;
   if(!first){toast('The Perfect Form is gone','Again.','gold');return;}
-  const go=()=>{objective('Look up: the fleet is coming');later(10,()=>{if(OBJ.text==='Look up: the fleet is coming')objective(null);});};
+  const go=()=>{invArrive();objective('Look up: the fleet is coming');later(10,()=>{if(OBJ.text==='Look up: the fleet is coming')objective(null);});};
   const ok=askInfo('Everyone is super now',['Civilians, police and thugs are twice as tough and much faster, and every human has a power.',{b:'And something is coming: 100 ships are gathering above Earth.'}],'Look up',go);
   if(!ok){toast('Everyone is super now','And something is coming: 100 ships are gathering above Earth.','gold');go();}
 }

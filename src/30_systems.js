@@ -20,17 +20,17 @@ function knock(t,src,power,up=0.45){
   let l=Math.hypot(dx,dz);if(l<1e-3){dx=rr(-1,1);dz=rr(-1,1);l=Math.hypot(dx,dz)||1;}dx/=l;dz/=l;
   if(t===P){P.vel.x+=dx*power;P.vel.z+=dz*power;if(!P.flying){P.vel.y=Math.max(P.vel.y,power*up);P.grounded=false;}return;}
   if(t.kind==='human'){t.air=true;t.vel.set(dx*power,power*up+3,dz*power);t.tumble=rr(4,9)*(Math.random()<0.5?-1:1);}
-  else if(t.kind==='drone'||t.kind==='rival'||t.kind==='alien'){t.vel.x+=dx*power;t.vel.z+=dz*power;t.vel.y+=power*up;}
+  else if(t.kind==='drone'||t.kind==='rival'||t.kind==='alien'||t.kind==='invader'){t.vel.x+=dx*power;t.vel.z+=dz*power;t.vel.y+=power*up;}
 }
 // combo hits: explicit launch velocity, a small nudge, air-juggle float, and 'flung' so impacts crater
 function hitMotion(t,src,opt){
   if(opt.nudge&&!opt.kv){if(t.kind==='human'&&!t.air&&!t.hidden){t.pos.x+=opt.nudge[0];t.pos.z+=opt.nudge[1];}else if(t.kind==='rival'){t.pos.x+=opt.nudge[0];t.pos.z+=opt.nudge[1];}return;}
   const k=opt.kv;if(!k)return;
   if(t.kind==='human'){if(t.hidden||t.held)return;t.air=true;t.vel.set(k[0],k[1],k[2]);t.tumble=(opt.flung?rr(6,11):rr(1,3))*(Math.random()<0.5?-1:1);}
-  else if(t.kind==='drone'||t.kind==='rival'||t.kind==='alien'){t.vel.set(k[0],k[1],k[2]);}
+  else if(t.kind==='drone'||t.kind==='rival'||t.kind==='alien'||t.kind==='invader'){t.vel.set(k[0],k[1],k[2]);}
   else return;
   if(opt.float)t.floatT=opt.float;if(opt.apex)t.apexT=time;
-  if(opt.flung){t.flungT=time;t.flungBy=src;t.heavy=opt.heavy||0;if(t.kind!=='drone')startRagdoll(t,k[0],k[1],k[2]);}
+  if(opt.flung){t.flungT=time;t.flungBy=src;t.heavy=opt.heavy||0;if(t.kind!=='drone'&&t.kind!=='invader')startRagdoll(t,k[0],k[1],k[2]);}
 }
 const Damage={
   apply(src,t,amount,type='hit',opt={}){
@@ -69,7 +69,7 @@ const Damage={
     if(opt.burn){t.burn=opt.burn.time;t.burnDps=opt.burn.dps;t.burnSrc=src;}
     if(src&&src!==t){t.grudge=src;t.grudgeT=time;}
     if(opt.kv||opt.nudge)hitMotion(t,src,opt);else if(opt.knock&&t.hp>0)knock(t,src,opt.knock);
-    if(t.onHit)t.onHit(src,amount);
+    if(t.onHit)t.onHit(src,amount,type);
     Bus.emit('damaged',{source:src,target:t,amount,type});
     if(t.hp<=0){t.hp=0;t.alive=false;if(opt.kv)hitMotion(t,src,opt);else if(opt.knock)knock(t,src,opt.knock);if(t.onDefeat)t.onDefeat(src);Bus.emit('defeated',{target:t,killer:src});}
     return amount;
@@ -84,6 +84,7 @@ function playerDown(killer){
   MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
 }
 function respawn(){
+  if(invRespawn())return; // the invasion battle: back at its start point (66h_invasion.js)
   if(zone)zoneAbort(); // died inside a story zone: back to the city first
   let s=SPAWNS[0],bd=1e18;for(const c of SPAWNS){const d=Math.hypot(c[0]-P.pos.x,c[1]-P.pos.z);if(d<bd){bd=d;s=c;}} // nearest spawn to where you fell
   if(P.alien)revertAlien(true);
@@ -128,6 +129,7 @@ Bus.on('defeated',({target,killer})=>{
   else if(target.kind==='heli'){xp=150;rep=-40;label='Police helicopter down';addWanted(10,2000);}
   else if(target.kind==='rival'){xp=NPCS.rival.xp+NPCS.rival.xpPerLvl*target.level;rep=target.faction==='villain'?NPCS.rival.rep:-NPCS.rival.rep;if(target.bounty){xp*=2;rep*=2;}label=target.name+' defeated'+(target.bounty?' · bounty claimed':'');}
   else if(target.kind==='alien'){xp=55+save.level*2;label='Alien down';}
+  else if(target.kind==='invader'){xp=70+save.level*2.5;label=target.name+' down';}
   else if(target.kind==='boss'){const c=NPCS[target.type];xp=c.xp;rep=c.rep;label=(target.type==='ship'?'Mothership':'Titan mech')+' destroyed';}
   else return;
   save.stats.defeated++;addXP(xp);addRep(rep);
@@ -315,7 +317,7 @@ function projImpact(p,hit){
     burst(p.x,p.y,p.z,20,14,0.4,CYAN,1.2,0,2);ringFx(p.x,p.y,p.z,0.5,4,0.25,[.4,.85,1]);
   }else if(p.kind==='plasma'){
     if(hit)Damage.apply(p.owner,hit,p.dmg,'shot',{knock:p.knock||0});
-    burst(p.x,p.y,p.z,16,10,0.4,[[.5,1,.4],[.8,1,.7]],1.1,0,2);ringFx(p.x,p.y,p.z,0.5,3,0.25,[.5,1,.4]);
+    burst(p.x,p.y,p.z,16,10,0.4,p.pc?[p.pc,[1,1,1]]:[[.5,1,.4],[.8,1,.7]],1.1,0,2);ringFx(p.x,p.y,p.z,0.5,3,0.25,p.pc||[.5,1,.4]);
   }else if(p.kind==='bolt'){
     if(hit)Damage.apply(p.owner,hit,p.dmg,'shock',{stun:0.8,knock:14});areaDamage(p.x,p.y,p.z,3.5,p.dmg*0.35,p.owner,{type:'shock',exclude:hit});
     for(let i=0;i<6;i++){const a=rr(0,TAU);tracer(p.x,p.y,p.z,p.x+Math.cos(a)*rr(2,5),p.y+rr(-1,3),p.z+Math.sin(a)*rr(2,5),SPD_C,0.08,0.2);}burst(p.x,p.y,p.z,24,14,0.4,[SPD_C,[1,1,1]],1.2,0,2);SFX.tone('sawtooth',1600,120,0.2,0.08);
