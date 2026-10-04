@@ -14,10 +14,10 @@ function lockable(a){
   if(!a||!a.alive||a.held||a===P)return false;
   if(zone?a.zid!==zone.id:a.zid)return false; // zone actors only inside their zone, city actors only in the city
   if(a.kind==='remote')return !(a.flags&FLAG.invis)&&!(a.flags&FLAG.dead);
-  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli'||a.kind==='alien'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='invader'||a.kind==='cyborg';
+  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli'||a.kind==='alien'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='pforb'||a.kind==='invader'||a.kind==='cyborg';
 }
 function lockValid(a){return lockable(a);} // a manual lock has no range limit
-const hostileTo=a=>a.kind==='alien'||a.kind==='invader'||a.kind==='cyborg'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||(a.kind==='drone'&&(a.role!=='cyberpol'||!!a.target))||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
+const hostileTo=a=>a.kind==='alien'||a.kind==='invader'||a.kind==='cyborg'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='pforb'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||(a.kind==='drone'&&(a.role!=='cyberpol'||!!a.target))||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
 // after you beat your target, the lock jumps to the nearest enemy within the normal lock range
 function nextLock(prev){
   let best=null,bd=COMBAT.lockRange;
@@ -42,7 +42,7 @@ function lockToggle(){
 function updateLock(dt){
   if(lockT&&(!lockValid(lockT)||P.car||P.dead)){const was=lockT;lockT=null;
     const beaten=!was.alive||was.downed>0||(was.kind==='remote'&&(was.flags&FLAG.dead));
-    if(beaten&&!P.car&&!P.dead){lockT=was.kind==='korb'?kathanaPickAny():nextLock(was);if(lockT)SFX.tone('sine',500,900,0.08,0.05);}}
+    if(beaten&&!P.car&&!P.dead){lockT=was.kind==='korb'||was.kind==='pforb'?kathanaPickAny():nextLock(was);if(lockT)SFX.tone('sine',500,900,0.08,0.05);}}
   if(!lockT)return;
   const c=center(lockT),dx=c.x-P.pos.x,dy=c.y-(P.pos.y+1.8),dz=c.z-P.pos.z,h=Math.hypot(dx,dz)||1;
   const wantYaw=Math.atan2(-dx,-dz),wantPitch=clamp(Math.atan2(dy,h)-0.12,-1.1,0.9),k=damp(time-lookT<0.25?3:9,dt);
