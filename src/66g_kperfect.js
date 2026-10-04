@@ -9,7 +9,8 @@
 // Winning (first time): kathana=2, invasion=1, and ufo=4 (skipped for good) if the UFO event wasn't done. While kathana>=2 every human spawns with x2 HP, x1.5 speed
 // and a random power (humanSuper / superTick, 50_npcs.js calls the first, kathanaTick the second).
 var KQ={on:false,phase:'',meter:0,t:0,n:0,fails:0}; // var: cutLocked (66b_story.js) reads it
-const PF={on:false,real:null,list:[],fight:false,show:false,bar:0,won:false,split:0,still:null,stillCd:6,dmgW:0,evCd:0,shards:[],od:1};
+const PF={on:false,real:null,list:[],fight:false,show:false,bar:0,won:false,split:0,still:null,stillCd:6,dmgW:0,evCd:0,shards:[],od:1,decAtk:0,decGate:0,popN:0,popT:-9,tmp:[]};
+const PF_DEC=50; // afterimages per split: the figures are drawn lite, think cheaply and at most 3 of them attack at once
 const KW={first:false}; // the win that is playing out (pfClear must not reset it: the zone is left in the middle of it)
 const PF_HP=36000,PFH=1.38; // the model is 1.95 tall; the hero is about 2.8
 const KQ_NEED=5; // seconds
@@ -69,12 +70,23 @@ function pfFigure(a,t){
   if(a.flash>0.02)queue(MESH.glowSphere,child(R,0,1.1,0,0,0,0,0.6,1.1,0.5),[1,1,1,a.flash*0.55],F_BL);
   if(a.glow>0.02){const g=a.glow,h=a.hand||0,w=a.hw[h];queue(MESH.glowSphere,at(w[0],w[1],w[2],0,0,0,0.25*g*k,0.25*g*k,0.25*g*k),[1,0.85,0.4,1],0);queue(MESH.glowSphere,at(w[0],w[1],w[2],0,0,0,0.7*g*k,0.7*g*k,0.7*g*k),[1,0.7,0.2,0.3],F_BL);}
 }
+// the same sculpture in nine pieces, for the fakes (and the real one while it hides among them) that are only circling (no hands to pose, no seam, no shadow): 50 of them are on screen at once
+const PFL=[[-0.31,1.52,0,-0.28,1.2,0.4,0.07],[0.31,1.52,0,0.3,1.12,0.44,0.07],[-0.115,0.95,0,-0.12,0.2,0.05,0.085],[0.115,0.95,0,0.12,0.22,-0.05,0.085]]; // arm and leg: from x y z to x y z, radius
+function pfFigureLite(a,t){
+  if(a.al<=0.02||!a.vis)return;
+  const al=a.al,k=PFH*a.sc,fl=al<0.97?F_BL:0,T=a.tt||(a.tt=[0.94,0.96,1,1]);T[3]=al; // one tint per fake, kept in place
+  const R=at(a.pos.x,a.pos.y+(0.16+Math.sin(t*1.9+a.ph)*0.05)*k,a.pos.z,a.lean,a.yaw,0,k,k,k);
+  queue(PFS,child(R,0,1.3,0,0,0,0,0.24,0.38,0.14),T,fl);queue(PFS,child(R,0,0.97,0,0,0,0,0.19,0.125,0.14),T,fl);queue(PFS,child(R,0,1.57,0,0,0,0,0.25,0.06,0.12),T,fl);queue(PFS,child(R,0,1.84,0,0,0,0,0.105,0.145,0.12),T,fl);
+  for(let i=0;i<4;i++){const q=PFL[i];queue(PFC,M4.beam(tmpM(),R[0]*q[0]+R[4]*q[1]+R[8]*q[2]+R[12],R[1]*q[0]+R[5]*q[1]+R[9]*q[2]+R[13],R[2]*q[0]+R[6]*q[1]+R[10]*q[2]+R[14],R[0]*q[3]+R[4]*q[4]+R[8]*q[5]+R[12],R[1]*q[3]+R[5]*q[4]+R[9]*q[5]+R[13],R[2]*q[3]+R[6]*q[4]+R[10]*q[5]+R[14],q[6]*k),T,fl);}
+  queue(PFT,child(R,0,1.87,-0.2,Math.PI/2,0,0,0.34,0.34,0.34),T,fl);
+  if(a.real&&fl===0){const p=0.5+0.5*Math.sin(t*3);queue(MESH.glowSphere,child(R,0,1.1,0,0,0,0,0.78,1.2,0.62),[1,0.9,0.55,0.07+0.04*p],F_BL);queue(MESH.glowSphere,child(R,0,1.1,0,0,0,0,1.15,1.6,0.9),[1,0.85,0.45,0.035],F_BL);} // the real one's faint glow, the only tell
+}
 // ================================================================
 // The actor
 // ================================================================
 function pfMake(x,y,z,dec){
   const a={kind:'kperfect',faction:'kathana',zid:'void',name:dec?'Afterimage':'Kathana, Perfect Form',alive:true,hp:dec?1e9:PF_HP,maxHp:dec?1e9:PF_HP,pos:new V3(x,y,z),vel:new V3(),yaw:0,heroYaw:0,flash:0,stun:0,slow:0,slowT:0,burn:0,burnDps:0,held:false,thrown:null,cy:1.45,radius:1.25,ys:1,lastHit:-99,grudge:null,grudgeT:-99,bigBoss:true,
-    dec:!!dec,real:!dec,al:0,alT:1,sc:1,vis:true,lean:0,ph:rr(0,TAU),st:'orbit',t:0,cd:dec?rr(2,3.5):1.2,ang:rr(0,TAU),mv:null,last:'',pose:'guard',hand:1,glow:0,stag:0,life:26,popping:false,
+    dec:!!dec,real:!dec,al:0,alT:1,sc:1,vis:true,lean:0,ph:rr(0,TAU),st:'orbit',t:0,cd:dec?rr(2,3.5):1.2,ang:rr(0,TAU),mv:null,last:'',pose:'guard',hand:1,glow:0,stag:0,life:dec?rr(30,45):26,popping:false,rad:rr(9,27),hy:rr(-2,9),dsp:(Math.random()<0.5?-1:1)*rr(0.35,0.6),
     hd:[[-0.3,1.15,0.38],[0.3,1.1,0.42]],ht:[[-0.3,1.15,0.38],[0.3,1.1,0.42]],ft:[[-0.12,0.18,0.06],[0.12,0.22,-0.06]],hw:[[0,0,0],[0,0,0]],sgCap:{dark:0.25,blast:0.7}};
   a.onHit=(src,amt)=>pfHit(a,amt);a.onDefeat=()=>{if(a.dec)pfPop(a);else pfDefeated();};
   actors.push(a);PF.list.push(a);if(!dec){PF.real=a;PF.on=true;}return a;
@@ -83,17 +95,18 @@ function pfHit(a,amt){
   if(a.dec){if(!a.popping){a.alive=false;pfPop(a);}return;}
   PF.dmgW+=amt;if(a.stag>0)a.hp-=amt*0.5; // staggered: hits count half again
 }
-function pfPop(a){ // an afterimage shatters into mirror shards
-  if(a.popping)return;a.popping=true;a.alive=false;a.alT=0;const c=center(a);
-  for(let i=0;i<14;i++){const s=rr(0.25,0.6);spawnPiece(c.x+rr(-1,1),c.y+rr(-1.2,1.2),c.z+rr(-1,1),PFB,s*0.4,s*1.5,s*0.4,[1,1,1],rr(-14,14),rr(4,18),rr(-14,14),3,[rr(0,3),rr(0,3),0]);}
-  burst(c.x,c.y,c.z,30,14,0.7,[[1,.9,.6],[1,1,1]],1.4,-2,1);SFX.glass(0.8*SFX.vol(c.x,c.y,c.z));SFX.tone('sine',1400,300,0.3,0.07);
+function pfPop(a){ // an afterimage shatters into mirror shards (a small burst for the 50 fakes, and only one sound per instant)
+  if(a.popping)return;a.popping=true;a.alive=false;a.alT=0;PF.popN++;const c=center(a),d=a.dec;
+  for(let i=0,n=d?3:14;i<n;i++){const s=rr(0.25,0.6);spawnPiece(c.x+rr(-1,1),c.y+rr(-1.2,1.2),c.z+rr(-1,1),PFB,s*0.4,s*1.5,s*0.4,[1,1,1],rr(-14,14),rr(4,18),rr(-14,14),d?1.6:3,[rr(0,3),rr(0,3),0]);}
+  burst(c.x,c.y,c.z,d?7:30,14,0.7,[[1,.9,.6],[1,1,1]],1.4,-2,1);
+  if(!d||time-PF.popT>0.07){PF.popT=time;SFX.glass(0.8*SFX.vol(c.x,c.y,c.z));if(!d)SFX.tone('sine',1400,300,0.3,0.07);}
 }
 const pfFace=(a,dt,k)=>{a.yaw=angLerp(a.yaw,Math.atan2(P.pos.x-a.pos.x,P.pos.z-a.pos.z),damp(k||10,dt));};
 function pfClampPos(a){const ox=a.pos.x-KAR.x,oz=a.pos.z-KAR.z,r=Math.hypot(ox,oz);if(r>470){a.pos.x=KAR.x+ox/r*470;a.pos.z=KAR.z+oz/r*470;}a.pos.y=clamp(a.pos.y,0,170);}
 function pfSteer(a,tx,ty,tz,sp,dt){const dx=tx-a.pos.x,dy=ty-a.pos.y,dz=tz-a.pos.z,d=Math.hypot(dx,dy,dz);if(d>0.02){const s=Math.min(d*3.2,sp)*dt/d;a.pos.x+=dx*s;a.pos.y+=dy*s;a.pos.z+=dz*s;}pfClampPos(a);}
 const pfHurt=(a,f,kn)=>{if(!P.dead)Damage.apply(a,P,kDmg(f*(a.dec?0.5:1)*0.7),'blast',{knock:kn||0});};
 const pfPh2=()=>PF.real&&PF.real.hp<=PF_HP*0.5;
-function pfDone(a){a.st='orbit';a.cd=pfPh2()?rr(0.7,1.2):rr(1.2,2.0);a.pose='guard';a.lean=0;a.mv=null;a.ang=Math.atan2(a.pos.z-P.pos.z,a.pos.x-P.pos.x);}
+function pfDone(a){a.st='orbit';a.cd=a.dec?rr(3,9):pfPh2()?rr(0.7,1.2):rr(1.2,2.0);a.pose='guard';a.lean=0;a.mv=null;a.ang=Math.atan2(a.pos.z-P.pos.z,a.pos.x-P.pos.x);}
 function pfFx(a,col){const c=center(a);ringFx(c.x,c.y,c.z,0.5,5,0.3,col||[1,.9,.6]);burst(c.x,c.y,c.z,18,10,0.5,[[1,.9,.6],[1,1,1]],1.1,0,2);KA.fx.push({x:c.x,y:c.y,z:c.z,t:0,dur:0.4,r0:1,r1:9,col:col||[1,.9,.6]});}
 // ================================================================
 // The pose: where the hands and feet want to be (local, y up, z forward)
@@ -137,14 +150,15 @@ function pfThink(a,dt){
     case 'split':pfSplitTick(a,dt);break;
     default:pfDone(a);
   }
-  pfPose(a,dt);
+  if(!(a.dec&&a.st==='orbit'))pfPose(a,dt); // a circling fake is drawn lite: no hands to pose
 }
 function pfOrbit(a,dt){
-  const ph2=pfPh2();a.pose='guard';
-  if(!a.od)a.od=PF.od;a.ang+=PF.od*dt*0.5;
-  const want=a.dec?13:ph2?9.5:11,tx=P.pos.x+Math.cos(a.ang)*want,tz=P.pos.z+Math.sin(a.ang)*want,ty=clamp(P.pos.y-0.2,0,150);
+  const ph2=pfPh2(),dec=a.dec;a.pose='guard';
+  a.ang+=dec?a.dsp*dt:PF.od*dt*0.5; // the fakes circle at their own radius, height and speed, in both directions
+  const want=dec?a.rad:ph2?9.5:11,tx=P.pos.x+Math.cos(a.ang)*want,tz=P.pos.z+Math.sin(a.ang)*want,ty=clamp(P.pos.y-0.2+(dec?a.hy+Math.sin(time*0.9+a.ph)*1.5:0),0,150);
   pfSteer(a,tx,ty,tz,ph2?22:17,dt);pfFace(a,dt,10);a.leanT=0.08;
   a.cd-=dt;
+  if(dec){if(a.cd<=0){if(PF.decAtk<3&&PF.decGate<=0){PF.decGate=rr(0.7,1.5);PF.decAtk++;pfPick(a);}else a.cd=rr(0.3,0.9);}return;} // at most 3 fakes attack at once, one new one at a time
   if(a.real&&PF.evCd<=0&&PF.dmgW>1500){PF.evCd=3.6;PF.dmgW=0;a.st='evade';a.mv={t:0,ph:0};return;} // hammered too long: it slips away
   if(a.cd<=0)pfPick(a);
 }
@@ -232,18 +246,17 @@ function pfStillMove(a,dt){
   else{pfDone(a);a.cd=1.4;}
 }
 function pfStillEnd(){PF.still=null;P.slow=0;const e=$('kstill');if(e)e.style.opacity='0';}
-// the split at half health (and again at a fifth): two afterimages, the real one hides among them (it has a faint glow)
+// the split at half health (and again at a fifth): fifty afterimages (topped back up to 50 the second time), the real one hides among them (it has a faint glow)
 function pfSplit(a){a.st='split';a.mv={t:0,ph:0};PF.split++;if(PF.still)pfStillEnd();}
 function pfSplitTick(a,dt){
   const M=a.mv;M.t+=dt;a.pose='raise';a.glow=0;a.pos.y=Math.min(a.pos.y+dt*2,160);pfFace(a,dt,8);
   if(M.ph===0&&M.t>=0.9){M.ph=1;flashWhite=Math.max(flashWhite,0.55);SFX.tone('sine',300,1800,0.6,0.12);SFX.boom(0.6,1);addShake(0.4);pfFx(a);
-    const have=PF.list.filter(d=>d.dec&&!d.popping).length,base=Math.atan2(a.pos.z-P.pos.z,a.pos.x-P.pos.x),slots=[0,1,2].sort(()=>Math.random()-0.5);
+    let have=0;for(const d of PF.list)if(d.dec&&!d.popping)have++;
     PF.od=Math.random()<0.5?1:-1;
-    for(let i=0;i<2-have;i++){const d=pfMake(a.pos.x,a.pos.y,a.pos.z,true);d.fadeIn=1;d.al=0.3;d.yaw=a.yaw;pfFx(d);}
-    const ds=PF.list.filter(d=>d.dec&&!d.popping);
-    a.ang=base+slots[0]*TAU/3;ds.forEach((d,i)=>{d.ang=base+slots[i+1]*TAU/3;d.cd=rr(1.5,3);d.st='orbit';d.mv=null;});
+    for(let i=have;i<PF_DEC;i++){const d=pfMake(a.pos.x,a.pos.y,a.pos.z,true);d.fadeIn=1;d.al=0;d.yaw=a.yaw;d.ang=rr(0,TAU);d.cd=rr(2,9);} // they fan out from the real one to their own rings
+    a.ang=Math.atan2(a.pos.z-P.pos.z,a.pos.x-P.pos.x)+rr(-1,1);
     a.pos.set(P.pos.x+Math.cos(a.ang)*11,clamp(P.pos.y,0,150),P.pos.z+Math.sin(a.ang)*11);pfClampPos(a);
-    toast('Afterimages','Only the real one glows. Hitting a fake shatters it.','gold');}
+    toast('Afterimages','Fifty of them. Only the real one glows. A fake shatters at a touch · the Solar Lance cuts through a whole line','gold');}
   if(M.t>=1.3)pfDone(a);
 }
 // ================================================================
@@ -252,15 +265,16 @@ function pfSplitTick(a,dt){
 function pfUpdate(dt){
   if(!PF.on)return;
   PF.dmgW=Math.max(0,PF.dmgW-dt*1100);PF.evCd-=dt;PF.stillCd-=dt;
-  qteTick(dt);
-  for(const a of PF.list.slice())pfThink(a,dt);
+  qteTick(dt);PF.decGate-=dt;
+  const L=PF.tmp;L.length=0;let n=0;for(const a of PF.list){L.push(a);if(a.dec&&a.st!=='orbit'&&!a.popping)n++;}PF.decAtk=n; // a copy: pfThink removes the fakes that have faded out
+  for(let i=0;i<L.length;i++)pfThink(L[i],dt);
   pfShardTick(dt);
   const r=PF.real;
   if(r&&r.alive&&PF.fight&&!PF.won&&r.st==='orbit'&&!KQ.on){const f=r.hp/PF_HP;if(f<=0.5&&PF.split===0)pfSplit(r);else if(f<=0.2&&PF.split===1)pfSplit(r);}
   if(PF.still){PF.still.t+=dt;P.slow=0.55;const e=$('kstill');if(e&&e.style.opacity!=='1')e.style.opacity='1';if(PF.still.t>=PF.still.dur||P.dead||!PF.fight)pfStillEnd();}
 }
 function pfClear(){
-  for(const a of PF.list)removeActor(a);PF.list.length=0;PF.shards.length=0;PF.real=null;PF.on=false;PF.fight=false;PF.show=false;PF.bar=0;PF.won=false;PF.split=0;PF.stillCd=6;PF.dmgW=0;PF.evCd=0;
+  for(const a of PF.list)removeActor(a);PF.list.length=0;PF.shards.length=0;PF.decAtk=0;PF.decGate=0;PF.real=null;PF.on=false;PF.fight=false;PF.show=false;PF.bar=0;PF.won=false;PF.split=0;PF.stillCd=6;PF.dmgW=0;PF.evCd=0;
   if(PF.still)pfStillEnd();KQ.on=false;KQ.phase='';KQ.fails=0;qteHide();if(lockT&&lockT.kind==='kperfect')lockT=null;
 }
 function pfStop(){PF.fight=false;KQ.on=false;qteHide();PF.shards.length=0;if(PF.still)pfStillEnd();}
@@ -275,7 +289,7 @@ function pfPickLock(cur){
 function pfDraw(t){
   if(!PF.on&&!KQ.on)return;
   const sh=(x,z,r,al)=>queue(MESH.disc,at(x,0.12,z,0,0,0,r,1,r),[0.05,0.05,0.12,al],F_BL);
-  for(const a of PF.list){pfFigure(a,t);if(a.al>0.3&&KA.flood>0.4){const h=Math.max(0,a.pos.y);sh(a.pos.x,a.pos.z,2.2+h*0.05,Math.max(0.08,0.3-h*0.004)*a.al);}}
+  for(const a of PF.list){if(a.st==='orbit'&&(a.dec||(a.real&&PF.split>0&&a.al>0.97&&!(a.stag>0)))){pfFigureLite(a,t);continue;}pfFigure(a,t);if(a.al>0.3&&KA.flood>0.4){const h=Math.max(0,a.pos.y);sh(a.pos.x,a.pos.z,2.2+h*0.05,Math.max(0.08,0.3-h*0.004)*a.al);}}
   // telegraphs
   for(const a of PF.list){const M=a.mv;if(!M||a.popping)continue;
     if(a.st==='blink'&&M.ph===0&&M.dx!==undefined){const f=0.5+0.5*Math.sin(t*26),r=3.2;queue(MESH.ring,at(M.dx,0.22,M.dz,0,0,0,r,1,r),[1,.75,.2,0.55+0.4*f],F_BL);queue(MESH.disc,at(M.dx,0.2,M.dz,0,0,0,r,1,r),[1,.8,.3,0.15+0.12*f],F_BL);queue(MESH.glowCyl,at(M.dx,M.dy+2.5,M.dz,0,0,0,r*0.7,5,r*0.7),[1,.85,.4,0.1+0.1*f],F_BL);}

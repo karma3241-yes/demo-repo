@@ -64,6 +64,7 @@ function sgLance(dt){
   if(hb&&hb.bld&&Math.random()<dt*3)damageBuilding(hb.bld,600,tx,ty,tz,dx,dz);
   for(const a of actors){if(!a.alive||a.held||a===P||a.kind==='prop'||a.kind==='remote')continue;const c=center(a),vx=c.x-e.x,vy=c.y-e.y,vz=c.z-e.z,t=vx*dx+vy*dy+vz*dz;if(t<0||t>L+3)continue;
     const px=vx-dx*t,py=vy-dy*t,pz=vz-dz*t,rad=(a.radius||1)+2.4;if(px*px+py*py+pz*pz>rad*rad)continue;
+    if(a.dec){if(!a.popping)pfPop(a);continue;} // the Perfect Form's afterimages: a fake shatters once, with no damage numbers or burning (the beam pierces a whole line of them)
     sgHit(a,Math.round(800*dt)+1,'fire',{burn:{dps:40,time:4},kv:[dx*32,9,dz*32],flung:true,stun:0.6});}
   if(Math.random()<dt*6)hitProps(tx,Math.min(ty,6),tz,5,P,26);
   if(surf&&Math.random()<dt*2)addFire(tx+nx*0.3,ty+ny*0.3,tz+nz*0.3,4,2);
