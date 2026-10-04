@@ -11496,6 +11496,7 @@ function heroCard(id,on,onclick){const h=PRESETS[id],v=heroV(id);
 function renderCreator(){
   const y=creatorBody.scrollTop;creatorBody.textContent='';const d=draft;
   creatorBody.appendChild(el('p',{class:'muted',text:'Pick a hero. Each one has 4 power keys, and some have a V power. You can change any time with J.'+(creatorMode==='rechoose'?' Skill points you spent on powers you drop come back to you.':'')+(CONFIG.rechoiceCooldown>0?' You can do this once every '+Math.round(CONFIG.rechoiceCooldown/60)+' minutes.':'')}));
+  if(creatorMode==='new'&&save.character&&state!=='play')creatorBody.appendChild(el('p',{class:'note warn',text:'This replaces '+save.character.name+'. Their level, powers and skill points start over.'}));
   if(creatorMode!=='rechoose')renderLook(creatorBody);
   const redraw=()=>{d.confirm=false;renderCreator();};
   creatorBody.appendChild(el('h3',{text:'Pick a hero'}));
@@ -11524,7 +11525,8 @@ function startAsRingBearer(){
   feed('You are the Ring Bearer','Follow Getting started to learn the basics'); // the J hint comes after the guide (guideDone)
 }
 // the menu's second button, for players who want to pick their powers before they start
-function menuButtons(){let q=$('choose');if(!q){q=el('button',{class:'ghost',id:'choose',type:'button',text:'Choose your powers',onclick:()=>{SFX.init();openCreator();}});$('start').after(q);}q.hidden=!!save.character;}
+function menuButtons(){let q=$('choose');if(!q){q=el('button',{class:'ghost',id:'choose',type:'button',text:'Choose your powers',onclick:()=>{SFX.init();openCreator();}});$('start').after(q);}q.hidden=!!save.character;
+  let n=$('newchar');if(!n){n=el('button',{class:'ghost',id:'newchar',type:'button',text:'Create new character',onclick:()=>{SFX.init();openCreator('new');}});q.after(n);}n.hidden=!save.character;} // returning players: start over with a new hero (replaces the old one; the creator warns and Lock in asks twice)
 function newHero(c,freeChange){
   save.character=c;save.level=1;save.xp=0;save.sp=CONFIG.progression.startSP;save.powerLevels={};save.passives=freshPassives();save.reputation=0;save.rechoiceAt=freeChange?0:Date.now();save.mastery={};save.ring=100;save.battery=300;save.bolt=100;save.cal=100;
   persist();creating=false;draft=null;creator.hidden=true;applyLook();startPlay(true);
