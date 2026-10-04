@@ -66,7 +66,7 @@ function npcScan(h){
 function stepHuman(h,dx,dz,speed,dt){
   const s=speed*(1-(h.slow||0));h.pos.x+=dx*s*dt;h.pos.z+=dz*s*dt;
   collideBody(h.pos,h.vel,h.pos.y,0.45,1.9);h.pos.y=groundY(h.pos.x,h.pos.z,h.pos.y+0.5);
-  h.pos.x=clamp(h.pos.x,-LIMIT,LIMIT);h.pos.z=clamp(h.pos.z,-LIMIT,LIMIT);
+  if(!zone){h.pos.x=clamp(h.pos.x,-LIMIT,LIMIT);h.pos.z=clamp(h.pos.z,-LIMIT,LIMIT);}
   h.yaw=angLerp(h.yaw,Math.atan2(dx,dz),damp(10,dt));h.moving=s;h.phase+=s*dt*2.2;
 }
 function moveTo(h,x,z,speed,dt){const dx=x-h.pos.x,dz=z-h.pos.z,l=Math.hypot(dx,dz);if(l<0.7){h.moving=0;return true;}stepHuman(h,dx/l,dz/l,Math.min(speed,l/dt),dt);return false;}

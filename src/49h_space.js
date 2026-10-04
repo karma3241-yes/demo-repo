@@ -22,18 +22,18 @@ const PLANETS=[
   {name:'The Sun',x:170000,y:40000,z:170000,r:30000,col:[1,.85,.45,1],sun:true},
 ];
 const PLANET_MESH=primMesh(primSphere(64,40));
-const spaceK=y=>smooth(CEIL,SPACE.y,y);   // 0 in the city sky, 1 in space
-const inSpace=()=>P.pos.y>SPACE.y;
+const spaceK=y=>zone?0:smooth(CEIL,SPACE.y,y);   // 0 in the city sky, 1 in space
+const inSpace=()=>!zone&&P.pos.y>SPACE.y; // (a zone, like the cyber world with its 900 m shield ceiling, is never space)
 function nearestBody(){let best=null,bd=1e12;for(const b of PLANETS){const d=Math.hypot(P.pos.x-b.x,P.pos.y-b.y,P.pos.z-b.z)-b.r;if(d<bd){bd=d;best=b;}}return {b:best,d:bd};}
 // flight speed multiplier: much faster the higher you are, slower again close to any surface
 function spaceSpeedMul(){
-  if(P.pos.y<=CEIL)return 1;if(invBattle())return 2.2; // the invasion: a fight at fighting speed
+  if(zone||P.pos.y<=CEIL)return 1;if(invBattle())return 2.2; // the invasion: a fight at fighting speed
   const nb=nearestBody();
   return Math.max(1,Math.min(1+(P.pos.y-CEIL)/40,(PBAL?10+80*travK():90)*(1+0.01*travOver()),1+Math.max(0,nb.d)/60,1+(P.pos.y)/60));
 }
 let spaceMsgT=-99,lastBody=null,wasSpace=false;
 function updateSpace(dt){
-  if(state!=='play'||P.dead||INV.ls)return; // (the light-speed jump phases through the planets and the Sun)
+  if(state!=='play'||P.dead||INV.ls||zone)return; // (the light-speed jump phases through the planets and the Sun)
   const sp=inSpace();
   if(sp&&!wasSpace&&time-spaceMsgT>20){spaceMsgT=time;toast('You made it to space','The Moon and the planets are out there · fly to one and land','cyan');}
   wasSpace=sp;
@@ -52,7 +52,7 @@ function updateSpace(dt){
 function spaceMode(){const nb=nearestBody();return 'Space · '+nb.b.name+' '+(nb.d>1000?Math.round(nb.d/1000)+' km':Math.round(Math.max(0,nb.d))+' m');}
 // the Earth below and the planets, only drawn when you are high enough to see them
 function drawSpace(){
-  if(camPos.y<300)return;
+  if(zone||camPos.y<300)return;
   queue(PLANET_MESH,at(EARTH.x,EARTH.y,EARTH.z,0,0,0,EARTH.r,EARTH.r,EARTH.r),EARTH.col,0);
   for(const b of PLANETS){
     if(b.sun){queue(PLANET_MESH,at(b.x,b.y,b.z,0,0,0,b.r,b.r,b.r),[1.6,1.3,.7,1],F_UN);queue(MESH.glowSphere,at(b.x,b.y,b.z,0,0,0,b.r*1.6,b.r*1.6,b.r*1.6),[1,.75,.35,0.35],F_ADD);continue;}

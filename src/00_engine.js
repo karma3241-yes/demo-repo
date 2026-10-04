@@ -160,11 +160,29 @@ float shadowF(){if(uShOn<0.5)return 1.0;vec3 p=vL.xyz/vL.w*0.5+0.5;
   float s=0.0;for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)s+=texture(uShadow,vec3(p.xy+vec2(float(x),float(y))*uShTexel,p.z-0.0004));
   return s/9.0;}
 vec3 outc(vec3 c){return pow(aces(c*uExpo),vec3(1.0/2.2));}
+float hexE(vec2 p,out vec2 id){vec2 r=vec2(1.0,1.7320508);vec2 h=r*0.5;vec2 a=mod(p,r)-h;vec2 b=mod(p-h,r)-h;vec2 g=dot(a,a)<dot(b,b)?a:b;id=p-g;vec2 q=abs(g);return 0.5-max(dot(q,vec2(0.5,0.8660254)),q.x);}
 void main(){
   if(dot(vec4(vW,1.0),uClip)<0.0)discard; // a clip plane (Kathana's body splitting in two, 66g_kperfect.js); all zeros = off
   vec3 n=normalize(vN);float mat=vD.x;vec3 base=vC*uTint.rgb;vec3 emis=vec3(0.0);float spec=0.2;float shin=40.0;
   if(mat>5.5&&mat<6.5){o=vec4(outc(vC*uTint.rgb*1.6),uTint.a);return;}
-  if(mat>7.5){ // polished chrome / pearl (the Perfect Form): a studio reflection of its own, so it looks the same in the white arena as anywhere
+  if(mat>8.5&&mat<9.5){ // cyber tower (66i_cyber.js): a pale shell with glowing blue glass bands
+    float side=1.0-step(0.5,abs(n.y));float u=abs(n.x)>0.5?vW.z:vW.x;float v=vW.y;
+    float f=fract(v/4.2),fi=floor(v/4.2),cu=u/3.6,cf=fract(cu),ci=floor(cu);
+    float win=step(0.16,f)*step(f,0.8)*step(0.07,cf)*step(cf,0.93)*side*step(3.0,v);
+    float pk=1.0-smoothstep(0.2,0.55,max(fwidth(v)/4.2,fwidth(u)/3.6));win=mix(0.55*side*step(3.0,v),win,pk); // far away the bands blur into one even glass colour
+    float hh=h31(vec3(fi,ci,vD.y*37.0));vec3 gc=mix(vec3(0.16,0.5,1.0),vec3(0.45,0.92,1.0),fract(vD.y*7.0)*0.7+0.15*hh);
+    float dif=max(dot(n,uLDir),0.0);vec3 amb=mix(uGnd,uSky,n.y*0.5+0.5);vec3 shell=vC*uTint.rgb*(amb+uLCol*dif);
+    vec3 V2=normalize(uCam-vW);float fr=pow(1.0-max(dot(n,V2),0.0),3.0);
+    vec3 glass=vec3(0.02,0.09,0.28)+gc*(0.16+1.0*uNight)*(0.6+0.7*hh)+vec3(0.4,0.65,1.0)*fr*0.5*(1.0-0.5*uNight)+uLCol*pow(max(dot(n,normalize(V2+uLDir)),0.0),60.0)*0.5;
+    vec3 c3=mix(shell,glass,win);
+    float fg3=smoothstep(uFog.x,uFog.y,length(uCam-vW))*(1.0-uNoFog);o=vec4(outc(mix(c3,uFogC,fg3)),uTint.a);return;}
+  if(mat>9.5){ // the planet's shield: a faint blue wall; a hex grid and a ripple wake up as you come near
+    vec2 p;if(abs(n.y)>0.5)p=vW.xz;else if(abs(n.x)>abs(n.z))p=vec2(vW.z,vW.y);else p=vec2(vW.x,vW.y);
+    vec2 id;float e=hexE(p/(abs(n.y)>0.5?30.0:14.0),id);float line=1.0-smoothstep(0.0,0.07,e);
+    float dc=length(uCam-vW);float nr=1.0-smoothstep(30.0,95.0,dc);float rip=0.5+0.5*sin(dc*0.22-uTime*5.0);float flick=step(0.82,h21(id+floor(uTime*1.5)))*0.5;
+    float amt=0.05+line*0.05+nr*(line*(0.5+0.35*rip)+0.2*flick+0.08);
+    o=vec4(outc(vec3(0.15,0.6,1.0)*1.6),clamp(amt,0.0,0.8));return;}
+  if(mat>7.5&&mat<8.5){ // polished chrome / pearl (the Perfect Form): a studio reflection of its own, so it looks the same in the white arena as anywhere
     vec3 V1=normalize(uCam-vW);float nd=max(dot(n,V1),0.0),fr=pow(1.0-nd,3.0);vec3 R=reflect(-V1,n);float up=R.y;
     vec3 env=up>0.0?mix(vec3(0.9,0.95,1.1),vec3(0.14,0.27,0.66),clamp(up*1.3,0.0,1.0)):mix(vec3(0.66,0.64,0.74),vec3(0.07,0.07,0.12),clamp(-up*2.2,0.0,1.0));
     env*=0.12+0.88*smoothstep(0.02,0.5,abs(up));
@@ -240,11 +258,58 @@ out vec2 vP;void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&
 const SKY_FS=`#version 300 es
 precision highp float;in vec2 vP;out vec4 o;
 uniform vec3 uFwd;uniform vec3 uRight;uniform vec3 uUp;uniform vec2 uTan;uniform vec3 uSunDir;uniform vec3 uZen;uniform vec3 uHor;uniform vec3 uSunCol;
-uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uSpace;
+uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uSpace;uniform float uCy;uniform vec3 uCSun;uniform vec3 uCMoon;
 ${GLSL_COMMON}
+// the cyber world's sky (66i_cyber.js): a blue gradient with faint grid lines, a synthetic sun (disc, rings, hex cells) and a faceted moon with glowing seams
+float hexS(vec2 p,out vec2 id){vec2 r=vec2(1.0,1.7320508);vec2 h=r*0.5;vec2 a=mod(p,r)-h;vec2 b=mod(p-h,r)-h;vec2 g=dot(a,a)<dot(b,b)?a:b;id=p-g;vec2 q=abs(g);return 0.5-max(dot(q,vec2(0.5,0.8660254)),q.x);}
+const vec3 FN[20]=vec3[20](vec3(.57735,.57735,.57735),vec3(-.57735,.57735,.57735),vec3(.57735,-.57735,.57735),vec3(-.57735,-.57735,.57735),vec3(.57735,.57735,-.57735),vec3(-.57735,.57735,-.57735),vec3(.57735,-.57735,-.57735),vec3(-.57735,-.57735,-.57735),
+  vec3(0.,.35682,.93417),vec3(0.,-.35682,.93417),vec3(0.,.35682,-.93417),vec3(0.,-.35682,-.93417),vec3(.35682,.93417,0.),vec3(-.35682,.93417,0.),vec3(.35682,-.93417,0.),vec3(-.35682,-.93417,0.),
+  vec3(.93417,0.,.35682),vec3(.93417,0.,-.35682),vec3(-.93417,0.,.35682),vec3(-.93417,0.,-.35682));
+vec3 cyberSky(vec3 d){
+  float h=d.y;
+  vec3 col=mix(uHor,uZen,pow(clamp(h,0.0,1.0),0.55));
+  if(h<0.0)col=mix(uHor,uHor*0.6,clamp(-h*5.0,0.0,1.0));
+  float az=atan(d.z,d.x),el=asin(clamp(h,-1.0,1.0));
+  vec2 gq=vec2(az*24.0/6.2831853,el*9.0/1.5707963);vec2 gw=min(fwidth(gq),vec2(0.2));vec2 gd=0.5-abs(fract(gq)-0.5);
+  float gl=max(1.0-smoothstep(0.0,gw.x*1.5+0.004,gd.x),1.0-smoothstep(0.0,gw.y*1.5+0.004,gd.y));
+  col+=vec3(0.2,0.5,1.0)*gl*smoothstep(-0.02,0.12,h)*(0.05+0.07*uNight);
+  vec3 t1=normalize(cross(uCSun,vec3(0.0,1.0,0.0))),t2=cross(t1,uCSun);float cs=dot(d,uCSun);
+  col+=vec3(0.3,0.75,1.0)*(pow(max(cs,0.0),70.0)*0.55+pow(max(cs,0.0),6.0)*0.1)*step(-0.2,uCSun.y);
+  if(cs>0.9&&uCSun.y>-0.2){
+    const float R=0.1;vec2 q=vec2(dot(d,t1),dot(d,t2))/(R*cs);float rq=length(q);
+    if(rq<1.0){
+      vec2 id;float e=hexS(q*4.2,id);float hl=1.0-smoothstep(0.0,0.09,e);
+      float rg=0.5+0.5*cos(rq*6.2831853*5.0-uTime*0.4);
+      vec3 base=mix(vec3(1.25,1.55,1.9),vec3(0.3,0.8,1.6),smoothstep(0.15,1.0,rq));
+      base*=0.62+0.38*smoothstep(0.35,0.95,rg);
+      base=mix(base,vec3(0.08,0.45,1.4),hl*0.6);base+=vec3(0.6,0.95,1.0)*step(0.9,h21(id+floor(uTime*0.8)))*0.3*(1.0-hl);
+      col=mix(col,base,smoothstep(1.0,0.96,rq));
+    }else if(rq<1.75){
+      float a=atan(q.y,q.x);float r1=smoothstep(0.035,0.0,abs(rq-1.18));float r2=smoothstep(0.025,0.0,abs(rq-1.42))*step(0.45,fract(a*1.9099+uTime*0.06));float r3=smoothstep(0.02,0.0,abs(rq-1.62))*step(0.6,fract(a*3.8197-uTime*0.1));
+      col+=vec3(0.35,0.85,1.3)*(r1*0.9+r2*0.7+r3*0.55);
+    }
+  }
+  vec3 m1=normalize(cross(uCMoon,vec3(0.0,1.0,0.0))),m2=cross(m1,uCMoon);float cm=dot(d,uCMoon);
+  col+=vec3(0.45,0.7,1.0)*pow(max(cm,0.0),160.0)*0.5*step(-0.2,uCMoon.y);
+  if(cm>0.95&&uCMoon.y>-0.2){
+    const float R2=0.075;vec2 q=vec2(dot(d,m1),dot(d,m2))/(R2*cm);float rq=length(q);
+    if(rq<1.0){
+      vec3 nn=vec3(q,sqrt(1.0-rq*rq));float ca=cos(uTime*0.06),sa=sin(uTime*0.06);nn=vec3(ca*nn.x+sa*nn.z,nn.y,-sa*nn.x+ca*nn.z);
+      float b1=-1.0,b2=-1.0;int fi=0;
+      for(int i=0;i<20;i++){float dd=dot(nn,FN[i]);if(dd>b1){b2=b1;b1=dd;fi=i;}else if(dd>b2)b2=dd;}
+      float seam=1.0-smoothstep(0.0,0.04,b1-b2);
+      float lit=0.5+0.5*clamp(dot(FN[fi],normalize(vec3(-0.45,0.55,0.7))),-0.2,1.0);
+      vec3 mc=vec3(0.62,0.8,1.0)*(0.5+0.5*lit)*(0.82+0.3*h21(vec2(float(fi),3.7)));
+      mc=mix(mc,vec3(0.35,1.1,1.6),seam*0.9);mc+=vec3(0.25,0.5,1.0)*pow(rq,5.0)*0.5;
+      col=mix(col,mc*1.15,smoothstep(1.0,0.95,rq));
+    }
+  }
+  return col;
+}
 float fbm(vec2 p){float s=0.0,a=0.5;for(int i=0;i<5;i++){s+=a*vnoise(p);p=p*2.03+vec2(1.7,9.2);a*=0.5;}return s;}
 void main(){
   vec3 d=normalize(uFwd+vP.x*uTan.x*uRight+vP.y*uTan.y*uUp);
+  if(uCy>0.5){o=vec4(pow(aces(cyberSky(d)*uExpo),vec3(1.0/2.2)),1.0);return;}
   float h=d.y;
   vec3 col=mix(uHor,uZen,pow(clamp(h,0.0,1.0),0.5));
   if(h<0.0)col=mix(uHor,uHor*0.55,clamp(-h*5.0,0.0,1.0));

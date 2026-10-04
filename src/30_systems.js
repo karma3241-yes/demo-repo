@@ -85,6 +85,7 @@ function playerDown(killer){
 }
 function respawn(){
   if(invRespawn())return; // the invasion battle: back at its start point (66h_invasion.js)
+  if(cyberRespawn())return; // the cyber world has no way home: back at its arrival pad (66i_cyber.js)
   if(zone)zoneAbort(); // died inside a story zone: back to the city first
   let s=SPAWNS[0],bd=1e18;for(const c of SPAWNS){const d=Math.hypot(c[0]-P.pos.x,c[1]-P.pos.z);if(d<bd){bd=d;s=c;}} // nearest spawn to where you fell
   if(P.alien)revertAlien(true);

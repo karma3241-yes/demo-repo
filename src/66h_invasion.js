@@ -1,7 +1,7 @@
 // ================================================================
 // The invasion: 100 warships over Earth, four waves of superpowered invaders in space, then light-speed travel
 // ================================================================
-// save.story.invasion: 0 not yet, 1 the fleet is here (the battle), 2 the fleet is broken (go to light speed), 3 jumped (cyberArrive is next phase's world).
+// save.story.invasion: 0 not yet, 1 the fleet is here (the battle), 2 the fleet is broken (go to light speed), 3 jumped (cyberArrive, 66i_cyber.js).
 // Flow: Kathana falls -> invasion=1 -> invArrive (66g) -> invBegin: a 5.5 s cutscene up to the fleet, then invPlace puts you in space 600 m in front of the armada ->
 // invWaveTick runs four waves (5, 15, 30, 50 invaders, never more than 25 alive) -> invWin: the fleet explodes ship by ship (6 s), invasion=2, +30 traversal mastery,
 // "Ready for light speed traversal" -> hold boost at full flight speed for 2 s in space -> lsStart: a 5 s wormhole cutscene (collisions off) -> cyberArrive().
@@ -334,12 +334,7 @@ function lsTick(k,dt,C){
   if(t>4.35)flashWhite=Math.max(flashWhite,smooth(4.35,5.0,t));
 }
 function lsEnd(){if(INV.ls)cyberArrive();}
-// the next phase replaces this with the real world (the hyper-advanced civilisation). For now: a toast, and back to the city.
-function cyberArrive(){
-  const S=save.story;S.invasion=3;S.cyber=Math.max(S.cyber,1);persist();INV.ls=null;INV.state='idle';INV.fleet.length=0;objective(null);objectiveMark(null);
-  const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.yaw=s[2];P.pitch=-0.12;P.flying=false;P.grounded=true;P.tilt=0;camDist=8;P.hp=maxHp();P.en=maxEn();projs.length=0;
-  flashWhite=1;toast('A new world...','The jump is over · the next place is coming','gold');SFX.chime();
-}
+// cyberArrive() (called above) is in 66i_cyber.js: the hyper-advanced civilisation.
 // ---- the tick ----
 function invTick(dt){
   for(let i=INV.blasts.length-1;i>=0;i--){const b=INV.blasts[i];b.t+=dt;if(b.t>1.5)INV.blasts.splice(i,1);}

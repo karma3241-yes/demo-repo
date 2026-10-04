@@ -483,7 +483,7 @@ function rayBox(b,ox,oy,oz,dx,dy,dz){
 }
 function rayCity(ox,oy,oz,dx,dy,dz,tmax){
   _best=tmax;RAYHIT.b=null;
-  if(zone){for(const b of zone.cols)rayBox(b,ox,oy,oz,dx,dy,dz);RAYHIT.t=_best;return _best;}
+  if(zone){zoneRay(zone,ox,oy,oz,dx,dy,dz,tmax);RAYHIT.t=_best;return _best;}
   for(const b of extraCols)rayBox(b,ox,oy,oz,dx,dy,dz);
   let cx=cellI(ox),cz=cellJ(oz);
   const sx=dx>0?1:-1,sz=dz>0?1:-1;

@@ -71,7 +71,7 @@ function updateCamera(dt){
   }
   const fx=camF.x,fy=camF.y,fz=camF.z;let rx=-fz,rz=fx;const rl=Math.hypot(rx,rz)||1;rx/=rl;rz/=rl;camR.set(rx,0,rz);camU.set(-rz*fy,rz*fx-rx*fz,rx*fy);
   M4.lookAt(VIEW,camPos.x,camPos.y,camPos.z,camPos.x+fx,camPos.y+fy,camPos.z+fz,0,1,0);
-  {const hi=camPos.y>CEIL,cb=camBig();M4.perspective(PROJ,fov*Math.PI/180,W/H,Math.max(hi?clamp(camPos.y*0.002,0.3,4):0.3,Math.min(cb*0.02,400)),Math.max(hi?700000:invFarOn()?16000:4000,cb*400));}M4.mul(VP,PROJ,VIEW);
+  {const hi=camPos.y>CEIL&&!zone,cb=camBig();M4.perspective(PROJ,fov*Math.PI/180,W/H,Math.max(hi?clamp(camPos.y*0.002,0.3,4):0.3,Math.min(cb*0.02,400)),Math.max(hi?700000:invFarOn()?16000:4000,cb*400));}M4.mul(VP,PROJ,VIEW);
   const menu=state!=='play'&&!preview;
   const fxp=menu?0:P.pos.x,fzp=menu?0:P.pos.z,fyp=menu?0:Math.min(P.pos.y,120),ext=menu?520:170,tex=ext*2/SHADOW;
   const ld=env.ldir,cxs=Math.round(fxp/tex)*tex,czs=Math.round(fzp/tex)*tex;
@@ -497,7 +497,8 @@ function render(){
   gl.uniform3f(s.uFwd,camF.x,camF.y,camF.z);gl.uniform3f(s.uRight,camR.x,camR.y,camR.z);gl.uniform3f(s.uUp,camU.x,camU.y,camU.z);
   gl.uniform2f(s.uTan,th*W/H,th);gl.uniform3fv(s.uSunDir,env.sun);gl.uniform3fv(s.uZen,env.zen);gl.uniform3fv(s.uHor,env.hor);gl.uniform3fv(s.uSunCol,env.suncol);
   gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uTime,time);gl.uniform1f(s.uExpo,1.0);gl.uniform1f(s.uSpace,spaceK(camPos.y));
-  if(zone){gl.uniform1f(s.uNight,1);gl.uniform1f(s.uSpace,1);} // inside a zone the sky pass is only a field of stars (and only if the zone has windows)
+  gl.uniform1f(s.uCy,0);
+  if(zone){gl.uniform1f(s.uNight,1);gl.uniform1f(s.uSpace,1);if(zone.skyU)zone.skyU(s);} // inside a zone the sky pass is only a field of stars (and only if the zone has windows); a zone with skyU paints its own sky (the cyber world)
   if(!zone||zone.stars){gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);}
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);

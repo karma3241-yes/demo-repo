@@ -17,7 +17,7 @@ function lockable(a){
   return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli'||a.kind==='alien'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='invader';
 }
 function lockValid(a){return lockable(a);} // a manual lock has no range limit
-const hostileTo=a=>a.kind==='alien'||a.kind==='invader'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
+const hostileTo=a=>a.kind==='alien'||a.kind==='invader'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||(a.kind==='drone'&&(a.role!=='cyberpol'||!!a.target))||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
 // after you beat your target, the lock jumps to the nearest enemy within the normal lock range
 function nextLock(prev){
   let best=null,bd=COMBAT.lockRange;

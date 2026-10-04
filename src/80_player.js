@@ -233,7 +233,7 @@ function updatePlayer(dt){
   if(P.lantern&&!oathFree&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // typing the oath: suspended where you are, construct and all (saying it leaves you free)
   spiderTick(dt);webAssist();
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
-  const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
+  const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1)*(zone&&zone.speed||1); // zone.speed: the cyber world is 1.3x faster
   const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=(P.alien&&P.alien.phase>0)||P.phasing;
   P.speeding=false;swimCheck(shift,phasing);
   if(P.wallRun)wallRunStep(dt,inF,inR);
@@ -293,7 +293,7 @@ function updatePlayer(dt){
   }
   // free roam: the ocean goes on past the city and nothing pulls you back (only the edge of the solar system stops you)
   P.pos.x=clamp(P.pos.x,-SPACE.lim,SPACE.lim);P.pos.z=clamp(P.pos.z,-SPACE.lim,SPACE.lim);
-  if(!P.flying&&P.vel.y>0&&P.pos.y>CEIL&&P.pos.y-P.vel.y*dt<=CEIL){P.pos.y=CEIL;P.vel.y=0;} // without flight you can't jump or get thrown out of the sky
+  if(!zone&&!P.flying&&P.vel.y>0&&P.pos.y>CEIL&&P.pos.y-P.vel.y*dt<=CEIL){P.pos.y=CEIL;P.vel.y=0;} // without flight you can't jump or get thrown out of the sky
   else if(P.pos.y>SPACE.lim){P.pos.y=SPACE.lim;P.vel.y=Math.min(P.vel.y,0);} // fliers can climb into space; letting go up there just drifts you back down
   if(!onIsland(P.pos.x,P.pos.z)&&P.grounded&&P.pos.y<-0.5&&Math.random()<0.3)emit(P.pos.x,-0.8,P.pos.z,rr(-2,2),rr(2,4),rr(-2,2),0.6,WATER[0],1,15,1);
   if(!wasGrounded&&P.grounded&&!P.flying){

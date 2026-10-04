@@ -457,6 +457,9 @@ body.touch #objective{top:calc(8px + var(--safe-t));left:calc(50% + 20px);max-wi
 #cut-cap.on{opacity:1}#cut:not(.on) #cut-cap{bottom:12vh}
 #cut-skip{position:absolute;right:20px;bottom:calc(11vh + 14px);pointer-events:auto;cursor:pointer;padding:6px 14px;font:700 12px var(--hud);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);background:rgba(7,11,24,.6);border:1px solid var(--edge);border-radius:999px;opacity:0;transition:opacity .4s}
 #cut-skip.on{opacity:1}
+#cytitle{position:fixed;inset:0;background:linear-gradient(rgba(3,10,34,0),rgba(3,10,34,.7) 32%,rgba(3,10,34,.7) 68%,rgba(3,10,34,0));display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:6;opacity:0;transition:opacity .9s;text-align:center;padding:0 16px}#cytitle.on{opacity:1}
+#cytitle small{font:700 clamp(11px,1.6vw,18px) var(--hud);letter-spacing:.5em;text-transform:uppercase;color:#9bd8ff;text-shadow:0 0 16px #2a8cff}
+#cytitle b{font-family:var(--display);font-weight:700;font-size:clamp(30px,8vw,104px);line-height:1.05;letter-spacing:.12em;color:#fff;text-shadow:0 0 24px #3ab0ff,0 0 64px #1a6cff,0 4px 18px #000;margin-top:.18em}
 #qte{position:fixed;left:50%;top:15%;transform:translateX(-50%);z-index:6;pointer-events:none;text-align:center;width:min(560px,calc(100% - 32px))}
 #qte .q-t{font-family:var(--display);font-size:clamp(30px,6vw,66px);white-space:nowrap;letter-spacing:.06em;color:#fff;text-shadow:0 0 18px #ffc93c,0 0 44px #ff9a1a,0 3px 0 #7a4a00;line-height:1}
 #qte .q-s{margin-top:8px;font:800 clamp(16px,3vw,26px) var(--hud);letter-spacing:.2em;text-transform:uppercase;color:#fff1b8;text-shadow:0 2px 10px #000}
@@ -555,6 +558,7 @@ body.touch #ask kbd{display:none}
 </div></div>
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
 <div id="cut" hidden><i class="cb t"></i><i class="cb b"></i><div id="cut-cap"></div><div id="cut-skip">Skip ›</div></div>
+<div id="cytitle"><small>A new world</small><b>CONQUER THE WORLD</b></div>
 <div id="kstill"></div>
 <div id="qte" hidden><div class="q-t" id="q-t">BREAK FREE</div><div class="q-s" id="q-s"></div><div class="q-bar"><i id="q-f"></i></div><div class="q-tm"><i id="q-tm"></i></div></div>
 <div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
@@ -731,11 +735,29 @@ float shadowF(){if(uShOn<0.5)return 1.0;vec3 p=vL.xyz/vL.w*0.5+0.5;
   float s=0.0;for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)s+=texture(uShadow,vec3(p.xy+vec2(float(x),float(y))*uShTexel,p.z-0.0004));
   return s/9.0;}
 vec3 outc(vec3 c){return pow(aces(c*uExpo),vec3(1.0/2.2));}
+float hexE(vec2 p,out vec2 id){vec2 r=vec2(1.0,1.7320508);vec2 h=r*0.5;vec2 a=mod(p,r)-h;vec2 b=mod(p-h,r)-h;vec2 g=dot(a,a)<dot(b,b)?a:b;id=p-g;vec2 q=abs(g);return 0.5-max(dot(q,vec2(0.5,0.8660254)),q.x);}
 void main(){
   if(dot(vec4(vW,1.0),uClip)<0.0)discard; // a clip plane (Kathana's body splitting in two, 66g_kperfect.js); all zeros = off
   vec3 n=normalize(vN);float mat=vD.x;vec3 base=vC*uTint.rgb;vec3 emis=vec3(0.0);float spec=0.2;float shin=40.0;
   if(mat>5.5&&mat<6.5){o=vec4(outc(vC*uTint.rgb*1.6),uTint.a);return;}
-  if(mat>7.5){ // polished chrome / pearl (the Perfect Form): a studio reflection of its own, so it looks the same in the white arena as anywhere
+  if(mat>8.5&&mat<9.5){ // cyber tower (66i_cyber.js): a pale shell with glowing blue glass bands
+    float side=1.0-step(0.5,abs(n.y));float u=abs(n.x)>0.5?vW.z:vW.x;float v=vW.y;
+    float f=fract(v/4.2),fi=floor(v/4.2),cu=u/3.6,cf=fract(cu),ci=floor(cu);
+    float win=step(0.16,f)*step(f,0.8)*step(0.07,cf)*step(cf,0.93)*side*step(3.0,v);
+    float pk=1.0-smoothstep(0.2,0.55,max(fwidth(v)/4.2,fwidth(u)/3.6));win=mix(0.55*side*step(3.0,v),win,pk); // far away the bands blur into one even glass colour
+    float hh=h31(vec3(fi,ci,vD.y*37.0));vec3 gc=mix(vec3(0.16,0.5,1.0),vec3(0.45,0.92,1.0),fract(vD.y*7.0)*0.7+0.15*hh);
+    float dif=max(dot(n,uLDir),0.0);vec3 amb=mix(uGnd,uSky,n.y*0.5+0.5);vec3 shell=vC*uTint.rgb*(amb+uLCol*dif);
+    vec3 V2=normalize(uCam-vW);float fr=pow(1.0-max(dot(n,V2),0.0),3.0);
+    vec3 glass=vec3(0.02,0.09,0.28)+gc*(0.16+1.0*uNight)*(0.6+0.7*hh)+vec3(0.4,0.65,1.0)*fr*0.5*(1.0-0.5*uNight)+uLCol*pow(max(dot(n,normalize(V2+uLDir)),0.0),60.0)*0.5;
+    vec3 c3=mix(shell,glass,win);
+    float fg3=smoothstep(uFog.x,uFog.y,length(uCam-vW))*(1.0-uNoFog);o=vec4(outc(mix(c3,uFogC,fg3)),uTint.a);return;}
+  if(mat>9.5){ // the planet's shield: a faint blue wall; a hex grid and a ripple wake up as you come near
+    vec2 p;if(abs(n.y)>0.5)p=vW.xz;else if(abs(n.x)>abs(n.z))p=vec2(vW.z,vW.y);else p=vec2(vW.x,vW.y);
+    vec2 id;float e=hexE(p/(abs(n.y)>0.5?30.0:14.0),id);float line=1.0-smoothstep(0.0,0.07,e);
+    float dc=length(uCam-vW);float nr=1.0-smoothstep(30.0,95.0,dc);float rip=0.5+0.5*sin(dc*0.22-uTime*5.0);float flick=step(0.82,h21(id+floor(uTime*1.5)))*0.5;
+    float amt=0.05+line*0.05+nr*(line*(0.5+0.35*rip)+0.2*flick+0.08);
+    o=vec4(outc(vec3(0.15,0.6,1.0)*1.6),clamp(amt,0.0,0.8));return;}
+  if(mat>7.5&&mat<8.5){ // polished chrome / pearl (the Perfect Form): a studio reflection of its own, so it looks the same in the white arena as anywhere
     vec3 V1=normalize(uCam-vW);float nd=max(dot(n,V1),0.0),fr=pow(1.0-nd,3.0);vec3 R=reflect(-V1,n);float up=R.y;
     vec3 env=up>0.0?mix(vec3(0.9,0.95,1.1),vec3(0.14,0.27,0.66),clamp(up*1.3,0.0,1.0)):mix(vec3(0.66,0.64,0.74),vec3(0.07,0.07,0.12),clamp(-up*2.2,0.0,1.0));
     env*=0.12+0.88*smoothstep(0.02,0.5,abs(up));
@@ -811,11 +833,58 @@ out vec2 vP;void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&
 const SKY_FS=`#version 300 es
 precision highp float;in vec2 vP;out vec4 o;
 uniform vec3 uFwd;uniform vec3 uRight;uniform vec3 uUp;uniform vec2 uTan;uniform vec3 uSunDir;uniform vec3 uZen;uniform vec3 uHor;uniform vec3 uSunCol;
-uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uSpace;
+uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uSpace;uniform float uCy;uniform vec3 uCSun;uniform vec3 uCMoon;
 ${GLSL_COMMON}
+// the cyber world's sky (66i_cyber.js): a blue gradient with faint grid lines, a synthetic sun (disc, rings, hex cells) and a faceted moon with glowing seams
+float hexS(vec2 p,out vec2 id){vec2 r=vec2(1.0,1.7320508);vec2 h=r*0.5;vec2 a=mod(p,r)-h;vec2 b=mod(p-h,r)-h;vec2 g=dot(a,a)<dot(b,b)?a:b;id=p-g;vec2 q=abs(g);return 0.5-max(dot(q,vec2(0.5,0.8660254)),q.x);}
+const vec3 FN[20]=vec3[20](vec3(.57735,.57735,.57735),vec3(-.57735,.57735,.57735),vec3(.57735,-.57735,.57735),vec3(-.57735,-.57735,.57735),vec3(.57735,.57735,-.57735),vec3(-.57735,.57735,-.57735),vec3(.57735,-.57735,-.57735),vec3(-.57735,-.57735,-.57735),
+  vec3(0.,.35682,.93417),vec3(0.,-.35682,.93417),vec3(0.,.35682,-.93417),vec3(0.,-.35682,-.93417),vec3(.35682,.93417,0.),vec3(-.35682,.93417,0.),vec3(.35682,-.93417,0.),vec3(-.35682,-.93417,0.),
+  vec3(.93417,0.,.35682),vec3(.93417,0.,-.35682),vec3(-.93417,0.,.35682),vec3(-.93417,0.,-.35682));
+vec3 cyberSky(vec3 d){
+  float h=d.y;
+  vec3 col=mix(uHor,uZen,pow(clamp(h,0.0,1.0),0.55));
+  if(h<0.0)col=mix(uHor,uHor*0.6,clamp(-h*5.0,0.0,1.0));
+  float az=atan(d.z,d.x),el=asin(clamp(h,-1.0,1.0));
+  vec2 gq=vec2(az*24.0/6.2831853,el*9.0/1.5707963);vec2 gw=min(fwidth(gq),vec2(0.2));vec2 gd=0.5-abs(fract(gq)-0.5);
+  float gl=max(1.0-smoothstep(0.0,gw.x*1.5+0.004,gd.x),1.0-smoothstep(0.0,gw.y*1.5+0.004,gd.y));
+  col+=vec3(0.2,0.5,1.0)*gl*smoothstep(-0.02,0.12,h)*(0.05+0.07*uNight);
+  vec3 t1=normalize(cross(uCSun,vec3(0.0,1.0,0.0))),t2=cross(t1,uCSun);float cs=dot(d,uCSun);
+  col+=vec3(0.3,0.75,1.0)*(pow(max(cs,0.0),70.0)*0.55+pow(max(cs,0.0),6.0)*0.1)*step(-0.2,uCSun.y);
+  if(cs>0.9&&uCSun.y>-0.2){
+    const float R=0.1;vec2 q=vec2(dot(d,t1),dot(d,t2))/(R*cs);float rq=length(q);
+    if(rq<1.0){
+      vec2 id;float e=hexS(q*4.2,id);float hl=1.0-smoothstep(0.0,0.09,e);
+      float rg=0.5+0.5*cos(rq*6.2831853*5.0-uTime*0.4);
+      vec3 base=mix(vec3(1.25,1.55,1.9),vec3(0.3,0.8,1.6),smoothstep(0.15,1.0,rq));
+      base*=0.62+0.38*smoothstep(0.35,0.95,rg);
+      base=mix(base,vec3(0.08,0.45,1.4),hl*0.6);base+=vec3(0.6,0.95,1.0)*step(0.9,h21(id+floor(uTime*0.8)))*0.3*(1.0-hl);
+      col=mix(col,base,smoothstep(1.0,0.96,rq));
+    }else if(rq<1.75){
+      float a=atan(q.y,q.x);float r1=smoothstep(0.035,0.0,abs(rq-1.18));float r2=smoothstep(0.025,0.0,abs(rq-1.42))*step(0.45,fract(a*1.9099+uTime*0.06));float r3=smoothstep(0.02,0.0,abs(rq-1.62))*step(0.6,fract(a*3.8197-uTime*0.1));
+      col+=vec3(0.35,0.85,1.3)*(r1*0.9+r2*0.7+r3*0.55);
+    }
+  }
+  vec3 m1=normalize(cross(uCMoon,vec3(0.0,1.0,0.0))),m2=cross(m1,uCMoon);float cm=dot(d,uCMoon);
+  col+=vec3(0.45,0.7,1.0)*pow(max(cm,0.0),160.0)*0.5*step(-0.2,uCMoon.y);
+  if(cm>0.95&&uCMoon.y>-0.2){
+    const float R2=0.075;vec2 q=vec2(dot(d,m1),dot(d,m2))/(R2*cm);float rq=length(q);
+    if(rq<1.0){
+      vec3 nn=vec3(q,sqrt(1.0-rq*rq));float ca=cos(uTime*0.06),sa=sin(uTime*0.06);nn=vec3(ca*nn.x+sa*nn.z,nn.y,-sa*nn.x+ca*nn.z);
+      float b1=-1.0,b2=-1.0;int fi=0;
+      for(int i=0;i<20;i++){float dd=dot(nn,FN[i]);if(dd>b1){b2=b1;b1=dd;fi=i;}else if(dd>b2)b2=dd;}
+      float seam=1.0-smoothstep(0.0,0.04,b1-b2);
+      float lit=0.5+0.5*clamp(dot(FN[fi],normalize(vec3(-0.45,0.55,0.7))),-0.2,1.0);
+      vec3 mc=vec3(0.62,0.8,1.0)*(0.5+0.5*lit)*(0.82+0.3*h21(vec2(float(fi),3.7)));
+      mc=mix(mc,vec3(0.35,1.1,1.6),seam*0.9);mc+=vec3(0.25,0.5,1.0)*pow(rq,5.0)*0.5;
+      col=mix(col,mc*1.15,smoothstep(1.0,0.95,rq));
+    }
+  }
+  return col;
+}
 float fbm(vec2 p){float s=0.0,a=0.5;for(int i=0;i<5;i++){s+=a*vnoise(p);p=p*2.03+vec2(1.7,9.2);a*=0.5;}return s;}
 void main(){
   vec3 d=normalize(uFwd+vP.x*uTan.x*uRight+vP.y*uTan.y*uUp);
+  if(uCy>0.5){o=vec4(pow(aces(cyberSky(d)*uExpo),vec3(1.0/2.2)),1.0);return;}
   float h=d.y;
   vec3 col=mix(uHor,uZen,pow(clamp(h,0.0,1.0),0.5));
   if(h<0.0)col=mix(uHor,uHor*0.55,clamp(-h*5.0,0.0,1.0));
@@ -1568,7 +1637,7 @@ function rayBox(b,ox,oy,oz,dx,dy,dz){
 }
 function rayCity(ox,oy,oz,dx,dy,dz,tmax){
   _best=tmax;RAYHIT.b=null;
-  if(zone){for(const b of zone.cols)rayBox(b,ox,oy,oz,dx,dy,dz);RAYHIT.t=_best;return _best;}
+  if(zone){zoneRay(zone,ox,oy,oz,dx,dy,dz,tmax);RAYHIT.t=_best;return _best;}
   for(const b of extraCols)rayBox(b,ox,oy,oz,dx,dy,dz);
   let cx=cellI(ox),cz=cellJ(oz);
   const sx=dx>0?1:-1,sz=dz>0?1:-1;
@@ -2072,6 +2141,7 @@ function playerDown(killer){
 }
 function respawn(){
   if(invRespawn())return; // the invasion battle: back at its start point (66h_invasion.js)
+  if(cyberRespawn())return; // the cyber world has no way home: back at its arrival pad (66i_cyber.js)
   if(zone)zoneAbort(); // died inside a story zone: back to the city first
   let s=SPAWNS[0],bd=1e18;for(const c of SPAWNS){const d=Math.hypot(c[0]-P.pos.x,c[1]-P.pos.z);if(d<bd){bd=d;s=c;}} // nearest spawn to where you fell
   if(P.alien)revertAlien(true);
@@ -2687,7 +2757,7 @@ function lockable(a){
   return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli'||a.kind==='alien'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='invader';
 }
 function lockValid(a){return lockable(a);} // a manual lock has no range limit
-const hostileTo=a=>a.kind==='alien'||a.kind==='invader'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
+const hostileTo=a=>a.kind==='alien'||a.kind==='invader'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||(a.kind==='drone'&&(a.role!=='cyberpol'||!!a.target))||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
 // after you beat your target, the lock jumps to the nearest enemy within the normal lock range
 function nextLock(prev){
   let best=null,bd=COMBAT.lockRange;
@@ -4818,18 +4888,18 @@ const PLANETS=[
   {name:'The Sun',x:170000,y:40000,z:170000,r:30000,col:[1,.85,.45,1],sun:true},
 ];
 const PLANET_MESH=primMesh(primSphere(64,40));
-const spaceK=y=>smooth(CEIL,SPACE.y,y);   // 0 in the city sky, 1 in space
-const inSpace=()=>P.pos.y>SPACE.y;
+const spaceK=y=>zone?0:smooth(CEIL,SPACE.y,y);   // 0 in the city sky, 1 in space
+const inSpace=()=>!zone&&P.pos.y>SPACE.y; // (a zone, like the cyber world with its 900 m shield ceiling, is never space)
 function nearestBody(){let best=null,bd=1e12;for(const b of PLANETS){const d=Math.hypot(P.pos.x-b.x,P.pos.y-b.y,P.pos.z-b.z)-b.r;if(d<bd){bd=d;best=b;}}return {b:best,d:bd};}
 // flight speed multiplier: much faster the higher you are, slower again close to any surface
 function spaceSpeedMul(){
-  if(P.pos.y<=CEIL)return 1;if(invBattle())return 2.2; // the invasion: a fight at fighting speed
+  if(zone||P.pos.y<=CEIL)return 1;if(invBattle())return 2.2; // the invasion: a fight at fighting speed
   const nb=nearestBody();
   return Math.max(1,Math.min(1+(P.pos.y-CEIL)/40,(PBAL?10+80*travK():90)*(1+0.01*travOver()),1+Math.max(0,nb.d)/60,1+(P.pos.y)/60));
 }
 let spaceMsgT=-99,lastBody=null,wasSpace=false;
 function updateSpace(dt){
-  if(state!=='play'||P.dead||INV.ls)return; // (the light-speed jump phases through the planets and the Sun)
+  if(state!=='play'||P.dead||INV.ls||zone)return; // (the light-speed jump phases through the planets and the Sun)
   const sp=inSpace();
   if(sp&&!wasSpace&&time-spaceMsgT>20){spaceMsgT=time;toast('You made it to space','The Moon and the planets are out there · fly to one and land','cyan');}
   wasSpace=sp;
@@ -4848,7 +4918,7 @@ function updateSpace(dt){
 function spaceMode(){const nb=nearestBody();return 'Space · '+nb.b.name+' '+(nb.d>1000?Math.round(nb.d/1000)+' km':Math.round(Math.max(0,nb.d))+' m');}
 // the Earth below and the planets, only drawn when you are high enough to see them
 function drawSpace(){
-  if(camPos.y<300)return;
+  if(zone||camPos.y<300)return;
   queue(PLANET_MESH,at(EARTH.x,EARTH.y,EARTH.z,0,0,0,EARTH.r,EARTH.r,EARTH.r),EARTH.col,0);
   for(const b of PLANETS){
     if(b.sun){queue(PLANET_MESH,at(b.x,b.y,b.z,0,0,0,b.r,b.r,b.r),[1.6,1.3,.7,1],F_UN);queue(MESH.glowSphere,at(b.x,b.y,b.z,0,0,0,b.r*1.6,b.r*1.6,b.r*1.6),[1,.75,.35,0.35],F_ADD);continue;}
@@ -5339,7 +5409,7 @@ function npcScan(h){
 function stepHuman(h,dx,dz,speed,dt){
   const s=speed*(1-(h.slow||0));h.pos.x+=dx*s*dt;h.pos.z+=dz*s*dt;
   collideBody(h.pos,h.vel,h.pos.y,0.45,1.9);h.pos.y=groundY(h.pos.x,h.pos.z,h.pos.y+0.5);
-  h.pos.x=clamp(h.pos.x,-LIMIT,LIMIT);h.pos.z=clamp(h.pos.z,-LIMIT,LIMIT);
+  if(!zone){h.pos.x=clamp(h.pos.x,-LIMIT,LIMIT);h.pos.z=clamp(h.pos.z,-LIMIT,LIMIT);}
   h.yaw=angLerp(h.yaw,Math.atan2(dx,dz),damp(10,dt));h.moving=s;h.phase+=s*dt*2.2;
 }
 function moveTo(h,x,z,speed,dt){const dx=x-h.pos.x,dz=z-h.pos.z,l=Math.hypot(dx,dz);if(l<0.7){h.moving=0;return true;}stepHuman(h,dx/l,dz/l,Math.min(speed,l/dt),dt);return false;}
@@ -7261,7 +7331,7 @@ function storyTick(dt){
     zoneFadeTick(dt);cutTick(dt);boostTick(dt);
     if(solo&&state==='play'&&!P.dead){
       if(storyActiveNow())save.story.act+=dt;
-      ufoTick(dt);kathanaTick(dt);invTick(dt);
+      ufoTick(dt);kathanaTick(dt);invTick(dt);cyberTick(dt);
       if(zone&&zone.update)zone.update(dt*worldTimeK());
     }else if(PR.on&&(P.dead||!solo))prismEnd('lost');
     objRefresh();
@@ -7381,6 +7451,8 @@ function askKey(e){
 // (baseY / onIsland answer for the zone: no swimming, no drowning) and zones sit at y=0, so the space logic (y > 900) never fires.
 // Fast flight smashes walls: in a zone with smash:true, while the player moves faster than 35 m/s, boxes flagged smash:true don't block; the ones the player
 // bursts through break (debris and a thud, no damage) and are removed for the rest of the visit (box.dead; the zone's rebuild() redraws without them).
+// Big zones (the cyber world, 3 km): Z.gofs / Z.gw size the lookup grid (zkey), Z.regions ({mesh,x0,x1,z0,z1,y0,y1}) replace Z.mesh and are drawn only near the camera
+// (zoneDrawRegions), rays walk the grid (zoneRay), Z.speed multiplies player speed, Z.skyU(uniforms) paints a custom sky, Z.planDraw(ctx) / Z.mapS shape the minimap.
 // Builders: zoneBox adds a box to a zone's mesh and (unless col:false) its colliders; zoneBake bakes the mesh and the lookup grid.
 const ZONE_FADE=0.55,ZF={phase:0,t:0,fn:null,after:null}; // phase 1: fading to black, 2: fading back in
 let zoneRet=null;
@@ -7421,28 +7493,41 @@ function zoneAbort(){ // straight out, no fade: dying inside a zone, or a multip
   if(!zone)return;ZF.phase=0;ZF.fn=null;ZF.after=null;ZF.t=0;$('fade').style.opacity='0';zoneExit();
 }
 // ---- building a zone ----
-const ZGC=12; // lookup grid cell (m): boxes are listed in every cell within 6 m of them
+const ZGC=12; // lookup grid cell (m): boxes are listed in every cell within 6 m of them. A big zone (the cyber world) sets Z.gofs (local offset, default 512) and Z.gw (cells per row, default 400)
+const zkey=(Z,x,z)=>Math.floor((x-Z.origin.x+(Z.gofs||512))/ZGC)*(Z.gw||400)+Math.floor((z-Z.origin.z+(Z.gofs||512))/ZGC);
 function zoneNew(def){
   const Z=Object.assign({cols:[],geo:new Geo(),mesh:null,mesh2:null,built:false,grid:null,dirty:false,rebuildT:0},def);ZONES[Z.id]=Z;return Z;
 }
 // a box in local coordinates: drawn (mat 0 lit, 6 glowing, 7 metal) and, unless o.col===false, solid. o.smash: fast flight breaks it.
 function zoneBox(Z,x0,y0,z0,x1,y1,z1,col,mat=0,o){
   const g=o&&o.geo||Z.geo,ox=Z.origin.x,oy=Z.origin.y,oz=Z.origin.z;
-  if(!(o&&o.draw===false))g.box(x0+ox,y0+oy,z0+oz,x1+ox,y1+oy,z1+oz,col,mat);
+  if(!(o&&o.draw===false))g.box(x0+ox,y0+oy,z0+oz,x1+ox,y1+oy,z1+oz,col,mat,o&&o.seed||0); // o.seed: the shader's per-box number (mat 9, cyber towers, reads it as a 0..1 hue)
   if(o&&o.col===false)return null;
   const b={x0:x0+ox,x1:x1+ox,y0:y0+oy,y1:y1+oy,z0:z0+oz,z1:z1+oz,col,smash:!!(o&&o.smash),dead:false};Z.cols.push(b);return b;
 }
 function zoneIndex(Z){
-  Z.grid=new Map();const o=Z.origin,M=6;
-  for(const b of Z.cols){const i0=Math.floor((b.x0-M-o.x+512)/ZGC),i1=Math.floor((b.x1+M-o.x+512)/ZGC),j0=Math.floor((b.z0-M-o.z+512)/ZGC),j1=Math.floor((b.z1+M-o.z+512)/ZGC);
-    for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=i*400+j;let l=Z.grid.get(k);if(!l){l=[];Z.grid.set(k,l);}l.push(b);}}
+  Z.grid=new Map();const o=Z.origin,M=6,F=Z.gofs||512,W=Z.gw||400;
+  for(const b of Z.cols){const i0=Math.floor((b.x0-M-o.x+F)/ZGC),i1=Math.floor((b.x1+M-o.x+F)/ZGC),j0=Math.floor((b.z0-M-o.z+F)/ZGC),j1=Math.floor((b.z1+M-o.z+F)/ZGC);
+    for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=i*W+j;let l=Z.grid.get(k);if(!l){l=[];Z.grid.set(k,l);}l.push(b);}}
 }
-function zoneBake(Z){if(Z.mesh)freeMesh(Z.mesh);Z.mesh=Z.geo.idx.length?Z.geo.mesh():null;Z.geo=new Geo();zoneIndex(Z);} // (the build arrays are let go once on the GPU)
+function zoneBake(Z){if(Z.regions)return zoneIndex(Z);if(Z.mesh)freeMesh(Z.mesh);Z.mesh=Z.geo.idx.length?Z.geo.mesh():null;Z.geo=new Geo();zoneIndex(Z);} // (the build arrays are let go once on the GPU)
 // the boxes near a point (what nearCols answers while a zone is set); smash boxes are skipped while the player is bursting through
 function zoneCols(x,z){
-  NEAR.length=0;const Z=zone,l=Z.grid&&Z.grid.get(Math.floor((x-Z.origin.x+512)/ZGC)*400+Math.floor((z-Z.origin.z+512)/ZGC));
+  NEAR.length=0;const Z=zone,l=Z.grid&&Z.grid.get(zkey(Z,x,z));
   if(l)for(let k=0;k<l.length;k++){const b=l[k];if(b.dead||(ZS.on&&b.smash))continue;NEAR.push(b);}
   return NEAR;
+}
+// a ray through a zone's boxes (rayCity in 10_world.js): cell by cell through the lookup grid, so a city of thousands of boxes only tests the few the ray passes
+function zoneRay(Z,ox,oy,oz,dx,dy,dz,tmax){
+  const g=Z.grid;if(!g){for(const b of Z.cols)rayBox(b,ox,oy,oz,dx,dy,dz);return;}
+  const F=Z.gofs||512,W=Z.gw||400,px=ox-Z.origin.x+F,pz=oz-Z.origin.z+F;let cx=Math.floor(px/ZGC),cz=Math.floor(pz/ZGC);
+  const sx=dx>0?1:-1,sz=dz>0?1:-1,tdx=Math.abs(dx)<1e-9?Infinity:ZGC/Math.abs(dx),tdz=Math.abs(dz)<1e-9?Infinity:ZGC/Math.abs(dz);
+  let tmx=Math.abs(dx)<1e-9?Infinity:((cx+(dx>0?1:0))*ZGC-px)/dx,tmz=Math.abs(dz)<1e-9?Infinity:((cz+(dz>0?1:0))*ZGC-pz)/dz;
+  for(let n=0;n<700;n++){
+    const l=g.get(cx*W+cz);if(l)for(let k=0;k<l.length;k++)rayBox(l[k],ox,oy,oz,dx,dy,dz);
+    const tn=Math.min(tmx,tmz);if(_best<=tn||tn>tmax)break;
+    if(tmx<tmz){tmx+=tdx;cx+=sx;}else{tmz+=tdz;cz+=sz;}
+  }
 }
 // ---- fast flight through walls (called around updatePlayer, see 99_main.js) ----
 function zonePlayerPre(){ZS.on=!!(zone&&zone.smash&&!P.dead&&!cutLocked()&&P.vel.len()>35);ZS.px=P.pos.x;ZS.py=P.pos.y;ZS.pz=P.pos.z;}
@@ -7450,7 +7535,7 @@ function zonePlayerPost(){
   const Z=zone;if(!Z)return;
   if(ZS.on&&Z.grid){
     const dx=P.pos.x-ZS.px,dy=P.pos.y-ZS.py,dz=P.pos.z-ZS.pz,n=Math.max(1,Math.ceil(Math.hypot(dx,dy,dz))),R=P.radius+0.3,H=P.height;let hit=0;
-    for(let s=1;s<=n;s++){const x=ZS.px+dx*s/n,y=ZS.py+dy*s/n,z=ZS.pz+dz*s/n,l=Z.grid.get(Math.floor((x-Z.origin.x+512)/ZGC)*400+Math.floor((z-Z.origin.z+512)/ZGC));if(!l)continue;
+    for(let s=1;s<=n;s++){const x=ZS.px+dx*s/n,y=ZS.py+dy*s/n,z=ZS.pz+dz*s/n,l=Z.grid.get(zkey(Z,x,z));if(!l)continue;
       for(const b of l){if(!b.smash||b.dead)continue;if(x>b.x0-R&&x<b.x1+R&&z>b.z0-R&&z<b.z1+R&&y<b.y1&&y+H>b.y0){zoneBreak(Z,b);hit++;}}}
     if(hit){SFX.boom(0.55,0.5);addShake(0.3);}
   }
@@ -7471,13 +7556,23 @@ function drawStory(){
   ufoDraw();prismDraw();invDraw();
   const Z=zone;if(!Z)return;
   if(Z.dirty&&Z.rebuild&&time-Z.rebuildT>0.2){Z.dirty=false;Z.rebuildT=time;Z.rebuild();}
-  if(Z.mesh&&!Z.hide)queue(Z.mesh,ID,Z.tint||WHITE,0);if(Z.mesh2)queue(Z.mesh2,ID,WHITE,0); // Z.tint / Z.hide: the Kathana arena fades its floor in
+  if(Z.mesh&&!Z.hide)queue(Z.mesh,ID,Z.tint||WHITE,0);if(Z.mesh2)queue(Z.mesh2,ID,WHITE,0);
+  if(Z.regions)zoneDrawRegions(Z); // Z.tint / Z.hide: the Kathana arena fades its floor in
   if(Z.draw)Z.draw();
+}
+// a big zone is baked in regions ({mesh,x0,x1,z0,z1} in absolute coordinates): only the ones in front of the camera and inside the fog are drawn
+function zoneDrawRegions(Z){
+  const fe=(Z.light&&Z.light.fog?Z.light.fog[1]:2000)+60,cx=camPos.x,cy=camPos.y,cz=camPos.z;Z.vis=0;
+  for(const r of Z.regions){if(!r.mesh)continue;
+    const dx=Math.max(r.x0-cx,0,cx-r.x1),dz=Math.max(r.z0-cz,0,cz-r.z1),dy=Math.max(r.y0-cy,0,cy-r.y1);if(dx*dx+dy*dy+dz*dz>fe*fe)continue;
+    const mx=(r.x0+r.x1)/2-cx,mz=(r.z0+r.z1)/2-cz,my=(r.y0+r.y1)/2-cy,rad=Math.hypot(r.x1-r.x0,r.y1-r.y0,r.z1-r.z0)/2;
+    if(mx*camF.x+my*camF.y+mz*camF.z<-rad)continue; // behind the camera
+    queue(r.mesh,ID,WHITE,0);Z.vis++;}
 }
 function zoneUniforms(u){
   const L=zone.light||{},d=L.dir||[0.3,1,0.2],l=Math.hypot(d[0],d[1],d[2])||1,f=L.fog||[30,200];
   gl.uniform3f(u.uLDir,d[0]/l,d[1]/l,d[2]/l);gl.uniform3fv(u.uLCol,L.lcol||[.5,.55,.7]);gl.uniform3fv(u.uSky,L.sky||[.3,.35,.5]);gl.uniform3fv(u.uGnd,L.gnd||[.15,.13,.2]);
-  gl.uniform3fv(u.uFogC,L.fogC||[.02,.02,.05]);gl.uniform2f(u.uFog,f[0],f[1]);gl.uniform1f(u.uShOn,0);gl.uniform1f(u.uNight,0);
+  gl.uniform3fv(u.uFogC,L.fogC||[.02,.02,.05]);gl.uniform2f(u.uFog,f[0],f[1]);gl.uniform1f(u.uShOn,0);gl.uniform1f(u.uNight,L.night||0);
 }
 function zoneLights(){
   const Z=zone,ls=Z.lights;if(!ls||!ls.length)return 0;
@@ -7488,10 +7583,11 @@ function zoneLights(){
 }
 // the minimap inside a zone: the zone's plan (rooms and corridors) turned to your heading, its name on top, the objective diamond, and whatever the zone adds (mapMarks)
 function zoneMinimap(yaw){
-  const R=180,S=1.7,c=mctx,Z=zone,cs=Math.cos(yaw),sn=Math.sin(yaw);
+  const R=180,S=zone.mapS||1.7,c=mctx,Z=zone,cs=Math.cos(yaw),sn=Math.sin(yaw);
   c.clearRect(0,0,360,360);c.save();c.beginPath();c.arc(R,R,R-2,0,TAU);c.clip();c.fillStyle='#070a16';c.fillRect(0,0,360,360);
   c.translate(R,R);c.rotate(yaw);c.scale(S,S);c.translate(-(P.pos.x-Z.origin.x),-(P.pos.z-Z.origin.z));
   if(Z.plan){c.fillStyle=Z.planCol||'#22365e';for(const r of Z.plan)c.fillRect(r[0],r[2],r[1]-r[0],r[3]-r[2]);}
+  if(Z.planDraw)Z.planDraw(c);
   c.restore();
   const plot=(x,z,edge)=>{const dx=x-P.pos.x,dz=z-P.pos.z;let mx=(dx*cs-dz*sn)*S,my=(dx*sn+dz*cs)*S;const l=Math.hypot(mx,my);if(l>R-16){if(!edge)return null;mx*=(R-16)/l;my*=(R-16)/l;}return [R+mx,R+my];};
   c.font='700 15px "Chakra Petch", sans-serif';c.textAlign='center';c.textBaseline='middle';
@@ -9037,7 +9133,7 @@ function superTick(dt){
 // ================================================================
 // The invasion: 100 warships over Earth, four waves of superpowered invaders in space, then light-speed travel
 // ================================================================
-// save.story.invasion: 0 not yet, 1 the fleet is here (the battle), 2 the fleet is broken (go to light speed), 3 jumped (cyberArrive is next phase's world).
+// save.story.invasion: 0 not yet, 1 the fleet is here (the battle), 2 the fleet is broken (go to light speed), 3 jumped (cyberArrive, 66i_cyber.js).
 // Flow: Kathana falls -> invasion=1 -> invArrive (66g) -> invBegin: a 5.5 s cutscene up to the fleet, then invPlace puts you in space 600 m in front of the armada ->
 // invWaveTick runs four waves (5, 15, 30, 50 invaders, never more than 25 alive) -> invWin: the fleet explodes ship by ship (6 s), invasion=2, +30 traversal mastery,
 // "Ready for light speed traversal" -> hold boost at full flight speed for 2 s in space -> lsStart: a 5 s wormhole cutscene (collisions off) -> cyberArrive().
@@ -9370,12 +9466,7 @@ function lsTick(k,dt,C){
   if(t>4.35)flashWhite=Math.max(flashWhite,smooth(4.35,5.0,t));
 }
 function lsEnd(){if(INV.ls)cyberArrive();}
-// the next phase replaces this with the real world (the hyper-advanced civilisation). For now: a toast, and back to the city.
-function cyberArrive(){
-  const S=save.story;S.invasion=3;S.cyber=Math.max(S.cyber,1);persist();INV.ls=null;INV.state='idle';INV.fleet.length=0;objective(null);objectiveMark(null);
-  const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.yaw=s[2];P.pitch=-0.12;P.flying=false;P.grounded=true;P.tilt=0;camDist=8;P.hp=maxHp();P.en=maxEn();projs.length=0;
-  flashWhite=1;toast('A new world...','The jump is over · the next place is coming','gold');SFX.chime();
-}
+// cyberArrive() (called above) is in 66i_cyber.js: the hyper-advanced civilisation.
 // ---- the tick ----
 function invTick(dt){
   for(let i=INV.blasts.length-1;i>=0;i--){const b=INV.blasts[i];b.t+=dt;if(b.t>1.5)INV.blasts.splice(i,1);}
@@ -9471,6 +9562,307 @@ function lsDraw(){
     const e=Math.min(1,tub*1.5),ex=cx+d.x*700,ey=cy+d.y*700,ez=cz+d.z*700;queue(UGLOW,at(ex,ey,ez,0,0,0,190,190,190),[.08,.16,.5,0.45*e],F_ADD);queue(UGLOW,at(ex,ey,ez,0,0,0,90,90,90),[.3,.5,.9,0.5*e],F_ADD);queue(UGLOW,at(ex,ey,ez,0,0,0,36,36,36),[.9,.95,1,0.75*e],F_ADD);
   }
 }
+// ================================================================
+// The cyber world: a hyper-advanced civilisation, 3 x 3 km of white and blue towers, flying cars and a shield you can't leave
+// ================================================================
+// Arrival: the light-speed jump (66h_invasion.js, lsEnd) calls cyberArrive(): enterZone('cyber') onto a landing pad above the south outskirts, a 5.5 s skyline cutscene
+// ("A world beyond ours"), the title card CONQUER THE WORLD, then the objective: fly to the Apex Spire's entrance. save.story.cyber: 0 not there, 1 arrived (go to the
+// entrance), 2 went in (towerEnter(): a stub, the next phase builds the tower and sets 3/tower). With cyber 1 or 2 and tower < 2 a loaded game starts here (cyberTick):
+// the solar system is "gone" until the tower's boss falls (next phase restores it). Dying here puts you back on the pad (cyberRespawn).
+// ZONES.cyber sits at local origin CYO (z=120000), 3000 x 3000 m (x, z in +-1500), floor y=0, x1.3 player speed (zone.speed, 80_player.js). Layout (cyBuild): a grid of
+// 150 m cells, avenues 30 m wide and boulevards (every second line) 40 m, a 330 m plaza in the middle with the Apex Spire (120 m podium, 600 m needle), towers 36-420 m taller
+// towards the centre, parks, landing pads, low-rises and sky bridges (over the odd avenues only: the flying cars use the boulevards). ~25k boxes, baked into 36 regions
+// (only those in front of the camera and inside the fog are drawn: zoneDrawRegions) with ~6k colliders in the zone's lookup grid (66c_zones.js: zkey, zoneCols and zoneRay
+// only ever look at the cells near a point or a ray). Towers use shader material 9 (white shell, glowing blue glass bands), the shield material 10 (00_engine.js).
+// The sky (cyberSky in the sky shader): gradient, grid lines, a synthetic sun (disc, rings, hex cells) and a faceted moon. The shield: a blue wall at +-1500 and a ceiling at
+// y=900 that stops you (bounds + a soft push in cyShield), with a hex shimmer within 60 m.
+const CYO={x:0,y:0,z:120000},CYH=1500,CYG=150,CYB=1490,CYTOP=900;
+const CYAT={x:75,y:150.6,z:-1425,yaw:Math.atan2(75,-1425)}; // the arrival pad (a 150 m tower in the south), facing the Spire
+const CYARCH={z0:-60,z1:-34,w:10,h:20.2}; // the entrance: an arch cut into the south face of the Spire's podium, opening x +-10, 20 m tall, 24 m deep to the light gate
+const CYFRONT={x:0,y:0,z:-112,yaw:Math.PI}; // in front of the arch, facing it
+const CY={cars:[],drones:[],folks:[],intro:false,msgT:-99,zapT:-99,enterT:-99,objT:0,droneT:0,said:false,zen:[.04,.2,.66],hor:[.5,.78,1],sun:[0,1,0],moon:[0,1,0],stats:{boxes:0,cols:0,ms:0},titleT:0};
+let cySeed=0;const cyR=()=>{cySeed=(cySeed+0x6D2B79F5)|0;let t=Math.imul(cySeed^(cySeed>>>15),1|cySeed);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};
+const CYZ=zoneNew({id:'cyber',name:'Cyber World',origin:CYO,spawn:CYAT,speed:1.3,stars:true,sky:[.1,.25,.55],gofs:1700,gw:512,mapS:0.42,
+  bounds:{x0:-CYB,x1:CYB,z0:-CYB,z1:CYB,y1:CYTOP},light:{dir:[.3,1,.2],lcol:[.9,.95,1.1],sky:[.32,.42,.62],gnd:[.2,.24,.36],fogC:[.2,.48,.92],fog:[700,4800],night:0},lights:[],
+  build(){cyBuild(CYZ);},enter(){cyEnter(CYZ);},leave(){cyLeave(CYZ);},update(dt){cyUpdate(CYZ,dt);},draw(){cyDraw(CYZ);},skyU:s=>cySkyU(s),planDraw:c=>cyPlan(c),mapMarks:(plot,c)=>cyMarks(plot,c)});
+const inCyber=()=>!!(zone&&zone.id==='cyber');
+// ---- time of day: the sky, the light, the fog (blue all day, deep blue at night) ----
+function cyEnv(){
+  const L=CYZ.light,d=1-env.night,sy=env.sun[1],dusk=Math.exp(-Math.pow(sy*5,2));
+  CY.zen=mix3([.008,.02,.12],[.012,.07,.42],d);CY.hor=mix3(mix3([.03,.08,.26],[.2,.48,.92],d),[.5,.45,.95],dusk*0.4);CY.sun=env.sun;
+  const a=(tod-0.25)*TAU+2.2,mx=Math.cos(a),my=Math.sin(a),mz=-0.45,ml=Math.hypot(mx,my,mz);CY.moon=[mx/ml,my/ml,mz/ml];
+  L.dir=env.ldir;L.lcol=mix3([.2,.3,.6],[.9,.95,1.1],d);L.sky=mix3([.08,.13,.3],[.32,.42,.62],d);L.gnd=mix3([.04,.06,.12],[.2,.24,.36],d);L.fogC=CY.hor.map(c=>c*0.97);L.night=env.night;
+}
+function cySkyU(s){ // the sky pass's uniforms while in the cyber world (render in 90_render.js)
+  gl.uniform1f(s.uCy,1);gl.uniform3fv(s.uZen,CY.zen);gl.uniform3fv(s.uHor,CY.hor);gl.uniform3fv(s.uCSun,CY.sun);gl.uniform3fv(s.uCMoon,CY.moon);gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uSpace,0);
+}
+// ---- building the world ----
+const CYPAL=[[.9,.94,1],[.9,.94,1],[.55,.74,1],[.55,.74,1],[.4,.62,.95],[.75,.85,.98]],CYGL=[.25,.8,1],CYGL2=[.55,.9,1],CYLEAF=[[.35,.8,.78],[.45,.88,.85],[.6,.95,.95]];
+function cyBuild(Z){
+  const t0=performance.now();cySeed=0x9e3779b1;const ox=Z.origin.x,oz=Z.origin.z,RS=500,NR=6,geos=[];
+  for(let i=0;i<NR*NR;i++)geos.push({g:new Geo(),x0:1e9,x1:-1e9,z0:1e9,z1:-1e9,y1:0});
+  Z.regions=[];let nb=0;
+  const ri=(x,z)=>clamp(Math.floor((x+CYH)/RS),0,NR-1)*NR+clamp(Math.floor((z+CYH)/RS),0,NR-1);
+  const bx=(x0,y0,z0,x1,y1,z1,col,mat=0,seed=0,solid=false)=>{const r=geos[ri((x0+x1)/2,(z0+z1)/2)];
+    if(x0<r.x0)r.x0=x0;if(x1>r.x1)r.x1=x1;if(z0<r.z0)r.z0=z0;if(z1>r.z1)r.z1=z1;if(y1>r.y1)r.y1=y1;nb++;
+    return zoneBox(Z,x0,y0,z0,x1,y1,z1,col,mat,{geo:r.g,col:solid,seed});};
+  // a stepped-chamfer box: three overlapping boxes read as rounded corners (the shell and its glass bands: shader material 9)
+  const rbox=(x,z,w,d,y0,y1,col,seed,solid)=>{const c=Math.min(w,d)*0.13;
+    bx(x-w/2,y0,z-d/2+c,x+w/2,y1,z+d/2-c,col,9,seed,solid);bx(x-w/2+c,y0,z-d/2,x+w/2-c,y1,z+d/2,col,9,seed,solid);bx(x-w/2+c*.4,y0,z-d/2+c*.4,x+w/2-c*.4,y1,z+d/2-c*.4,col,9,seed,false);};
+  const ring=(x,z,w,d,y,t,col,h=t)=>{bx(x-w/2,y,z-d/2,x+w/2,y+h,z-d/2+t,col,6);bx(x-w/2,y,z+d/2-t,x+w/2,y+h,z+d/2,col,6);bx(x-w/2,y,z-d/2+t,x-w/2+t,y+h,z+d/2-t,col,6);bx(x+w/2-t,y,z-d/2+t,x+w/2,y+h,z+d/2-t,col,6);};
+  const tree=(x,z)=>{const k=(cyR()*3)|0,s=0.8+cyR()*0.6;bx(x-.45*s,0.4,z-.45*s,x+.45*s,5*s,z+.45*s,[.85,.9,.97]);
+    if(k===0){bx(x-3.4*s,5*s,z-3.4*s,x+3.4*s,8*s,z+3.4*s,CYLEAF[0]);bx(x-2.5*s,8*s,z-2.5*s,x+2.5*s,10.6*s,z+2.5*s,CYLEAF[1]);bx(x-1.5*s,10.6*s,z-1.5*s,x+1.5*s,12.6*s,z+1.5*s,CYLEAF[2]);}
+    else if(k===1){for(let i=0;i<4;i++){const w=(4-i)*1.6*s;bx(x-w,4*s+i*2.6*s,z-w,x+w,4*s+(i+1)*2.6*s,z+w,CYLEAF[i%3]);}}
+    else{bx(x-2.6*s,5*s,z-2.6*s,x+2.6*s,10.4*s,z+2.6*s,[.3,.75,1],6);bx(x-3.4*s,6.6*s,z-3.4*s,x+3.4*s,8.8*s,z+3.4*s,[.2,.55,.95],6);}};
+  // ---- towers ----
+  const bridges=[];
+  const tower=(x,z,w,d,H,flat)=>{
+    const seed=cyR(),col=CYPAL[(cyR()*CYPAL.length)|0],big=H>=50,ph=big?Math.min(14,H*0.12):0,tiers=H>230?3:H>100?2:1,fr=tiers===3?[.42,.74,1]:tiers===2?[.62,1]:[1];
+    if(big){rbox(x,z,w+8,d+8,0,ph,[.88,.93,.99],seed,true);ring(x,z,w+8.6,d+8.6,ph-0.2,0.5,CYGL);}
+    let y=ph,cw=w,cd=d;
+    for(let k=0;k<tiers;k++){const top=k===tiers-1?H:ph+(H-ph)*fr[k];rbox(x,z,cw,cd,y,top,col,(seed+k*0.13)%1,true);if(k<tiers-1)ring(x,z,cw+0.8,cd+0.8,top-0.6,0.9,k%2?CYGL2:CYGL);y=top;cw*=0.8;cd*=0.8;}
+    const tw=cw/0.8,td=cd/0.8,r=cyR();
+    if(flat){bx(x-tw*0.42,H,z-td*0.42,x+tw*0.42,H+0.5,z+td*0.42,[.12,.2,.38],0,0,true);ring(x,z,tw*0.84,td*0.84,H+0.5,0.8,CYGL2,0.5);ring(x,z,tw*0.5,td*0.5,H+0.5,0.8,CYGL,0.5);ring(x,z,tw*0.16,td*0.16,H+0.5,0.8,CYGL2,0.5);}
+    else if(r<0.35){const a=12+cyR()*30;bx(x-.6,H,z-.6,x+.6,H+a,z+.6,[.9,.95,1]);bx(x-1,H+a,z-1,x+1,H+a+2,z+1,CYGL,6);}
+    else if(r<0.6){for(const sx of [-1,1])for(const sz of [-1,1])bx(x+sx*(tw/2-2)-.6,H,z+sz*(td/2-2)-.6,x+sx*(tw/2-2)+.6,H+7,z+sz*(td/2-2)+.6,CYGL,6);ring(x,z,tw+0.4,td+0.4,H,0.6,CYGL2);}
+    else if(r<0.8&&tw>=40)ring(x,z,tw*0.7,td*0.7,H,0.8,CYGL2);
+    else ring(x,z,tw+0.4,td+0.4,H,0.6,CYGL);
+    return {x,z,w,d,H,y0:16,y1:ph+(H-ph)*fr[0]-8};
+  };
+  // ---- parks, pads, low-rises, the plaza ----
+  const park=(cx,cz)=>{bx(cx-54,0,cz-54,cx+54,0.4,cz+54,[.42,.72,.7]);const px=cx+(cyR()-0.5)*40,pz=cz+(cyR()-0.5)*40;bx(px-17,0.4,pz-12,px+17,0.8,pz+12,[.14,.6,.92],6);
+    for(let i=0;i<14;i++){const x=cx+(cyR()-0.5)*98,z=cz+(cyR()-0.5)*98;if(Math.abs(x-px)<22&&Math.abs(z-pz)<17)continue;tree(x,z);}
+    for(const s of [-1,1])bx(cx+s*50-.3,0.4,cz-54,cx+s*50+.3,1.0,cz+54,CYGL2,6);};
+  const pad=(cx,cz)=>{bx(cx-50,0,cz-50,cx+50,1.4,cz+50,[.86,.92,1],0,0,true);ring(cx,cz,92,92,1.4,0.9,CYGL,0.7);ring(cx,cz,62,62,1.4,0.9,CYGL2,0.7);ring(cx,cz,30,30,1.4,0.9,CYGL,0.7);
+    bx(cx-9,1.4,cz-13,cx-6,2.1,cz+13,CYGL2,6);bx(cx+6,1.4,cz-13,cx+9,2.1,cz+13,CYGL2,6);bx(cx-9,1.4,cz-1.5,cx+9,2.1,cz+1.5,CYGL2,6);
+    for(const sx of [-1,1])for(const sz of [-1,1]){bx(cx+sx*46-1,1.4,cz+sz*46-1,cx+sx*46+1,8,cz+sz*46+1,[.9,.95,1]);bx(cx+sx*46-1.4,8,cz+sz*46-1.4,cx+sx*46+1.4,9.6,cz+sz*46+1.4,CYGL,6);}
+    if(cyR()<0.7){const sx=cx+(cyR()-0.5)*40,sz=cz+(cyR()-0.5)*40,sd=cyR();rbox(sx,sz,22,9,4,8.5,[.93,.96,1],sd,false);bx(sx-12,4.4,sz-1,sx+12,5,sz+1,[.62,.78,.98]);bx(sx-6,2.6,sz-3,sx+6,4,sz+3,CYGL,6);}};
+  const lowrise=(cx,cz)=>{const n=3+((cyR()*3)|0);for(let i=0;i<n;i++){const w=28+cyR()*18,d=28+cyR()*18,x=cx+(cyR()-0.5)*(100-w),z=cz+(cyR()-0.5)*(100-d);tower(x,z,w,d,10+cyR()*34);}};
+  // ---- the ground: one tile per cell, avenues with glowing curbs, boulevard dashes ----
+  const aw=k=>k%2===0?20:15; // half width of the avenue on line k
+  for(let i=0;i<20;i++)for(let j=0;j<20;j++){
+    const cx=(i-9.5)*CYG,cz=(j-9.5)*CYG,x0=cx-75,x1=cx+75,z0=cz-75,z1=cz+75,kl=i-10,kr=i-9,kb=j-10,kf=j-9; // the avenue lines around this cell
+    bx(x0,-1,z0,x1,0,z1,[.5,.62,.82]);
+    if(Math.abs(cx)<165&&Math.abs(cz)<165)continue; // the plaza has its own floor
+    const AV=[.07,.1,.2],hl=aw(kl),hr=aw(kr),hb=aw(kb),hf=aw(kf);
+    bx(x0,0,z0,x0+hl,0.3,z1,AV);bx(x1-hr,0,z0,x1,0.3,z1,AV);bx(x0,0,z0,x1,0.3,z0+hb,AV);bx(x0,0,z1-hf,x1,0.3,z1,AV);
+    bx(x0+hl,0.3,z0+hb,x0+hl+0.6,1.0,z1-hf,CYGL,6);bx(x1-hr-0.6,0.3,z0+hb,x1-hr,1.0,z1-hf,CYGL,6);bx(x0+hl,0.3,z0+hb,x1-hr,1.0,z0+hb+0.6,CYGL,6);bx(x0+hl,0.3,z1-hf-0.6,x1-hr,1.0,z1-hf,CYGL,6);
+    for(let q=0;q<5;q++){const t=-75+15+q*30; // the dashes down the boulevards' centre lines
+      if(kl%2===0)bx(x0-0.4,0.3,cz+t-5,x0+0.4,0.8,cz+t+5,CYGL2,6);if(kb%2===0)bx(cx+t-5,0.3,z0-0.4,cx+t+5,0.8,z0+0.4,CYGL2,6);}
+  }
+  // ---- the blocks ----
+  const towers=new Map();
+  for(let i=0;i<20;i++)for(let j=0;j<20;j++){
+    const cx=(i-9.5)*CYG,cz=(j-9.5)*CYG;if(Math.abs(cx)<165&&Math.abs(cz)<165)continue;
+    if(i===10&&j===0){towers.set(i*20+j,tower(cx,cz,90,90,150,true));continue;} // the arrival tower
+    const dist=Math.hypot(cx,cz),core=clamp(1-dist/1900,0,1),r=cyR(),ring1=Math.abs(cx)<300&&Math.abs(cz)<300;
+    if(r<(ring1?0.5:0.09)){park(cx,cz);continue;}if(!ring1&&r<0.15){pad(cx,cz);continue;}if(!ring1&&r<0.22+(core<0.3?0.12:0)){lowrise(cx,cz);continue;}
+    const n=(cyR()<0.6)?1:(cyR()<0.62?2:4),base=lerp(40,390,Math.pow(core,1.05)),land=cyR()<0.1?1.5:1;let main=null;
+    const mk=(x,z,w,d)=>{const H=clamp(base*(0.55+cyR()*0.6)*land,36,420),t=tower(x,z,w,d,H);if(!main||H>main.H)main=t;};
+    if(n===1)mk(cx,cz,58+cyR()*40,58+cyR()*40);
+    else if(n===2){const ax=cyR()<0.5;for(const s of [-1,1]){const w=36+cyR()*14,d=36+cyR()*14;mk(cx+(ax?s*27:0),cz+(ax?0:s*27),w,d);}}
+    else for(const sx of [-1,1])for(const sz of [-1,1])mk(cx+sx*26,cz+sz*26,34+cyR()*12,34+cyR()*12);
+    towers.set(i*20+j,main);
+  }
+  // ---- sky bridges: across the odd avenues, between the main towers of two cells ----
+  for(let i=0;i<20;i++)for(let j=0;j<20;j++){
+    const A=towers.get(i*20+j);if(!A)continue;
+    for(const [di,dj] of [[1,0],[0,1]]){const ni=i+di,nj=j+dj;if(ni>19||nj>19)continue;const B=towers.get(ni*20+nj);if(!B)continue;
+      const line=di?i-9:j-9;if(line%2===0||cyR()>0.42)continue;
+      const top=Math.min(A.y1,B.y1);if(top<44)continue;const y=Math.round((30+cyR()*(top-30))/6)*6,sd=cyR();
+      if(di){const z0=Math.max(A.z-A.d/2,B.z-B.d/2)+4,z1=Math.min(A.z+A.d/2,B.z+B.d/2)-4;if(z1-z0<8)continue;const zc=(z0+z1)/2,hw=Math.min(3.5,(z1-z0)/2),xa=A.x+A.w/2-1,xb=B.x-B.w/2+1;
+        bx(xa,y,zc-hw,xb,y+7,zc+hw,[.9,.95,1],9,sd,true);bx(xa,y+7,zc-hw+.5,xb,y+7.5,zc+hw-.5,CYGL,6);bx(xa,y-0.5,zc-hw+.5,xb,y,zc+hw-.5,CYGL2,6);}
+      else{const x0=Math.max(A.x-A.w/2,B.x-B.w/2)+4,x1=Math.min(A.x+A.w/2,B.x+B.w/2)-4;if(x1-x0<8)continue;const xc=(x0+x1)/2,hw=Math.min(3.5,(x1-x0)/2),za=A.z+A.d/2-1,zb=B.z-B.d/2+1;
+        bx(xc-hw,y,za,xc+hw,y+7,zb,[.9,.95,1],9,sd,true);bx(xc-hw+.5,y+7,za,xc+hw-.5,y+7.5,zb,CYGL,6);bx(xc-hw+.5,y-0.5,za,xc+hw-.5,y,zb,CYGL2,6);}}
+  }
+  // ---- the plaza ----
+  {const F=[.52,.68,.94];for(const sx of [-1,1])for(const sz of [-1,1])bx(sx>0?0:-165,0,sz>0?0:-165,sx>0?165:0,0.4,sz>0?165:0,F);
+    for(const r of [75,100,125,150])ring(0,0,r*2,r*2,0.4,0.7,r%50?CYGL:CYGL2,0.5);
+    for(const s of [-1,1]){bx(s*10-0.4,0.4,-165,s*10+0.4,1.0,-52,CYGL,6);bx(s*14-0.3,0.4,-165,s*14+0.3,0.9,-52,CYGL2,6);}
+    for(const [sx,sz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){const x=sx*105,z=sz*105;bx(x-13,0.4,z-13,x+13,1.6,z+13,[.9,.95,1],0,0,true);bx(x-11,1.6,z-11,x+11,2.0,z+11,[.2,.7,1],6);bx(x-1.2,2,z-1.2,x+1.2,9,z+1.2,[.9,.95,1]);bx(x-1.8,9,z-1.8,x+1.8,10.4,z+1.8,CYGL,6);
+      const px=sx*62,pz=sz*62;bx(px-1,0.4,pz-1,px+1,38,pz+1,[.85,.92,1]);bx(px-1.6,38,pz-1.6,px+1.6,41,pz+1.6,CYGL,6);bx(px-1.4,20,pz-1.4,px+1.4,21,pz+1.4,CYGL2,6);}
+    for(let k=0;k<20;k++){const a=k*TAU/20+0.1,x=Math.cos(a)*140,z=Math.sin(a)*140;if(Math.abs(x)<24&&z<0)continue;tree(x,z);}}
+  // ---- the Apex Spire and its entrance ----
+  {const W2=[.95,.97,1],sd=0.62,PW=-CYARCH.z0,Z0=CYARCH.z0,Z1=CYARCH.z1;
+    bx(-PW,0,-PW,-10,40,PW,W2,9,sd,true);bx(10,0,-PW,PW,40,PW,W2,9,sd,true);bx(-10,0,Z1,10,40,PW,W2,9,sd,true);
+    const st=[[14,17,8.5],[17,19,6.5],[19,20.2,4]];
+    for(const [a,b,e] of st)for(const s of [-1,1])bx(s>0?e:-10,a,Z0,s>0?10:-e,b,Z1,W2,0,0,true);
+    bx(-10,20.2,Z0,10,40,Z1,W2,9,sd,true);
+    for(const [a,b,e] of [[0,14,10],...st])for(const s of [-1,1])bx(s>0?e-0.4:-e,a,Z0,s>0?e:-e+0.4,b,Z1,CYGL,6); // glowing walls of the passage
+    bx(-4,19.8,Z0,4,20.2,Z1,CYGL2,6);for(const s of [-1,1])bx(s>0?8.2:-9,0.4,Z0,s>0?9:-8.2,0.9,Z1,CYGL2,6);
+    for(let k=0;k<10;k++)bx(-10,k*2,Z1-0.5,10,k*2+2,Z1-0.1,mix3([.3,.8,1],[.85,.97,1],k/9),6); // the light gate's wall (drawn over by cyDraw)
+    for(const s of [-1,1])bx(s*10-(s>0?0:1.2),0,Z0-0.4,s*10+(s>0?1.2:0),14,Z0,CYGL,6); // the front frame
+    bx(-26,23,Z0-0.5,26,24.2,Z0,CYGL2,6);bx(-PW+8,38.4,Z0-0.5,PW-8,40,Z0,CYGL,6);ring(0,0,PW*2+0.8,PW*2+0.8,39.4,1.2,CYGL,1.2);
+    const tiers=[[96,40,170],[72,170,320],[52,320,470],[30,470,560]];
+    for(const [w,y0,y1] of tiers){rbox(0,0,w,w,y0,y1,W2,sd,true);ring(0,0,w+1.2,w+1.2,y1-2,2,CYGL,2);
+      for(const s of [-1,1]){bx(-1,y0+4,s*w/2-(s>0?0:.15),1,y1-4,s*w/2+(s>0?.15:0),CYGL,6);bx(s*w/2-(s>0?0:.15),y0+4,-1,s*w/2+(s>0?.15:0),y1-4,1,CYGL,6);}}
+    bx(-3,560,-3,3,600,3,W2,0,0,true);bx(-1.4,600,-1.4,1.4,612,1.4,CYGL,6);for(const y of [570,584])ring(0,0,7,7,y,0.8,CYGL2,0.8);}
+  // ---- bake: one mesh per region, the colliders into the lookup grid, the shield's walls ----
+  for(const r of geos){if(!r.g.idx.length)continue;Z.regions.push({mesh:r.g.mesh(),x0:r.x0+ox,x1:r.x1+ox,z0:r.z0+oz,z1:r.z1+oz,y0:-1,y1:r.y1});}
+  const sg=new Geo(),T=1,Y=CYTOP,sc=[1,1,1];
+  sg.box(-CYH-T+ox,0,-CYH+oz,-CYH+ox,Y,CYH+oz,sc,10);sg.box(CYH+ox,0,-CYH+oz,CYH+T+ox,Y,CYH+oz,sc,10);sg.box(-CYH+ox,0,-CYH-T+oz,CYH+ox,Y,-CYH+oz,sc,10);sg.box(-CYH+ox,0,CYH+oz,CYH+ox,Y,CYH+T+oz,sc,10);sg.box(-CYH+ox,Y,-CYH+oz,CYH+ox,Y+T,CYH+oz,sc,10);
+  Z.shield=sg.mesh();zoneBake(Z);
+  // ---- the flying cars: lanes along the boulevards, at several heights ----
+  const lines=[-300,300,-600,600,-300,300,-900,900,-1200,1200,-600,600],ys=[18,26,36,48,62,78,100,128,160,200],cols=[[.95,.97,1],[.95,.97,1],[.7,.85,1],[.55,.78,1]];
+  for(let n=0;n<120;n++){const dir=n%2?1:-1,ax=((n>>1)%2),line=lines[((n*5)>>1)%lines.length];
+    CY.cars.push({ax,line,off:dir*9,y:ys[(n*7)%ys.length]+cyR()*4,dir,v:34+cyR()*40,t:(cyR()-0.5)*2900,col:cols[(cyR()*cols.length)|0],tr:cyR()<0.5?[.3,.85,1]:[.7,.8,1]});}
+  CY.stats.boxes=nb;CY.stats.cols=Z.cols.length;CY.stats.ms=Math.round(performance.now()-t0);
+}
+// ---- the minimap ----
+function cyPlan(c){
+  c.fillStyle='#1b3a78';for(let k=-9;k<=9;k++){const h=k%2?15:20;c.fillRect(k*CYG-h,-CYH,h*2,2*CYH);c.fillRect(-CYH,k*CYG-h,2*CYH,h*2);}
+  c.fillStyle='#2f66bb';c.fillRect(-165,-165,330,330);c.fillStyle='#eaf6ff';c.fillRect(-60,-60,120,120);c.fillStyle='#3a9cff';c.fillRect(-10,-62,20,4);
+  c.strokeStyle='#5ab8ff';c.lineWidth=7;c.strokeRect(-CYH,-CYH,2*CYH,2*CYH);
+}
+function cyMarks(plot,c){
+  const q=plot(CYO.x,CYO.z,true);if(q){c.fillStyle='#eaf6ff';c.strokeStyle='#3a9cff';c.lineWidth=3;c.beginPath();for(let k=0;k<6;k++){const a=k*TAU/6;c.lineTo(q[0]+Math.cos(a)*9,q[1]+Math.sin(a)*9);}c.closePath();c.fill();c.stroke();}
+  for(const d of CY.drones){if(!d.alive)continue;const p=plot(d.pos.x,d.pos.z,false);if(!p)continue;c.fillStyle=d.target?'#ff5a5a':'#5cd0ff';c.beginPath();c.arc(p[0],p[1],4,0,TAU);c.fill();}
+}
+// ---- life: citizens on the plaza, police drones on patrol ----
+const CYSHIRT=['#f4f8ff','#cfe6ff','#7fb8ff','#4a90e8','#bfefff','#e6e9ff'].map(c4),CYPANTS=['#e9eef7','#9fb4d6','#5d7cb0','#dfe9f5'].map(c4);
+function cyFolk(){
+  for(let t=0;t<20;t++){const a=rr(0,TAU),r=rr(70,150),x=CYO.x+Math.cos(a)*r,z=CYO.z+Math.sin(a)*r;if(inBuilding(x,1,z,1.5)||inBuilding(x,3,z,1.5))continue;
+    const h=spawnHuman('civilian',x,z,{path:{u:0,dir:1}});h.zid='cyber';h.state='cwalk';h.look={shirt:pick(CYSHIRT),pants:pick(CYPANTS),skin:pick(SKINS),hat:null};h.cwg=null;h.cwt=rr(0,3);CY.folks.push(h);return;}
+}
+function cyFolkUpdate(dt){
+  for(let i=CY.folks.length-1;i>=0;i--){const h=CY.folks[i];if(!humans.includes(h)){CY.folks.splice(i,1);continue;}
+    if(h.state==='walk'||h.state==='return')h.state='cwalk'; // (the city's paths mean nothing here)
+    updateHuman(h,dt);
+    if(h.state==='cwalk'&&h.alive&&!h.air&&!h.held&&!h.rag&&!(h.stun>0)&&!(h.downed>0)){
+      if(!h.cwg||Math.hypot(h.cwg.x-h.pos.x,h.cwg.z-h.pos.z)<1.4){h.moving=0;h.cwt-=dt;if(h.cwt<=0){h.cwt=rr(1,4);const a=rr(0,TAU),r=rr(70,150),x=CYO.x+Math.cos(a)*r,z=CYO.z+Math.sin(a)*r;h.cwg=inBuilding(x,1,z,1.5)?null:{x,z};}}
+      else moveTo(h,h.cwg.x,h.cwg.z,h.walk,dt);}}
+  for(let k=0;k<2&&CY.folks.length<26&&state==='play';k++)cyFolk();
+}
+function cyDroneSpawn(){
+  const a=rr(0,TAU),r=rr(120,500),d=spawnDrone(CYO.x+Math.cos(a)*r,rr(22,40),CYO.z+Math.sin(a)*r,'cyberpol',null);
+  removeFrom(drones,d);d.zid='cyber';d.faction='police';d.name='Police drone';d.hp=d.maxHp=110+save.level*3;d.cyd=true;d.goal=null;CY.drones.push(d);
+  const od=d.onDefeat;d.onDefeat=src=>{removeFrom(CY.drones,d);CY.droneT=30;od(src);}; // (the city's drone list isn't used: this one is drawn and run here)
+  return d;
+}
+function cyPatrol(){const L=pick([-450,-300,-150,150,300,450]),t=rr(-520,520),ax=Math.random()<0.5;return {x:CYO.x+(ax?L:t),y:rr(20,44),z:CYO.z+(ax?t:L),sp:rr(13,20)};}
+function cyDroneUpdate(dt){
+  for(let i=CY.drones.length-1;i>=0;i--){const d=CY.drones[i];if(!d.alive){CY.drones.splice(i,1);continue;}
+    if(d.target&&(!validTarget(d.target)||Math.hypot(d.target.pos.x-d.pos.x,d.target.pos.z-d.pos.z)>170))d.target=null;
+    d.scanT=99; // the city drones hunt heroes; police drones only answer attacks
+    if(d.target)d.goal=null;else if(!d.goal||Math.hypot(d.goal.x-d.pos.x,d.goal.y-d.pos.y,d.goal.z-d.pos.z)<8)d.goal=cyPatrol();
+    updateDrone(d,dt);}
+  CY.droneT-=dt;if(CY.drones.length<5&&CY.droneT<=0){CY.droneT=30;cyDroneSpawn();}
+}
+// ---- the shield: nothing leaves the planet ----
+function cyShield(dt){
+  if(P.dead||cutLocked())return;
+  const o=CYO,lx=P.pos.x-o.x,lz=P.pos.z-o.z,ty=CYTOP-P.height-(P.pos.y-o.y);
+  const F=[[1,0,0,CYB-lx],[-1,0,0,CYB+lx],[0,0,1,CYB-lz],[0,0,-1,CYB+lz],[0,1,0,ty]]; // outward normal, distance to the limit
+  let near=1e9;
+  for(const f of F){const d=f[3];if(d<near)near=d;if(d>=60)continue;
+    const s=1-Math.max(d,0)/60,vo=P.vel.x*f[0]+P.vel.y*f[1]+P.vel.z*f[2];
+    if(vo>0){const k=Math.min(1,s*s*dt*5);P.vel.x-=f[0]*vo*k;P.vel.y-=f[1]*vo*k;P.vel.z-=f[2]*vo*k;}
+    const push=s*s*s*50*dt;P.pos.x-=f[0]*push;P.pos.y-=f[1]*push;P.pos.z-=f[2]*push;}
+  if(near<30&&!CY.said){CY.said=true;toast("The planet's shield won't let you leave",'A wall of blue light holds this world in','cyan');}
+  if(near<3&&time-CY.zapT>1.1){CY.zapT=time;addShake(0.22);SFX.tone('sine',420,140,0.3,0.07);burst(P.pos.x,P.pos.y+1.3,P.pos.z,14,6,0.5,[[.3,.7,1],[.7,.9,1]],1.2,0,1.5);}
+}
+// ---- entering the world ----
+function cyEnter(Z){
+  CY.on=true;CY.said=false;CY.enterT=time;CY.objT=0;CY.droneT=0;zoneRet={x:SPAWNS[0][0],y:0,z:SPAWNS[0][1],yaw:SPAWNS[0][2],fly:false}; // (the way back, for the next phase: the city's spawn)
+  cyEnv();for(let k=0;k<80&&CY.folks.length<26;k++)cyFolk();while(CY.drones.length<5)cyDroneSpawn();
+  if(!CY.intro)cyObjective(true);
+}
+function cyLeave(Z){for(const h of CY.folks.slice())removeActor(h);CY.folks.length=0;for(const d of CY.drones.slice())removeActor(d);CY.drones.length=0;objective(null);objectiveMark(null);CY.on=false;}
+function cyObjective(force){
+  const S=save.story,want=S.cyber>=2?'Climb the Apex Spire':"Fly to the Apex Spire's entrance";
+  if(force||OBJ.text!==want||!OBJ.mark)objective(want);if(force||!OBJ.mark)objectiveMark(CYO.x,10,CYO.z+CYARCH.z0-2,'Entrance');
+}
+function cyUpdate(Z,dt){
+  cyEnv();
+  for(const c of CY.cars){c.t+=c.v*c.dir*dt;if(c.t>1460)c.t=-1460;else if(c.t<-1460)c.t=1460;}
+  cyFolkUpdate(dt);cyDroneUpdate(dt);cyShield(dt);
+  const S=save.story;
+  if(CY.intro&&!CUT&&time-(CY.introT||0)>16){CY.intro=false;const e=$('cytitle');if(e)e.classList.remove('on');} // an interrupted intro (a room opened) must not leave the objective off
+  CY.objT-=dt;if(CY.objT<=0){CY.objT=1.5;if(!CY.intro&&!CUT&&!ASK&&!ZF.phase)cyObjective(false);}
+  if(!P.dead&&!cutLocked()&&time-CY.enterT>6&&S.tower<2){const lx=P.pos.x-CYO.x,lz=P.pos.z-CYO.z,ly=P.pos.y-CYO.y;if(Math.abs(lx)<9&&lz>CYARCH.z0+6&&lz<CYARCH.z1+2&&ly<21&&ly>-1)towerEnter();}
+}
+// the entrance: a stub for the next phase (the tower's three floors and the boss). It marks the story and asks for the climb.
+function towerEnter(){
+  const S=save.story;CY.enterT=time;
+  toast('The doors open...','The Apex Spire is waiting. Climb it.','cyan');SFX.chime();flashWhite=Math.max(flashWhite,0.55);
+  if(S.cyber<2){S.cyber=2;persist();}
+  objective('Climb the Apex Spire');
+}
+// ---- drawing: cars, drones, the gate, fountains, beacons, the shield ----
+function cyCarDraw(c,t){
+  let x,z,yaw;if(c.ax===0){x=CYO.x+c.line+c.off;z=CYO.z+c.t;yaw=c.dir>0?0:Math.PI;}else{z=CYO.z+c.line+c.off;x=CYO.x+c.t;yaw=c.dir>0?Math.PI/2:-Math.PI/2;}
+  if(inView(x,z,1800,60)<0)return;const y=c.y+Math.sin(t*1.6+c.v)*0.4,sx=Math.sin(yaw),cz=Math.cos(yaw),root=at(x,y,z,Math.sin(t*1.3+c.v)*0.03,yaw,Math.sin(t*1.1+c.v)*0.04),d2=(x-camPos.x)**2+(z-camPos.z)**2,K=1.7,tr=c.tr;
+  queue(MESH.box,child(root,0,0,0,0,0,0,2.0*K,0.55*K,4.6*K),c.col,0,0.12);                    // hull
+  queue(MESH.box,child(root,0,-0.05*K,2.5*K,-0.35,0,0,1.7*K,0.4*K,1.6*K),c.col,0,0.12);      // sloping nose
+  queue(MESH.sphere,child(root,0,0.38*K,-0.1*K,0,0,0,0.85*K,0.45*K,1.5*K),[.1,.35,.85,1],0,0.55); // canopy
+  if(d2<700*700){for(const s of [-1,1]){queue(MESH.box,child(root,s*1.15*K,0.05*K,-1.7*K,0,0,-s*0.12,1.1*K,0.1*K,1.5*K),[.5,.72,1,1],0);queue(MESH.glowBox,child(root,s*0.75*K,0.05*K,-2.35*K,0,0,0,0.5*K,0.2*K,0.12),[.9,1,1,1],0);}
+    queue(MESH.glowBox,child(root,0,0.28*K,-2.3*K,0,0,0,1.1*K,0.1*K,0.1),tr.concat(1),0);}
+  queue(MESH.glowSphere,child(root,0,-0.42*K,0,0,0,0,0.95*K,0.2*K,2.1*K),[tr[0],tr[1],tr[2],0.55],F_ADD); // the lift glow underneath
+  if(d2>260*260)queue(MESH.glowSphere,at(x,y,z,0,0,0,7,4,7),[tr[0],tr[1],tr[2],0.2],F_ADD);            // seen from far away: a soft light so it still reads
+  const rx=x-sx*3.4*K,rz=z-cz*3.4*K;queue(MESH.glowBox,M4.beam(tmpM(),rx,y,rz,rx-sx*90,y,rz-cz*90,1.2),[tr[0],tr[1],tr[2],0.3],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),rx,y,rz,rx-sx*42,y,rz-cz*42,0.32),[1,1,1,0.5],F_ADD);
+}
+function cyDroneDraw(d,t){
+  if(!d.alive||inView(d.pos.x,d.pos.z,600)<0)return;const bob=Math.sin(t*2.4+d.seed)*0.3,root=at(d.pos.x,d.pos.y+bob,d.pos.z,Math.sin(t*2+d.seed)*0.08,d.yaw,Math.cos(t*2.2+d.seed)*0.08),hot=d.target?1:0;
+  queue(MESH.sphere,child(root,0,0,0,0,0,0,1.5,0.8,1.5),[.93,.96,1,1],F_SH,d.flash);queue(MESH.sphere,child(root,0,-0.35,0,0,0,0,1.2,0.4,1.2),[.5,.7,1,1],0,d.flash);
+  queue(MESH.ring,child(root,0,0.05,0,0,t*2,0,1.7,1,1.7),hot?[1,.3,.3,0.8]:[.3,.8,1,0.7],F_ADD);
+  queue(MESH.glowSphere,child(root,0,0,1.2,0,0,0,0.4,0.4,0.4),hot?[1,.25,.2,1]:[.4,.95,1,1],0);
+  for(const s of [-1,1])queue(MESH.glowSphere,child(root,s*1.45,0.1,0,0,0,0,0.22,0.22,0.22),Math.sin(t*6+s*2+d.seed)>0?[1,1,1,1]:[.2,.5,1,1],0);
+  queue(MESH.glowSphere,child(root,0,0,0,0,0,0,2.4,1.2,2.4),hot?[1,.2,.2,0.07]:[.3,.8,1,0.06],F_ADD);
+}
+function cyDraw(Z){
+  const t=time,o=CYO;
+  if(Z.shield)queue(Z.shield,ID,WHITE,F_BL);
+  for(const c of CY.cars)cyCarDraw(c,t);
+  for(const d of CY.drones)cyDroneDraw(d,t);
+  // the light gate at the end of the entrance
+  {const gz=o.z+CYARCH.z1-0.7,open=save.story.cyber>=2,a=open?0.1:0.22;queue(MESH.box,at(o.x,o.y+9.9,gz,0,0,0,19.6,19.6,0.25),[.5,.9,1,a+0.05*Math.sin(t*3)],F_ADD);
+    for(let k=0;k<4;k++){const y=((t*5+k*5)%19.6);queue(MESH.glowBox,at(o.x,o.y+y,gz-0.2,0,0,0,19.4,0.35,0.15),[.8,.97,1,0.55*(1-y/19.6)],F_ADD);}
+    queue(MESH.tube,at(o.x,o.y+38,o.z+CYARCH.z0-8,0,0,0,6.5,76,6.5),[.4,.85,1,0.06+0.02*Math.sin(t*2)],F_ADD);queue(MESH.disc,at(o.x,o.y+0.5,o.z+CYARCH.z0-10,0,0,0,16,1,16),[.4,.85,1,0.14],F_ADD);}
+  // the Spire's beacon
+  queue(MESH.tube,at(o.x,o.y+756,o.z,0,0,0,9,288,9),[.35,.8,1,0.1+0.03*Math.sin(t*2)],F_ADD);queue(MESH.tube,at(o.x,o.y+756,o.z,0,0,0,3,288,3),[.7,.95,1,0.3],F_ADD);queue(MESH.glowSphere,at(o.x,o.y+606,o.z,0,0,0,14,14,14),[.5,.9,1,0.35],F_ADD);
+  // fountains and pylons on the plaza
+  for(const [sx,sz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){const x=o.x+sx*105,z=o.z+sz*105;if(inView(x,z,500,60)<0)continue;
+    for(let k=0;k<3;k++){const h=10+7*Math.sin(t*1.7+k*2+sx),w=2.4-k*0.5;queue(MESH.glowCyl,at(x,o.y+2+h/2,z,0,0,0,w,h,w),[.4,.85,1,0.16],F_ADD);}
+    queue(MESH.glowSphere,at(x,o.y+2.4,z,0,0,0,12,3,12),[.4,.85,1,0.18],F_ADD);
+    const px=o.x+sx*62,pz=o.z+sz*62;for(let k=0;k<3;k++){const y=o.y+8+((t*8+k*10)%32);queue(MESH.ring,at(px,y,pz,0,t,0,3.2,1,3.2),[.4,.9,1,0.8],F_ADD);}}
+  // landing pads breathe
+  queue(MESH.ring,at(o.x+CYAT.x,o.y+CYAT.y+0.8,o.z+CYAT.z,0,t*0.5,0,24+Math.sin(t*2),1,24+Math.sin(t*2)),[.5,.95,1,0.7],F_ADD);
+}
+// ---- the story: arriving, the title card, going back in after a reload ----
+function cyberArrive(){
+  const S=save.story;S.invasion=3;S.cyber=Math.max(S.cyber,1);persist();INV.ls=null;INV.state='idle';INV.fleet.length=0;objective(null);objectiveMark(null);
+  P.hp=maxHp();P.en=maxEn();CY.intro=true;CY.introT=time;flashWhite=1;
+  const go=()=>cyberIntro();
+  if(zone&&zone.id==='cyber')go();else if(!enterZone('cyber',CYAT,go)){CY.intro=false;}
+}
+function cyberIntro(){
+  const o=CYO,C={x:0,y:0,z:0},Lk={x:0,y:0,z:0};
+  const cam=k=>{const e=k*k*(3-2*k);C.x=o.x+lerp(-330,CYAT.x,e);C.y=o.y+lerp(360,CYAT.y+16,e);C.z=o.z+lerp(-1380,CYAT.z-26,e);return C;};
+  const look=k=>{const e=k*k*(3-2*k);Lk.x=o.x+lerp(260,0,e);Lk.y=o.y+lerp(190,300,e);Lk.z=o.z+lerp(-500,0,e);return Lk;};
+  cutscene({dur:5.5,fov:64,letterbox:true,text:'A world beyond ours',from:cam,to:cam,look,onEnd:cyberTitle});
+}
+function cyberTitle(){
+  const e=$('cytitle');if(e)e.classList.add('on');
+  later(3.2,()=>{if(e)e.classList.remove('on');CY.intro=false;if(inCyber())cyObjective(true);});
+}
+// loading a game that is past the jump but not past the tower: start here (the solar system is gone until the tower's boss is beaten)
+function cyberTick(dt){
+  const S=save.story;if(!S||S.cyber<1||S.cyber>2||S.tower>=2)return;
+  if(zone||CUT||ASK||ZF.phase||P.dead||state!=='play'||INV.ls||CY.intro||paused||Portal.inAd)return;
+  enterZone('cyber',S.cyber>=2?CYFRONT:CYAT);
+}
+function cyberRespawn(){
+  if(!inCyber())return false;
+  const o=CYO,s=save.story.cyber>=2?CYFRONT:CYAT;
+  P.dead=false;P.pos.set(o.x+s.x,o.y+s.y,o.z+s.z);P.vel.set(0,0,0);P.yaw=s.yaw;P.pitch=-0.12;P.flying=false;P.grounded=true;P.hp=maxHp();P.en=maxEn();P.stun=0;P.lastHit=-99;P.web=null;P.wall=null;camDist=8;projs.length=0;
+  $('dead').hidden=true;flashWhite=Math.max(flashWhite,0.4);toast('Back on your feet','The city has no way out, and neither do you','cyan');Portal.midgame();return true;
+}
+// ---- test hooks ----
+function cyberGoArch(){
+  const o=CYO;if(!inCyber()){enterZone('cyber',CYFRONT);return true;}
+  P.pos.set(o.x+CYFRONT.x,CYFRONT.y,o.z+CYFRONT.z);P.vel.set(0,0,0);P.yaw=CYFRONT.yaw;P.pitch=-0.05;return true;
+}
+function cyberStats(){return {boxes:CY.stats.boxes,cols:CY.stats.cols,buildMs:CY.stats.ms,regions:CYZ.regions?CYZ.regions.length:0,visible:CYZ.vis||0,cells:CYZ.grid?CYZ.grid.size:0,cars:CY.cars.length,drones:CY.drones.length,folks:CY.folks.length,tris:CYZ.regions?CYZ.regions.reduce((a,r)=>a+r.mesh.n/3,0):0};}
 // ================================================================
 // HUD icon bar and the move list
 // ================================================================
@@ -10347,7 +10739,7 @@ function updatePlayer(dt){
   if(P.lantern&&!oathFree&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // typing the oath: suspended where you are, construct and all (saying it leaves you free)
   spiderTick(dt);webAssist();
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
-  const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1);
+  const slowMul=(1-(P.slow||0))*(P.metal?1-pstat('metalSkin','slow'):1)*(P.stun>0?0:1)*(zone&&zone.speed||1); // zone.speed: the cyber world is 1.3x faster
   const wasGrounded=P.grounded,vyBefore=P.vel.y,phasing=(P.alien&&P.alien.phase>0)||P.phasing;
   P.speeding=false;swimCheck(shift,phasing);
   if(P.wallRun)wallRunStep(dt,inF,inR);
@@ -10407,7 +10799,7 @@ function updatePlayer(dt){
   }
   // free roam: the ocean goes on past the city and nothing pulls you back (only the edge of the solar system stops you)
   P.pos.x=clamp(P.pos.x,-SPACE.lim,SPACE.lim);P.pos.z=clamp(P.pos.z,-SPACE.lim,SPACE.lim);
-  if(!P.flying&&P.vel.y>0&&P.pos.y>CEIL&&P.pos.y-P.vel.y*dt<=CEIL){P.pos.y=CEIL;P.vel.y=0;} // without flight you can't jump or get thrown out of the sky
+  if(!zone&&!P.flying&&P.vel.y>0&&P.pos.y>CEIL&&P.pos.y-P.vel.y*dt<=CEIL){P.pos.y=CEIL;P.vel.y=0;} // without flight you can't jump or get thrown out of the sky
   else if(P.pos.y>SPACE.lim){P.pos.y=SPACE.lim;P.vel.y=Math.min(P.vel.y,0);} // fliers can climb into space; letting go up there just drifts you back down
   if(!onIsland(P.pos.x,P.pos.z)&&P.grounded&&P.pos.y<-0.5&&Math.random()<0.3)emit(P.pos.x,-0.8,P.pos.z,rr(-2,2),rr(2,4),rr(-2,2),0.6,WATER[0],1,15,1);
   if(!wasGrounded&&P.grounded&&!P.flying){
@@ -10725,7 +11117,7 @@ function updateCamera(dt){
   }
   const fx=camF.x,fy=camF.y,fz=camF.z;let rx=-fz,rz=fx;const rl=Math.hypot(rx,rz)||1;rx/=rl;rz/=rl;camR.set(rx,0,rz);camU.set(-rz*fy,rz*fx-rx*fz,rx*fy);
   M4.lookAt(VIEW,camPos.x,camPos.y,camPos.z,camPos.x+fx,camPos.y+fy,camPos.z+fz,0,1,0);
-  {const hi=camPos.y>CEIL,cb=camBig();M4.perspective(PROJ,fov*Math.PI/180,W/H,Math.max(hi?clamp(camPos.y*0.002,0.3,4):0.3,Math.min(cb*0.02,400)),Math.max(hi?700000:invFarOn()?16000:4000,cb*400));}M4.mul(VP,PROJ,VIEW);
+  {const hi=camPos.y>CEIL&&!zone,cb=camBig();M4.perspective(PROJ,fov*Math.PI/180,W/H,Math.max(hi?clamp(camPos.y*0.002,0.3,4):0.3,Math.min(cb*0.02,400)),Math.max(hi?700000:invFarOn()?16000:4000,cb*400));}M4.mul(VP,PROJ,VIEW);
   const menu=state!=='play'&&!preview;
   const fxp=menu?0:P.pos.x,fzp=menu?0:P.pos.z,fyp=menu?0:Math.min(P.pos.y,120),ext=menu?520:170,tex=ext*2/SHADOW;
   const ld=env.ldir,cxs=Math.round(fxp/tex)*tex,czs=Math.round(fzp/tex)*tex;
@@ -11151,7 +11543,8 @@ function render(){
   gl.uniform3f(s.uFwd,camF.x,camF.y,camF.z);gl.uniform3f(s.uRight,camR.x,camR.y,camR.z);gl.uniform3f(s.uUp,camU.x,camU.y,camU.z);
   gl.uniform2f(s.uTan,th*W/H,th);gl.uniform3fv(s.uSunDir,env.sun);gl.uniform3fv(s.uZen,env.zen);gl.uniform3fv(s.uHor,env.hor);gl.uniform3fv(s.uSunCol,env.suncol);
   gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uTime,time);gl.uniform1f(s.uExpo,1.0);gl.uniform1f(s.uSpace,spaceK(camPos.y));
-  if(zone){gl.uniform1f(s.uNight,1);gl.uniform1f(s.uSpace,1);} // inside a zone the sky pass is only a field of stars (and only if the zone has windows)
+  gl.uniform1f(s.uCy,0);
+  if(zone){gl.uniform1f(s.uNight,1);gl.uniform1f(s.uSpace,1);if(zone.skyU)zone.skyU(s);} // inside a zone the sky pass is only a field of stars (and only if the zone has windows); a zone with skyU paints its own sky (the cyber world)
   if(!zone||zone.stars){gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);}
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);
@@ -11299,7 +11692,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   Portal,SFX,applyLook,rings,makeRemote,applyPresence,FLAG,updateTags,spawnMech,fireProj,mechPoint,get parks(){return typeof parks!=="undefined"?parks:null;},travStyle,setTravStyle,hasTravWheel,masteryLevel,PRESETS,get growTutOn(){return growTutOn;},respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play'){zonePlayerPre();updatePlayer(dt);zonePlayerPost();}updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);storyTick(dt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
-if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({growStep,ufoReward,rewind,boostMul,ufoBoost,REW,boostPanel,shiftMaster,stormAxe,ringInf,meterInf,sgVDur,sgVCd,ufoWebReel,skyAnchor,findAnchor,story:()=>save.story,storyAddActive:s=>{save.story.act+=+s||0;},ufoArrive:q=>ufoArrive(q===undefined?true:q),loadSave,enterZone,leaveZone,zone:()=>zone,askYesNo,cutscene,objective,objectiveMark,ufoTakeItem,UFO,UF,ualiens,ZONES,ZF,OBJ,get CUT(){return CUT;},get ASK(){return ASK;},storyTick,ufoLeave,ufoBeamUp,storyActiveNow,sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto,prismStart,destroyStart,destroyKey,destroyAvail,PR,get kathana(){return KA;},get korbs(){return KA.orbs;},kathanaWinStage1,kathanaStage2,kathanaLose,kathanaWin,qteWin,KQ,PF,get kperfect(){return PF.real;},worldUpgrade,humanSuper,superTick,invasionStart:q=>invBegin(q===undefined?true:q),invasionWave:n=>invWaveJump(n),invasionWin:q=>invWin(!!q),lightSpeed:lsStart,INV,get invaders(){return INV.list;},cyberArrive,invText,masteryInv,invMastery,invSpawn}));
+if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({growStep,ufoReward,rewind,boostMul,ufoBoost,REW,boostPanel,shiftMaster,stormAxe,ringInf,meterInf,sgVDur,sgVCd,ufoWebReel,skyAnchor,findAnchor,story:()=>save.story,storyAddActive:s=>{save.story.act+=+s||0;},ufoArrive:q=>ufoArrive(q===undefined?true:q),loadSave,enterZone,leaveZone,zone:()=>zone,askYesNo,cutscene,objective,objectiveMark,ufoTakeItem,UFO,UF,ualiens,ZONES,ZF,OBJ,get CUT(){return CUT;},get ASK(){return ASK;},storyTick,ufoLeave,ufoBeamUp,storyActiveNow,sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto,prismStart,destroyStart,destroyKey,destroyAvail,PR,get kathana(){return KA;},get korbs(){return KA.orbs;},kathanaWinStage1,kathanaStage2,kathanaLose,kathanaWin,qteWin,KQ,PF,get kperfect(){return PF.real;},worldUpgrade,humanSuper,superTick,invasionStart:q=>invBegin(q===undefined?true:q),invasionWave:n=>invWaveJump(n),invasionWin:q=>invWin(!!q),lightSpeed:lsStart,INV,get invaders(){return INV.list;},cyberArrive,invText,masteryInv,invMastery,invSpawn,cyberGoArch,cyberStats,towerEnter,CY,CYZ,cyberTick,cyberRespawn}));
 })();
 </script>
 </body>
