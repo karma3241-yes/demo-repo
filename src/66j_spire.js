@@ -1,7 +1,7 @@
 // ================================================================
 // The Apex Spire: three floors of cyber-enhanced fighters, the Sovereign, and the ending that gives the sky back
 // ================================================================
-// Flow: the entrance arch in the cyber world (66i_cyber.js) calls towerEnter(): story.tower=1, zoneHop to ZONES.spire (parked at z=160000). Floors stack 28 m apart (SPFY),
+// Flow: the entrance arch in the cyber world (66i_cyber.js) calls towerEnter(): story.tower=1, zoneHop to ZONES.spire (parked at z=12000). Floors stack 28 m apart (SPFY),
 // 120 x 120 m, 22 m clear height, glass outer walls (solid, never smashable) with a stylised skyline outside, partitions inside (smash:true: fast flight bursts through them).
 // Floor 1 Security Lobby (Gunner, Blade Dasher, Drone Handler), floor 2 Augment Labs (Phase Walker, Gravity Bender, Mirror Shield), floor 3 Throne Hall (a Speed-augmented and a
 // Titan-augmented champion, then the boss). Floors 1-2 run 3 waves each (never more than SPCAP alive; a handler's drones come on top). Clearing a floor saves story.tf (0..3) and
@@ -14,7 +14,7 @@
 // synthetic sun and moon dissolve, the real sky returns with the Moon, Earth and the planets as bodies in it, and the shield's ceiling is gone. travelTick (every frame, both
 // worlds): at full flight speed held 2 s high up (cyber y>600 / Earth in space) a wormhole (wormholeTo, 66h_invasion.js lsStart) carries you to the other world.
 // spireTick(dt) runs once per frame from storyTick with the REAL dt (the boss keeps moving while time is stopped); the AI uses dt*worldTimeK().
-const SPO={x:0,y:0,z:160000},SPW=60,SPH=22,SPFY=[0,28,56],SPLIFT=[{x:0,z:48},{x:0,z:-48}],SPCAP=10;
+const SPO={x:0,y:0,z:12000},SPW=60,SPH=22,SPFY=[0,28,56],SPLIFT=[{x:0,z:48},{x:0,z:-48}],SPCAP=10;
 const SPST=[{x:0,z:-52,yaw:Math.PI},{x:0,z:46,yaw:0},{x:0,z:-46,yaw:Math.PI}]; // where each floor starts (yaw PI faces +z)
 const SPWAVES=[[{gunner:2,dasher:1},{gunner:2,dasher:2,handler:1},{gunner:3,dasher:2,handler:1}],[{phase:2,bender:1,mirror:1},{phase:2,bender:1,mirror:2},{phase:2,bender:2,mirror:2}]];
 const SP={list:[],floor:1,wave:0,nw:1,pend:[],live:false,breath:0,spawnT:0,cleared:[false,false,false],open:false,fx:[],seen:{},objT:0,elite:0,bossT:-1,walls:[],cars:[],ride:false};

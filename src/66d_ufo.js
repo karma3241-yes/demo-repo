@@ -3,7 +3,7 @@
 // ================================================================
 // After 3 minutes of active play (save.story.act >= 180) a huge saucer descends over the city (an 8 s cutscene) and stays until you go in (save.story.ufo: 0 not
 // yet, 1 waiting, 2 item taken, 3 done). Fly up into the hole in its belly, or say yes to the popup (after 60 s, 15 s for heroes that can't fly) and be beamed up.
-// Inside (ZONES.ufo, parked at z=40000) are a hangar, corridors, four rooms with aliens (lab, engine room, holding cells, control deck) and a vault whose door opens
+// Inside (ZONES.ufo, parked at z=6000) are a hangar, corridors, four rooms with aliens (lab, engine room, holding cells, control deck) and a vault whose door opens
 // once all four rooms are cleared. The item on its pedestal depends on the hero (UFO_ITEMS); touching it saves save.story.item and calls ufoReward(id). Then you are
 // sent back above the city and the saucer flies off (5 s cutscene). The rewards live in 66e_boost.js (boostGranted); the Web Runner's reel is ufoWebReel below.
 const UFO={on:false,x:0,y:420,z:0,rot:0,mesh:null,waitT:0,waitMax:60,leaving:false,lift:null};
@@ -154,7 +154,7 @@ function ufoLeaveCut(){
 // A 200 x 200 m floor plan on a 2 m grid, local coordinates with the vault at (0,0) and the hangar to the south (+z). Every open rectangle becomes floor and a ceiling
 // (its own height), and 4 m thick walls grow around it in panels of up to 8 x 8 m (the panels are what fast flight smashes). The vault and the outer edge are not smashable.
 const UF={rooms:[],cleared:0,doorOpen:false,took:false,leaveT:-1,door:null,item:{x:0,y:4.6,z:0},pad:{x:0,z:76},spawnT:0};
-const UFZ={x:0,y:0,z:40000};
+const UFZ={x:0,y:0,z:6000}; // (zones are parked 6 to 15 km out, not further: vertices are float32, and past 65000 a coordinate is only good to 8 mm, which made close walls shimmer)
 const UFR=[ // [id, x0, x1, z0, z1, ceiling height, light colour, floor colour]
   ['hangar',-36,36,60,92,32,[.3,.85,1],'#2a3340'],['spine',-6,6,34,60,18,[.5,.55,1],'#1c2230'],['ante',-32,32,18,34,24,[.75,.45,1],'#262033'],
   ['c2',-50,-32,20,32,18,[.45,.55,1],'#1c2230'],['c3',32,50,20,32,18,[.45,.55,1],'#1c2230'],

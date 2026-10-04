@@ -771,7 +771,8 @@ void main(){
   if(mat>8.5&&mat<9.5){ // cyber tower (66i_cyber.js): a pale shell with glowing blue glass bands
     float side=1.0-step(0.5,abs(n.y));float u=abs(n.x)>0.5?vW.z:vW.x;float v=vW.y;
     float f=fract(v/4.2),fi=floor(v/4.2),cu=u/3.6,cf=fract(cu),ci=floor(cu);
-    float win=step(0.16,f)*step(f,0.8)*step(0.07,cf)*step(cf,0.93)*side*step(3.0,v);
+    float fwv=fwidth(v/4.2)*0.75+1e-4,fwu=fwidth(cu)*0.75+1e-4; // (fwidth of the unwrapped coordinate: fract() jumps at the wrap) anti-aliased window edges, so they don't crawl as you move
+    float win=smoothstep(0.16-fwv,0.16+fwv,f)*(1.0-smoothstep(0.8-fwv,0.8+fwv,f))*smoothstep(0.07-fwu,0.07+fwu,cf)*(1.0-smoothstep(0.93-fwu,0.93+fwu,cf))*side*step(3.0,v);
     float pk=1.0-smoothstep(0.2,0.55,max(fwidth(v)/4.2,fwidth(u)/3.6));win=mix(0.55*side*step(3.0,v),win,pk); // far away the bands blur into one even glass colour
     float hh=h31(vec3(fi,ci,vD.y*37.0));vec3 gc=mix(vec3(0.16,0.5,1.0),vec3(0.45,0.92,1.0),fract(vD.y*7.0)*0.7+0.15*hh);
     float dif=max(dot(n,uLDir),0.0);vec3 amb=mix(uGnd,uSky,n.y*0.5+0.5);vec3 shell=vC*uTint.rgb*(amb+uLCol*dif);
@@ -7560,7 +7561,7 @@ function askKey(e){
 // ================================================================
 // Zones: separate playable areas far from the city (the UFO interior now; the Kathana arena, the cyber world and the tower later)
 // ================================================================
-// The city is one fixed world, so every other place is a ZONE: a box-built area parked far away (the UFO at z=40000), entered with a fade.
+// The city is one fixed world, so every other place is a ZONE: a box-built area parked far away (the UFO at z=6000), entered with a fade.
 //   ZONES[id]={id,name,origin:{x,y,z},spawn:{x,y,z,yaw},build(),cols:[],mesh,mesh2,draw(),update(dt),enter(),leave(),rebuild(),mapMarks(plot,c),
 //              sky:[r,g,b],stars:bool,smash:bool,bounds:{x0,x1,z0,z1,y1},light:{dir,lcol,sky,gnd,fogC,fog:[near,far]},lights:[{x,y,z,r,c:[r,g,b]}],plan:[[x0,x1,z0,z1]]}
 //   zone = the current zone object or null (zone.id is its id). enterZone(id,at): fade out, teleport the player to origin+at ({x,y,z,yaw}, local coordinates), set zone,
@@ -7728,7 +7729,7 @@ function zoneMinimap(yaw){
 // ================================================================
 // After 3 minutes of active play (save.story.act >= 180) a huge saucer descends over the city (an 8 s cutscene) and stays until you go in (save.story.ufo: 0 not
 // yet, 1 waiting, 2 item taken, 3 done). Fly up into the hole in its belly, or say yes to the popup (after 60 s, 15 s for heroes that can't fly) and be beamed up.
-// Inside (ZONES.ufo, parked at z=40000) are a hangar, corridors, four rooms with aliens (lab, engine room, holding cells, control deck) and a vault whose door opens
+// Inside (ZONES.ufo, parked at z=6000) are a hangar, corridors, four rooms with aliens (lab, engine room, holding cells, control deck) and a vault whose door opens
 // once all four rooms are cleared. The item on its pedestal depends on the hero (UFO_ITEMS); touching it saves save.story.item and calls ufoReward(id). Then you are
 // sent back above the city and the saucer flies off (5 s cutscene). The rewards live in 66e_boost.js (boostGranted); the Web Runner's reel is ufoWebReel below.
 const UFO={on:false,x:0,y:420,z:0,rot:0,mesh:null,waitT:0,waitMax:60,leaving:false,lift:null};
@@ -7879,7 +7880,7 @@ function ufoLeaveCut(){
 // A 200 x 200 m floor plan on a 2 m grid, local coordinates with the vault at (0,0) and the hangar to the south (+z). Every open rectangle becomes floor and a ceiling
 // (its own height), and 4 m thick walls grow around it in panels of up to 8 x 8 m (the panels are what fast flight smashes). The vault and the outer edge are not smashable.
 const UF={rooms:[],cleared:0,doorOpen:false,took:false,leaveT:-1,door:null,item:{x:0,y:4.6,z:0},pad:{x:0,z:76},spawnT:0};
-const UFZ={x:0,y:0,z:40000};
+const UFZ={x:0,y:0,z:6000}; // (zones are parked 6 to 15 km out, not further: vertices are float32, and past 65000 a coordinate is only good to 8 mm, which made close walls shimmer)
 const UFR=[ // [id, x0, x1, z0, z1, ceiling height, light colour, floor colour]
   ['hangar',-36,36,60,92,32,[.3,.85,1],'#2a3340'],['spine',-6,6,34,60,18,[.5,.55,1],'#1c2230'],['ante',-32,32,18,34,24,[.75,.45,1],'#262033'],
   ['c2',-50,-32,20,32,18,[.45,.55,1],'#1c2230'],['c3',32,50,20,32,18,[.45,.55,1],'#1c2230'],
@@ -8276,14 +8277,14 @@ function boostTick(dt){
 // carousel (prismLook, called by sgLook), a ring of rainbow light (prismDraw), and the hotbar holds one skill, DESTROY (key 1, a big touch button).
 // Destroy: Prism form (no question), or every hero once save.story.ufo>=2 (Enter, a hotbar slot after V/Rewind, a touch button, with a yes/no popup).
 // destroyStart -> kathanaBegin: enterZone('void') into a pitch-black arena where only the hero is lit (about 2.5 s, a low rumble), then the light floods in: ZONES.void,
-// an endless all-white floor (local origin KAR at z=80000, soft wall of radius 500 m), Sun God for every hero with no timer (SG.src==='arena', you CAN be hurt, big
+// an endless all-white floor (local origin KAR at z=9000, soft wall of radius 500 m), Sun God for every hero with no timer (SG.src==='arena', you CAN be hurt, big
 // health pool: arenaHp=6) and a cutscene where Kathana, the Seer of All, rises. Stage 1: her body can't be hurt, her four orbs (actors kind 'korb') can; she slams the
 // ground (shockwave rings: jump or fly over), sweeps a gaze beam across the floor, and every orb fires slow homing bolts (actors 'kshot', any hit destroys them).
 // Knocked out: back to the city (save.story.kathana stays/sets 1). All four orbs gone: kathanaStage2() (a stub for the next phase).
 // For the next phase: the body is drawn from KA (position KA.bx/KA.bz, yaw, KA.by height offset, KA.vis hides her whole body, KA.split 0..1 opens the torso along a
 // vertical seam with a glow inside at kCore()), the hands are KA.hands[i] (local x,y,z, dead) and orbs KA.orbs[i] ({a: the actor, dead, col}).
 const PR={on:false,t:0,max:120};
-const KAR={x:0,y:0,z:80000};
+const KAR={x:0,y:0,z:9000};
 const KORB_COL=[[1,.04,.1],[.04,.32,1],[.04,.85,.2],[.62,.08,1]],KO_HP=12000,KA_REACH=148,KA_L1=72,KA_L2=82;
 const KS=[[-40,132,0],[40,132,0],[-30,98,6],[30,98,6]],KR=[[-108,122,92],[108,122,92],[-64,74,112],[64,74,112]]; // shoulders and resting hands (local: x right, y up, z toward the player)
 const KA={on:false,stage:0,phase:'',t:0,rise:0,open:0,fight:false,lost:false,vis:true,split:0,yaw:0,bx:KAR.x,bz:KAR.z-280,by:-215,ret:null,hands:[],orbs:[],shots:[],waves:[],fx:[],atk:null,cd:2.5,last:'',eyeGlow:0,gz:null,beam:null,dead:0,flood:0,src:{kind:'korb',name:'Kathana',alive:true,faction:'kathana',pos:new V3()},availSeen:null,
@@ -9967,14 +9968,14 @@ function lsDraw(){
 // ("A world beyond ours"), the title card CONQUER THE WORLD, then the objective: fly to the Apex Spire's entrance. save.story.cyber: 0 not there, 1 arrived (go to the
 // entrance), 2 went in (towerEnter() in 66j_spire.js hops into the Apex Spire: story.tower 1 = inside, 2 = the Sovereign is beaten and the real sky is back, see cyReal / cyberEnding there). With cyber 1 or 2 and tower < 2 a loaded game starts here (cyberTick):
 // the solar system is "gone" until the tower's boss falls (next phase restores it). Dying here puts you back on the pad (cyberRespawn).
-// ZONES.cyber sits at local origin CYO (z=120000), 3000 x 3000 m (x, z in +-1500), floor y=0, x1.3 player speed (zone.speed, 80_player.js). Layout (cyBuild): a grid of
+// ZONES.cyber sits at local origin CYO (z=15000), 3000 x 3000 m (x, z in +-1500), floor y=0, x1.3 player speed (zone.speed, 80_player.js). Layout (cyBuild): a grid of
 // 150 m cells, avenues 30 m wide and boulevards (every second line) 40 m, a 330 m plaza in the middle with the Apex Spire (120 m podium, 600 m needle), towers 36-420 m taller
 // towards the centre, parks, landing pads, low-rises and sky bridges (over the odd avenues only: the flying cars use the boulevards). ~25k boxes, baked into 36 regions
 // (only those in front of the camera and inside the fog are drawn: zoneDrawRegions) with ~6k colliders in the zone's lookup grid (66c_zones.js: zkey, zoneCols and zoneRay
 // only ever look at the cells near a point or a ray). Towers use shader material 9 (white shell, glowing blue glass bands), the shield material 10 (00_engine.js).
 // The sky (cyberSky in the sky shader): gradient, grid lines, a synthetic sun (disc, rings, hex cells) and a faceted moon. The shield: a blue wall at +-1500 and a ceiling at
 // y=900 that stops you (bounds + a soft push in cyShield), with a hex shimmer within 60 m.
-const CYO={x:0,y:0,z:120000},CYH=1500,CYG=150,CYB=1490,CYTOP=900;
+const CYO={x:0,y:0,z:15000},CYH=1500,CYG=150,CYB=1490,CYTOP=900;
 const CYAT={x:75,y:150.6,z:-1425,yaw:Math.atan2(75,-1425)}; // the arrival pad (a 150 m tower in the south), facing the Spire
 const CYARCH={z0:-60,z1:-34,w:10,h:20.2}; // the entrance: an arch cut into the south face of the Spire's podium, opening x +-10, 20 m tall, 24 m deep to the light gate
 const CYFRONT={x:0,y:0,z:-112,yaw:Math.PI}; // in front of the arch, facing it
@@ -10268,7 +10269,7 @@ function cyberStats(){return {boxes:CY.stats.boxes,cols:CY.stats.cols,buildMs:CY
 // ================================================================
 // The Apex Spire: three floors of cyber-enhanced fighters, the Sovereign, and the ending that gives the sky back
 // ================================================================
-// Flow: the entrance arch in the cyber world (66i_cyber.js) calls towerEnter(): story.tower=1, zoneHop to ZONES.spire (parked at z=160000). Floors stack 28 m apart (SPFY),
+// Flow: the entrance arch in the cyber world (66i_cyber.js) calls towerEnter(): story.tower=1, zoneHop to ZONES.spire (parked at z=12000). Floors stack 28 m apart (SPFY),
 // 120 x 120 m, 22 m clear height, glass outer walls (solid, never smashable) with a stylised skyline outside, partitions inside (smash:true: fast flight bursts through them).
 // Floor 1 Security Lobby (Gunner, Blade Dasher, Drone Handler), floor 2 Augment Labs (Phase Walker, Gravity Bender, Mirror Shield), floor 3 Throne Hall (a Speed-augmented and a
 // Titan-augmented champion, then the boss). Floors 1-2 run 3 waves each (never more than SPCAP alive; a handler's drones come on top). Clearing a floor saves story.tf (0..3) and
@@ -10281,7 +10282,7 @@ function cyberStats(){return {boxes:CY.stats.boxes,cols:CY.stats.cols,buildMs:CY
 // synthetic sun and moon dissolve, the real sky returns with the Moon, Earth and the planets as bodies in it, and the shield's ceiling is gone. travelTick (every frame, both
 // worlds): at full flight speed held 2 s high up (cyber y>600 / Earth in space) a wormhole (wormholeTo, 66h_invasion.js lsStart) carries you to the other world.
 // spireTick(dt) runs once per frame from storyTick with the REAL dt (the boss keeps moving while time is stopped); the AI uses dt*worldTimeK().
-const SPO={x:0,y:0,z:160000},SPW=60,SPH=22,SPFY=[0,28,56],SPLIFT=[{x:0,z:48},{x:0,z:-48}],SPCAP=10;
+const SPO={x:0,y:0,z:12000},SPW=60,SPH=22,SPFY=[0,28,56],SPLIFT=[{x:0,z:48},{x:0,z:-48}],SPCAP=10;
 const SPST=[{x:0,z:-52,yaw:Math.PI},{x:0,z:46,yaw:0},{x:0,z:-46,yaw:Math.PI}]; // where each floor starts (yaw PI faces +z)
 const SPWAVES=[[{gunner:2,dasher:1},{gunner:2,dasher:2,handler:1},{gunner:3,dasher:2,handler:1}],[{phase:2,bender:1,mirror:1},{phase:2,bender:1,mirror:2},{phase:2,bender:2,mirror:2}]];
 const SP={list:[],floor:1,wave:0,nw:1,pend:[],live:false,breath:0,spawnT:0,cleared:[false,false,false],open:false,fx:[],seen:{},objT:0,elite:0,bossT:-1,walls:[],cars:[],ride:false};

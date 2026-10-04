@@ -5,14 +5,14 @@
 // ("A world beyond ours"), the title card CONQUER THE WORLD, then the objective: fly to the Apex Spire's entrance. save.story.cyber: 0 not there, 1 arrived (go to the
 // entrance), 2 went in (towerEnter() in 66j_spire.js hops into the Apex Spire: story.tower 1 = inside, 2 = the Sovereign is beaten and the real sky is back, see cyReal / cyberEnding there). With cyber 1 or 2 and tower < 2 a loaded game starts here (cyberTick):
 // the solar system is "gone" until the tower's boss falls (next phase restores it). Dying here puts you back on the pad (cyberRespawn).
-// ZONES.cyber sits at local origin CYO (z=120000), 3000 x 3000 m (x, z in +-1500), floor y=0, x1.3 player speed (zone.speed, 80_player.js). Layout (cyBuild): a grid of
+// ZONES.cyber sits at local origin CYO (z=15000), 3000 x 3000 m (x, z in +-1500), floor y=0, x1.3 player speed (zone.speed, 80_player.js). Layout (cyBuild): a grid of
 // 150 m cells, avenues 30 m wide and boulevards (every second line) 40 m, a 330 m plaza in the middle with the Apex Spire (120 m podium, 600 m needle), towers 36-420 m taller
 // towards the centre, parks, landing pads, low-rises and sky bridges (over the odd avenues only: the flying cars use the boulevards). ~25k boxes, baked into 36 regions
 // (only those in front of the camera and inside the fog are drawn: zoneDrawRegions) with ~6k colliders in the zone's lookup grid (66c_zones.js: zkey, zoneCols and zoneRay
 // only ever look at the cells near a point or a ray). Towers use shader material 9 (white shell, glowing blue glass bands), the shield material 10 (00_engine.js).
 // The sky (cyberSky in the sky shader): gradient, grid lines, a synthetic sun (disc, rings, hex cells) and a faceted moon. The shield: a blue wall at +-1500 and a ceiling at
 // y=900 that stops you (bounds + a soft push in cyShield), with a hex shimmer within 60 m.
-const CYO={x:0,y:0,z:120000},CYH=1500,CYG=150,CYB=1490,CYTOP=900;
+const CYO={x:0,y:0,z:15000},CYH=1500,CYG=150,CYB=1490,CYTOP=900;
 const CYAT={x:75,y:150.6,z:-1425,yaw:Math.atan2(75,-1425)}; // the arrival pad (a 150 m tower in the south), facing the Spire
 const CYARCH={z0:-60,z1:-34,w:10,h:20.2}; // the entrance: an arch cut into the south face of the Spire's podium, opening x +-10, 20 m tall, 24 m deep to the light gate
 const CYFRONT={x:0,y:0,z:-112,yaw:Math.PI}; // in front of the arch, facing it

@@ -5,14 +5,14 @@
 // carousel (prismLook, called by sgLook), a ring of rainbow light (prismDraw), and the hotbar holds one skill, DESTROY (key 1, a big touch button).
 // Destroy: Prism form (no question), or every hero once save.story.ufo>=2 (Enter, a hotbar slot after V/Rewind, a touch button, with a yes/no popup).
 // destroyStart -> kathanaBegin: enterZone('void') into a pitch-black arena where only the hero is lit (about 2.5 s, a low rumble), then the light floods in: ZONES.void,
-// an endless all-white floor (local origin KAR at z=80000, soft wall of radius 500 m), Sun God for every hero with no timer (SG.src==='arena', you CAN be hurt, big
+// an endless all-white floor (local origin KAR at z=9000, soft wall of radius 500 m), Sun God for every hero with no timer (SG.src==='arena', you CAN be hurt, big
 // health pool: arenaHp=6) and a cutscene where Kathana, the Seer of All, rises. Stage 1: her body can't be hurt, her four orbs (actors kind 'korb') can; she slams the
 // ground (shockwave rings: jump or fly over), sweeps a gaze beam across the floor, and every orb fires slow homing bolts (actors 'kshot', any hit destroys them).
 // Knocked out: back to the city (save.story.kathana stays/sets 1). All four orbs gone: kathanaStage2() (a stub for the next phase).
 // For the next phase: the body is drawn from KA (position KA.bx/KA.bz, yaw, KA.by height offset, KA.vis hides her whole body, KA.split 0..1 opens the torso along a
 // vertical seam with a glow inside at kCore()), the hands are KA.hands[i] (local x,y,z, dead) and orbs KA.orbs[i] ({a: the actor, dead, col}).
 const PR={on:false,t:0,max:120};
-const KAR={x:0,y:0,z:80000};
+const KAR={x:0,y:0,z:9000};
 const KORB_COL=[[1,.04,.1],[.04,.32,1],[.04,.85,.2],[.62,.08,1]],KO_HP=12000,KA_REACH=148,KA_L1=72,KA_L2=82;
 const KS=[[-40,132,0],[40,132,0],[-30,98,6],[30,98,6]],KR=[[-108,122,92],[108,122,92],[-64,74,112],[64,74,112]]; // shoulders and resting hands (local: x right, y up, z toward the player)
 const KA={on:false,stage:0,phase:'',t:0,rise:0,open:0,fight:false,lost:false,vis:true,split:0,yaw:0,bx:KAR.x,bz:KAR.z-280,by:-215,ret:null,hands:[],orbs:[],shots:[],waves:[],fx:[],atk:null,cd:2.5,last:'',eyeGlow:0,gz:null,beam:null,dead:0,flood:0,src:{kind:'korb',name:'Kathana',alive:true,faction:'kathana',pos:new V3()},availSeen:null,

@@ -180,7 +180,8 @@ void main(){
   if(mat>8.5&&mat<9.5){ // cyber tower (66i_cyber.js): a pale shell with glowing blue glass bands
     float side=1.0-step(0.5,abs(n.y));float u=abs(n.x)>0.5?vW.z:vW.x;float v=vW.y;
     float f=fract(v/4.2),fi=floor(v/4.2),cu=u/3.6,cf=fract(cu),ci=floor(cu);
-    float win=step(0.16,f)*step(f,0.8)*step(0.07,cf)*step(cf,0.93)*side*step(3.0,v);
+    float fwv=fwidth(v/4.2)*0.75+1e-4,fwu=fwidth(cu)*0.75+1e-4; // (fwidth of the unwrapped coordinate: fract() jumps at the wrap) anti-aliased window edges, so they don't crawl as you move
+    float win=smoothstep(0.16-fwv,0.16+fwv,f)*(1.0-smoothstep(0.8-fwv,0.8+fwv,f))*smoothstep(0.07-fwu,0.07+fwu,cf)*(1.0-smoothstep(0.93-fwu,0.93+fwu,cf))*side*step(3.0,v);
     float pk=1.0-smoothstep(0.2,0.55,max(fwidth(v)/4.2,fwidth(u)/3.6));win=mix(0.55*side*step(3.0,v),win,pk); // far away the bands blur into one even glass colour
     float hh=h31(vec3(fi,ci,vD.y*37.0));vec3 gc=mix(vec3(0.16,0.5,1.0),vec3(0.45,0.92,1.0),fract(vD.y*7.0)*0.7+0.15*hh);
     float dif=max(dot(n,uLDir),0.0);vec3 amb=mix(uGnd,uSky,n.y*0.5+0.5);vec3 shell=vC*uTint.rgb*(amb+uLCol*dif);

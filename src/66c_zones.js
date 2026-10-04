@@ -1,7 +1,7 @@
 // ================================================================
 // Zones: separate playable areas far from the city (the UFO interior now; the Kathana arena, the cyber world and the tower later)
 // ================================================================
-// The city is one fixed world, so every other place is a ZONE: a box-built area parked far away (the UFO at z=40000), entered with a fade.
+// The city is one fixed world, so every other place is a ZONE: a box-built area parked far away (the UFO at z=6000), entered with a fade.
 //   ZONES[id]={id,name,origin:{x,y,z},spawn:{x,y,z,yaw},build(),cols:[],mesh,mesh2,draw(),update(dt),enter(),leave(),rebuild(),mapMarks(plot,c),
 //              sky:[r,g,b],stars:bool,smash:bool,bounds:{x0,x1,z0,z1,y1},light:{dir,lcol,sky,gnd,fogC,fog:[near,far]},lights:[{x,y,z,r,c:[r,g,b]}],plan:[[x0,x1,z0,z1]]}
 //   zone = the current zone object or null (zone.id is its id). enterZone(id,at): fade out, teleport the player to origin+at ({x,y,z,yaw}, local coordinates), set zone,
