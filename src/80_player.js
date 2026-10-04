@@ -65,10 +65,10 @@ canvas.addEventListener('mousedown',e=>{
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
   if(e.button===0){if(lockPend){requestLock();return;} // the first click after an auto-start only locks the mouse (no punch)
-    if(!locked&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+    if(!locked&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(sgArena()){sgClick(true);return;}if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
   else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
-addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
+addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;sgClick(false);if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('wheel',e=>{if(state!=='play'||paused||Math.abs(e.deltaY)<=1)return;if(dialOpen){dialPageTurn(e.deltaY<0?-1:1);return;}if(growStep(e.deltaY<0?1:-1))return;if(isSpeed())turnDial(e.deltaY<0?1:-1);},{passive:true});
 // the wheel (or [ ]) grows whatever you are holding: the power whose key is held down, else the construct you are in

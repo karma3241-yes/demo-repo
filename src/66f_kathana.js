@@ -115,6 +115,11 @@ function kathanaBegin(){
   return true;
 }
 // the dark: only the hero is lit, a low rumble, then the light floods in (4.6 s, no control)
+// in the arena you start in the air: Sun God flies, and the white floor is only the place the rings and the slams hit. snap = place you there now (the screen is dark), else rise to it
+function kFly(y,snap){
+  if(!(SG.on&&SG.src==='arena')||P.dead)return;P.flying=true;P.grounded=false;P.web=null;P.wall=null;P.charging=false;
+  if(P.pos.y<y){if(snap){P.pos.y=y;P.vel.y=0;}else P.vel.y=Math.max(P.vel.y,(y-P.pos.y)*3.4+2);}
+}
 function kathanaDark(){
   if(!inVoid())return;KA.phase='dark';
   cutscene({dur:4.6,control:false,letterbox:true,skippable:false,onTick:kDarkTick,onEnd:kRiseStart});
@@ -126,7 +131,7 @@ function kDarkTick(k,dt,C){
   if(!C.rb2&&t>2.0){C.rb2=true;SFX.tone('sawtooth',34,18,1.6,0.22);addShake(0.4);}
   if(!C.fl&&t>=2.6){C.fl=true;
     if(PR.on)prismEnd('destroy'); // the Prism Being's Destroy is used
-    arenaHp=6;sunGodStart('arena',true);P.hp=maxHp();SFX.boom(1,2.4);SFX.chime();SFX.tone('sine',200,1400,1.2,0.14);addShake(0.6);}
+    arenaHp=6;sunGodStart('arena',true);kFly(12,true);P.hp=maxHp();SFX.boom(1,2.4);SFX.chime();SFX.tone('sine',200,1400,1.2,0.14);addShake(0.6);}
   KA.flood=clamp((t-2.6)/1.6,0,1);KA.flood=KA.flood*KA.flood*(3-2*KA.flood);kLight();
   if(SG.on)P.flash=Math.max(P.flash,0.3);
 }
@@ -190,9 +195,9 @@ function kFightStart(){
   if(!inVoid())return;KA.phase='fight';KA.rise=1;KA.open=1;
   for(const h of KA.hands){h.x=h.rx;h.y=h.ry;h.z=h.rz;}
   if(KA.orbs.length!==4)kOrbsMake();kSyncOrbs();
-  KA.fight=true;KA.atk=null;KA.cd=2.2;
+  KA.fight=true;KA.atk=null;KA.cd=2.2;kFly(12);
   objective('Shatter the four orbs · 4 left');
-  toast('Kathana, the Seer of All','Her body cannot be hurt. Shatter the four orbs · Z locks on','red');
+  toast('Kathana, the Seer of All','Her body cannot be hurt. Shatter the four orbs · '+(touchOn()?'Attack':'Click')+' fires the Solar Lance · Z locks on','red');
 }
 // the boss bar (99_main.js updateHud): the four orbs' health together. true = I drew it
 function kathanaBar(){
@@ -280,6 +285,9 @@ function kathanaUpdate(dt){
   for(let i=KA.fx.length-1;i>=0;i--){const f=KA.fx[i];f.t+=dt;if(f.t>=f.dur)KA.fx.splice(i,1);}
   KA.eyeGlow=KA.atk&&KA.atk.type==='gaze'?KA.atk.glow:Math.max(KA.scream||0,KA.eyeGlow-dt*1.5);
   pfUpdate(dt);
+  if(SG.on&&SG.src==='arena'&&!P.dead){ // a hit that throws you out of the air puts you back in it once you have landed on your feet (F still lands you for good)
+    if(P.flungT!==KA.fl0){KA.fl0=P.flungT;KA.reFly=!!KA.wf;}if(P.flying)KA.reFly=false;
+    else if(KA.reFly&&!P.rag&&!KQ.on&&time-P.flungT>0.8){KA.reFly=false;kFly(12);}KA.wf=P.flying;}
   // the arena's wall (a soft push, then a hard stop) and her body (you can't stand inside her)
   if(!P.dead){const ox=P.pos.x-KAR.x,oz=P.pos.z-KAR.z,r=Math.hypot(ox,oz);
     if(r>455){const push=(r-455)*1.6*dt;P.vel.x-=ox/r*push*30;P.vel.z-=oz/r*push*30;if(r>498){P.pos.x=KAR.x+ox/r*498;P.pos.z=KAR.z+oz/r*498;}}

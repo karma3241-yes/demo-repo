@@ -2847,7 +2847,7 @@ function meleeTargets(fx,fy,fz,reach){
   return out;
 }
 function punch(){
-  if(!canAct()||P.punchCd>0||P.tk||P.car||P.lockDash)return;
+  if(!canAct()||P.punchCd>0||P.tk||P.car||P.lockDash||sgArena())return;
   if(lockDashStart())return; // locked on and out of reach: zip to the target first, the dash throws this punch when it arrives
   if(time-comboT>COMBAT.chain||comboN>=4)comboN=0;
   comboN++;comboT=time;const fin=comboN===4,lk=!!(lockT&&lockT.alive);P.punchCd=fin?(lk?COMBAT.lockEndlag:COMBAT.endlag):(lk?COMBAT.lockGap:COMBAT.gap);
@@ -5254,10 +5254,11 @@ function micShow(){const thr=save.settings.micLoud;
 // 1 Solar Lance (hold: a piercing sun beam), 2 Heat Wave (a ring of heat), 3 Collapsing Star (a huge black hole),
 // 4 Eclipse (the dark mode: the screen goes dark and every living thing around you is knocked down by dark bolts).
 // Hooks for later phases: sunGodOn(), Bus 'sunGodEnd' ({src}), save.guide.sgV / sgSun.
-const SG={on:false,t:0,max:60,src:'v',cd:0,cds:[0,0,0,0],lance:false,waves:[],ecl:null,armed:true,hintT:0,fx:0,dark:0,tint:0,lastTxt:''};
+const SG={on:false,t:0,max:60,src:'v',cd:0,cds:[0,0,0,0],lance:false,lanceM:false,waves:[],ecl:null,armed:true,hintT:0,fx:0,dark:0,tint:0,lastTxt:''};
 const SG_NAMES=['Solar Lance','Heat Wave','Collapsing Star','Eclipse'],SG_CD=[0,3,12,30];
 const sgSeed=()=>ufoBoost()&&hasTrav('solarFlight'),sgVDur=()=>sgSeed()?90:60,sgVCd=()=>sgSeed()?20:90; // UFO boost (Star Seed): V lasts 90 s and comes back after 20 s
 const sunGodOn=()=>SG.on;
+const sgArena=()=>SG.on&&SG.src==='arena'; // Kathana's fight: the left mouse (or the attack button) is the Solar Lance there, never a punch
 const sgSpeedMul=()=>SG.on?1.5:1;
 const SUN_B=PLANETS.find(b=>b.sun);
 const sgBig=a=>a.kind==='boss'||(a.maxHp||0)>3000||!!a.bigBoss; // bosses take fixed big numbers, everyone else goes down at once
@@ -5272,16 +5273,16 @@ function sunGodStart(src,force){
   if(PR.on&&src!=='arena')return false; // the Prism form has only Destroy
   if(src==='v'&&SG.cd>0){feed('Sun God is recharging',Math.ceil(SG.cd)+' s left');SFX.tone('square',300,200,0.12,0.06);return false;}
   if(P.alien)revertAlien(true);stopAllPowers();
-  SG.on=true;SG.src=src==='sun'?'sun':src==='arena'?'arena':'v';SG.t=SG.max=src==='sun'?120:src==='arena'?9999:sgVDur(); // 'arena': Kathana's fight, every hero, no timer, you can be hurtSG.cds=[0,0,0,0];SG.lance=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
+  SG.on=true;SG.src=src==='sun'?'sun':src==='arena'?'arena':'v';SG.t=SG.max=src==='sun'?120:src==='arena'?9999:sgVDur(); // 'arena': Kathana's fight, every hero, no timer, you can be hurtSG.cds=[0,0,0,0];SG.lance=false;SG.lanceM=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
   P.hp=maxHp();P.en=maxEn();P.flying=true;P.grounded=false;P.vel.y=Math.max(P.vel.y,6);P.stun=0;
   const c=center(P),cx=c.x,cy=c.y,cz=c.z;ringFx(cx,cy,cz,1,24,0.7,[1,.85,.35]);ringFx(cx,cy,cz,1,14,0.45,[1,1,.9]);burst(cx,cy,cz,120,30,1.2,[[1,.85,.3],[1,.6,.15],[1,1,.85]],2,0,1.6);
   flashWhite=0.7;SFX.transform();SFX.boom(1,1.4);addShake(0.5);
-  if(src!=='arena')toast('SUN GOD',(SG.max)+' s · you cannot be hurt · 1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');else toast('SUN GOD','1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');
+  if(src!=='arena')toast('SUN GOD',(SG.max)+' s · you cannot be hurt · 1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');else toast('SUN GOD',(touchOn()?'Attack':'Click')+' or 1 Solar Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');
   if(SG.src==='v'&&!save.guide.sgV){save.guide.sgV=true;persist();}
   buildHotbar();buildTouchButtons();sgHud(true);return true;}
 function sunGodEnd(silent,stay){ // stay: the Prism form starts inside the Sun, so don't push you out of it
   if(!SG.on)return;const src=SG.src;
-  SG.on=false;SG.lance=false;SG.ecl=null;SG.waves.length=0;beam=null;SFX.setLaser(false);P.flash=0;
+  SG.on=false;SG.lance=false;SG.lanceM=false;SG.ecl=null;SG.waves.length=0;beam=null;SFX.setLaser(false);P.flash=0;
   if(src==='v')SG.cd=sgVCd();
   if(!stay&&SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
     if(d<SUN_B.r+900){const k=(SUN_B.r+1100)/(d||1),nx=d>1e-3?dx*k:0,ny=d>1e-3?dy*k:SUN_B.r+1100,nz=d>1e-3?dz*k:0;P.pos.set(SUN_B.x+nx,SUN_B.y+ny,SUN_B.z+nz);P.vel.set(0,0,0);P.sunT=time+3;} // the Sun lets go of you
@@ -5298,7 +5299,8 @@ function sgAbilityDown(slot){
   if(SG.cds[slot]>0){feed(SG_NAMES[slot],'Ready in '+SG.cds[slot].toFixed(1)+' s');SFX.tone('square',300,200,0.1,0.06);return;}
   if(slot===3&&SG.ecl)return;
   SG.cds[slot]=SG_CD[slot];faceAim();[null,sgHeat,sgStar,sgEclipse][slot]();}
-function sgAbilityUp(slot){if(slot===0)SG.lance=false;}
+function sgAbilityUp(slot){if(slot===0)SG.lance=SG.lanceM=false;}
+function sgClick(down){if(down){if(sgArena()&&canAct())SG.lance=SG.lanceM=true;}else if(SG.lanceM)SG.lance=SG.lanceM=false;} // left mouse / the attack button: hold = Solar Lance
 // 1 Solar Lance: a thick beam that pierces everything in a line, ignites it and throws it back
 function sgLance(dt){
   faceAim();const e=P.eye,R=220;let dx=camF.x,dy=camF.y,dz=camF.z;
@@ -5364,7 +5366,7 @@ function sgEclipseTick(dt){const E=SG.ecl;if(!E)return;E.t+=dt;const c=center(P)
 function sunGodKey(){if(state!=='play'||P.dead||dialOpen||paused)return;if(SG.on){feed('Sun God',Math.ceil(SG.t)+' s left');return;}sunGodStart('v');}
 // the hotbar and the touch buttons while it lasts (the normal kit is back when it ends)
 function sgBuildHotbar(){
-  SG_NAMES.forEach((n,i)=>{const cd=el('i',{class:'cd',hidden:true}),s=el('div',{class:'slot sg'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:n}),el('small',{text:'Sun God'}));hud.hotbar.appendChild(s);slotEls.push({sg:i,s,cd});});
+  SG_NAMES.forEach((n,i)=>{const cd=el('i',{class:'cd',hidden:true}),s=el('div',{class:'slot sg'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:n}),el('small',{text:i===0&&sgArena()&&!touchOn()?'or Click':'Sun God'}));hud.hotbar.appendChild(s);slotEls.push({sg:i,s,cd});});
   const tb=el('i'),s=el('div',{class:'slot move band vslot sgv'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Sun God'}),el('div',{class:'bar tbar'},tb));s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({sgTimer:tb,s});}
 function sgTouchButtons(){['Lance','Heat','Star','Eclipse'].forEach((n,i)=>{const b=tbMake('p'+i,'a'+i,'sun',n,'B','ab alien','#ffd23c');b.prepend(el('i',{class:'cd',hidden:true}));});}
 // ---- per frame ----
@@ -8356,6 +8358,11 @@ function kathanaBegin(){
   return true;
 }
 // the dark: only the hero is lit, a low rumble, then the light floods in (4.6 s, no control)
+// in the arena you start in the air: Sun God flies, and the white floor is only the place the rings and the slams hit. snap = place you there now (the screen is dark), else rise to it
+function kFly(y,snap){
+  if(!(SG.on&&SG.src==='arena')||P.dead)return;P.flying=true;P.grounded=false;P.web=null;P.wall=null;P.charging=false;
+  if(P.pos.y<y){if(snap){P.pos.y=y;P.vel.y=0;}else P.vel.y=Math.max(P.vel.y,(y-P.pos.y)*3.4+2);}
+}
 function kathanaDark(){
   if(!inVoid())return;KA.phase='dark';
   cutscene({dur:4.6,control:false,letterbox:true,skippable:false,onTick:kDarkTick,onEnd:kRiseStart});
@@ -8367,7 +8374,7 @@ function kDarkTick(k,dt,C){
   if(!C.rb2&&t>2.0){C.rb2=true;SFX.tone('sawtooth',34,18,1.6,0.22);addShake(0.4);}
   if(!C.fl&&t>=2.6){C.fl=true;
     if(PR.on)prismEnd('destroy'); // the Prism Being's Destroy is used
-    arenaHp=6;sunGodStart('arena',true);P.hp=maxHp();SFX.boom(1,2.4);SFX.chime();SFX.tone('sine',200,1400,1.2,0.14);addShake(0.6);}
+    arenaHp=6;sunGodStart('arena',true);kFly(12,true);P.hp=maxHp();SFX.boom(1,2.4);SFX.chime();SFX.tone('sine',200,1400,1.2,0.14);addShake(0.6);}
   KA.flood=clamp((t-2.6)/1.6,0,1);KA.flood=KA.flood*KA.flood*(3-2*KA.flood);kLight();
   if(SG.on)P.flash=Math.max(P.flash,0.3);
 }
@@ -8431,9 +8438,9 @@ function kFightStart(){
   if(!inVoid())return;KA.phase='fight';KA.rise=1;KA.open=1;
   for(const h of KA.hands){h.x=h.rx;h.y=h.ry;h.z=h.rz;}
   if(KA.orbs.length!==4)kOrbsMake();kSyncOrbs();
-  KA.fight=true;KA.atk=null;KA.cd=2.2;
+  KA.fight=true;KA.atk=null;KA.cd=2.2;kFly(12);
   objective('Shatter the four orbs · 4 left');
-  toast('Kathana, the Seer of All','Her body cannot be hurt. Shatter the four orbs · Z locks on','red');
+  toast('Kathana, the Seer of All','Her body cannot be hurt. Shatter the four orbs · '+(touchOn()?'Attack':'Click')+' fires the Solar Lance · Z locks on','red');
 }
 // the boss bar (99_main.js updateHud): the four orbs' health together. true = I drew it
 function kathanaBar(){
@@ -8521,6 +8528,9 @@ function kathanaUpdate(dt){
   for(let i=KA.fx.length-1;i>=0;i--){const f=KA.fx[i];f.t+=dt;if(f.t>=f.dur)KA.fx.splice(i,1);}
   KA.eyeGlow=KA.atk&&KA.atk.type==='gaze'?KA.atk.glow:Math.max(KA.scream||0,KA.eyeGlow-dt*1.5);
   pfUpdate(dt);
+  if(SG.on&&SG.src==='arena'&&!P.dead){ // a hit that throws you out of the air puts you back in it once you have landed on your feet (F still lands you for good)
+    if(P.flungT!==KA.fl0){KA.fl0=P.flungT;KA.reFly=!!KA.wf;}if(P.flying)KA.reFly=false;
+    else if(KA.reFly&&!P.rag&&!KQ.on&&time-P.flungT>0.8){KA.reFly=false;kFly(12);}KA.wf=P.flying;}
   // the arena's wall (a soft push, then a hard stop) and her body (you can't stand inside her)
   if(!P.dead){const ox=P.pos.x-KAR.x,oz=P.pos.z-KAR.z,r=Math.hypot(ox,oz);
     if(r>455){const push=(r-455)*1.6*dt;P.vel.x-=ox/r*push*30;P.vel.z-=oz/r*push*30;if(r>498){P.pos.x=KAR.x+ox/r*498;P.pos.z=KAR.z+oz/r*498;}}
@@ -9043,7 +9053,7 @@ function kathanaStage2(){
   if(!(KA.on&&inVoid())||KA.lost||KA.stage===2||ZF.phase)return false;
   if(CUT)cutEnd(false);
   for(const o of KA.orbs){if(!o.dead){o.dead=true;if(o.a)removeActor(o.a);}}KA.dead=4;kClearShots();
-  KA.stage=2;KA.fight=false;KA.atk=null;KA.beam=null;KA.phase='scream';lockT=null;objective(null);
+  KA.stage=2;KA.fight=false;KA.atk=null;KA.beam=null;KA.phase='scream';lockT=null;objective(null);kFly(12);
   const S=save.story;if(S.kathana<1)S.kathana=1;persist();
   kCracksMake();
   for(const h of KA.hands){h.busy=true;h.k=2.4;h.tx=h.s[0]*1.5;h.ty=h.s[1]+130;h.tz=h.s[2]-20;}
@@ -9174,8 +9184,8 @@ function pfQteWin(){
   flashWhite=1;SFX.boom(1,2.2);SFX.chime();SFX.tone('sine',200,1600,1,0.15);addShake(1.2);
   ringFx(c.x,c.y,c.z,1,60,0.9,[1,.9,.5]);ringFx(c.x,c.y,c.z,1,40,0.6,[1,1,1]);burst(c.x,c.y,c.z,110,36,1.1,[[1,.9,.5],[1,1,1],[1,.7,.2]],2,0,1.5);KA.fx.push({x:c.x,y:c.y,z:c.z,t:0,dur:0.9,r0:2,r1:70,col:[1,.9,.5]});
   if(a){const dx=a.pos.x-P.pos.x,dz=a.pos.z-P.pos.z,l=Math.hypot(dx,dz)||1;a.pos.x+=dx/l*6;a.pos.z+=dz/l*6;pfClampPos(a);a.stag=1.6;a.pose='flung';a.st='orbit';a.cd=1.2;lockT=a;}
-  PF.fight=true;KA.phase='fight';objective('Defeat the Perfect Form');
-  toast('KATHANA, PERFECT FORM','Dodge the telegraphs. Z locks on.','gold');
+  PF.fight=true;KA.phase='fight';objective('Defeat the Perfect Form');kFly(12);
+  toast('KATHANA, PERFECT FORM','Dodge the telegraphs · '+(touchOn()?'Attack':'Click')+' fires the Solar Lance · Z locks on','gold');
 }
 const qteWin=()=>{if(KQ.on){KQ.meter=1;qteTick(0);return true;}return false;};
 // ================================================================
@@ -11528,10 +11538,10 @@ canvas.addEventListener('mousedown',e=>{
   if(dialOpen){if(e.button===0)dialConfirm();else closeDial();return;}
   if(e.button===1){mmbLook=true;e.preventDefault();return;}
   if(e.button===0){if(lockPend){requestLock();return;} // the first click after an auto-start only locks the mouse (no punch)
-    if(!locked&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
+    if(!locked&&save.settings.autoLock)requestLock();if(P.car||(oathOpen&&!oathFree))return;if(sgArena()){sgClick(true);return;}if(P.construct){constructPrimary();return;}if(P.tk&&tkSlam())return;if(chargeStart())return;mouseL=true;punch();}
   else if(e.button===2){if(P.car)return;if(P.construct){constructAlt(true);return;}if(P.tk&&tkGrabMore())return;if(hasPower('webSwing')&&!P.alien)webPress();else rmbLook=true;}
 });
-addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
+addEventListener('mouseup',e=>{if(e.button===0){mouseL=false;sgClick(false);if(P.cp)chargeRelease();constructPrimaryUp();}if(e.button===1)mmbLook=false;if(e.button===2){rmbLook=false;webRelease();constructAlt(false);}});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('wheel',e=>{if(state!=='play'||paused||Math.abs(e.deltaY)<=1)return;if(dialOpen){dialPageTurn(e.deltaY<0?-1:1);return;}if(growStep(e.deltaY<0?1:-1))return;if(isSpeed())turnDial(e.deltaY<0?1:-1);},{passive:true});
 // the wheel (or [ ]) grows whatever you are holding: the power whose key is held down, else the construct you are in
@@ -11955,7 +11965,7 @@ function touchAct(a,down){
   if(a==='pause'){if(down&&state==='play')setPaused(true);return;}
   if(down&&!canAct())return;
   if(dialOpen)return;
-  if(a==='punch'){if(P.car)return;if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
+  if(a==='punch'){if(P.car)return;if(sgArena()){sgClick(down);return;}if(P.construct){if(down)constructPrimary();else constructPrimaryUp();return;}if(down&&P.tk&&tkSlam())return;if(down&&chargeStart())return;if(!down&&P.cp){chargeRelease();mouseL=false;return;}mouseL=down;if(down)punch();}
   else if(/^a[0-3]$/.test(a)){if(P.car)return;const i=+a[1];if(down){heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');}else{if(heldSlot===i)heldSlot=-1;abilityUp(i);}}
   else if(a==='con'){if(down)summonConstruct();}
   else if(a==='vkey'){if(down)vPress();}

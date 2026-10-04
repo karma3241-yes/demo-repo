@@ -5,10 +5,11 @@
 // 1 Solar Lance (hold: a piercing sun beam), 2 Heat Wave (a ring of heat), 3 Collapsing Star (a huge black hole),
 // 4 Eclipse (the dark mode: the screen goes dark and every living thing around you is knocked down by dark bolts).
 // Hooks for later phases: sunGodOn(), Bus 'sunGodEnd' ({src}), save.guide.sgV / sgSun.
-const SG={on:false,t:0,max:60,src:'v',cd:0,cds:[0,0,0,0],lance:false,waves:[],ecl:null,armed:true,hintT:0,fx:0,dark:0,tint:0,lastTxt:''};
+const SG={on:false,t:0,max:60,src:'v',cd:0,cds:[0,0,0,0],lance:false,lanceM:false,waves:[],ecl:null,armed:true,hintT:0,fx:0,dark:0,tint:0,lastTxt:''};
 const SG_NAMES=['Solar Lance','Heat Wave','Collapsing Star','Eclipse'],SG_CD=[0,3,12,30];
 const sgSeed=()=>ufoBoost()&&hasTrav('solarFlight'),sgVDur=()=>sgSeed()?90:60,sgVCd=()=>sgSeed()?20:90; // UFO boost (Star Seed): V lasts 90 s and comes back after 20 s
 const sunGodOn=()=>SG.on;
+const sgArena=()=>SG.on&&SG.src==='arena'; // Kathana's fight: the left mouse (or the attack button) is the Solar Lance there, never a punch
 const sgSpeedMul=()=>SG.on?1.5:1;
 const SUN_B=PLANETS.find(b=>b.sun);
 const sgBig=a=>a.kind==='boss'||(a.maxHp||0)>3000||!!a.bigBoss; // bosses take fixed big numbers, everyone else goes down at once
@@ -23,16 +24,16 @@ function sunGodStart(src,force){
   if(PR.on&&src!=='arena')return false; // the Prism form has only Destroy
   if(src==='v'&&SG.cd>0){feed('Sun God is recharging',Math.ceil(SG.cd)+' s left');SFX.tone('square',300,200,0.12,0.06);return false;}
   if(P.alien)revertAlien(true);stopAllPowers();
-  SG.on=true;SG.src=src==='sun'?'sun':src==='arena'?'arena':'v';SG.t=SG.max=src==='sun'?120:src==='arena'?9999:sgVDur(); // 'arena': Kathana's fight, every hero, no timer, you can be hurtSG.cds=[0,0,0,0];SG.lance=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
+  SG.on=true;SG.src=src==='sun'?'sun':src==='arena'?'arena':'v';SG.t=SG.max=src==='sun'?120:src==='arena'?9999:sgVDur(); // 'arena': Kathana's fight, every hero, no timer, you can be hurtSG.cds=[0,0,0,0];SG.lance=false;SG.lanceM=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
   P.hp=maxHp();P.en=maxEn();P.flying=true;P.grounded=false;P.vel.y=Math.max(P.vel.y,6);P.stun=0;
   const c=center(P),cx=c.x,cy=c.y,cz=c.z;ringFx(cx,cy,cz,1,24,0.7,[1,.85,.35]);ringFx(cx,cy,cz,1,14,0.45,[1,1,.9]);burst(cx,cy,cz,120,30,1.2,[[1,.85,.3],[1,.6,.15],[1,1,.85]],2,0,1.6);
   flashWhite=0.7;SFX.transform();SFX.boom(1,1.4);addShake(0.5);
-  if(src!=='arena')toast('SUN GOD',(SG.max)+' s · you cannot be hurt · 1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');else toast('SUN GOD','1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');
+  if(src!=='arena')toast('SUN GOD',(SG.max)+' s · you cannot be hurt · 1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');else toast('SUN GOD',(touchOn()?'Attack':'Click')+' or 1 Solar Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');
   if(SG.src==='v'&&!save.guide.sgV){save.guide.sgV=true;persist();}
   buildHotbar();buildTouchButtons();sgHud(true);return true;}
 function sunGodEnd(silent,stay){ // stay: the Prism form starts inside the Sun, so don't push you out of it
   if(!SG.on)return;const src=SG.src;
-  SG.on=false;SG.lance=false;SG.ecl=null;SG.waves.length=0;beam=null;SFX.setLaser(false);P.flash=0;
+  SG.on=false;SG.lance=false;SG.lanceM=false;SG.ecl=null;SG.waves.length=0;beam=null;SFX.setLaser(false);P.flash=0;
   if(src==='v')SG.cd=sgVCd();
   if(!stay&&SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
     if(d<SUN_B.r+900){const k=(SUN_B.r+1100)/(d||1),nx=d>1e-3?dx*k:0,ny=d>1e-3?dy*k:SUN_B.r+1100,nz=d>1e-3?dz*k:0;P.pos.set(SUN_B.x+nx,SUN_B.y+ny,SUN_B.z+nz);P.vel.set(0,0,0);P.sunT=time+3;} // the Sun lets go of you
@@ -49,7 +50,8 @@ function sgAbilityDown(slot){
   if(SG.cds[slot]>0){feed(SG_NAMES[slot],'Ready in '+SG.cds[slot].toFixed(1)+' s');SFX.tone('square',300,200,0.1,0.06);return;}
   if(slot===3&&SG.ecl)return;
   SG.cds[slot]=SG_CD[slot];faceAim();[null,sgHeat,sgStar,sgEclipse][slot]();}
-function sgAbilityUp(slot){if(slot===0)SG.lance=false;}
+function sgAbilityUp(slot){if(slot===0)SG.lance=SG.lanceM=false;}
+function sgClick(down){if(down){if(sgArena()&&canAct())SG.lance=SG.lanceM=true;}else if(SG.lanceM)SG.lance=SG.lanceM=false;} // left mouse / the attack button: hold = Solar Lance
 // 1 Solar Lance: a thick beam that pierces everything in a line, ignites it and throws it back
 function sgLance(dt){
   faceAim();const e=P.eye,R=220;let dx=camF.x,dy=camF.y,dz=camF.z;
@@ -115,7 +117,7 @@ function sgEclipseTick(dt){const E=SG.ecl;if(!E)return;E.t+=dt;const c=center(P)
 function sunGodKey(){if(state!=='play'||P.dead||dialOpen||paused)return;if(SG.on){feed('Sun God',Math.ceil(SG.t)+' s left');return;}sunGodStart('v');}
 // the hotbar and the touch buttons while it lasts (the normal kit is back when it ends)
 function sgBuildHotbar(){
-  SG_NAMES.forEach((n,i)=>{const cd=el('i',{class:'cd',hidden:true}),s=el('div',{class:'slot sg'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:n}),el('small',{text:'Sun God'}));hud.hotbar.appendChild(s);slotEls.push({sg:i,s,cd});});
+  SG_NAMES.forEach((n,i)=>{const cd=el('i',{class:'cd',hidden:true}),s=el('div',{class:'slot sg'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:n}),el('small',{text:i===0&&sgArena()&&!touchOn()?'or Click':'Sun God'}));hud.hotbar.appendChild(s);slotEls.push({sg:i,s,cd});});
   const tb=el('i'),s=el('div',{class:'slot move band vslot sgv'},el('kbd',{text:touchOn()?'':'V'}),el('span',{class:'nm',text:'Sun God'}),el('div',{class:'bar tbar'},tb));s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({sgTimer:tb,s});}
 function sgTouchButtons(){['Lance','Heat','Star','Eclipse'].forEach((n,i)=>{const b=tbMake('p'+i,'a'+i,'sun',n,'B','ab alien','#ffd23c');b.prepend(el('i',{class:'cd',hidden:true}));});}
 // ---- per frame ----

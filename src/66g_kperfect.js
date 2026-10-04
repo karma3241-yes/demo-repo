@@ -317,7 +317,7 @@ function kathanaStage2(){
   if(!(KA.on&&inVoid())||KA.lost||KA.stage===2||ZF.phase)return false;
   if(CUT)cutEnd(false);
   for(const o of KA.orbs){if(!o.dead){o.dead=true;if(o.a)removeActor(o.a);}}KA.dead=4;kClearShots();
-  KA.stage=2;KA.fight=false;KA.atk=null;KA.beam=null;KA.phase='scream';lockT=null;objective(null);
+  KA.stage=2;KA.fight=false;KA.atk=null;KA.beam=null;KA.phase='scream';lockT=null;objective(null);kFly(12);
   const S=save.story;if(S.kathana<1)S.kathana=1;persist();
   kCracksMake();
   for(const h of KA.hands){h.busy=true;h.k=2.4;h.tx=h.s[0]*1.5;h.ty=h.s[1]+130;h.tz=h.s[2]-20;}
@@ -448,8 +448,8 @@ function pfQteWin(){
   flashWhite=1;SFX.boom(1,2.2);SFX.chime();SFX.tone('sine',200,1600,1,0.15);addShake(1.2);
   ringFx(c.x,c.y,c.z,1,60,0.9,[1,.9,.5]);ringFx(c.x,c.y,c.z,1,40,0.6,[1,1,1]);burst(c.x,c.y,c.z,110,36,1.1,[[1,.9,.5],[1,1,1],[1,.7,.2]],2,0,1.5);KA.fx.push({x:c.x,y:c.y,z:c.z,t:0,dur:0.9,r0:2,r1:70,col:[1,.9,.5]});
   if(a){const dx=a.pos.x-P.pos.x,dz=a.pos.z-P.pos.z,l=Math.hypot(dx,dz)||1;a.pos.x+=dx/l*6;a.pos.z+=dz/l*6;pfClampPos(a);a.stag=1.6;a.pose='flung';a.st='orbit';a.cd=1.2;lockT=a;}
-  PF.fight=true;KA.phase='fight';objective('Defeat the Perfect Form');
-  toast('KATHANA, PERFECT FORM','Dodge the telegraphs. Z locks on.','gold');
+  PF.fight=true;KA.phase='fight';objective('Defeat the Perfect Form');kFly(12);
+  toast('KATHANA, PERFECT FORM','Dodge the telegraphs · '+(touchOn()?'Attack':'Click')+' fires the Solar Lance · Z locks on','gold');
 }
 const qteWin=()=>{if(KQ.on){KQ.meter=1;qteTick(0);return true;}return false;};
 // ================================================================

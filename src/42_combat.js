@@ -65,7 +65,7 @@ function meleeTargets(fx,fy,fz,reach){
   return out;
 }
 function punch(){
-  if(!canAct()||P.punchCd>0||P.tk||P.car||P.lockDash)return;
+  if(!canAct()||P.punchCd>0||P.tk||P.car||P.lockDash||sgArena())return;
   if(lockDashStart())return; // locked on and out of reach: zip to the target first, the dash throws this punch when it arrives
   if(time-comboT>COMBAT.chain||comboN>=4)comboN=0;
   comboN++;comboT=time;const fin=comboN===4,lk=!!(lockT&&lockT.alive);P.punchCd=fin?(lk?COMBAT.lockEndlag:COMBAT.endlag):(lk?COMBAT.lockGap:COMBAT.gap);
