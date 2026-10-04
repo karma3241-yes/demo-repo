@@ -440,6 +440,7 @@ function pfPress(){
   if(!KQ.on||KQ.phase!=='mash')return;KQ.meter=Math.min(1,KQ.meter+0.085);KQ.n++;
   SFX.tone('square',420+KQ.meter*800,520+KQ.meter*900,0.06,0.05);
   const e=qteEl();e.classList.remove('hit');void e.offsetWidth;e.classList.add('hit');
+  if(KQ.meter>=1){$('q-f').style.width='100%';pfQteWin();} // win on the press: qteTick decays the meter first, so it would sit at 99%
 }
 addEventListener('keydown',e=>{if(KQ.on&&KQ.phase==='mash'&&e.code==='Space'){e.preventDefault();if(!e.repeat)pfPress();}},true);
 addEventListener('pointerdown',e=>{if(KQ.on&&KQ.phase==='mash')pfPress();},true);

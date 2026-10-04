@@ -320,6 +320,7 @@ function invSwPress(){
   const W=INV.sw;if(!W||W.ph!=='mash')return;
   W.meter=Math.min(1,W.meter+0.055);W.cb+=0.02;W.pulse=1;W.n++;SFX.tone('square',420+W.meter*800,520+W.meter*900,0.06,0.05);
   const e=qteEl();e.classList.remove('hit');void e.offsetWidth;e.classList.add('hit');
+  if(W.meter>=1)invSwBurst(); // burst on the press itself, before the per-frame decay can drop it under 1
 }
 addEventListener('keydown',e=>{if(INV.sw&&INV.sw.ph==='mash'&&e.code==='Space'){e.preventDefault();if(!e.repeat)invSwPress();}},true);
 addEventListener('pointerdown',e=>{if(INV.sw&&INV.sw.ph==='mash')invSwPress();},true);
