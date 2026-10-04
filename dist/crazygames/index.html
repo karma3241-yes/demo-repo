@@ -9281,23 +9281,23 @@ function superTick(dt){
   }
 }
 // ================================================================
-// The invasion: 100 warships over Earth, four waves of superpowered invaders in space, then light-speed travel
+// The invasion: 100 warships over Earth, three waves of superpowered invaders in space, then light-speed travel
 // ================================================================
 // save.story.invasion: 0 not yet, 1 the fleet is here (the battle), 2 the fleet is broken (go to light speed), 3 jumped (cyberArrive, 66i_cyber.js).
 // Flow: Kathana falls -> invasion=1 -> invArrive (66g) -> invBegin: a 5.5 s cutscene up to the fleet, then invPlace puts you in space 600 m in front of the armada ->
-// invWaveTick runs four waves (5, 15, 30, 50 invaders, never more than 25 alive) -> invWin: the fleet explodes ship by ship (6 s), invasion=2, +30 traversal mastery,
+// invWaveTick runs three waves (5, 15, 60 invaders, never more than 25 alive: wave 3 streams in) -> invWin: the fleet explodes ship by ship (6 s), invasion=2, +30 traversal mastery,
 // "Ready for light speed traversal" -> hold boost at full flight speed for 2 s in space -> lsStart: a 5 s wormhole cutscene (collisions off) -> cyberArrive().
 // Every hero can fly during the event (invFlyOk, used by toggleFlight / flyChargeStart; the battle also keeps you flying). Solo only (storySolo).
 // The fleet is 4 baked ship meshes drawn as 100 instances (F_NF: no fog, so it is a dark shape in the city sky). The invaders are actors of kind 'invader'
 // (faction 'alien', lockable, hostile), they live in INV.list; the bomber's orbs in INV.orbs.
 const INV={fleet:[],built:false,meshes:null,state:'idle',go:false,arm:null,freeT:0,wave:0,nw:1,live:false,pend:[],breath:0,spawnT:0,list:[],orbs:[],blasts:[],start:null,cutT:0,tickT:0,warnT:-99,near:0,winT:-1,boomI:0,order:null,ls:null,lsHold:0,lsPct:-1,seen:{},ws:null,msgT:0};
 const INV_C={x:0,y:4300,z:0},INV_R=2300,INV_CAP=25,INV_K=1.6; // INV_K: how big the ships are drawn
-const INV_WAVES=[{n:5,mix:{blaster:3,brute:2}},{n:15,mix:{blaster:5,brute:3,shield:4,blinker:3}},{n:30,mix:{blaster:7,brute:5,shield:5,lancer:5,bomber:4,blinker:4}},{n:50,mix:{blaster:11,brute:8,shield:8,lancer:8,bomber:8,blinker:7}}];
+const INV_WAVES=[{n:5,mix:{blaster:3,brute:2}},{n:15,mix:{blaster:5,brute:3,shield:4,blinker:3}},{n:60,mix:{blaster:13,brute:10,shield:10,lancer:10,bomber:9,blinker:8}}];
 const INV_V={ // armour colour, glow colour, health factor, size, a hint shown the first time one appears
   blaster:{name:'Blaster',col:[.78,.1,.14],trim:[1,.45,.3],css:'#ff7a5c',hp:1,sc:1,hint:'Plasma volleys. Keep moving.'},
   brute:{name:'Brute',col:[.95,.42,.08],trim:[1,.8,.25],css:'#ffc24a',hp:2.4,sc:1.5,hint:'Charges and punches hard. Dodge the charge.'},
   shield:{name:'Shieldbearer',col:[.15,.4,.95],trim:[.45,.9,1],css:'#7fd6ff',hp:1.8,sc:1.2,hint:'Its front shield blocks hits. Go round the side or behind, or use area attacks.'},
-  lancer:{name:'Lancer',col:[.5,.2,.9],trim:[.9,.5,1],css:'#d79bff',hp:.9,sc:1,hint:'A red line means a sniper beam is coming. Get off the line.'},
+  lancer:{name:'Lancer',col:[.5,.2,.9],trim:[.9,.5,1],css:'#d79bff',hp:.9,sc:1,hint:'A glowing line means a sniper beam is coming. Get off the line.'},
   bomber:{name:'Bomber',col:[.16,.62,.3],trim:[.7,1,.35],css:'#9dff6b',hp:1.3,sc:1.1,hint:'Its orbs explode. Keep moving.'},
   blinker:{name:'Blinker',col:[.85,.15,.65],trim:[1,.55,.95],css:'#ff8ee0',hp:1,sc:.95,hint:'It teleports around you and strikes from behind.'},
 };
@@ -9393,7 +9393,7 @@ function invPlace(){
   toast('The fleet is above you','Every hero can fly up here · Z locks on','red');objective('Hold the line');
 }
 function invWaveJump(n){ // test hook: jump straight to a wave
-  if(INV.state!=='battle')invBegin(true);clearInvaders();INV.pend.length=0;INV.breath=0;invWaveStart(clamp(n,1,4));
+  if(INV.state!=='battle')invBegin(true);clearInvaders();INV.pend.length=0;INV.breath=0;invWaveStart(clamp(n,1,3));
 }
 function invAlive(){let n=0;for(const a of INV.list)if(a.alive)n++;return n;}
 function clearInvaders(){for(const a of INV.list.slice())removeActor(a);INV.list.length=0;INV.orbs.length=0;lockT=lockT&&lockT.kind==='invader'?null:lockT;}
@@ -9411,7 +9411,7 @@ function invRespawn(){
 function invWaveStart(n){
   INV.wave=n;INV.nw=n+1;INV.live=true;const W=INV_WAVES[n-1],a=[];for(const k in W.mix)for(let i=0;i<W.mix[k];i++)a.push(k);
   for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0,t=a[i];a[i]=a[j];a[j]=t;}
-  INV.pend=a;INV.breath=0;INV.spawnT=0.4;toast('WAVE '+n+' / 4',W.n+' invaders','red');SFX.tone('sawtooth',90,60,0.9,0.1);addShake(0.2);
+  INV.pend=a;INV.breath=0;INV.spawnT=0.4;toast('WAVE '+n+' / 3',W.n+' invaders','red');SFX.tone('sawtooth',90,60,0.9,0.1);addShake(0.2);
 }
 function invNearShips(k){ // the k ships nearest to the player
   const out=[];for(const s of INV.fleet){if(s.dead)continue;const d=Math.hypot(s.x-P.pos.x,s.y-P.pos.y,s.z-P.pos.z);out.push({s,d});}
@@ -9420,7 +9420,7 @@ function invNearShips(k){ // the k ships nearest to the player
 function invSpawn(vt){
   const V=INV_V[vt],ns=invNearShips(7),sh=ns.length?pick(ns):{x:P.pos.x+rr(-200,200),y:P.pos.y+rr(80,240),z:P.pos.z+rr(250,450),sc:1};
   const hp=Math.round((95+11*save.level)*V.hp),sx=sh.x+rr(-40,40),sy=sh.y-14,sz=sh.z+rr(-40,40);
-  const a={kind:'invader',faction:'alien',vt,name:V.name,alive:true,hp,maxHp:hp,pos:new V3(sx,sy,sz),vel:new V3(),yaw:Math.atan2(P.pos.x-sx,P.pos.z-sz),flash:0,stun:0,slow:0,slowT:0,burn:0,burnDps:0,held:false,thrown:null,sc:V.sc,cy:1.05*V.sc,radius:0.9*V.sc,ys:0.85,
+  const a={kind:'invader',faction:'alien',vt,name:V.name,alive:true,hp,maxHp:hp,pos:new V3(sx,sy,sz),vel:new V3(),yaw:Math.atan2(P.pos.x-sx,P.pos.z-sz),flash:0,stun:0,slow:0,slowT:0,burn:0,burnDps:0,held:false,thrown:null,ac:hsl(Math.random()),sc:V.sc,cy:1.05*V.sc,radius:0.9*V.sc,ys:0.85,
     lastHit:-99,deadT:0,st:'drop',stT:0,cd:rr(0.8,2.2),fireT:rr(1,2.4),volley:0,volT:0,vis:1,ph:rr(0,TAU),os:Math.random()<0.5?1:-1,osT:rr(2,5),off:{x:rr(-40,40),y:rr(-8,14),z:rr(-40,40)},castT:-9,glow:0,want:rr(30,46),meleeT:0,bs:'app',bt:0,aim:null,bm:null,sh:0};
   a.onHit=(src,amt,type)=>invOnHit(a,src,amt,type);a.onDefeat=()=>invOnDefeat(a);
   actors.push(a);INV.list.push(a);
@@ -9444,19 +9444,19 @@ function invWaveTick(dt){
   const alive=invAlive();
   if(INV.pend.length&&alive<INV_CAP){INV.spawnT-=dt;if(INV.spawnT<=0){INV.spawnT=rr(0.25,0.5);invSpawn(INV.pend.pop());}}
   if(!INV.pend.length&&alive===0){
-    if(INV.wave>=4){invWin(false);return;}
+    if(INV.wave>=3){invWin(false);return;}
     INV.live=false;toast('Wave cleared','Wave '+INV.nw+' in 3 s','gold');SFX.chime();INV.breath=3;
   }
 }
 function invText(){
-  if(INV.breath>0)return INV.wave>=1&&!INV.live&&INV.nw>INV.wave?'WAVE '+INV.wave+'/4 cleared · next in '+Math.ceil(INV.breath):'WAVE '+Math.min(4,INV.nw)+'/4 · starts in '+Math.ceil(INV.breath);
-  return 'WAVE '+INV.wave+'/4 · '+(INV.pend.length+invAlive())+' left';
+  if(INV.breath>0)return INV.wave>=1&&!INV.live&&INV.nw>INV.wave?'WAVE '+INV.wave+'/3 cleared · next in '+Math.ceil(INV.breath):'WAVE '+Math.min(3,INV.nw)+'/3 · starts in '+Math.ceil(INV.breath);
+  return 'WAVE '+INV.wave+'/3 · '+(INV.pend.length+invAlive())+' left';
 }
 // ---- the invaders' minds ----
 function invShoot(a,pc){
   const V=INV_V[a.vt],ox=a.pos.x+Math.sin(a.yaw)*1.2*a.sc,oy=a.pos.y+a.cy+0.2,oz=a.pos.z+Math.cos(a.yaw)*1.2*a.sc,d3=Math.hypot(P.pos.x-ox,P.pos.y-oy,P.pos.z-oz),lead=d3/56*0.55;
   const v=dirTo({x:ox,y:oy,z:oz},P.pos.x+P.vel.x*lead+rr(-1.4,1.4),P.pos.y+1.3+P.vel.y*lead+rr(-1,1),P.pos.z+P.vel.z*lead+rr(-1.4,1.4));
-  fireProj({kind:'plasma',owner:a,x:ox,y:oy,z:oz,vx:v[0]*56,vy:v[1]*56,vz:v[2]*56,dmg:(9+0.17*save.level)*(pc?1.2:1),r:0.55,life:3,knock:6,pc:pc||V.trim,sc:1.1});a.castT=time;
+  fireProj({kind:'plasma',owner:a,x:ox,y:oy,z:oz,vx:v[0]*56,vy:v[1]*56,vz:v[2]*56,dmg:(9+0.17*save.level)*(pc?1.2:1),r:0.55,life:3,knock:6,pc:pc||a.ac,sc:1.1});a.castT=time;
   SFX.tone('square',500,1200,0.12,0.05*SFX.vol(ox,oy,oz));
 }
 function invHurtP(a,dmg,type,knock){Damage.apply(a,P,dmg,type,{knock});a.castT=time;}
@@ -9468,15 +9468,15 @@ function invBeamHit(a){ // the lancer's beam: along the locked line, 300 m
 function invBomb(a){
   const ox=a.pos.x+Math.sin(a.yaw)*1.1*a.sc,oy=a.pos.y+a.cy,oz=a.pos.z+Math.cos(a.yaw)*1.1*a.sc,d3=Math.hypot(P.pos.x-ox,P.pos.y-oy,P.pos.z-oz),lead=d3/27*0.5;
   const v=dirTo({x:ox,y:oy,z:oz},P.pos.x+P.vel.x*lead,P.pos.y+1.3+P.vel.y*lead,P.pos.z+P.vel.z*lead);
-  INV.orbs.push({x:ox,y:oy,z:oz,vx:v[0]*27,vy:v[1]*27,vz:v[2]*27,life:3.4,src:a,t:0});a.castT=time;SFX.tone('triangle',200,500,0.25,0.07*SFX.vol(ox,oy,oz));
+  INV.orbs.push({x:ox,y:oy,z:oz,vx:v[0]*27,vy:v[1]*27,vz:v[2]*27,life:3.4,src:a,t:0,c:a.ac});a.castT=time;SFX.tone('triangle',200,500,0.25,0.07*SFX.vol(ox,oy,oz));
 }
 function invOrbBoom(o){
-  const V=INV_V.bomber;burst(o.x,o.y,o.z,50,32,0.8,[[.7,1,.35],[1,1,.8],[.3,.9,.4]],4,0,1.6);ringFx(o.x,o.y,o.z,1,16,0.45,[.7,1,.35]);ringFx(o.x,o.y,o.z,1,10,0.3,[1,1,1]);SFX.boom(0.5*SFX.vol(o.x,o.y,o.z),1.1);
+  const c=o.c;burst(o.x,o.y,o.z,50,32,0.8,[c,[1,1,.8],c],4,0,1.6);ringFx(o.x,o.y,o.z,1,16,0.45,c);ringFx(o.x,o.y,o.z,1,10,0.3,[1,1,1]);SFX.boom(0.5*SFX.vol(o.x,o.y,o.z),1.1);
   areaDamage(o.x,o.y,o.z,9,16+0.22*save.level,o.src,{type:'blast',knock:24});addShake(0.15*SFX.vol(o.x,o.y,o.z));
 }
 function invOrbTick(dt){
   for(let i=INV.orbs.length-1;i>=0;i--){
-    const o=INV.orbs[i];o.t+=dt;o.life-=dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.z+=o.vz*dt;if(Math.random()<0.5)emit(o.x,o.y,o.z,rr(-2,2),rr(-2,2),rr(-2,2),0.35,[.6,1,.4],1.4,0,1);
+    const o=INV.orbs[i];o.t+=dt;o.life-=dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.z+=o.vz*dt;if(Math.random()<0.5)emit(o.x,o.y,o.z,rr(-2,2),rr(-2,2),rr(-2,2),0.35,o.c,1.4,0,1);
     const d=Math.hypot(P.pos.x-o.x,P.pos.y+1.3-o.y,P.pos.z-o.z);
     if(o.life<=0||(d<4.2&&!P.dead)){invOrbBoom(o);INV.orbs.splice(i,1);}
   }
@@ -9508,7 +9508,7 @@ function invUpdate(a,dt){
         if(d3<34&&d3>10&&a.cd<=0){a.bs='wind';a.bt=0.7;a.glow=1;SFX.tone('sawtooth',160,420,0.7,0.08*SFX.vol(a.pos.x,a.pos.y,a.pos.z));}}
       else if(a.bs==='wind'){a.bt-=dt;wx=-ux*9;wy=-uy*9;wz=-uz*9;a.glow=1;a.cx=ux;a.cy2=uy;a.cz=uz;if(a.bt<=0){a.bs='charge';a.bt=0.95;a.hit=false;SFX.whoosh();}}
       else if(a.bs==='charge'){a.bt-=dt;wx=a.cx*92;wy=a.cy2*92;wz=a.cz*92;kk=9;a.glow=1;
-        if(!a.hit&&d3<4.4){a.hit=true;invHurtP(a,16+0.22*save.level,'punch',34);burst(a.pos.x,a.pos.y+a.cy,a.pos.z,16,14,0.4,[V.trim,[1,1,1]],2,0,2);SFX.punch(1);}
+        if(!a.hit&&d3<4.4){a.hit=true;invHurtP(a,16+0.22*save.level,'punch',34);burst(a.pos.x,a.pos.y+a.cy,a.pos.z,16,14,0.4,[a.ac,[1,1,1]],2,0,2);SFX.punch(1);}
         if(a.bt<=0||a.hit){a.bs='rec';a.bt=1.2;a.cd=rr(2.8,4);}}
       else{a.bt-=dt;wx=ux*7;wy=uy*7;wz=uz*7;if(a.bt<=0)a.bs='app';}
     }else if(a.vt==='shield'){
@@ -9533,7 +9533,7 @@ function invUpdate(a,dt){
         a.pos.set(tx+Math.sin(by)*r,ty+rr(-3,5),tz+Math.cos(by)*r);a.vel.set(0,0,0);a.bs='in';a.bt=0.55;burst(a.pos.x,a.pos.y+a.cy,a.pos.z,18,14,0.35,[V.trim,[1,1,1]],2.4,0,2);ringFx(a.pos.x,a.pos.y+a.cy,a.pos.z,0.6,6,0.3,V.trim);SFX.tone('triangle',2400,500,0.18,0.07*SFX.vol(a.pos.x,a.pos.y,a.pos.z));}}
       else if(a.bs==='in'){a.vis=Math.min(1,a.vis+dt*6);a.bt-=dt;wx=wy=wz=0;a.yaw=Math.atan2(dx,dz);if(a.bt<=0){a.bs='dash';a.bt=0.32;a.hit=false;a.cx=ux;a.cy2=uy;a.cz=uz;a.glow=1;SFX.whoosh();}}
       else if(a.bs==='dash'){a.bt-=dt;wx=a.cx*80;wy=a.cy2*80;wz=a.cz*80;kk=12;a.glow=1;
-        if(!a.hit&&d3<3.8){a.hit=true;invHurtP(a,12+0.17*save.level,'slash',12);tracer(a.pos.x-a.cx*3,a.pos.y+a.cy+1,a.pos.z-a.cz*3,a.pos.x+a.cx*3,a.pos.y+a.cy-1,a.pos.z+a.cz*3,V.trim,0.4,0.25);SFX.punch(0.6);}
+        if(!a.hit&&d3<3.8){a.hit=true;invHurtP(a,12+0.17*save.level,'slash',12);tracer(a.pos.x-a.cx*3,a.pos.y+a.cy+1,a.pos.z-a.cz*3,a.pos.x+a.cx*3,a.pos.y+a.cy-1,a.pos.z+a.cz*3,a.ac,0.4,0.25);SFX.punch(0.6);}
         if(a.bt<=0){a.bs='app';a.bt=rr(1.6,2.4);a.stT=0;}}
     }
     if(d3>380){wx+=ux*70;wy+=uy*70;wz+=uz*70;} // never wander off
@@ -9663,7 +9663,7 @@ function invDraw1(a){
   if(d2>900&&(dx*camF.x+dy*camF.y+dz*camF.z)<-0.3*Math.sqrt(d2))return;
   const V=INV_V[a.vt],t=time,sp=Math.hypot(a.vel.x,a.vel.y,a.vel.z),fl=a.flash*0.6+0.05,far=d2>260*260;
   let sc=a.sc;if(!a.alive)sc*=Math.max(0,1-a.deadT/0.65);if(a.vis<1)sc*=a.vis;if(sc<0.05)return;
-  const lean=Math.min(sp/45,1)*0.95,col=V.c4,dk=V.d4,tr=V.t4;
+  const lean=Math.min(sp/45,1)*0.95,col=V.c4,dk=V.d4,tr=V.t4,ac=a.ac,ac4=a.ac4||(a.ac4=[ac[0],ac[1],ac[2],1]);
   const root=at(a.pos.x,a.pos.y,a.pos.z,lean,a.yaw,0,sc,sc,sc),aim=t-a.castT<0.45||a.aim;
   if(a.glow>0.05)queue(MESH.glowSphere,child(root,0,0.3,0,0,0,0,1.1,1.7,1.1),[tr[0],tr[1],tr[2],0.04*a.glow],F_ADD);
   if(far){queue(MESH.box,child(root,0,0.3,0,0,0,0,0.55,1.3,0.35),col,0,fl);const g=Math.sqrt(d2)*0.012;queue(MESH.glowSphere,at(a.pos.x,a.pos.y+a.cy,a.pos.z,0,0,0,g,g,g),[tr[0],tr[1],tr[2],0.35],F_ADD);return;}
@@ -9679,17 +9679,17 @@ function invDraw1(a){
     queue(MESH.box,child(sh,0,-0.16,0,0,0,0,0.13*big,0.32,0.13*big),dk,0,fl);const eb=child(sh,0,-0.32,0,armed?0:-0.25,0,0);queue(MESH.box,child(eb,0,-0.15,0,0,0,0,0.11*big,0.3,0.11*big),INV_SKIN,0,fl);
     queue(MESH.sphere,child(eb,0,-0.32,0,0,0,0,0.1*big,0.1*big,0.1*big),a.vt==='brute'?col:dk,0,fl);
     if(s>0){
-      if(a.vt==='blaster'){queue(MESH.box,child(eb,0,-0.34,0,0,0,0,0.16,0.4,0.16),dk,0,fl);queue(MESH.glowSphere,child(eb,0,-0.56,0,0,0,0,0.16,0.16,0.16),[1,.5,.3,aim?0.95:0.45],0);}
-      else if(a.vt==='lancer'){queue(MESH.box,child(eb,0,-0.7,0,0,0,0,0.08,1.5,0.08),dk,0,fl);queue(MESH.glowBox,child(eb,0,-1.46,0,0,0,0,0.06,0.1,0.06),tr,0);if(a.aim){const q=0.4+0.6*Math.min(1,a.aim.t/1.7);queue(MESH.glowSphere,child(eb,0,-1.5,0,0,0,0,0.5*q,0.5*q,0.5*q),[tr[0],tr[1],tr[2],0.9],F_ADD);}}
-      else if(a.vt==='bomber'){const q=0.2+0.03*Math.sin(t*9);queue(MESH.glowSphere,child(eb,0,-0.5,0,0,0,0,q,q,q),[.6,1,.4,1],0);queue(MESH.glowSphere,child(eb,0,-0.5,0,0,0,0,q*2.6,q*2.6,q*2.6),[.4,1,.3,0.28],F_ADD);}
-      else if(a.vt==='blinker')queue(MESH.glowBox,child(eb,0,-0.7,0,0,0,0,0.035,0.8,0.1),tr,0);
+      if(a.vt==='blaster'){queue(MESH.box,child(eb,0,-0.34,0,0,0,0,0.16,0.4,0.16),dk,0,fl);queue(MESH.glowSphere,child(eb,0,-0.56,0,0,0,0,0.16,0.16,0.16),[ac[0],ac[1],ac[2],aim?0.95:0.45],0);}
+      else if(a.vt==='lancer'){queue(MESH.box,child(eb,0,-0.7,0,0,0,0,0.08,1.5,0.08),dk,0,fl);queue(MESH.glowBox,child(eb,0,-1.46,0,0,0,0,0.06,0.1,0.06),ac4,0);if(a.aim){const q=0.4+0.6*Math.min(1,a.aim.t/1.7);queue(MESH.glowSphere,child(eb,0,-1.5,0,0,0,0,0.5*q,0.5*q,0.5*q),[ac[0],ac[1],ac[2],0.9],F_ADD);}}
+      else if(a.vt==='bomber'){const q=0.2+0.03*Math.sin(t*9);queue(MESH.glowSphere,child(eb,0,-0.5,0,0,0,0,q,q,q),ac4,0);queue(MESH.glowSphere,child(eb,0,-0.5,0,0,0,0,q*2.6,q*2.6,q*2.6),[ac[0],ac[1],ac[2],0.28],F_ADD);}
+      else if(a.vt==='blinker')queue(MESH.glowBox,child(eb,0,-0.7,0,0,0,0,0.035,0.8,0.1),ac4,0);
     }
     const hp=child(root,s*0.12,-0.1,0,Math.sin(t*3+a.ph+s)*0.12,0,0);queue(MESH.box,child(hp,0,-0.24,0,0,0,0,0.15,0.48,0.16),dk,0,fl);queue(MESH.box,child(hp,0,-0.62,0.02,0,0,0,0.12,0.4,0.13),col,0,fl);
   }
   queue(MESH.glowSphere,at(a.pos.x,a.pos.y-0.55*sc,a.pos.z,0,0,0,0.18*sc,0.3*sc,0.18*sc),[tr[0],tr[1],tr[2],0.25+0.12*Math.sin(t*14+a.ph)],F_ADD);
   if(a.vt==='shield'){const f=Math.sin(a.yaw),g=Math.cos(a.yaw);
     queue(MESH.glowSphere,at(a.pos.x+f*1.5*sc,a.pos.y+a.cy*1.05,a.pos.z+g*1.5*sc,0,a.yaw,0,2.1*sc,2.5*sc,0.16*sc),[.35,.8,1,0.02+0.22*a.sh],F_ADD);queue(MESH.ring,at(a.pos.x+f*1.55*sc,a.pos.y+a.cy*1.05,a.pos.z+g*1.55*sc,Math.PI/2,a.yaw,0,1.1*sc,1,1.3*sc),[.6,.95,1,0.2+0.5*a.sh],F_ADD);}
-  if(a.bs==='wind'&&a.vt==='brute')queue(MESH.glowSphere,child(root,0,0.4,0,0,0,0,2.2,2.2,2.2),[1,.6,.1,0.35],F_ADD);
+  if(a.bs==='wind'&&a.vt==='brute')queue(MESH.glowSphere,child(root,0,0.4,0,0,0,0,2.2,2.2,2.2),[ac[0],ac[1],ac[2],0.35],F_ADD);
 }
 function invDraw(){
   if(INV.ls&&storySolo()&&state==='play')lsDraw(); // (the wormhole also opens inside the cyber world)
@@ -9697,9 +9697,9 @@ function invDraw(){
   for(const b of INV.blasts){const k=b.t/1.5,r=b.s*(0.4+k*1.3);queue(UGLOW,at(b.x,b.y,b.z,0,0,0,r,r,r),[1,.75,.4,0.8*(1-k)],F_ADD);queue(UGLOW,at(b.x,b.y,b.z,0,0,0,r*1.6,r*1.6,r*1.6),[1,.4,.2,0.2*(1-k)],F_ADD);if(k<0.3)queue(UGLOW,at(b.x,b.y,b.z,0,0,0,r*0.55,r*0.55,r*0.55),[1,1,1,1-k*3],F_ADD);}
   if(INV.fleet.length&&(save.story.invasion===1||INV.state==='win'))invFleetDraw();
   for(const a of INV.list){invDraw1(a);
-    if(a.aim){const A=a.aim,ox=a.pos.x+A.dx*1.6,oy=a.pos.y+a.cy+A.dy*1.6,oz=a.pos.z+A.dz*1.6,lock=A.t>=1.25,w=lock?0.16+0.1*Math.sin(time*40):0.06;queue(MESH.glowBox,M4.beam(tmpM(),ox,oy,oz,ox+A.dx*300,oy+A.dy*300,oz+A.dz*300,w),[1,lock?.15:.35,.25,lock?1:0.7],F_ADD);}
-    if(a.bm){const b=a.bm,k=b.t/0.3;queue(MESH.glowBox,M4.beam(tmpM(),b.sx,b.sy,b.sz,b.ex,b.ey,b.ez,1.1*k),[.9,.5,1,0.55*k],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),b.sx,b.sy,b.sz,b.ex,b.ey,b.ez,0.55*k),[1,1,1,k],F_ADD);}}
-  for(const o of INV.orbs){const q=0.9+0.12*Math.sin(o.t*20);queue(MESH.glowSphere,at(o.x,o.y,o.z,0,0,0,0.9*q,0.9*q,0.9*q),[.7,1,.45,1],0);queue(MESH.glowSphere,at(o.x,o.y,o.z,0,0,0,3.2*q,3.2*q,3.2*q),[.4,1,.3,0.3],F_ADD);const f=Math.min(1,o.t/3.2),r2=9*f;queue(MESH.ring,at(o.x,o.y,o.z,Math.PI/2,0,0,r2,1,r2),[.7,1,.4,0.12+0.2*f],F_ADD);}
+    if(a.aim){const A=a.aim,ox=a.pos.x+A.dx*1.6,oy=a.pos.y+a.cy+A.dy*1.6,oz=a.pos.z+A.dz*1.6,lock=A.t>=1.25,w=lock?0.16+0.1*Math.sin(time*40):0.06;queue(MESH.glowBox,M4.beam(tmpM(),ox,oy,oz,ox+A.dx*300,oy+A.dy*300,oz+A.dz*300,w),[a.ac[0],a.ac[1],a.ac[2],lock?1:0.7],F_ADD);}
+    if(a.bm){const b=a.bm,k=b.t/0.3;queue(MESH.glowBox,M4.beam(tmpM(),b.sx,b.sy,b.sz,b.ex,b.ey,b.ez,1.1*k),[a.ac[0],a.ac[1],a.ac[2],0.55*k],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),b.sx,b.sy,b.sz,b.ex,b.ey,b.ez,0.55*k),[1,1,1,k],F_ADD);}}
+  for(const o of INV.orbs){const q=0.9+0.12*Math.sin(o.t*20);queue(MESH.glowSphere,at(o.x,o.y,o.z,0,0,0,0.9*q,0.9*q,0.9*q),[o.c[0]*.4+.6,o.c[1]*.4+.6,o.c[2]*.4+.6,1],0);queue(MESH.glowSphere,at(o.x,o.y,o.z,0,0,0,3.2*q,3.2*q,3.2*q),[o.c[0],o.c[1],o.c[2],0.3],F_ADD);const f=Math.min(1,o.t/3.2),r2=9*f;queue(MESH.ring,at(o.x,o.y,o.z,Math.PI/2,0,0,r2,1,r2),[o.c[0],o.c[1],o.c[2],0.12+0.2*f],F_ADD);}
 }
 // the wormhole: streaks, thin rings and a dark tube round the camera path (the world fades into it), a bright end in front
 const RING2=primMesh(primRing(0.96,72),6);
@@ -12670,7 +12670,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,spawnDrone,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   Portal,SFX,applyLook,rings,makeRemote,applyPresence,FLAG,updateTags,spawnMech,fireProj,mechPoint,get parks(){return typeof parks!=="undefined"?parks:null;},travStyle,setTravStyle,hasTravWheel,masteryLevel,PRESETS,get growTutOn(){return growTutOn;},respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play'){zonePlayerPre();updatePlayer(dt);zonePlayerPost();}updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);storyTick(dt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
-if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({growStep,ufoReward,rewind,boostMul,ufoBoost,REW,boostPanel,shiftMaster,stormAxe,ringInf,meterInf,sgVDur,sgVCd,ufoWebReel,skyAnchor,findAnchor,story:()=>save.story,storyAddActive:s=>{save.story.act+=+s||0;},ufoArrive:q=>ufoArrive(q===undefined?true:q),loadSave,enterZone,leaveZone,zone:()=>zone,askYesNo,askInfo,cutscene,objective,objectiveMark,ufoTakeItem,UFO,UF,ualiens,ZONES,ZF,OBJ,get CUT(){return CUT;},get ASK(){return ASK;},storyTick,ufoLeave,ufoBeamUp,storyActiveNow,sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto,prismStart,destroyStart,destroyKey,destroyAvail,PR,get kathana(){return KA;},get korbs(){return KA.orbs;},kathanaWinStage1,kathanaStage2,kathanaLose,kathanaWin,qteWin,KQ,PF,get kperfect(){return PF.real;},worldUpgrade,humanSuper,superTick,invasionStart:q=>invBegin(q===undefined?true:q),invasionWave:n=>invWaveJump(n),invasionWin:q=>invWin(!!q),lightSpeed:lsStart,INV,get invaders(){return INV.list;},cyberArrive,invText,masteryInv,invMastery,invSpawn,cyberGoArch,cyberStats,towerEnter,CY,CYZ,cyberTick,cyberRespawn,spireEnter,spireFloor,spireClearFloor,get sovereign(){return SOV;},sovereignHalf,sovereignWin,wormholeTo,SP,SPR,SOV,spStartAt,cyReal,zoneHop,spRespawn,spSpawn,CB,sovIntro,spRide,SPO,SPFY,sovereignAtk,makeVehicle,vehicleBlock,VB,cyCarPose,CYP,setVehiclePos}));
+if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({growStep,ufoReward,rewind,boostMul,ufoBoost,REW,boostPanel,shiftMaster,stormAxe,ringInf,meterInf,sgVDur,sgVCd,ufoWebReel,skyAnchor,findAnchor,story:()=>save.story,storyAddActive:s=>{save.story.act+=+s||0;},ufoArrive:q=>ufoArrive(q===undefined?true:q),loadSave,enterZone,leaveZone,zone:()=>zone,askYesNo,askInfo,cutscene,objective,objectiveMark,ufoTakeItem,UFO,UF,ualiens,ZONES,ZF,OBJ,get CUT(){return CUT;},get ASK(){return ASK;},storyTick,ufoLeave,ufoBeamUp,storyActiveNow,sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto,prismStart,destroyStart,destroyKey,destroyAvail,PR,get kathana(){return KA;},get korbs(){return KA.orbs;},kathanaWinStage1,kathanaStage2,kathanaLose,kathanaWin,qteWin,KQ,PF,get kperfect(){return PF.real;},worldUpgrade,humanSuper,superTick,invasionStart:q=>invBegin(q===undefined?true:q),invasionWave:n=>invWaveJump(n),invasionWin:q=>invWin(!!q),lightSpeed:lsStart,INV,get invaders(){return INV.list;},cyberArrive,invText,INV_WAVES,masteryInv,invMastery,invSpawn,cyberGoArch,cyberStats,towerEnter,CY,CYZ,cyberTick,cyberRespawn,spireEnter,spireFloor,spireClearFloor,get sovereign(){return SOV;},sovereignHalf,sovereignWin,wormholeTo,SP,SPR,SOV,spStartAt,cyReal,zoneHop,spRespawn,spSpawn,CB,sovIntro,spRide,SPO,SPFY,sovereignAtk,makeVehicle,vehicleBlock,VB,cyCarPose,CYP,setVehiclePos}));
 if(window.__SKYLINE_TEST__)window.__skyline.pfProf=n=>{const d0=dlN,m0=mpi;let t0=performance.now();for(let i=0;i<n;i++)pfUpdate(1e-4);const u=(performance.now()-t0)/n;t0=performance.now();for(let i=0;i<n;i++){dlN=d0;mpi=m0;pfDraw(time);}const d=(performance.now()-t0)/n,nq=dlN-d0;dlN=d0;mpi=m0;return {u,d,nq};}; // JS cost of the Perfect Form (think + draw) per frame, and how many draw calls it queues
 })();
 </script>
