@@ -423,9 +423,10 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
 #lhint{justify-self:end;display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.08em;color:var(--ink-dim);opacity:.8}#lhint kbd{font-size:10px;padding:0 5px}
 #lhint.free{color:var(--gold);opacity:1}#lhint.free kbd{border-color:var(--gold);color:var(--gold)}
 #lockon{position:absolute;left:50%;top:calc(50% + 44px);transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:8px 18px;border-radius:999px;font:700 16px var(--hud);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;pointer-events:none;border-color:var(--gold);background:rgba(20,14,2,.78);box-shadow:0 0 16px rgba(255,201,60,.5);animation:loPulse 1.1s ease-in-out infinite}
-body.hush #lockon,body.hush #lhint,body.hush #goal,body.hush #guide,body.hushg #guide,body.hushg #goal{display:none!important}
+body.hush #lockon,body.hush #flyhint,body.hush #lhint,body.hush #goal,body.hush #guide,body.hushg #guide,body.hushg #goal{display:none!important}
 #lockon kbd{font-size:15px;padding:1px 9px;border-color:var(--gold);color:var(--gold)}#lockon kbd[hidden]{display:none}
 #lockon.sm{padding:3px 12px;font-size:11px;gap:7px;border-color:var(--edge);background:rgba(4,8,18,.6);box-shadow:none;animation:none;opacity:.85}#lockon.sm kbd{font-size:10px;padding:0 6px;border-color:rgba(255,255,255,.3);color:var(--ink)}
+#flyhint{position:absolute;left:50%;top:calc(50% + 92px);transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;font:700 13px var(--hud);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;pointer-events:none;border-color:rgba(79,216,255,.7);background:rgba(4,12,24,.76);box-shadow:0 0 14px rgba(79,216,255,.4)}#flyhint[hidden],#flyhint kbd[hidden]{display:none}#flyhint kbd{font-size:13px;padding:0 8px;border-color:var(--energy);color:var(--energy)}
 @keyframes loPulse{50%{box-shadow:0 0 28px rgba(255,201,60,.95);transform:translateX(-50%) scale(1.06)}}
 .tb.hint{border-color:var(--gold);animation:tbHint .9s ease-in-out infinite}@keyframes tbHint{50%{box-shadow:0 0 0 6px rgba(255,201,60,.5),0 0 20px rgba(255,201,60,.9)}}
 #p-daily:not([hidden]){cursor:pointer;text-decoration:underline;text-underline-offset:3px}#p-daily:hover{color:var(--gold)}
@@ -517,6 +518,7 @@ body.touch #ask kbd{display:none}
   <div id="marks"></div>
   <div id="dmgs"></div>
   <div id="cross"></div>
+  <div id="flyhint" class="panel" hidden><kbd id="flyhint-k">F</kbd><span id="flyhint-t">to fly</span></div>
   <div id="lockon" class="panel" hidden><kbd id="lockon-k">Z</kbd><span id="lockon-t">Lock on</span></div>
   <div id="prompt"></div>
   <div id="charge" hidden>SUPER JUMP<div class="bar"><i id="chargeb"></i></div></div>
@@ -4554,7 +4556,8 @@ function renderHeroKeys(){
   if(hasTravWheel()&&!hasPower('morphBand'))K('V','Traversal style: '+TRAV_STYLES[m].map(x=>x[1]).join(' · ')+' (now: '+TRAV_STYLES[m].find(x=>x[0]===travStyle(m))[1]+')');
   if(m==='webSwing'){K('Right click',travStyle(m)==='zip'?'Zip to where you aim':'Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
-  else if(m)K('F','Fly · hold on the ground to charge a launch');
+  else if(m&&hasPower('flight'))K('F','Fly · hold on the ground to charge a launch');
+  if(m&&!hasPower('flight')&&invFlyOk())K('F','Fly (the invasion lets every hero fly)');
   if(c){H('Your powers');c.abilities.forEach((id,i)=>{const p=POWERS[id];if(!p)return;
       K(String(i+1)+(i<3?' · '+'QER'[i]:''),p.name+(PBAL&&typeof slotLocked==='function'&&slotLocked(i)?' · unlocks at LV '+KIT_LV[i]:''));});
     K('Hold 1–4 · wheel','Size a power (up to ×30), let go to use it');}
@@ -10880,7 +10883,8 @@ function updateMarkers(){
 // An enemy within 60 m and in front of you with nothing locked shows a gold "Z Lock on" pill (touch: the Lock button pulses and the
 // pill says "Tap Lock"); once you have locked on at least once the pill shrinks to a quiet one. Locked, a small "Z Release" shows.
 // The first time a foe is near you also get a toast (save.guide.lockNear).
-let hintT=-9,foeNear=false;
+let hintT=-9,foeNear=false,flyG=0,flyShown=0,flyEver=false,flyOkSeen=null,flyLastT=0; // fly hint: seconds grounded, seconds shown, has flown this session, can-fly watcher
+const canFlyKey=()=>!!save.character&&!P.alien&&(hasPower('flight')||invFlyOk()); // F flies (the invasion lets every hero fly)
 function nearFoe(){ // same view cone as pickLock, so a press of Z really does lock something
   for(const a of actors){if(!lockable(a)||a.hidden||!hostileTo(a))continue;const c=center(a);
     if(Math.hypot(c.x-P.pos.x,c.y-P.pos.y,c.z-P.pos.z)>60)continue;
@@ -10900,6 +10904,19 @@ function updateHints(){
   lo.hidden=!txt;
   if(txt){setText($('lockon-t'),'lot',txt);$('lockon-k').hidden=touch;lo.classList.toggle('sm',lk||!!save.guide.lock);}
   if(TB.lock)TB.lock.b.classList.toggle('hint',touch&&live&&!lk&&foeNear);
+  flyHint(live,touch);
+}
+// "F to fly" under the lock-on pill: a flying hero who stands on the ground for 5 s and has not flown yet this session sees it (14 s at most, once per session); touch pulses the Fly button instead
+function flyHint(live,touch){
+  const fh=$('flyhint');if(!fh)return;
+  const ok=canFlyKey();if(ok!==flyOkSeen){const first=flyOkSeen===null;flyOkSeen=ok;if(!first)buildHotbar();} // the move list and hotbar follow when flying turns on (the invasion) or off
+  const dt=clamp(time-flyLastT,0,0.25);flyLastT=time;
+  if(P.flying)flyEver=true;
+  const able=live&&hasPower('flight')&&!P.alien&&!P.car&&P.grounded&&!P.flying&&!zone&&!flyEver&&!sheetOpen&&!creating&&!dialOpen;
+  flyG=able?flyG+dt:0;const show=able&&flyG>5&&flyShown<14;if(show)flyShown+=dt;
+  if(fh.hidden===show)fh.hidden=!show;
+  if(show){$('flyhint-k').hidden=touch;setText($('flyhint-t'),'fht',touch?'Tap Fly':'to fly');}
+  if(TB.fly)TB.fly.b.classList.toggle('hint',touch&&show);
 }
 // hush: the hint pills (#lockon, #lhint, #goal, the guide) hide during cutscenes, the QTE, zone fades and popups; the guide also in story zones and boss fights.
 // (a CSS class so it works while a popup has the game paused)
@@ -10961,6 +10978,7 @@ function buildHotbar(){
   {const cd=el('i',{class:'cd',hidden:true}),kb=el('kbd'),nm=el('span',{class:'nm'});const s=el('div',{class:'slot vslot',hidden:true},cd,kb,nm);s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({vs:true,s,cd,kb,nm});} // the V / B slot: filled in by the per-frame update
   if(rewindOn()){const cd=el('i',{class:'cd',hidden:true}),s=el('div',{class:'slot rewslot'},cd,el('kbd',{text:touchOn()?'':'X'}),el('span',{class:'nm',text:'⟲ Rewind'}));s.addEventListener('click',()=>rewind());hud.hotbar.appendChild(s);slotEls.push({rw:true,s,cd});} // Chrono Core: an extra slot after V
   if(destroyAvail())prDestroySlot(); // Destroy (Enter): after V and Rewind, once the UFO is done
+  if(!hasPower('flight')&&invFlyOk()){const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':'F'}),el('span',{class:'nm',text:'Fly'}),el('small',{text:'Invasion'}));hud.hotbar.appendChild(s);slotEls.push({pr:true,s});} // no flight of your own, but the invasion lets every hero fly (pr: the per-frame update skips it)
   for(const id of save.character.movement){
     const lv=el('small');const pre=PRESETS[id];const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':POWERS[id].key}),el('span',{class:'nm',text:pre?pre.name:POWERS[id].name}),lv);
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd:null,lv,trav:true});

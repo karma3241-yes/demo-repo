@@ -52,6 +52,7 @@ function buildHotbar(){
   {const cd=el('i',{class:'cd',hidden:true}),kb=el('kbd'),nm=el('span',{class:'nm'});const s=el('div',{class:'slot vslot',hidden:true},cd,kb,nm);s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({vs:true,s,cd,kb,nm});} // the V / B slot: filled in by the per-frame update
   if(rewindOn()){const cd=el('i',{class:'cd',hidden:true}),s=el('div',{class:'slot rewslot'},cd,el('kbd',{text:touchOn()?'':'X'}),el('span',{class:'nm',text:'⟲ Rewind'}));s.addEventListener('click',()=>rewind());hud.hotbar.appendChild(s);slotEls.push({rw:true,s,cd});} // Chrono Core: an extra slot after V
   if(destroyAvail())prDestroySlot(); // Destroy (Enter): after V and Rewind, once the UFO is done
+  if(!hasPower('flight')&&invFlyOk()){const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':'F'}),el('span',{class:'nm',text:'Fly'}),el('small',{text:'Invasion'}));hud.hotbar.appendChild(s);slotEls.push({pr:true,s});} // no flight of your own, but the invasion lets every hero fly (pr: the per-frame update skips it)
   for(const id of save.character.movement){
     const lv=el('small');const pre=PRESETS[id];const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':POWERS[id].key}),el('span',{class:'nm',text:pre?pre.name:POWERS[id].name}),lv);
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd:null,lv,trav:true});

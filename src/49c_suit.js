@@ -52,7 +52,8 @@ function renderHeroKeys(){
   if(hasTravWheel()&&!hasPower('morphBand'))K('V','Traversal style: '+TRAV_STYLES[m].map(x=>x[1]).join(' · ')+' (now: '+TRAV_STYLES[m].find(x=>x[0]===travStyle(m))[1]+')');
   if(m==='webSwing'){K('Right click',travStyle(m)==='zip'?'Zip to where you aim':'Swing · Shift mid-swing boosts');K('Space in the air','Tap to web-zip · hold for web wings');K('C in the air','Air trick');K('Hold Space','Slingshot launch');}
   else if(m==='superSpeed'){K('Shift · F','Run · fast mode on/off');K('C','Phase through walls');K('Run into a wall','Run up it or along it at your dial speed');K('[ ] · wheel','Speed dial (or how slow, in Slow Time)');}
-  else if(m)K('F','Fly · hold on the ground to charge a launch');
+  else if(m&&hasPower('flight'))K('F','Fly · hold on the ground to charge a launch');
+  if(m&&!hasPower('flight')&&invFlyOk())K('F','Fly (the invasion lets every hero fly)');
   if(c){H('Your powers');c.abilities.forEach((id,i)=>{const p=POWERS[id];if(!p)return;
       K(String(i+1)+(i<3?' · '+'QER'[i]:''),p.name+(PBAL&&typeof slotLocked==='function'&&slotLocked(i)?' · unlocks at LV '+KIT_LV[i]:''));});
     K('Hold 1–4 · wheel','Size a power (up to ×30), let go to use it');}
