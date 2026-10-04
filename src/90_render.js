@@ -58,7 +58,7 @@ function updateCamera(dt){
     const cp=Math.cos(P.pitch);camF.set(-Math.sin(P.yaw)*cp,Math.sin(P.pitch),-Math.cos(P.yaw)*cp);
     const rX=Math.cos(P.yaw),rZ=-Math.sin(P.yaw),sp=P.vel.len(),spN=clamp(sp/190,0,1),hs=P.height/2.7;
     let want,ty,side;
-    if(P.car){const cs=clamp(Math.abs(P.car.spd||0)/CONFIG.drive.maxSpeed,0,1);want=12.5+cs*4;ty=P.car.pos.y+3.1;side=0;}
+    if(P.car){const cs=clamp(Math.abs(P.car.spd||0)/CONFIG.drive.maxSpeed,0,1);const big=P.car.vtype==='truck'?1.35:P.car.vtype==='van'?1.15:1;want=(12.5+cs*4)*big;ty=P.car.pos.y+3.1*big;side=0;} // trucks and vans stand taller: pull back and look higher
     else{const hk=hs<=6?Math.max(1,hs*0.8):4.8+(hs-6)*0.4;const gk=P.construct&&!CONSTRUCTS[P.construct.id].scale?conGrow(P.construct.id):1;want=(P.flying?9+spN*9:P.web?10:7.5)*hk*conCam();ty=P.pos.y+2.1*hs*gk;side=1.2*Math.min(hs,1.6)*gk;}
     const tx=P.car?P.car.pos.x:P.pos.x,tz=P.car?P.car.pos.z:P.pos.z;
     const cx=tx-camF.x*want+rX*side,cy=ty-camF.y*want+0.4,cz=tz-camF.z*want+rZ*side;

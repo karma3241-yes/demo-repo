@@ -109,8 +109,9 @@ function nearestInteract(){
   if(P.car)return {kind:'exit'};
   let best=null,bd=4.2;
   for(const h of humans)if(h.alive&&h.downed>0){const d=Math.hypot(h.pos.x-P.pos.x,h.pos.z-P.pos.z);if(d<bd&&Math.abs(h.pos.y-P.pos.y)<2){bd=d;best={kind:'help',h};}}
-  if(!P.alien||alienDef().scale<2)for(const v of vehicles){if(!v.alive||!['road','parked','stolen','flee','chase'].includes(v.state)||v.vtype==='truck')continue;
-    const d=Math.hypot(v.pos.x-P.pos.x,v.pos.z-P.pos.z);if(d<bd+0.6&&Math.abs(v.pos.y-P.pos.y)<2.5){bd=d-0.6;best={kind:'car',v};}}
+  if(!P.alien||alienDef().scale<2)for(const v of vehicles){if(!v.alive||!['road','parked','stolen','flee','chase'].includes(v.state))continue;
+    const d=Math.hypot(v.pos.x-P.pos.x,v.pos.z-P.pos.z)-Math.max(0,v.hl-3.2); // a long truck can be boarded anywhere along its side
+    if(d<bd+0.6&&Math.abs(v.pos.y-P.pos.y)<2.5){bd=d-0.6;best={kind:'car',v};}}
   if(!best){const s=nearestShopToEat();if(s)best={kind:'eat',s};else if(meterPrompt())best={kind:'storm'};}
   return best;
 }
@@ -128,7 +129,7 @@ function interact(){
 function enterCar(v){
   if(v.net)WS.take(v);
   if(P.alien&&alienDef().flies)return;
-  if(v.state==='road'||v.state==='chase'){const h=spawnHuman(v.vtype==='police'?'police':'civilian',v.pos.x+Math.cos(v.yaw)*2,v.pos.z-Math.sin(v.yaw)*2);
+  if(v.state==='road'||v.state==='chase'){const h=spawnHuman(v.vtype==='police'?'police':'civilian',v.pos.x+Math.cos(v.yaw)*(v.hw+0.9),v.pos.z-Math.sin(v.yaw)*(v.hw+0.9));
     if(h.role==='police')h.target=P;else npcFlee(h,P.pos.x,P.pos.z);
     addRep(v.vtype==='police'?-10:-5);addWanted(v.vtype==='police'?4:1.5,150);feed('Carjacked',v.vtype==='police'?'-10 rep · the police want their car back':'-5 rep');}
   if(v.driver)ejectDriver(v);if(v.crime&&v.state==='flee'){v.escaped=false;}
@@ -139,7 +140,7 @@ function enterCar(v){
 function exitCar(forced){
   const v=P.car;if(!v)return;P.car=null;
   if(v.alive){v.state='parked';v.parkT=undefined;}
-  const c=Math.cos(v.yaw),s=Math.sin(v.yaw);P.pos.set(v.pos.x-c*2.4,v.pos.y+0.3,v.pos.z+s*2.4);
+  const c=Math.cos(v.yaw),s=Math.sin(v.yaw);const off=v.hw+1.1;P.pos.set(v.pos.x-c*off,v.pos.y+0.3,v.pos.z+s*off); // beside the door, whatever the vehicle's width
   const sp=v.spd||0;P.vel.set(Math.sin(v.yaw)*sp*0.5,forced?10:2,Math.cos(v.yaw)*sp*0.5);v.spd=0;P.grounded=false;SFX.setEngine(false,0);
 }
 // touch controls live in 81_touch.js; the short power names on their buttons:
