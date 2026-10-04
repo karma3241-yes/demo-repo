@@ -105,6 +105,12 @@ function ufoTick(dt){
     }
   }
 }
+// the cutscene cameras look up at the saucer from street level, where a tower beside the player would fill the frame (or the camera would sit inside it):
+// ufoCamY lifts a camera point to 5 m above the tallest roof within 26 m, so nothing but sky is between it and the saucer
+function ufoCamY(x,z,y){
+  let top=0;for(const b of nearCols(x,z)){if(b.dead)continue;const dx=Math.max(b.x0-x,0,x-b.x1),dz=Math.max(b.z0-z,0,z-b.z1);if(dx*dx+dz*dz<26*26&&b.y1>top)top=b.y1;}
+  return Math.max(y,top+5);
+}
 // the saucer arrives (the 8 s cutscene); quick skips the cutscene (tests)
 function ufoArrive(quick){
   const S=save.story;if(S.ufo===4||(UFO.on&&S.ufo>=1))return;
@@ -112,7 +118,8 @@ function ufoArrive(quick){
   if(quick||state!=='play'){UFO.y=UFO_Y;return;}
   const ex=P.pos.x,ez=P.pos.z,hx=ex-UFO.x,hz=ez-UFO.z,hl=Math.hypot(hx,hz);let cx=ex,cz=ez;
   if(hl<110){const ux=hl>1?hx/hl:1,uz=hl>1?hz/hl:0;cx=UFO.x+ux*110;cz=UFO.z+uz*110;} // right under it, the camera steps back so it can look up at an angle
-  const from={x:cx,y:P.pos.y+3,z:cz},to={x:cx+(UFO.x-cx)*0.22,y:P.pos.y+14,z:cz+(UFO.z-cz)*0.22};
+  const tx=cx+(UFO.x-cx)*0.22,tz=cz+(UFO.z-cz)*0.22,up=Math.max(ufoCamY(cx,cz,0),ufoCamY(tx,tz,0),ufoCamY((cx+tx)/2,(cz+tz)/2,0)); // one clear height for the whole glide
+  const from={x:cx,y:Math.max(P.pos.y+3,up),z:cz},to={x:tx,y:Math.max(P.pos.y+14,up+9),z:tz};
   UFO.y=1100;UFO.leaving=false;
   cutscene({dur:8,text:'Something huge just arrived over Nova Bay',from,to,look:()=>({x:UFO.x,y:UFO.y,z:UFO.z}),fov:62,
     onTick:(k,dt)=>{const e=1-Math.pow(1-k,3);UFO.y=lerp(1100,UFO_Y,e);addShake(0.05*(1-k)+0.02);if(k>0.02&&k<0.04)SFX.tone('sawtooth',50,35,6,0.12);},
@@ -126,7 +133,7 @@ function ufoAsk(){
 function ufoBeamUp(){
   if(P.car)exitCar(true);
   const p={x:P.pos.x,y:P.pos.y,z:P.pos.z};UFO.lift={x:p.x,z:p.z,y0:p.y,t:0};SFX.tone('sine',200,1400,2.2,0.12);
-  cutscene({dur:2.4,letterbox:false,from:{x:p.x+9,y:p.y+3,z:p.z+9},to:{x:p.x+13,y:p.y+16,z:p.z+13},look:()=>({x:P.pos.x,y:P.pos.y+1.5,z:P.pos.z}),fov:60,
+  cutscene({dur:2.4,letterbox:false,from:{x:p.x+9,y:ufoCamY(p.x+9,p.z+9,p.y+3),z:p.z+9},to:{x:p.x+13,y:ufoCamY(p.x+13,p.z+13,p.y+16),z:p.z+13},look:()=>({x:P.pos.x,y:P.pos.y+1.5,z:P.pos.z}),fov:60,
     onTick:(k,dt)=>{UFO.lift.t+=dt;P.pos.y=UFO.lift.y0+k*k*60;for(let i=0;i<3;i++)emit(p.x+rr(-2.5,2.5),P.pos.y+rr(-3,6),p.z+rr(-2.5,2.5),0,rr(8,20),0,0.6,[.7,.92,1],rr(0.5,1),0,0);},
     onEnd:()=>{UFO.lift=null;flashWhite=Math.max(flashWhite,0.5);enterZone('ufo');}});
 }
@@ -136,7 +143,7 @@ function ufoLeave(){if(zone&&zone.id==='ufo'&&!ZF.phase)leaveZone(ufoReturnPoint
 // the saucer flies off into space (5 s), and the event is over
 function ufoLeaveCut(){
   const S=save.story;if(UFO.leaving||state!=='play')return;UFO.leaving=true;UFO.on=true;UFO.y=UFO_Y;
-  const p={x:P.pos.x,y:P.pos.y+3,z:P.pos.z};
+  const p={x:P.pos.x,y:ufoCamY(P.pos.x,P.pos.z,P.pos.y+3),z:P.pos.z};
   cutscene({dur:5,from:p,to:{x:p.x,y:p.y+10,z:p.z},look:()=>({x:UFO.x,y:UFO.y,z:UFO.z}),fov:66,
     onTick:(k)=>{UFO.y=UFO_Y+k*k*k*3400;UFO.rot+=k*0.15;addShake(0.04*k);if(k>0.1&&k<0.13)SFX.tone('sawtooth',40,900,3.5,0.1);},
     onEnd:()=>{UFO.on=false;UFO.leaving=false;S.ufo=3;objective(null);objectiveMark(null);flashWhite=Math.max(flashWhite,0.45);persist();toast('The UFO is gone','Nova Bay is quiet again','cyan');}});
