@@ -444,7 +444,10 @@ function sidewalkPointNear(x,z,minD,maxD){
 // World queries
 // ================================================================
 const NEAR=[];
+// zones (66c_zones.js): separate playable areas far from the city. While one is set, collisions and rays use its boxes instead of the city's.
+let zone=null;const ZONES={};
 function nearCols(x,z){
+  if(zone)return zoneCols(x,z);
   const i=cellI(x),j=cellJ(z);NEAR.length=0;
   for(let a=i-1;a<=i+1;a++)for(let b=j-1;b<=j+1;b++){if(a<0||b<0||a>=GX||b>=GZ)continue;const l=blockCols[a*GZ+b];for(let k=0;k<l.length;k++)if(!l[k].dead)NEAR.push(l[k]);}
   if(x<X0+40||(i>=RIVER[0]-1&&i<=RIVER[RIVER.length-1]+1))for(const b of extraCols)NEAR.push(b); // piers and bridge towers
@@ -457,7 +460,7 @@ const GR=2,GRX0=X0-160,GRZ0=Z0-80,GRW=Math.ceil((X1-GRX0+80)/GR),GRH=Math.ceil((
   for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++)if(cellAt(i,j)){const cx=cellX(i),cz=cellZ(j),h=CELL/2+SHORE;fill(cx-h,cz-h,cx+h,cz+h);}
   for(const r of BRIDGE_RECTS)fill(r.x0,r.z0,r.x1,r.z1);
 })();
-const onIsland=(x,z)=>{const a=Math.floor((x-GRX0)/GR),b=Math.floor((z-GRZ0)/GR);return a>=0&&b>=0&&a<GRW&&b<GRH&&GROUND[a*GRH+b]===1;};
+const onIsland=(x,z)=>{if(zone)return true;const a=Math.floor((x-GRX0)/GR),b=Math.floor((z-GRZ0)/GR);return a>=0&&b>=0&&a<GRW&&b<GRH&&GROUND[a*GRH+b]===1;};
 const baseY=(x,z)=>onIsland(x,z)?0:-0.9;
 function inBuilding(x,y,z,pad=0){
   for(const b of nearCols(x,z)){if(x>b.x0-pad&&x<b.x1+pad&&z>b.z0-pad&&z<b.z1+pad&&y<b.y1+pad&&y>b.y0-pad)return b;}
@@ -480,6 +483,7 @@ function rayBox(b,ox,oy,oz,dx,dy,dz){
 }
 function rayCity(ox,oy,oz,dx,dy,dz,tmax){
   _best=tmax;RAYHIT.b=null;
+  if(zone){for(const b of zone.cols)rayBox(b,ox,oy,oz,dx,dy,dz);RAYHIT.t=_best;return _best;}
   for(const b of extraCols)rayBox(b,ox,oy,oz,dx,dy,dz);
   let cx=cellI(ox),cz=cellJ(oz);
   const sx=dx>0?1:-1,sz=dz>0?1:-1;

@@ -610,6 +610,7 @@ function manageRivals(dt){
   if(live<want){rivalT-=dt*(hasBounty()?2:1);if(rivalT<=0){rivalT=rr(CRIMES.rivalGap[0],CRIMES.rivalGap[1]);const pf=playerFaction();spawnRival(pf==='villain'?'hero':pf==='hero'?'villain':(Math.random()<0.5?'hero':'villain'));}}
 }
 function updateWorld(dt){
+  if(zone){updateAliens(dt);return;} // inside a story zone the city is frozen: nobody spawns, moves or commits crimes until you are back (66c_zones.js)
   if(WS.mirror){WS.updateMirrors(dt);for(const h of humans.slice())if(!h.net)updateHuman(h,dt);for(const v of vehicles.slice())if(!v.net)updateVehicle(v,dt);
     updateProps(dt);updateStreetProps(dt);updateAliens(dt);SFX.setSiren(Math.max(0,...vehicles.filter(v=>v.siren).map(v=>SFX.vol(v.pos.x,1,v.pos.z)),0));return;}
   for(const h of humans.slice())updateHuman(h,dt);

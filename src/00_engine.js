@@ -150,7 +150,7 @@ precision highp float;precision highp sampler2DShadow;
 in vec3 vW;in vec3 vN;in vec3 vC;in vec2 vD;in vec4 vL;
 uniform vec4 uTint;uniform float uUnlit;uniform float uEmis;
 uniform vec3 uLDir;uniform vec3 uLCol;uniform vec3 uSky;uniform vec3 uGnd;uniform vec3 uFogC;uniform vec2 uFog;
-uniform vec3 uCam;uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uShTexel;
+uniform vec3 uCam;uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uShTexel;uniform float uNoFog;
 uniform sampler2DShadow uShadow;uniform float uShOn;
 uniform vec4 uPL[20];uniform vec3 uPLC[20];uniform float uPLn;
 out vec4 o;
@@ -199,7 +199,7 @@ void main(){
     base=mix(vec3(0.004,0.02,0.035),uFogC*0.9,0.15+0.85*fr);spec=2.5;shin=220.0;
   }else if(mat>4.5&&mat<5.5){base*=0.7+0.6*vnoise(vW.xz*0.4);spec=0.04;}
   if(mat>6.5){vec3 V0=normalize(uCam-vW);float fr=pow(1.0-max(dot(n,V0),0.0),3.0);base=mix(base*0.5,uSky*1.3+vec3(0.1),0.2+0.55*fr);spec=1.8;shin=70.0;}
-  float d=length(uCam-vW);float fog=smoothstep(uFog.x,uFog.y,d);
+  float d=length(uCam-vW);float fog=smoothstep(uFog.x,uFog.y,d)*(1.0-uNoFog);
   if(uUnlit>0.5){o=vec4(outc(mix(base+emis,uFogC,fog*0.6)),uTint.a);return;}
   float sh=shadowF();
   float diff=max(dot(n,uLDir),0.0);
@@ -394,7 +394,7 @@ const MESH={
 // ================================================================
 // Draw queue
 // ================================================================
-const F_SH=1,F_UN=2,F_ADD=4,F_BL=8;
+const F_SH=1,F_UN=2,F_ADD=4,F_BL=8,F_NF=16; // F_NF: no distance fog (the story's UFO is seen from anywhere in the city)
 const drawList=[];let dlN=0;
 const matPool=[];let mpi=0;
 function tmpM(){if(mpi>=matPool.length)matPool.push(new Float32Array(16));return matPool[mpi++];}

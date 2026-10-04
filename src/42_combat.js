@@ -12,11 +12,12 @@ const lockMark=(()=>{const e=document.createElement('div');e.id='lockmark';e.hid
 const comboEl=(()=>{const e=document.createElement('div');e.id='combo';e.hidden=true;return e;})();
 function lockable(a){
   if(!a||!a.alive||a.held||a===P)return false;
+  if(zone?a.zid!==zone.id:a.zid)return false; // zone actors only inside their zone, city actors only in the city
   if(a.kind==='remote')return !(a.flags&FLAG.invis)&&!(a.flags&FLAG.dead);
-  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli';
+  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli'||a.kind==='alien';
 }
 function lockValid(a){return lockable(a);} // a manual lock has no range limit
-const hostileTo=a=>a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
+const hostileTo=a=>a.kind==='alien'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
 // after you beat your target, the lock jumps to the nearest enemy within the normal lock range
 function nextLock(prev){
   let best=null,bd=COMBAT.lockRange;

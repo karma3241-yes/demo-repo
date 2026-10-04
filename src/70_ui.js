@@ -64,6 +64,7 @@ const MAPO=EDGE+130,mapCv=document.createElement('canvas');mapCv.width=mapCv.hei
 const mapEl=$('map'),mctx=mapEl.getContext('2d');
 const CRIME_COL={shop:'#ff5a3d',atm:'#ffb13d',mug:'#ffb13d',car:'#ffb13d',vault:'#ff3d5e',truck:'#ff3d5e'};
 function drawMinimap(yaw){
+  if(zone){zoneMinimap(yaw);return;}
   const R=180,MS=R/230,c=mctx;c.clearRect(0,0,360,360);
   c.save();c.beginPath();c.arc(R,R,R-2,0,TAU);c.clip();c.fillStyle='#0e2a3d';c.fillRect(0,0,360,360);
   c.translate(R,R);c.rotate(yaw);c.scale(MS,MS);c.translate(-P.pos.x,-P.pos.z);
@@ -81,6 +82,7 @@ function drawMinimap(yaw){
   for(const cr of crimes){const q=plot(cr.x,cr.z,true);if(!q)continue;const big=cr.heist,rad=big?13:10;
     c.fillStyle=CRIME_COL[cr.type]||'#ff5a3d';c.globalAlpha=big?0.75+Math.sin(time*5)*0.25:0.95;c.beginPath();c.arc(q[0],q[1],rad,0,TAU);c.fill();c.globalAlpha=1;
     c.strokeStyle='#0b0f1a';c.lineWidth=2;c.stroke();c.fillStyle='#0b0f1a';c.fillText(cr.icon,q[0],q[1]+1);}
+  objMapMark(plot,c);
   c.fillStyle='#e9f3ff';c.font='700 22px "Chakra Petch", sans-serif';c.fillText('N',R+sn*(R-18),R-cs*(R-18));
   c.fillStyle=FACTION_COL[playerFaction()]==='#e9f3ff'?'#ffc93c':FACTION_COL[playerFaction()];
   c.beginPath();c.moveTo(R,R-13);c.lineTo(R+9,R+10);c.lineTo(R,R+5);c.lineTo(R-9,R+10);c.closePath();c.fill();
@@ -103,6 +105,7 @@ function updateTags(){
     else if(h.role==='boss'&&d<90*90)add(h.pos.x,h.pos.y+2.5,h.pos.z,h.name,'#c89bff',h.hp,h.maxHp);
     else if(time-(h.lastHit||-99)<3&&d<70*70)add(h.pos.x,h.pos.y+2.3,h.pos.z,'',null,h.hp,h.maxHp);}
   for(const dd of drones)if(dd.alive&&time-(dd.lastHit||-99)<3&&d2h(dd,P)<90*90)add(dd.pos.x,dd.pos.y+2.2,dd.pos.z,'',null,dd.hp,dd.maxHp);
+  if(zone)for(const a of ualiens)if(a.alive&&time-(a.lastHit||-99)<3&&d2h(a,P)<90*90)add(a.pos.x,a.pos.y+(a.hover?3.4:2.9),a.pos.z,'',null,a.hp,a.maxHp);
   for(const v of vehicles)if(v.alive&&(v.temp||v===P.car)&&time-(v.lastHit||-99)<3)add(v.pos.x,v.pos.y+3.4,v.pos.z,'',null,v.hp,v.maxHp);
   for(let i=n;i<tagPool.length;i++)tagPool[i].t.hidden=true;
   // floating damage numbers

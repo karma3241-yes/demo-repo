@@ -50,6 +50,7 @@ function updateCamera(dt){
   }else if(state!=='play'){
     const a=time*0.05;camPos.set(Math.cos(a)*420,170,Math.sin(a)*420);
     let fx=-camPos.x,fy=40-camPos.y,fz=-camPos.z;const l=Math.hypot(fx,fy,fz);camF.set(fx/l,fy/l,fz/l);fov=lerp(fov,60,damp(3,dt));
+  }else if(cutCamera(dt)){ // a story cutscene drives the camera (66b_story.js)
   }else if(voidbornAway()){ // Voidborn: the view is out in far space, facing the two masks
     const R=VOIDBORN.realm,s=time*0.2;camPos.set(R.x+Math.sin(s)*8,R.y+Math.sin(s*1.3)*4,R.z);
     let fx=-camPos.x+R.x,fy=R.y+20-camPos.y,fz=-560;const l=Math.hypot(fx,fy,fz);camF.set(fx/l,fy/l,fz/l);fov=lerp(fov,62,damp(3,dt));
@@ -364,7 +365,7 @@ function drawRemote(r){
   if(r.flags&FLAG.shield)queue(MESH.glowSphere,at(r.pos.x,r.pos.y+1.35,r.pos.z,0,time,0,1.9,2.1,1.9),[.3,.75,1,0.25],F_ADD);
 }
 function buildDrawList(){
-  dlN=0;drawSpace();drawXRealm();drawSunGod();
+  dlN=0;drawSpace();drawXRealm();drawSunGod();drawStory();
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
     const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.cloak?0.18:P.phasing?0.45:0;
     if(A)drawAlien(P,A.id,true);else if(P.rag){const m=sgLook(LOOK);m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else if(P.construct&&conHidesRider(P.construct.id)){/* inside the race car, or the suit has become the vehicle */}else{const m=sgLook(LOOK);m.metal=P.metal;P.firing=!!beam;const cg=P.construct?conDrawGrow(P,P.construct.id,true):1,ro=P.construct?riderSeat(P.construct.id,cg):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;if(P.construct)drawGiantWielder(P,P.construct.id,cg);}
@@ -417,6 +418,7 @@ function buildDrawList(){
     else if(p.kind==='bolt'){let px=p.x,py=p.y,pz=p.z;for(let i=1;i<=3;i++){const qx=p.x-p.vx*0.012*i+rr(-.4,.4),qy=p.y-p.vy*0.012*i+rr(-.4,.4),qz=p.z-p.vz*0.012*i+rr(-.4,.4);queue(MESH.glowBox,M4.beam(tmpM(),px,py,pz,qx,qy,qz,0.18),[1,.9,.5,1],F_ADD);px=qx;py=qy;pz=qz;}queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.1,1.1,1.1),[1,.8,.3,0.5],F_ADD);}
     else if(p.kind==='ring'){const s=p.small?0.28:0.5*(p.big||1);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.02,p.y-p.vy*0.02,p.z-p.vz*0.02,s*0.7),[RING_C[0],RING_C[1],RING_C[2],1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,s*2.4,s*2.4,s*2.4),[RING_C[0],RING_C[1],RING_C[2],0.35],F_ADD);}
     else if(p.kind==='web'){queue(MESH.sphere,at(p.x,p.y,p.z,time*6,time*4,0,0.55,0.55,0.55),[.95,.95,1,1],0);}
+    else if(p.kind==='plasma'){const sc=p.sc||1;queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.5*sc,0.5*sc,0.5*sc),[.7,1,.55,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.5*sc,1.5*sc,1.5*sc),[.3,1,.3,0.35],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.05,p.y-p.vy*0.05,p.z-p.vz*0.05,0.3*sc),[.4,1,.3,0.5],F_ADD);}
     else if(p.kind==='rocket'&&p.meteor){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,3,3,3),[1,.5,.2,1],0);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.15,p.y-p.vy*0.15,p.z-p.vz*0.15,2.2),[1,.4,.1,0.6],F_ADD);}
     else if(p.kind==='rocket'){const sc=p.sc||1;queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.03,p.y-p.vy*0.03,p.z-p.vz*0.03,0.5*sc),[1,.6,.3,1],0);if(sc>2)queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,sc,sc,sc),[1,.6,.3,0.5],F_ADD);}
     else{const sc=p.sc||1;queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.45*sc,0.45*sc,0.45*sc),[1,.25,.2,1],0);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.05,p.y-p.vy*0.05,p.z-p.vz*0.05,0.3*sc),[1,.2,.15,0.5],F_ADD);}}
@@ -445,10 +447,12 @@ function setMainFrameUniforms(){
   gl.uniform3f(u.uCam,camPos.x,camPos.y,camPos.z);gl.uniform1f(u.uNight,env.night);gl.uniform1f(u.uTime,time);gl.uniform1f(u.uExpo,1.0);
   gl.uniform1f(u.uShTexel,1/SHADOW);gl.uniform1i(u.uShadow,0);gl.uniform1f(u.uShOn,gfx().shadows?1:0);
   const n=gatherLights();gl.uniform1f(u.uPLn,n);if(n){gl.uniform4fv(u.uPL,PL_POS);gl.uniform3fv(u.uPLC,PL_COL);}
+  if(zone)zoneUniforms(u); // a zone sets its own light, fog and point lights (66c_zones.js)
 }
 // the nearest lit street lamps (and car headlights) light the street around them at night
 const PL_MAX=20,PL_POS=new Float32Array(PL_MAX*4),PL_COL=new Float32Array(PL_MAX*3),plCand=[];
 function gatherLights(){
+  if(zone)return zoneLights();
   const night=env.night;if(night<0.08)return 0;
   const fx=state==='play'?P.pos.x:camPos.x,fz=state==='play'?P.pos.z:camPos.z;plCand.length=0;
   const bi0=cellI(fx),bj0=cellJ(fz);
@@ -468,13 +472,13 @@ const ID=M4.create(),WHITE=[1,1,1,1];
 // (a camera pulled far back behind a giant construct keeps them: the reach grows with how far the camera sits from you)
 const WATER_VIS=CEIL,CITY_VIS=9000;
 const camReach=()=>state==='play'&&!voidbornAway()?camDist:0;
-const cityVisible=()=>Math.hypot(camPos.x,camPos.y,camPos.z)<CITY_VIS+camReach();
-function drawItem(mesh,M,tint,unlit,emis){
-  const u=MAIN.u;gl.uniformMatrix4fv(u.uM,false,M);gl.uniform4fv(u.uTint,tint);gl.uniform1f(u.uUnlit,unlit?1:0);gl.uniform1f(u.uEmis,emis);
+const cityVisible=()=>!zone&&Math.hypot(camPos.x,camPos.y,camPos.z)<CITY_VIS+camReach();
+function drawItem(mesh,M,tint,unlit,emis,nofog){
+  const u=MAIN.u;gl.uniformMatrix4fv(u.uM,false,M);gl.uniform4fv(u.uTint,tint);gl.uniform1f(u.uUnlit,unlit?1:0);gl.uniform1f(u.uEmis,emis);gl.uniform1f(u.uNoFog,nofog?1:0);
   gl.bindVertexArray(mesh.vao);gl.drawElements(gl.TRIANGLES,mesh.n,mesh.type,0);
 }
 function render(){
-  if(gfx().shadows){
+  if(gfx().shadows&&!zone){
     gl.bindFramebuffer(gl.FRAMEBUFFER,shFbo);gl.viewport(0,0,SHADOW,SHADOW);
     gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.clear(gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(2.0,4.0);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);
@@ -484,17 +488,19 @@ function render(){
     gl.disable(gl.POLYGON_OFFSET_FILL);
   }
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
-  gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  if(zone&&zone.sky)gl.clearColor(zone.sky[0],zone.sky[1],zone.sky[2],1);else gl.clearColor(0,0,0,1);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   gl.disable(gl.DEPTH_TEST);gl.depthMask(false);gl.disable(gl.BLEND);gl.useProgram(SKY.p);const s=SKY.u,th=Math.tan(fov*Math.PI/360);
   gl.uniform3f(s.uFwd,camF.x,camF.y,camF.z);gl.uniform3f(s.uRight,camR.x,camR.y,camR.z);gl.uniform3f(s.uUp,camU.x,camU.y,camU.z);
   gl.uniform2f(s.uTan,th*W/H,th);gl.uniform3fv(s.uSunDir,env.sun);gl.uniform3fv(s.uZen,env.zen);gl.uniform3fv(s.uHor,env.hor);gl.uniform3fv(s.uSunCol,env.suncol);
   gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uTime,time);gl.uniform1f(s.uExpo,1.0);gl.uniform1f(s.uSpace,spaceK(camPos.y));
-  gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);
+  if(zone){gl.uniform1f(s.uNight,1);gl.uniform1f(s.uSpace,1);} // inside a zone the sky pass is only a field of stars (and only if the zone has windows)
+  if(!zone||zone.stars){gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);}
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);
-  if(camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);if(camPos.y<SEA_Y)drawItem(seabedMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
+  if(!zone&&camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);if(camPos.y<SEA_Y)drawItem(seabedMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
   if(cityVisible()){drawItem(groundMesh,ID,WHITE,false,0);drawItem(lakeMesh,ID,WHITE,false,0);drawItem(cityMesh,ID,WHITE,false,0);}
-  for(let i=0;i<dlN;i++){const d=drawList[i];if(d.flags&(F_ADD|F_BL))continue;drawItem(d.mesh,d.M,d.tint,d.flags&F_UN,d.emis);}
+  for(let i=0;i<dlN;i++){const d=drawList[i];if(d.flags&(F_ADD|F_BL))continue;drawItem(d.mesh,d.M,d.tint,d.flags&F_UN,d.emis,d.flags&F_NF);}
   gl.enable(gl.BLEND);gl.depthMask(false);gl.disable(gl.CULL_FACE);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   for(let i=0;i<dlN;i++){const d=drawList[i];if(!(d.flags&F_BL))continue;drawItem(d.mesh,d.M,d.tint,true,0);}

@@ -439,6 +439,29 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
 @media (max-width:520px){.dgrid{grid-template-columns:repeat(4,1fr)}}
 @media (max-height:420px){.dcard{min-height:84px;padding:6px 2px}.dcard b{font-size:12px}.dgrid{gap:6px}.dfoot{gap:6px}}
 @media (prefers-reduced-motion: reduce){#lockon,.tb.hint,.dcard.today,.dcard.stamp,.dcard.stamp u{animation:none}.dcard.stamp u{opacity:1}}
+/* ---- story: objective pill, cutscene bars and caption, yes/no popup (66b_story.js) ---- */
+#objective{position:absolute;left:50%;top:14px;transform:translateX(-50%);max-width:min(560px,calc(100% - 520px));box-sizing:border-box;padding:7px 18px;border-radius:999px;border-color:rgba(255,201,60,.55);display:flex;gap:10px;align-items:baseline;font-size:13px;font-weight:700;letter-spacing:.06em;box-shadow:0 0 18px rgba(255,201,60,.18)}
+#objective b{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);white-space:nowrap}
+#objective span{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.bossup #objective{top:58px}
+body.touch #objective{top:calc(8px + var(--safe-t));left:calc(50% + 20px);max-width:min(300px,calc(100% - 380px));padding:5px 12px;font-size:11px}
+@media (max-width:1000px){body:not(.touch) #objective{max-width:min(460px,calc(100% - 340px))}}
+#cut{position:fixed;inset:0;pointer-events:none;z-index:4}
+#cut .cb{position:absolute;left:0;right:0;height:0;background:#000;transition:height .7s cubic-bezier(.2,.7,.2,1)}
+#cut .cb.t{top:0}#cut .cb.b{bottom:0}#cut.on .cb{height:11vh}
+#cut-cap{position:absolute;left:50%;bottom:calc(11vh + 26px);transform:translateX(-50%);width:min(760px,calc(100% - 40px));text-align:center;font-family:var(--display);font-size:clamp(17px,3vw,32px);line-height:1.25;letter-spacing:.05em;color:#fff;text-shadow:0 2px 14px #000,0 0 30px rgba(120,200,255,.35);opacity:0;transition:opacity .8s}
+#cut-cap.on{opacity:1}#cut:not(.on) #cut-cap{bottom:12vh}
+#cut-skip{position:absolute;right:20px;bottom:calc(11vh + 14px);pointer-events:auto;cursor:pointer;padding:6px 14px;font:700 12px var(--hud);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);background:rgba(7,11,24,.6);border:1px solid var(--edge);border-radius:999px;opacity:0;transition:opacity .4s}
+#cut-skip.on{opacity:1}
+body.cutfull #hud,body.cutfull #touch{opacity:0;transition:opacity .4s}
+#ask{position:fixed;inset:0;z-index:8;display:grid;place-items:center;padding:16px;background:rgba(3,5,12,.55)}
+#ask .ask-card{width:min(460px,100%);box-sizing:border-box;padding:20px 22px;text-align:center;border-color:rgba(255,201,60,.55);box-shadow:0 0 40px rgba(255,201,60,.18)}
+#ask .ask-head{font-family:var(--display);font-size:24px;letter-spacing:.05em;color:var(--gold)}
+#ask p{margin:10px 0 18px;font-size:15px;line-height:1.45;color:var(--ink)}
+#ask .ask-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#ask .go{font-size:17px;padding:12px 20px}#ask .ghost{padding:12px 18px}
+#ask kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-right:8px;border-radius:5px;border:1px solid currentColor;font:700 11px var(--hud);vertical-align:middle}
+body.touch #ask kbd{display:none}
 </style>
 </head>
 <body>
@@ -470,6 +493,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
   <div id="charge" hidden>SUPER JUMP<div class="bar"><i id="chargeb"></i></div></div>
   <div id="bossbar" hidden><div class="name" id="bossname">Boss</div><div class="bar boss"><i id="bossb"></i></div></div>
   <div id="toasts"></div>
+  <div id="objective" class="panel" hidden><b>Objective</b><span id="obj-t"></span></div>
   <div id="feed"></div>
   <div id="growtut" class="panel" hidden><h4>Grow it</h4><p id="growtut-t"></p><div class="gt-wheel"><i></i></div></div>
   <div id="guide" class="panel" hidden><h4>Getting started</h4><ol id="guide-list"></ol><p id="guide-more"><kbd>H</kbd> all moves</p></div>
@@ -514,6 +538,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
   <div class="pause-btns"><button class="ghost" id="p-skills" type="button">Skills</button><button class="ghost" id="p-look" type="button">Appearance</button><button class="ghost" id="p-powers" type="button">Change powers</button><button class="ghost" id="p-mp" type="button">Multiplayer</button><button class="ghost" id="p-lb" type="button">Leaderboard</button><button class="ghost" id="p-set" type="button">Settings</button></div>
 </div></div>
 <div id="sheet" hidden><div class="sheet-card panel"><div class="sheet-head"><h2 id="sheet-title">Skills</h2><button class="x" id="sheet-x" type="button" aria-label="Close">Close</button></div><div class="sheet-body" id="sheet-body"></div></div></div>
+<div id="cut" hidden><i class="cb t"></i><i class="cb b"></i><div id="cut-cap"></div><div id="cut-skip">Skip ›</div></div>
 <div id="fade" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:5"></div>
 <div id="dial" hidden><div id="dial-ring"></div><div id="dial-info"></div><button class="ghost" id="dial-x" type="button">Close</button></div>
 <div id="oath-hold" class="panel" hidden><h3 id="oath-hold-t">Hold O to recite the oath</h3><div class="miclvl"><i></i></div><small id="oath-hold-p">0%</small></div>
@@ -676,7 +701,7 @@ precision highp float;precision highp sampler2DShadow;
 in vec3 vW;in vec3 vN;in vec3 vC;in vec2 vD;in vec4 vL;
 uniform vec4 uTint;uniform float uUnlit;uniform float uEmis;
 uniform vec3 uLDir;uniform vec3 uLCol;uniform vec3 uSky;uniform vec3 uGnd;uniform vec3 uFogC;uniform vec2 uFog;
-uniform vec3 uCam;uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uShTexel;
+uniform vec3 uCam;uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uShTexel;uniform float uNoFog;
 uniform sampler2DShadow uShadow;uniform float uShOn;
 uniform vec4 uPL[20];uniform vec3 uPLC[20];uniform float uPLn;
 out vec4 o;
@@ -725,7 +750,7 @@ void main(){
     base=mix(vec3(0.004,0.02,0.035),uFogC*0.9,0.15+0.85*fr);spec=2.5;shin=220.0;
   }else if(mat>4.5&&mat<5.5){base*=0.7+0.6*vnoise(vW.xz*0.4);spec=0.04;}
   if(mat>6.5){vec3 V0=normalize(uCam-vW);float fr=pow(1.0-max(dot(n,V0),0.0),3.0);base=mix(base*0.5,uSky*1.3+vec3(0.1),0.2+0.55*fr);spec=1.8;shin=70.0;}
-  float d=length(uCam-vW);float fog=smoothstep(uFog.x,uFog.y,d);
+  float d=length(uCam-vW);float fog=smoothstep(uFog.x,uFog.y,d)*(1.0-uNoFog);
   if(uUnlit>0.5){o=vec4(outc(mix(base+emis,uFogC,fog*0.6)),uTint.a);return;}
   float sh=shadowF();
   float diff=max(dot(n,uLDir),0.0);
@@ -920,7 +945,7 @@ const MESH={
 // ================================================================
 // Draw queue
 // ================================================================
-const F_SH=1,F_UN=2,F_ADD=4,F_BL=8;
+const F_SH=1,F_UN=2,F_ADD=4,F_BL=8,F_NF=16; // F_NF: no distance fog (the story's UFO is seen from anywhere in the city)
 const drawList=[];let dlN=0;
 const matPool=[];let mpi=0;
 function tmpM(){if(mpi>=matPool.length)matPool.push(new Float32Array(16));return matPool[mpi++];}
@@ -1471,7 +1496,10 @@ function sidewalkPointNear(x,z,minD,maxD){
 // World queries
 // ================================================================
 const NEAR=[];
+// zones (66c_zones.js): separate playable areas far from the city. While one is set, collisions and rays use its boxes instead of the city's.
+let zone=null;const ZONES={};
 function nearCols(x,z){
+  if(zone)return zoneCols(x,z);
   const i=cellI(x),j=cellJ(z);NEAR.length=0;
   for(let a=i-1;a<=i+1;a++)for(let b=j-1;b<=j+1;b++){if(a<0||b<0||a>=GX||b>=GZ)continue;const l=blockCols[a*GZ+b];for(let k=0;k<l.length;k++)if(!l[k].dead)NEAR.push(l[k]);}
   if(x<X0+40||(i>=RIVER[0]-1&&i<=RIVER[RIVER.length-1]+1))for(const b of extraCols)NEAR.push(b); // piers and bridge towers
@@ -1484,7 +1512,7 @@ const GR=2,GRX0=X0-160,GRZ0=Z0-80,GRW=Math.ceil((X1-GRX0+80)/GR),GRH=Math.ceil((
   for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++)if(cellAt(i,j)){const cx=cellX(i),cz=cellZ(j),h=CELL/2+SHORE;fill(cx-h,cz-h,cx+h,cz+h);}
   for(const r of BRIDGE_RECTS)fill(r.x0,r.z0,r.x1,r.z1);
 })();
-const onIsland=(x,z)=>{const a=Math.floor((x-GRX0)/GR),b=Math.floor((z-GRZ0)/GR);return a>=0&&b>=0&&a<GRW&&b<GRH&&GROUND[a*GRH+b]===1;};
+const onIsland=(x,z)=>{if(zone)return true;const a=Math.floor((x-GRX0)/GR),b=Math.floor((z-GRZ0)/GR);return a>=0&&b>=0&&a<GRW&&b<GRH&&GROUND[a*GRH+b]===1;};
 const baseY=(x,z)=>onIsland(x,z)?0:-0.9;
 function inBuilding(x,y,z,pad=0){
   for(const b of nearCols(x,z)){if(x>b.x0-pad&&x<b.x1+pad&&z>b.z0-pad&&z<b.z1+pad&&y<b.y1+pad&&y>b.y0-pad)return b;}
@@ -1507,6 +1535,7 @@ function rayBox(b,ox,oy,oz,dx,dy,dz){
 }
 function rayCity(ox,oy,oz,dx,dy,dz,tmax){
   _best=tmax;RAYHIT.b=null;
+  if(zone){for(const b of zone.cols)rayBox(b,ox,oy,oz,dx,dy,dz);RAYHIT.t=_best;return _best;}
   for(const b of extraCols)rayBox(b,ox,oy,oz,dx,dy,dz);
   let cx=cellI(ox),cz=cellJ(oz);
   const sx=dx>0?1:-1,sz=dz>0?1:-1;
@@ -1781,8 +1810,10 @@ const BAD_PART=/fuck|fck|fuk|shit|cunt|bitch|nigg|fagg|whore|slut|porn|penis|vag
 function safeName(s){const n=cleanName(s);const t=n.toLowerCase().replace(/[0134579@$]/g,c=>({0:'o',1:'i',3:'e',4:'a',5:'s',7:'t',9:'g','@':'a','$':'s'})[c]);
   return BAD_PART.test(t.replace(/[^a-z]/g,''))||t.split(/[^a-z]+/).some(w=>BAD_WORD.test(w))?'':n;}
 function freshPassives(){const o={};for(const k in PASSIVES)o[k]=0;return o;}
+// the story (66b_story.js): stage numbers per event, 0 = not started; act = seconds of active play. Later events add their own stage field here.
+function storyFresh(){return {act:0,ufo:0,item:'',destroy:false,kathana:0,invasion:0,cyber:0,tower:0};}
 function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},gfxAuto:'',goal:0,daily:{last:'',streak:0},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
-  settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0}};}
+  settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0},story:storyFresh()};}
 // what each flier gets from plain flight (and the Shifter's Morph Band, which lives on V and takes no key). Defined here because loadSave needs it.
 const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'],armorFlight:['flight'],solarFlight:['flight'],
   ironFlight:['flight'],bladeFlight:['flight'],elasticFlight:['flight'],titanFlight:['flight'],bandFlight:['flight','morphBand']};
@@ -1847,6 +1878,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   if(GFX_TIERS[s.gfxAuto])f.gfxAuto=s.gfxAuto; // the tier the fps watch settled on
   f.goal=typeof s.goal==='number'?Math.floor(num(s.goal,0,-1,99)):-1; // -1: a save from before goals
   if(s.daily&&typeof s.daily==='object'){const d=s.daily;if(typeof d.last==='string'&&/^\d{4}-\d\d-\d\d$/.test(d.last))f.daily.last=d.last;if(Number.isInteger(d.streak)&&d.streak>=0&&d.streak<=7)f.daily.streak=d.streak;} // last claim (local date) and the streak
+  if(s.story&&typeof s.story==='object'){const t=s.story,st=f.story;st.act=num(t.act,0,0,1e9);for(const k of ['ufo','kathana','invasion','cyber','tower'])st[k]=Math.floor(num(t[k],0,0,30));st.item=isHero(t.item)?t.item:'';st.destroy=t.destroy===true;} // the story: only known fields, ints are stages
   if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks','swap','lockNear','sgV','sgSun'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
@@ -1930,14 +1962,14 @@ function knock(t,src,power,up=0.45){
   let l=Math.hypot(dx,dz);if(l<1e-3){dx=rr(-1,1);dz=rr(-1,1);l=Math.hypot(dx,dz)||1;}dx/=l;dz/=l;
   if(t===P){P.vel.x+=dx*power;P.vel.z+=dz*power;if(!P.flying){P.vel.y=Math.max(P.vel.y,power*up);P.grounded=false;}return;}
   if(t.kind==='human'){t.air=true;t.vel.set(dx*power,power*up+3,dz*power);t.tumble=rr(4,9)*(Math.random()<0.5?-1:1);}
-  else if(t.kind==='drone'||t.kind==='rival'){t.vel.x+=dx*power;t.vel.z+=dz*power;t.vel.y+=power*up;}
+  else if(t.kind==='drone'||t.kind==='rival'||t.kind==='alien'){t.vel.x+=dx*power;t.vel.z+=dz*power;t.vel.y+=power*up;}
 }
 // combo hits: explicit launch velocity, a small nudge, air-juggle float, and 'flung' so impacts crater
 function hitMotion(t,src,opt){
   if(opt.nudge&&!opt.kv){if(t.kind==='human'&&!t.air&&!t.hidden){t.pos.x+=opt.nudge[0];t.pos.z+=opt.nudge[1];}else if(t.kind==='rival'){t.pos.x+=opt.nudge[0];t.pos.z+=opt.nudge[1];}return;}
   const k=opt.kv;if(!k)return;
   if(t.kind==='human'){if(t.hidden||t.held)return;t.air=true;t.vel.set(k[0],k[1],k[2]);t.tumble=(opt.flung?rr(6,11):rr(1,3))*(Math.random()<0.5?-1:1);}
-  else if(t.kind==='drone'||t.kind==='rival'){t.vel.set(k[0],k[1],k[2]);}
+  else if(t.kind==='drone'||t.kind==='rival'||t.kind==='alien'){t.vel.set(k[0],k[1],k[2]);}
   else return;
   if(opt.float)t.floatT=opt.float;if(opt.apex)t.apexT=time;
   if(opt.flung){t.flungT=time;t.flungBy=src;t.heavy=opt.heavy||0;if(t.kind!=='drone')startRagdoll(t,k[0],k[1],k[2]);}
@@ -1950,6 +1982,7 @@ const Damage={
       if(P.dead||state!=='play')return 0;
       if(sunGodOn())return 0; // Sun God: nothing can hurt you
       if(voidbornAway())return 0; // being questioned by the masks, far away
+      if(cutLocked())return 0; // a cutscene or a zone fade: nothing touches you
       if(P.iframeT>0){if(time-(P.dodgeT||-9)>0.4){P.dodgeT=time;feed('Dodged','');}return 0;}
       if(spiderSense(src,type))return 0;
       if(src&&src.kind!=='remote'&&type!=='pvp')amount*=CONFIG.health.npcTaken;
@@ -1993,6 +2026,7 @@ function playerDown(killer){
   MP.sendDown(killer);bountyOnDown(killer);Bus.emit('playerDefeated',{killer});
 }
 function respawn(){
+  if(zone)zoneAbort(); // died inside a story zone: back to the city first
   let s=SPAWNS[0],bd=1e18;for(const c of SPAWNS){const d=Math.hypot(c[0]-P.pos.x,c[1]-P.pos.z);if(d<bd){bd=d;s=c;}} // nearest spawn to where you fell
   if(P.alien)revertAlien(true);
   P.dead=false;P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.12;P.vel.set(0,0,0);P.hp=maxHp();P.en=maxEn();clearWanted();P.stun=0;P.lastHit=-99;
@@ -2035,6 +2069,7 @@ Bus.on('defeated',({target,killer})=>{
   else if(target.kind==='drone'){xp=NPCS.drone.xp;rep=NPCS.drone.rep;label='Drone destroyed';}
   else if(target.kind==='heli'){xp=150;rep=-40;label='Police helicopter down';addWanted(10,2000);}
   else if(target.kind==='rival'){xp=NPCS.rival.xp+NPCS.rival.xpPerLvl*target.level;rep=target.faction==='villain'?NPCS.rival.rep:-NPCS.rival.rep;if(target.bounty){xp*=2;rep*=2;}label=target.name+' defeated'+(target.bounty?' · bounty claimed':'');}
+  else if(target.kind==='alien'){xp=55+save.level*2;label='Alien down';}
   else if(target.kind==='boss'){const c=NPCS[target.type];xp=c.xp;rep=c.rep;label=(target.type==='ship'?'Mothership':'Titan mech')+' destroyed';}
   else return;
   save.stats.defeated++;addXP(xp);addRep(rep);
@@ -2086,6 +2121,7 @@ function shatter(x,y,z,nx,nz,big=false){
   SFX.glass(SFX.vol(x,y,z));
 }
 function breakWindowAt(b,x,y,z){
+  if(zone)return; // no city windows inside a story zone
   const n=faceNormal(b,x,y,z);if(n[1]!==0||y<4||y>b.y1-1)return;
   // snap to the facade window grid so the hole lines up with a window
   const gx=Math.round(y/4)*4+2;if(gx>b.y1-1)return;
@@ -2219,6 +2255,9 @@ function projImpact(p,hit){
   }else if(p.kind==='blast'){
     if(hit)Damage.apply(p.owner,hit,p.dmg,'blast',{knock:p.knock});
     burst(p.x,p.y,p.z,20,14,0.4,CYAN,1.2,0,2);ringFx(p.x,p.y,p.z,0.5,4,0.25,[.4,.85,1]);
+  }else if(p.kind==='plasma'){
+    if(hit)Damage.apply(p.owner,hit,p.dmg,'shot',{knock:p.knock||0});
+    burst(p.x,p.y,p.z,16,10,0.4,[[.5,1,.4],[.8,1,.7]],1.1,0,2);ringFx(p.x,p.y,p.z,0.5,3,0.25,[.5,1,.4]);
   }else if(p.kind==='bolt'){
     if(hit)Damage.apply(p.owner,hit,p.dmg,'shock',{stun:0.8,knock:14});areaDamage(p.x,p.y,p.z,3.5,p.dmg*0.35,p.owner,{type:'shock',exclude:hit});
     for(let i=0;i<6;i++){const a=rr(0,TAU);tracer(p.x,p.y,p.z,p.x+Math.cos(a)*rr(2,5),p.y+rr(-1,3),p.z+Math.sin(a)*rr(2,5),SPD_C,0.08,0.2);}burst(p.x,p.y,p.z,24,14,0.4,[SPD_C,[1,1,1]],1.2,0,2);SFX.tone('sawtooth',1600,120,0.2,0.08);
@@ -2289,7 +2328,7 @@ function computeAim(range){
   aim.t=best;aim.x=ox+dx*best;aim.y=oy+dy*best;aim.z=oz+dz*best;aim.actor=actor;aim.surface=surface;aim.nx=nx;aim.ny=ny;aim.nz=nz;aim.hitAny=best<range+t0-0.01;
   return aim;
 }
-const canAct=()=>state==='play'&&!paused&&!P.dead&&P.stun<=0&&!(frozenT>0)&&!voidbornLocked();
+const canAct=()=>state==='play'&&!paused&&!P.dead&&P.stun<=0&&!(frozenT>0)&&!voidbornLocked()&&!cutLocked();
 function noEnergy(id){if(id)PS[id].flash=0.4;SFX.tone('square',220,150,0.1,0.06);hud.en.classList.add('warn');setTimeout(()=>hud.en.classList.remove('warn'),300);}
 function faceAim(){P.heroYaw=Math.atan2(camF.x,camF.z);castT=time;}
 function handPoint(){const s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw);return {x:P.pos.x+s*0.8+c*0.45,y:P.pos.y+1.95,z:P.pos.z+c*0.8-s*0.45};}
@@ -2594,11 +2633,12 @@ const lockMark=(()=>{const e=document.createElement('div');e.id='lockmark';e.hid
 const comboEl=(()=>{const e=document.createElement('div');e.id='combo';e.hidden=true;return e;})();
 function lockable(a){
   if(!a||!a.alive||a.held||a===P)return false;
+  if(zone?a.zid!==zone.id:a.zid)return false; // zone actors only inside their zone, city actors only in the city
   if(a.kind==='remote')return !(a.flags&FLAG.invis)&&!(a.flags&FLAG.dead);
-  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli';
+  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli'||a.kind==='alien';
 }
 function lockValid(a){return lockable(a);} // a manual lock has no range limit
-const hostileTo=a=>a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
+const hostileTo=a=>a.kind==='alien'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
 // after you beat your target, the lock jumps to the nearest enemy within the normal lock range
 function nextLock(prev){
   let best=null,bd=COMBAT.lockRange;
@@ -5782,6 +5822,7 @@ function manageRivals(dt){
   if(live<want){rivalT-=dt*(hasBounty()?2:1);if(rivalT<=0){rivalT=rr(CRIMES.rivalGap[0],CRIMES.rivalGap[1]);const pf=playerFaction();spawnRival(pf==='villain'?'hero':pf==='hero'?'villain':(Math.random()<0.5?'hero':'villain'));}}
 }
 function updateWorld(dt){
+  if(zone){updateAliens(dt);return;} // inside a story zone the city is frozen: nobody spawns, moves or commits crimes until you are back (66c_zones.js)
   if(WS.mirror){WS.updateMirrors(dt);for(const h of humans.slice())if(!h.net)updateHuman(h,dt);for(const v of vehicles.slice())if(!v.net)updateVehicle(v,dt);
     updateProps(dt);updateStreetProps(dt);updateAliens(dt);SFX.setSiren(Math.max(0,...vehicles.filter(v=>v.siren).map(v=>SFX.vol(v.pos.x,1,v.pos.z)),0));return;}
   for(const h of humans.slice())updateHuman(h,dt);
@@ -7135,6 +7176,619 @@ function glyph(name,cls){const s=document.createElementNS('http://www.w3.org/200
   s.setAttribute('class','ico'+(cls?' '+cls:''));s.innerHTML=GLYPHS[name]||GLYPHS.burst;return s;}
 function powerIcon(id){const c=POWERS[id],s=glyph(POWER_GLYPH[id]||'burst','pico');s.style.color=RING_KIT.has(id)?'#6dff95':GLYPH_COL[c&&c.cat]||'#e9f3ff';return s;}
 // ================================================================
+// Story core: active play time, cutscenes, the objective pill, the yes/no popup
+// ================================================================
+// The story events (UFO, Kathana, invasion, cyber world, tower) share this file. save.story={act,ufo,item,destroy,kathana,invasion,cyber,tower}
+// (see freshSave): the ints are stage numbers, 0 = not started; act = seconds of ACTIVE play (see storyActiveNow).
+// Story events are solo only: in a multiplayer room (MP.online()) they wait, their visuals and objectives hide, and a story zone is left.
+// Zones (separate playable areas) are in 66c_zones.js, the UFO event in 66d_ufo.js. storyTick(dt) runs once per frame from 99_main.js (only while the game is live).
+const ST={inputT:-99,mx:0,my:0,graceT:-1};
+const storySolo=()=>!MP.online();
+// ---- active time: real play only. The clock stops while paused, in a menu, dead, in a portal ad, in a multiplayer room, or after 6 s with no input ----
+const storyPoke=()=>{ST.inputT=time;};
+addEventListener('keydown',storyPoke,true);addEventListener('pointerdown',storyPoke,true);addEventListener('wheel',storyPoke,{passive:true,capture:true});
+addEventListener('touchstart',storyPoke,{passive:true,capture:true});addEventListener('touchmove',storyPoke,{passive:true,capture:true});
+addEventListener('mousemove',e=>{let d=Math.hypot(e.movementX||0,e.movementY||0);if(!d)d=Math.hypot(e.clientX-ST.mx,e.clientY-ST.my);ST.mx=e.clientX;ST.my=e.clientY;if(d>2)storyPoke();},true); // only real movement (>2 px) counts
+function storyHeld(){for(const k in keys)if(keys[k])return true;return Math.abs(touchIn.x)+Math.abs(touchIn.y)>0.1;} // a key or the stick held down is input too (key repeat aside)
+function storyActiveNow(){return state==='play'&&!paused&&!sheetOpen&&!creating&&!P.dead&&!Portal.inAd&&storySolo()&&!cutLocked()&&(time-ST.inputT<=6||storyHeld());}
+function storyTick(dt){
+  try{
+    const solo=storySolo();
+    if(!solo){if(CUT)cutEnd(false);if(ASK)askClose(null);if(zone)zoneAbort();}
+    zoneFadeTick(dt);cutTick(dt);
+    if(solo&&state==='play'&&!P.dead){
+      if(storyActiveNow())save.story.act+=dt;
+      ufoTick(dt);
+      if(zone&&zone.update)zone.update(dt*worldTimeK());
+    }
+    objRefresh();
+  }catch(e){logErr(e);}
+}
+// ---- cutscenes ----
+// cutscene({dur,from,to,look,text,letterbox,control,onTick,onEnd,fov,skippable}): from/to are camera positions {x,y,z} (or functions of 0..1 progress), look is the point to face
+// (an object or a function of progress). The camera glides from -> to over dur seconds. The player stands still and takes no damage, the world keeps running; Space,
+// Esc, Enter or a tap skips it after 1 s (onEnd still runs). With control:true the player keeps playing: only the bars and the caption show.
+let CUT=null;
+function cutLocked(){return !!(CUT&&!CUT.control)||ZF.phase>0||time<ST.graceT;} // the player frozen: no powers, no moving, no damage (also for a moment after a skip, so the tap isn't a punch)
+function cutscene(o){
+  o=o||{};if(CUT)cutEnd(false);
+  CUT={dur:Math.max(0.3,o.dur||5),t:0,from:o.from,to:o.to||o.from,look:o.look,text:o.text||'',lb:o.letterbox!==false,control:!!o.control,skippable:!o.control&&o.skippable!==false,fov:o.fov||0,onTick:o.onTick,onEnd:o.onEnd,capOn:false,skipOn:false};
+  const c=$('cut');c.hidden=false;void c.offsetWidth;c.classList.toggle('on',CUT.lb);$('cut-cap').textContent=CUT.text;$('cut-cap').classList.remove('on');$('cut-skip').classList.remove('on');
+  document.body.classList.toggle('cutfull',!CUT.control);
+  if(!CUT.control){mouseL=false;for(let i=0;i<4;i++)abilityUp(i,true);heldSlot=-1;if(P.web)webRelease(false);}
+  return CUT;
+}
+function cutEnd(run){
+  const C=CUT;if(!C)return;CUT=null;ST.graceT=time+(C.control?0:0.2);
+  const c=$('cut');c.classList.remove('on');$('cut-cap').classList.remove('on');$('cut-skip').classList.remove('on');document.body.classList.remove('cutfull');
+  setTimeout(()=>{if(!CUT)c.hidden=true;},800);
+  if(run&&C.onEnd){try{C.onEnd(C);}catch(e){logErr(e);}}
+}
+function cutTick(dt){
+  const C=CUT;if(!C)return;C.t+=dt;const k=clamp(C.t/C.dur,0,1);
+  if(C.onTick){try{C.onTick(k,dt,C);}catch(e){logErr(e);}}
+  const cap=!!C.text&&C.t>0.5&&C.t<C.dur-0.7;if(cap!==C.capOn){C.capOn=cap;$('cut-cap').classList.toggle('on',cap);}
+  const sk=C.skippable&&C.t>1;if(sk!==C.skipOn){C.skipOn=sk;$('cut-skip').classList.toggle('on',sk);}
+  if(C.t>=C.dur&&CUT===C)cutEnd(true);
+}
+// the scripted camera (called by updateCamera in 90_render.js): returns true when it set camPos / camF / fov
+function cutCamera(dt){
+  const C=CUT;if(!C||C.control||state!=='play'||!C.from)return false;
+  const k=clamp(C.t/C.dur,0,1),e=k*k*(3-2*k),ev=v=>typeof v==='function'?v(k):v,a=ev(C.from),b=ev(C.to)||a,l=ev(C.look)||{x:P.pos.x,y:P.pos.y+1.5,z:P.pos.z};
+  camPos.set(lerp(a.x,b.x,e),lerp(a.y,b.y,e),lerp(a.z,b.z,e));
+  const fx=l.x-camPos.x,fy=l.y-camPos.y,fz=l.z-camPos.z,L=Math.hypot(fx,fy,fz)||1;camF.set(fx/L,fy/L,fz/L);fov=lerp(fov,C.fov||60,damp(4,dt));
+  return true;
+}
+addEventListener('keydown',e=>{
+  if(ASK){askKey(e);return;}
+  if(CUT&&CUT.skippable&&CUT.t>1&&(e.code==='Space'||e.code==='Escape'||e.code==='Enter')){e.preventDefault();e.stopImmediatePropagation();cutEnd(true);}
+},true);
+addEventListener('pointerdown',e=>{if(!ASK&&CUT&&CUT.skippable&&CUT.t>1)cutEnd(true);},true);
+// ---- the objective pill and its pin ----
+// objective('Find the Master Control') shows a gold pill at the top; objective(null) hides it. objectiveMark(x,y,z,label) adds a pin in the world and a diamond on the
+// minimap (objectiveMark(null) removes it). The pin only shows while there is an objective and no cutscene.
+const OBJ={text:'',mark:null,shown:null};
+function objective(t){OBJ.text=t?String(t):'';}
+function objectiveMark(x,y,z,label){OBJ.mark=x===null||x===undefined?null:{x,y,z,label:label||''};}
+function objRefresh(){
+  const e=$('objective');if(!e)return;const show=!!OBJ.text&&storySolo()&&state==='play'&&!(CUT&&!CUT.control);
+  if(e.hidden===show)e.hidden=!show;if(show&&OBJ.shown!==OBJ.text){OBJ.shown=OBJ.text;$('obj-t').textContent=OBJ.text;}
+  const bu=!$('bossbar').hidden;if(document.body.classList.contains('bossup')!==bu)document.body.classList.toggle('bossup',bu);
+  if(show)objFit(e);
+}
+// on a phone the pill goes into the gap between the player panel and the icon bar (it truncates when the gap is small)
+function objFit(e){
+  if(!touchOn()){if(e.style.left){e.style.left=e.style.maxWidth=e.style.transform='';}return;}
+  const hb=$('hudbar').getBoundingClientRect(),lefty=save.settings.tHand==='l',L=lefty?(hb.width?hb.right+8:200):200,R=lefty?innerWidth-200:(hb.width?hb.left-8:innerWidth-130),k=Math.round(L)+'|'+Math.round(R);
+  if(e.dataset.fit===k)return;e.dataset.fit=k;e.style.left=L+'px';e.style.transform='none';e.style.maxWidth=Math.max(140,R-L)+'px';
+}
+function objectivePin(n){
+  const m=OBJ.mark;if(!m||!OBJ.text||!storySolo()||(CUT&&!CUT.control))return n;
+  const d=fmtDist(Math.hypot(m.x-P.pos.x,m.y-P.pos.y,m.z-P.pos.z));placeMark(n,m.x,m.y,m.z,'◆','#ffc93c',(m.label?m.label+' · ':'')+d,'goal',d);return n+1;
+}
+function objMapMark(plot,c){
+  const m=OBJ.mark;if(!m||!OBJ.text||!storySolo())return;const q=plot(m.x,m.z,true);if(!q)return;
+  c.fillStyle='#ffc93c';c.strokeStyle='#0b0f1a';c.lineWidth=2;c.beginPath();c.moveTo(q[0],q[1]-11);c.lineTo(q[0]+9,q[1]);c.lineTo(q[0],q[1]+11);c.lineTo(q[0]-9,q[1]);c.closePath();c.fill();c.stroke();
+}
+// ---- a yes / no popup ----
+// askYesNo(title,text,yesLabel,noLabel,onYes,onNo): a modal that pauses the game like a sheet (Y / Enter = yes, N / Esc = no, or click / tap). Returns false when it can't open.
+let ASK=null;
+function askYesNo(title,text,yesLabel,noLabel,onYes,onNo){
+  if(ASK||state!=='play'||paused||!storySolo())return false;
+  const root=el('div',{id:'ask',role:'dialog','aria-modal':'true'},el('div',{class:'ask-card panel'},el('div',{class:'ask-head',text:title}),el('p',{text}),
+    el('div',{class:'ask-btns'},el('button',{type:'button',class:'go',onclick:()=>askClose(true)},el('kbd',{text:'Y'}),yesLabel||'Yes'),el('button',{type:'button',class:'ghost',onclick:()=>askClose(false)},el('kbd',{text:'N'}),noLabel||'No'))));
+  document.body.appendChild(root);ASK={root,onYes,onNo};
+  paused=true;mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<4;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);
+  if(locked){manualUnlock=true;document.exitPointerLock();} // paused is set first, so letting go of the mouse doesn't open the pause menu
+  const b=root.querySelector('.go');if(b)b.focus({preventScroll:true});
+  return true;
+}
+function askClose(yes){ // yes: true / false / null (closed without an answer)
+  const A=ASK;if(!A)return;ASK=null;A.root.remove();paused=false;if(save.settings.autoLock&&!touchOn())requestLock();
+  try{if(yes===true&&A.onYes)A.onYes();else if(yes===false&&A.onNo)A.onNo();}catch(e){logErr(e);}
+}
+function askKey(e){
+  if(e.ctrlKey||e.metaKey||e.altKey)return; // browser shortcuts pass
+  if(e.code==='KeyY'||e.code==='Enter'||e.code==='NumpadEnter')askClose(true);else if(e.code==='KeyN'||e.code==='Escape')askClose(false);
+  if(['Space','Tab','Enter','Escape','ArrowUp','ArrowDown','KeyY','KeyN'].includes(e.code))e.preventDefault();e.stopImmediatePropagation(); // the game gets no keys while the popup is open
+}
+// ================================================================
+// Zones: separate playable areas far from the city (the UFO interior now; the Kathana arena, the cyber world and the tower later)
+// ================================================================
+// The city is one fixed world, so every other place is a ZONE: a box-built area parked far away (the UFO at z=40000), entered with a fade.
+//   ZONES[id]={id,name,origin:{x,y,z},spawn:{x,y,z,yaw},build(),cols:[],mesh,mesh2,draw(),update(dt),enter(),leave(),rebuild(),mapMarks(plot,c),
+//              sky:[r,g,b],stars:bool,smash:bool,bounds:{x0,x1,z0,z1,y1},light:{dir,lcol,sky,gnd,fogC,fog:[near,far]},lights:[{x,y,z,r,c:[r,g,b]}],plan:[[x0,x1,z0,z1]]}
+//   zone = the current zone object or null (zone.id is its id). enterZone(id,at): fade out, teleport the player to origin+at ({x,y,z,yaw}, local coordinates), set zone,
+//   fade in. leaveZone(to): fade out, zone=null, teleport the player to the city point `to` ({x,y,z,yaw,fly}, default: where they entered from), fade in.
+// While a zone is set: the city isn't drawn (cityVisible, the ocean and the shadow pass are skipped); the city's people, traffic, crimes, rivals, hunters, helis and
+// ambient life are FROZEN, not despawned (updateWorld returns early, see 50_npcs.js): the cheapest safe way, and they pick up exactly where they were when you return;
+// the minimap shows the zone's plan and name, crime pins are off, and lock-on only sees actors with actor.zid===zone.id. Collisions use the zone's boxes
+// ({x0,x1,y0,y1,z0,z1,col}, absolute coordinates) through nearCols / rayCity, so collideBody, groundY, inBuilding and every ray work unchanged. The floor is y=origin.y
+// (baseY / onIsland answer for the zone: no swimming, no drowning) and zones sit at y=0, so the space logic (y > 900) never fires.
+// Fast flight smashes walls: in a zone with smash:true, while the player moves faster than 35 m/s, boxes flagged smash:true don't block; the ones the player
+// bursts through break (debris and a thud, no damage) and are removed for the rest of the visit (box.dead; the zone's rebuild() redraws without them).
+// Builders: zoneBox adds a box to a zone's mesh and (unless col:false) its colliders; zoneBake bakes the mesh and the lookup grid.
+const ZONE_FADE=0.55,ZF={phase:0,t:0,fn:null,after:null}; // phase 1: fading to black, 2: fading back in
+let zoneRet=null;
+const ZS={on:false,px:0,py:0,pz:0};
+function zoneFade(fn,after){if(ZF.phase)return false;ZF.phase=1;ZF.t=0;ZF.fn=fn;ZF.after=after||null;return true;}
+function zoneFadeTick(dt){
+  if(!ZF.phase)return;const f=$('fade');ZF.t+=dt;
+  if(ZF.phase===1){f.style.opacity=clamp(ZF.t/ZONE_FADE,0,1).toFixed(3);
+    if(ZF.t>=ZONE_FADE){f.style.opacity='1';const fn=ZF.fn;ZF.fn=null;ZF.phase=2;ZF.t=0;if(fn){try{fn();}catch(e){logErr(e);}}}}
+  else{f.style.opacity=clamp(1-ZF.t/ZONE_FADE,0,1).toFixed(3);
+    if(ZF.t>=ZONE_FADE){f.style.opacity='0';ZF.phase=0;const cb=ZF.after;ZF.after=null;if(cb){try{cb();}catch(e){logErr(e);}}}}
+}
+function enterZone(id,at,after){
+  const Z=ZONES[id];if(!Z||zone||ZF.phase||state!=='play')return false;
+  return zoneFade(()=>zoneSwitch(Z,at),after);
+}
+function zoneSwitch(Z,at){
+  zoneRet={x:P.pos.x,y:P.pos.y,z:P.pos.z,yaw:P.yaw,fly:P.flying};
+  if(P.car)exitCar(true);
+  stopAllPowers();lockT=null;comboN=0;
+  if(!Z.built){Z.built=true;Z.build();}
+  zone=Z;const a=at||Z.spawn||{x:0,y:0,z:0},o=Z.origin;
+  P.pos.set(o.x+a.x,o.y+(a.y||0),o.z+a.z);P.vel.set(0,0,0);if(a.yaw!==undefined)P.yaw=a.yaw;P.pitch=-0.1;P.grounded=true;P.floatT=0;P.web=null;P.wall=null;
+  camDist=8;projs.length=0;debris.length=0;tracers.length=0;
+  if(Z.enter)try{Z.enter();}catch(e){logErr(e);}
+}
+function leaveZone(to,after){
+  if(!zone||ZF.phase)return false;
+  return zoneFade(()=>zoneExit(to),after);
+}
+function zoneExit(to){
+  const Z=zone;if(!Z)return;stopAllPowers();lockT=null;comboN=0;
+  if(Z.leave)try{Z.leave();}catch(e){logErr(e);}
+  zone=null;const r=to||zoneRet||{x:SPAWNS[0][0],y:0,z:SPAWNS[0][1],yaw:SPAWNS[0][2]};zoneRet=null;
+  P.pos.set(r.x,r.y,r.z);P.vel.set(0,0,0);if(r.yaw!==undefined)P.yaw=r.yaw;P.pitch=-0.1;P.flying=!!r.fly;P.grounded=!r.fly;P.floatT=0;camDist=8;projs.length=0;debris.length=0;tracers.length=0;
+}
+function zoneAbort(){ // straight out, no fade: dying inside a zone, or a multiplayer room opening
+  if(!zone)return;ZF.phase=0;ZF.fn=null;ZF.after=null;ZF.t=0;$('fade').style.opacity='0';zoneExit();
+}
+// ---- building a zone ----
+const ZGC=12; // lookup grid cell (m): boxes are listed in every cell within 6 m of them
+function zoneNew(def){
+  const Z=Object.assign({cols:[],geo:new Geo(),mesh:null,mesh2:null,built:false,grid:null,dirty:false,rebuildT:0},def);ZONES[Z.id]=Z;return Z;
+}
+// a box in local coordinates: drawn (mat 0 lit, 6 glowing, 7 metal) and, unless o.col===false, solid. o.smash: fast flight breaks it.
+function zoneBox(Z,x0,y0,z0,x1,y1,z1,col,mat=0,o){
+  const g=o&&o.geo||Z.geo,ox=Z.origin.x,oy=Z.origin.y,oz=Z.origin.z;
+  if(!(o&&o.draw===false))g.box(x0+ox,y0+oy,z0+oz,x1+ox,y1+oy,z1+oz,col,mat);
+  if(o&&o.col===false)return null;
+  const b={x0:x0+ox,x1:x1+ox,y0:y0+oy,y1:y1+oy,z0:z0+oz,z1:z1+oz,col,smash:!!(o&&o.smash),dead:false};Z.cols.push(b);return b;
+}
+function zoneIndex(Z){
+  Z.grid=new Map();const o=Z.origin,M=6;
+  for(const b of Z.cols){const i0=Math.floor((b.x0-M-o.x+512)/ZGC),i1=Math.floor((b.x1+M-o.x+512)/ZGC),j0=Math.floor((b.z0-M-o.z+512)/ZGC),j1=Math.floor((b.z1+M-o.z+512)/ZGC);
+    for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=i*400+j;let l=Z.grid.get(k);if(!l){l=[];Z.grid.set(k,l);}l.push(b);}}
+}
+function zoneBake(Z){if(Z.mesh)freeMesh(Z.mesh);Z.mesh=Z.geo.idx.length?Z.geo.mesh():null;Z.geo=new Geo();zoneIndex(Z);} // (the build arrays are let go once on the GPU)
+// the boxes near a point (what nearCols answers while a zone is set); smash boxes are skipped while the player is bursting through
+function zoneCols(x,z){
+  NEAR.length=0;const Z=zone,l=Z.grid&&Z.grid.get(Math.floor((x-Z.origin.x+512)/ZGC)*400+Math.floor((z-Z.origin.z+512)/ZGC));
+  if(l)for(let k=0;k<l.length;k++){const b=l[k];if(b.dead||(ZS.on&&b.smash))continue;NEAR.push(b);}
+  return NEAR;
+}
+// ---- fast flight through walls (called around updatePlayer, see 99_main.js) ----
+function zonePlayerPre(){ZS.on=!!(zone&&zone.smash&&!P.dead&&!cutLocked()&&P.vel.len()>35);ZS.px=P.pos.x;ZS.py=P.pos.y;ZS.pz=P.pos.z;}
+function zonePlayerPost(){
+  const Z=zone;if(!Z)return;
+  if(ZS.on&&Z.grid){
+    const dx=P.pos.x-ZS.px,dy=P.pos.y-ZS.py,dz=P.pos.z-ZS.pz,n=Math.max(1,Math.ceil(Math.hypot(dx,dy,dz))),R=P.radius+0.3,H=P.height;let hit=0;
+    for(let s=1;s<=n;s++){const x=ZS.px+dx*s/n,y=ZS.py+dy*s/n,z=ZS.pz+dz*s/n,l=Z.grid.get(Math.floor((x-Z.origin.x+512)/ZGC)*400+Math.floor((z-Z.origin.z+512)/ZGC));if(!l)continue;
+      for(const b of l){if(!b.smash||b.dead)continue;if(x>b.x0-R&&x<b.x1+R&&z>b.z0-R&&z<b.z1+R&&y<b.y1&&y+H>b.y0){zoneBreak(Z,b);hit++;}}}
+    if(hit){SFX.boom(0.55,0.5);addShake(0.3);}
+  }
+  ZS.on=false;
+  const B=Z.bounds;if(B){const o=Z.origin;
+    if(P.pos.x<o.x+B.x0){P.pos.x=o.x+B.x0;if(P.vel.x<0)P.vel.x=0;}else if(P.pos.x>o.x+B.x1){P.pos.x=o.x+B.x1;if(P.vel.x>0)P.vel.x=0;}
+    if(P.pos.z<o.z+B.z0){P.pos.z=o.z+B.z0;if(P.vel.z<0)P.vel.z=0;}else if(P.pos.z>o.z+B.z1){P.pos.z=o.z+B.z1;if(P.vel.z>0)P.vel.z=0;}
+    if(B.y1&&P.pos.y>o.y+B.y1-P.height){P.pos.y=o.y+B.y1-P.height;if(P.vel.y>0)P.vel.y=0;}}
+}
+function zoneBreak(Z,b){
+  b.dead=true;Z.dirty=true;const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,n=Math.min(10,3+Math.round((b.x1-b.x0)*(b.z1-b.z0)/8));
+  for(let i=0;i<n;i++){const s=rr(0.3,0.9);spawnPiece(rr(b.x0,b.x1),rr(b.y0+0.5,Math.min(b.y1,b.y0+10)),rr(b.z0,b.z1),MESH.box,s,s*0.7,s*1.1,b.col||[.4,.4,.45],P.vel.x*0.3+rr(-8,8),rr(2,10),P.vel.z*0.3+rr(-8,8),8);}
+  burst(cx,P.pos.y+1.3,cz,26,16,0.7,[[1,.8,.5],[.7,.8,1],[1,1,1]],1.4,-3,1.5);smoke(cx,P.pos.y+1.5,cz,3,2,5,2,0.3);
+  if(Z.onBreak)Z.onBreak(b);
+}
+// ---- drawing and lighting ----
+function drawStory(){
+  ufoDraw();
+  const Z=zone;if(!Z)return;
+  if(Z.dirty&&Z.rebuild&&time-Z.rebuildT>0.2){Z.dirty=false;Z.rebuildT=time;Z.rebuild();}
+  if(Z.mesh)queue(Z.mesh,ID,WHITE,0);if(Z.mesh2)queue(Z.mesh2,ID,WHITE,0);
+  if(Z.draw)Z.draw();
+}
+function zoneUniforms(u){
+  const L=zone.light||{},d=L.dir||[0.3,1,0.2],l=Math.hypot(d[0],d[1],d[2])||1,f=L.fog||[30,200];
+  gl.uniform3f(u.uLDir,d[0]/l,d[1]/l,d[2]/l);gl.uniform3fv(u.uLCol,L.lcol||[.5,.55,.7]);gl.uniform3fv(u.uSky,L.sky||[.3,.35,.5]);gl.uniform3fv(u.uGnd,L.gnd||[.15,.13,.2]);
+  gl.uniform3fv(u.uFogC,L.fogC||[.02,.02,.05]);gl.uniform2f(u.uFog,f[0],f[1]);gl.uniform1f(u.uShOn,0);gl.uniform1f(u.uNight,0);
+}
+function zoneLights(){
+  const Z=zone,ls=Z.lights;if(!ls||!ls.length)return 0;
+  plCand.length=0;for(const L of ls){const d=(L.x-camPos.x)**2+(L.y-camPos.y)**2+(L.z-camPos.z)**2;if(d<(L.r+30)**2)plCand.push({x:L.x,y:L.y,z:L.z,d,r:L.r,c:L.c,k:L.k===undefined?1:L.k});}
+  plCand.sort((a,b)=>a.d-b.d);const n=Math.min(PL_MAX,gfx().lights,plCand.length);
+  for(let k=0;k<n;k++){const L=plCand[k];PL_POS[k*4]=L.x;PL_POS[k*4+1]=L.y;PL_POS[k*4+2]=L.z;PL_POS[k*4+3]=L.r;PL_COL[k*3]=L.c[0]*L.k;PL_COL[k*3+1]=L.c[1]*L.k;PL_COL[k*3+2]=L.c[2]*L.k;}
+  return n;
+}
+// the minimap inside a zone: the zone's plan (rooms and corridors) turned to your heading, its name on top, the objective diamond, and whatever the zone adds (mapMarks)
+function zoneMinimap(yaw){
+  const R=180,S=1.7,c=mctx,Z=zone,cs=Math.cos(yaw),sn=Math.sin(yaw);
+  c.clearRect(0,0,360,360);c.save();c.beginPath();c.arc(R,R,R-2,0,TAU);c.clip();c.fillStyle='#070a16';c.fillRect(0,0,360,360);
+  c.translate(R,R);c.rotate(yaw);c.scale(S,S);c.translate(-(P.pos.x-Z.origin.x),-(P.pos.z-Z.origin.z));
+  if(Z.plan){c.fillStyle=Z.planCol||'#22365e';for(const r of Z.plan)c.fillRect(r[0],r[2],r[1]-r[0],r[3]-r[2]);}
+  c.restore();
+  const plot=(x,z,edge)=>{const dx=x-P.pos.x,dz=z-P.pos.z;let mx=(dx*cs-dz*sn)*S,my=(dx*sn+dz*cs)*S;const l=Math.hypot(mx,my);if(l>R-16){if(!edge)return null;mx*=(R-16)/l;my*=(R-16)/l;}return [R+mx,R+my];};
+  c.font='700 15px "Chakra Petch", sans-serif';c.textAlign='center';c.textBaseline='middle';
+  if(Z.mapMarks)Z.mapMarks(plot,c);objMapMark(plot,c);
+  c.fillStyle='#cfe3ff';c.fillText(String(Z.name||Z.id).toUpperCase(),R,24);
+  c.fillStyle='#e9f3ff';c.font='700 22px "Chakra Petch", sans-serif';c.fillText('N',R+sn*(R-18),R-cs*(R-18));
+  c.fillStyle=FACTION_COL[playerFaction()]==='#e9f3ff'?'#ffc93c':FACTION_COL[playerFaction()];
+  c.beginPath();c.moveTo(R,R-13);c.lineTo(R+9,R+10);c.lineTo(R,R+5);c.lineTo(R-9,R+10);c.closePath();c.fill();
+}
+// ================================================================
+// The UFO event: a saucer over Nova Bay, a way in, an interior full of aliens, and one item per hero
+// ================================================================
+// After 3 minutes of active play (save.story.act >= 180) a huge saucer descends over the city (an 8 s cutscene) and stays until you go in (save.story.ufo: 0 not
+// yet, 1 waiting, 2 item taken, 3 done). Fly up into the hole in its belly, or say yes to the popup (after 60 s, 15 s for heroes that can't fly) and be beamed up.
+// Inside (ZONES.ufo, parked at z=40000) are a hangar, corridors, four rooms with aliens (lab, engine room, holding cells, control deck) and a vault whose door opens
+// once all four rooms are cleared. The item on its pedestal depends on the hero (UFO_ITEMS); touching it saves save.story.item and calls ufoReward(id). Then you are
+// sent back above the city and the saucer flies off (5 s cutscene). The rewards themselves come in the next phase (see ufoReward / ufoWebReel).
+const UFO={on:false,x:0,y:420,z:0,rot:0,mesh:null,waitT:0,waitMax:60,leaving:false,lift:null};
+const UFO_R=130,UFO_Y=420,UFO_HOLE=20; // saucer radius, hover height, radius of the opening in its belly
+// the item each hero fetches: name, what it will do (next phase), glow colour
+const UFO_ITEMS={
+  powerRing:{name:'Infinity Lens',desc:'Constructs with no limits',col:[.3,1,.5]},bandFlight:{name:'Master Control',desc:'Every alien, any time',col:[.4,.9,1]},
+  stormFlight:{name:'Storm Axe Core',desc:'Your hammer becomes an axe',col:[.6,.8,1]},superSpeed:{name:'Chrono Core',desc:'Rewind time',col:[1,.85,.3]},
+  webSwing:{name:'Graviton Web Gland',desc:'Webs that reel you in',col:[.9,.9,1]},solarFlight:{name:'Star Seed',desc:'A sun of your own',col:[1,.8,.3]},
+  armorFlight:{name:'Arc Reactor Prime',desc:'Power without end',col:[.4,.8,1]},ironFlight:{name:'Living Alloy',desc:'Armor that mends itself',col:[.8,.85,.95]},
+  bladeFlight:{name:'Void Edge',desc:'A blade that cuts anything',col:[.7,.4,1]},elasticFlight:{name:'Quantum Polymer',desc:'Stretch without limits',col:[1,.5,.8]},
+  titanFlight:{name:'Titan Heart',desc:'The strength of a giant',col:[1,.5,.25]},
+};
+const ufoHero=()=>save.character?save.character.movement[0]:'ironFlight';
+const ufoItem=()=>UFO_ITEMS[ufoHero()]||UFO_ITEMS.ironFlight;
+const ufoFlier=()=>hasPower('flight'); // Speedster and Web Runner can't fly up to it
+function ufoReward(id){toast('Reward: '+(UFO_ITEMS[id]||ufoItem()).name,'','gold');} // TODO next phase: apply the per-hero reward (Master Control, storm axe, rewind, ring without limits ...)
+function ufoWebReel(){} // TODO next phase: Web Runner webs the UFO from space and is reeled up to it
+// ---- the saucer in the sky ----
+const UP={sph:primSphere(56,28),cyl:primCyl(56),tor:primTorus(1,0.09,64,10),cone:primCyl(24,0.02,1,true)}; // smooth parts for the saucer (the shared ones are low-poly)
+const UGLOW=primMesh(UP.sph,6);
+function ufoMesh(){
+  if(UFO.mesh)return UFO.mesh;
+  const g=new Geo(),M=[.17,.18,.215],M2=[.085,.09,.11],M3=[.3,.32,.37],DK=[.03,.033,.045];
+  g.prim(UP.sph,0,0,0,0,0,0,UFO_R,26,UFO_R,M,7);                                        // the hull
+  g.prim(UP.cyl,0,0,0,0,0,0,UFO_R+3,4.5,UFO_R+3,M3,7);                                  // rim band
+  g.prim(UP.sph,0,15,0,0,0,0,88,13,88,M2,7);                                            // top deck
+  for(const r of [40,66,92,116])g.prim(UP.cyl,0,26*Math.sqrt(1-(r/UFO_R)**2)-0.3,0,0,0,0,r,1.4,r,r<80?M3:M2,7); // terraces
+  g.prim(UP.sph,0,24,0,0,0,0,34,24,34,[.12,.24,.3],7);                                  // the dome
+  g.prim(UP.cone,0,52,0,0,0,0,3,34,3,M3,7);                                             // antenna
+  for(const r of [46,70,96,118])g.prim(UP.cyl,0,-26*Math.sqrt(1-(r/UFO_R)**2)+0.35,0,0,0,0,r,1.4,r,r<80?M3:M2,7); // the belly's terraces
+  g.prim(UP.cyl,0,-24.6,0,0,0,0,30,1.4,30,DK,0);                                        // dark plate round the opening
+  g.prim(UP.tor,0,-25.4,0,0,0,0,UFO_HOLE+2,3.2,UFO_HOLE+2,[.25,.8,1],6);                // glowing ring
+  g.prim(UP.cyl,0,-25.9,0,0,0,0,UFO_HOLE,1.2,UFO_HOLE,[.6,.9,1],6);                     // the glowing opening (a disc facing down)
+  for(let k=0;k<4;k++){const a=k*TAU/4+0.785;g.prim(UP.cyl,Math.cos(a)*74,-19,Math.sin(a)*74,0,0,0,11,7,11,M2,7);g.prim(UP.tor,Math.cos(a)*74,-22.6,Math.sin(a)*74,0,0,0,10,1.8,10,[.4,.55,1],6);} // engine pods
+  for(let k=0;k<48;k++){const a=k*TAU/48,c=k%3===0?[1,.4,.85]:k%3===1?[.25,.85,1]:[.85,.92,1];g.prim(UP.sph,Math.cos(a)*(UFO_R+3.5),0,Math.sin(a)*(UFO_R+3.5),0,0,0,2,2,2,c,6);} // rim lights
+  return UFO.mesh=g.mesh();
+}
+function ufoDraw(){
+  const L=UFO.lift;
+  if(L){const k=clamp(L.t/2.4,0,1),h=300;queue(MESH.tube,at(L.x,L.y0+h/2-4,L.z,0,0,0,2.2,h,2.2),[.7,.92,1,0.2],F_ADD);queue(MESH.tube,at(L.x,L.y0+h/2-4,L.z,0,0,0,4.2,h,4.2),[.5,.85,1,0.07],F_ADD);queue(MESH.ring,at(L.x,L.y0+0.2,L.z,0,0,0,3+k*3,1,3+k*3),[.8,.95,1,1-k*0.6],F_ADD);}
+  if(!UFO.on||zone||state!=='play'||!storySolo())return;
+  const x=UFO.x,y=UFO.y,z=UFO.z,t=time;
+  queue(ufoMesh(),at(x,y,z,0,UFO.rot,0),WHITE,F_NF,0.1);
+  for(let k=0;k<24;k++){const a=k*TAU/24+UFO.rot,c=k%3===0?[1,.45,.9]:k%3===1?[.3,.9,1]:[.9,.95,1];queue(UGLOW,at(x+Math.cos(a)*(UFO_R+3.5),y,z+Math.sin(a)*(UFO_R+3.5),0,0,0,4.5,4.5,4.5),[c[0],c[1],c[2],0.22+0.16*Math.sin(t*3+k)],F_ADD);}
+  queue(UGLOW,at(x,y+22,z,0,0,0,44,30,44),[.45,.85,1,0.16+0.05*Math.sin(t*2)],F_ADD);
+  queue(UGLOW,at(x,y-27,z,0,0,0,34,7,34),[.6,.9,1,0.25+0.08*Math.sin(t*4)],F_ADD);
+  const len=y-26,p=0.8+0.2*Math.sin(t*2.5);
+  for(const [r,a] of [[UFO_HOLE,0.035],[UFO_HOLE*0.72,0.05],[UFO_HOLE*0.4,0.07]])queue(MESH.tube,at(x,len/2,z,0,0,0,r,len,r),[.65,.92,1,a*p],F_ADD);
+}
+// ---- the event: arrival, waiting, getting in, leaving ----
+function ufoTick(dt){
+  const S=save.story;
+  if(S.ufo>=1&&S.ufo<=2&&!UFO.on&&!UFO.leaving){UFO.on=true;UFO.y=UFO_Y;UFO.waitT=0;UFO.waitMax=ufoFlier()?60:15;} // it stays across sessions
+  if(UFO.on)UFO.rot+=dt*0.04;
+  if(!CUT&&state==='play'){if(UFO.leaving)UFO.leaving=false;if(S.ufo===1&&UFO.on&&UFO.y!==UFO_Y)UFO.y=UFO_Y;} // a cutscene cut short (a room opened) leaves the saucer where it belongs
+  const free=!zone&&!CUT&&!ASK&&!ZF.phase&&!P.dead&&state==='play';
+  if(S.ufo===0&&S.act>=180&&free&&!inSpace()&&!P.car)ufoArrive(false);
+  if(S.ufo===2&&free&&!UFO.leaving)ufoLeaveCut(); // item taken but the cutscene never ran (died or left early): play it now
+  if(S.ufo===1&&UFO.on&&!zone){
+    const want=ufoFlier()?'Fly up into the UFO':'Get up to the UFO';
+    if(OBJ.text!==want)objective(want);if(!OBJ.mark||OBJ.mark.label!=='UFO')objectiveMark(UFO.x,UFO.y-26,UFO.z,'UFO');
+    if(free){
+      if(storyActiveNow())UFO.waitT+=dt;
+      if(UFO.waitT>=UFO.waitMax)ufoAsk();
+      const dx=P.pos.x-UFO.x,dz=P.pos.z-UFO.z;
+      if(dx*dx+dz*dz<UFO_HOLE*UFO_HOLE&&P.pos.y>UFO.y-38&&P.pos.y<UFO.y-12&&!P.dead){SFX.whoosh();enterZone('ufo');}
+    }
+  }
+}
+// the saucer arrives (the 8 s cutscene); quick skips the cutscene (tests)
+function ufoArrive(quick){
+  const S=save.story;if(UFO.on&&S.ufo>=1)return;
+  S.ufo=1;persist();UFO.on=true;UFO.waitT=0;UFO.waitMax=ufoFlier()?60:15;UFO.x=0;UFO.z=0;
+  if(quick||state!=='play'){UFO.y=UFO_Y;return;}
+  const ex=P.pos.x,ez=P.pos.z,hx=ex-UFO.x,hz=ez-UFO.z,hl=Math.hypot(hx,hz);let cx=ex,cz=ez;
+  if(hl<110){const ux=hl>1?hx/hl:1,uz=hl>1?hz/hl:0;cx=UFO.x+ux*110;cz=UFO.z+uz*110;} // right under it, the camera steps back so it can look up at an angle
+  const from={x:cx,y:P.pos.y+3,z:cz},to={x:cx+(UFO.x-cx)*0.22,y:P.pos.y+14,z:cz+(UFO.z-cz)*0.22};
+  UFO.y=1100;UFO.leaving=false;
+  cutscene({dur:8,text:'Something huge just arrived over Nova Bay',from,to,look:()=>({x:UFO.x,y:UFO.y,z:UFO.z}),fov:62,
+    onTick:(k,dt)=>{const e=1-Math.pow(1-k,3);UFO.y=lerp(1100,UFO_Y,e);addShake(0.05*(1-k)+0.02);if(k>0.02&&k<0.04)SFX.tone('sawtooth',50,35,6,0.12);},
+    onEnd:()=>{UFO.y=UFO_Y;UFO.waitT=0;flashWhite=Math.max(flashWhite,0.25);SFX.boom(0.6,1.2);addShake(0.4);objective('Fly up into the UFO');objectiveMark(UFO.x,UFO.y-26,UFO.z,'UFO');}});
+}
+function ufoAsk(){
+  if(ASK||CUT||ZF.phase)return;
+  askYesNo('Start the story?','The UFO is waiting. Beam up now?','Beam me up','Not now',()=>{UFO.waitT=0;ufoBeamUp();},()=>{UFO.waitT=0;UFO.waitMax=180;}); // No: ask again after 3 more active minutes
+}
+// a column of light lifts you for 2 s, then you are inside
+function ufoBeamUp(){
+  if(P.car)exitCar(true);
+  const p={x:P.pos.x,y:P.pos.y,z:P.pos.z};UFO.lift={x:p.x,z:p.z,y0:p.y,t:0};SFX.tone('sine',200,1400,2.2,0.12);
+  cutscene({dur:2.4,letterbox:false,from:{x:p.x+9,y:p.y+3,z:p.z+9},to:{x:p.x+13,y:p.y+16,z:p.z+13},look:()=>({x:P.pos.x,y:P.pos.y+1.5,z:P.pos.z}),fov:60,
+    onTick:(k,dt)=>{UFO.lift.t+=dt;P.pos.y=UFO.lift.y0+k*k*60;for(let i=0;i<3;i++)emit(p.x+rr(-2.5,2.5),P.pos.y+rr(-3,6),p.z+rr(-2.5,2.5),0,rr(8,20),0,0.6,[.7,.92,1],rr(0.5,1),0,0);},
+    onEnd:()=>{UFO.lift=null;flashWhite=Math.max(flashWhite,0.5);enterZone('ufo');}});
+}
+// the way out: back above the city where the saucer hung (heroes that can't fly are set down on the bridge below it)
+function ufoReturnPoint(){return ufoFlier()?{x:-80,y:44,z:0,yaw:Math.PI/2,fly:true}:{x:-80,y:0.3,z:0,yaw:Math.PI/2,fly:false};}
+function ufoLeave(){if(zone&&zone.id==='ufo'&&!ZF.phase)leaveZone(ufoReturnPoint(),ufoLeaveCut);}
+// the saucer flies off into space (5 s), and the event is over
+function ufoLeaveCut(){
+  const S=save.story;if(UFO.leaving||state!=='play')return;UFO.leaving=true;UFO.on=true;UFO.y=UFO_Y;
+  const p={x:P.pos.x,y:P.pos.y+3,z:P.pos.z};
+  cutscene({dur:5,from:p,to:{x:p.x,y:p.y+10,z:p.z},look:()=>({x:UFO.x,y:UFO.y,z:UFO.z}),fov:66,
+    onTick:(k)=>{UFO.y=UFO_Y+k*k*k*3400;UFO.rot+=k*0.15;addShake(0.04*k);if(k>0.1&&k<0.13)SFX.tone('sawtooth',40,900,3.5,0.1);},
+    onEnd:()=>{UFO.on=false;UFO.leaving=false;S.ufo=3;objective(null);objectiveMark(null);flashWhite=Math.max(flashWhite,0.45);persist();toast('The UFO is gone','Nova Bay is quiet again','cyan');}});
+}
+// ================================================================
+// The interior (ZONES.ufo)
+// ================================================================
+// A 200 x 200 m floor plan on a 2 m grid, local coordinates with the vault at (0,0) and the hangar to the south (+z). Every open rectangle becomes floor and a ceiling
+// (its own height), and 4 m thick walls grow around it in panels of up to 8 x 8 m (the panels are what fast flight smashes). The vault and the outer edge are not smashable.
+const UF={rooms:[],cleared:0,doorOpen:false,took:false,leaveT:-1,door:null,item:{x:0,y:4.6,z:0},pad:{x:0,z:76},spawnT:0};
+const UFZ={x:0,y:0,z:40000};
+const UFR=[ // [id, x0, x1, z0, z1, ceiling height, light colour, floor colour]
+  ['hangar',-36,36,60,92,32,[.3,.85,1],'#2a3340'],['spine',-6,6,34,60,18,[.5,.55,1],'#1c2230'],['ante',-32,32,18,34,24,[.75,.45,1],'#262033'],
+  ['c2',-50,-32,20,32,18,[.45,.55,1],'#1c2230'],['c3',32,50,20,32,18,[.45,.55,1],'#1c2230'],
+  ['lab',-92,-50,-20,34,26,[.3,1,.7],'#26373a'],['engine',50,92,-20,34,40,[1,.6,.25],'#33281f'],
+  ['c4',-76,-64,-24,-20,18,[.5,.55,1],'#1c2230'],['c5',64,76,-24,-20,18,[.5,.55,1],'#1c2230'],
+  ['cells',-92,-44,-68,-24,22,[1,.3,.4],'#2f2326'],['control',44,92,-68,-24,28,[.4,.6,1],'#1f2740'],['c6',-44,44,-52,-40,18,[.5,.55,1],'#1c2230'],
+  ['vault',-14,14,-14,14,34,[1,.8,.4],'#3a3220'],['slot',-4,4,14,18,34,[1,.8,.4],'#3a3220'],
+];
+// the four rooms with aliens: id, how many, where they may appear
+const UFROOMS=[['lab',5,-88,-54,-16,30],['engine',7,54,88,-16,30],['cells',4,-88,-48,-48,-28],['control',8,48,88,-64,-28]];
+const UFLAB={lab:'Laboratory',engine:'Engine room',cells:'Holding cells',control:'Control deck'};
+function ufoZone(){
+  const Z=zoneNew({id:'ufo',name:'The UFO',origin:UFZ,spawn:{x:0,y:0,z:80,yaw:0},smash:true,stars:true,sky:[0,0,0.01],
+    bounds:{x0:-98,x1:98,z0:-98,z1:98,y1:44},light:{dir:[.25,1,.3],lcol:[.3,.34,.5],sky:[.15,.17,.27],gnd:[.07,.06,.11],fogC:[.02,.02,.05],fog:[50,210]},lights:[],walls:[],
+    plan:UFR.filter(r=>r[0]!=='slot').map(r=>[r[1],r[2],r[3],r[4]]),planCol:'#26406e',
+    build(){ufoBuild(Z);},enter(){ufoEnter(Z);},leave(){ufoLeaveZone(Z);},update(dt){ufoZoneUpdate(Z,dt);},draw(){ufoZoneDraw(Z);},rebuild(){ufoRebuild(Z);},
+    mapMarks(plot,c){for(const a of ualiens){if(!a.alive)continue;const q=plot(a.pos.x,a.pos.z,false);if(!q)continue;c.fillStyle='#ff4d5e';c.beginPath();c.arc(q[0],q[1],5,0,TAU);c.fill();}}});
+  return Z;
+}
+ufoZone();
+function ufoBuild(Z){
+  const N=100,G=2,I=(x)=>Math.round((x+100)/G),open=new Float32Array(N*N),shell=new Float32Array(N*N),HC=new Float32Array(N*N);
+  for(const r of UFR)for(let i=I(r[1]);i<I(r[2]);i++)for(let j=I(r[3]);j<I(r[4]);j++)open[i*N+j]=Math.max(open[i*N+j],r[5]);
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){const h=open[i*N+j];if(!h)continue;for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){const ni=i+a,nj=j+b;if(ni<0||nj<0||ni>=N||nj>=N)continue;if(h>shell[ni*N+nj])shell[ni*N+nj]=h;}}
+  for(let k=0;k<N*N;k++)HC[k]=open[k]||shell[k];
+  const cxm=i=>-100+i*G,WIN=(i,j)=>{const x=cxm(i)+1,z=cxm(j)+1;return z>92&&Math.abs(x)<=26;}; // the hangar window
+  const op=(i,j)=>i>=0&&j>=0&&i<N&&j<N&&open[i*N+j]>0;
+  const part=(i,j)=>(op(i-1,j)||op(i-2,j))&&(op(i+1,j)||op(i+2,j))||(op(i,j-1)||op(i,j-2))&&(op(i,j+1)||op(i,j+2)); // a wall with open space on both sides: fast flight can burst through it into the next room
+  const smashOK=(i,j)=>{const x=cxm(i)+1,z=cxm(j)+1;return !(Math.abs(x)<=28&&Math.abs(z)<=28)&&part(i,j);}; // (not the vault's walls, and not the hull: that would only lead out into space)
+  // floor and room plates
+  const FLOOR=hex('#10131a'),CEIL_C=hex('#12151e');
+  zoneBox(Z,-100,-3,-100,100,0,100,FLOOR,0,{col:false});
+  for(const r of UFR)zoneBox(Z,r[1],-0.02,r[3],r[2],0.04,r[4],hex(r[7]),0,{col:false});
+  // ceilings: merge open + shell cells of one height into rectangles
+  {const used=new Uint8Array(N*N);
+    for(let j=0;j<N;j++)for(let i=0;i<N;i++){const h=HC[i*N+j];if(!h||used[i*N+j])continue;let i1=i;while(i1+1<N&&HC[(i1+1)*N+j]===h&&!used[(i1+1)*N+j])i1++;
+      let j1=j;for(;;){const nj=j1+1;if(nj>=N)break;let ok=true;for(let a=i;a<=i1;a++)if(HC[a*N+nj]!==h||used[a*N+nj]){ok=false;break;}if(!ok)break;j1=nj;}
+      for(let a=i;a<=i1;a++)for(let b=j;b<=j1;b++)used[a*N+b]=1;
+      zoneBox(Z,cxm(i),h,cxm(j),cxm(i1+1),h+3,cxm(j1+1),CEIL_C,0);}}
+  // walls: shell cells, merged into panels (max 4 x 4 cells = 8 x 8 m) of equal height and smashability
+  {const used=new Uint8Array(N*N);let seed=11;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+    for(let j=0;j<N;j++)for(let i=0;i<N;i++){const k=i*N+j;if(open[k]||!HC[k]||used[k]||WIN(i,j))continue;const h=HC[k],sm=smashOK(i,j);
+      const same=(a,b)=>{const q=a*N+b;return !open[q]&&HC[q]===h&&!used[q]&&!WIN(a,b)&&smashOK(a,b)===sm;};
+      let i1=i;while(i1+1<N&&i1-i<3&&same(i1+1,j))i1++;
+      let j1=j;while(j1+1<N&&j1-j<3){let ok=true;for(let a=i;a<=i1;a++)if(!same(a,j1+1)){ok=false;break;}if(!ok)break;j1++;}
+      for(let a=i;a<=i1;a++)for(let b=j;b<=j1;b++)used[a*N+b]=1;
+      const v=0.85+rnd()*0.3,col=[.12*v,.14*v,.19*v];
+      const w={x0:UFZ.x+cxm(i),x1:UFZ.x+cxm(i1+1),y0:0,y1:h,z0:UFZ.z+cxm(j),z1:UFZ.z+cxm(j1+1),col,mat:0,smash:sm,dead:false};Z.cols.push(w);Z.walls.push(w);}}
+  // the hangar window: stars behind glass (wall above and below, an invisible solid pane)
+  zoneBox(Z,-26,0,92,26,6,96,hex('#262c3a'),7);zoneBox(Z,-26,24,92,26,32,96,hex('#262c3a'),7);zoneBox(Z,-26,6,93.5,26,24,94.5,[0,0,0],0,{draw:false});
+  // strips of light along every room: ceiling edge and floor edge, a centre line down corridors
+  for(const r of UFR){if(r[0]==='slot')continue;const [x0,x1,z0,z1,h,c]=[r[1],r[2],r[3],r[4],r[5],r[6]],o={col:false},t=0.25,y=h-1.7;
+    zoneBox(Z,x0+.1,y,z0+.1,x1-.1,y+t,z0+.1+t,c,6,o);zoneBox(Z,x0+.1,y,z1-.1-t,x1-.1,y+t,z1-.1,c,6,o);zoneBox(Z,x0+.1,y,z0+.1,x0+.1+t,y+t,z1-.1,c,6,o);zoneBox(Z,x1-.1-t,y,z0+.1,x1-.1,y+t,z1-.1,c,6,o);
+    const d=[c[0]*.45,c[1]*.45,c[2]*.45];zoneBox(Z,x0+.1,.3,z0+.1,x1-.1,.5,z0+.3,d,6,o);zoneBox(Z,x0+.1,.3,z1-.3,x1-.1,.5,z1-.1,d,6,o);zoneBox(Z,x0+.1,.3,z0+.1,x0+.3,.5,z1-.1,d,6,o);zoneBox(Z,x1-.3,.3,z0+.1,x1-.1,.5,z1-.1,d,6,o);
+    const long=(x1-x0)>(z1-z0),cc=/^c\d$/.test(r[0])||r[0]==='spine';
+    if(cc){if(long)zoneBox(Z,x0+1,h-.35,(z0+z1)/2-.4,x1-1,h,(z0+z1)/2+.4,c,6,o);else zoneBox(Z,(x0+x1)/2-.4,h-.35,z0+1,(x0+x1)/2+.4,h,z1-1,c,6,o);}
+    else for(let x=x0+8;x<x1-4;x+=14)for(let z=z0+8;z<z1-4;z+=14)zoneBox(Z,x-2,h-.3,z-2,x+2,h,z+2,[.8,.9,1],6,o); // ceiling lamps in the big rooms
+    // point lights: along corridors every 14 m, a grid in rooms
+    if(cc){for(let k=0,n=Math.max(1,Math.round(Math.max(x1-x0,z1-z0)/14));k<n;k++){const f=(k+.5)/n;Z.lights.push({x:UFZ.x+(long?x0+(x1-x0)*f:(x0+x1)/2),y:h-3,z:UFZ.z+(long?(z0+z1)/2:z0+(z1-z0)*f),r:26,c:c,k:.7});}}
+    else for(let x=x0+(x1-x0)/4;x<x1-1;x+=(x1-x0)/2)for(let z=z0+(z1-z0)/4;z<z1-1;z+=(z1-z0)/2)Z.lights.push({x:UFZ.x+x,y:h-4,z:UFZ.z+z,r:Math.max(30,(x1-x0)*0.55),c:c,k:.9});
+  }
+  // ---- hangar: a landing pad and two docked shuttles ----
+  for(const sd of [-1,1]){const x=sd*24;zoneBox(Z,x-8,0,66,x+8,3.5,82,hex('#5a6270'),7);zoneBox(Z,x-5,3.5,69,x+5,6,79,hex('#7b8594'),7);zoneBox(Z,x-4,3,82,x+4,5,86,hex('#4a5260'),7);
+    zoneBox(Z,x-6,2.2,82.2,x+6,2.6,82.6,[.3,.9,1],6,{col:false});zoneBox(Z,x-3,4.2,66,x+3,5,66.3,[.3,.9,1],6,{col:false});}
+  zoneBox(Z,-7,.05,69,7,.12,83,hex('#3b4352'),0,{col:false});
+  // ---- lab: stasis tubes and tables ----
+  for(const x of [-84,-76,-68,-60])for(const z of [-8,24]){zoneBox(Z,x-2.2,0,z-2.2,x+2.2,1,z+2.2,hex('#505866'),7);zoneBox(Z,x-2.2,9,z-2.2,x+2.2,10,z+2.2,hex('#505866'),7,{col:false});
+    const b=Z.cols[Z.cols.length-1];b.y1=10;}
+  for(const z of [4,10,16]){zoneBox(Z,-72,0,z-1.2,-66,1.1,z+1.2,hex('#6b7686'),7);zoneBox(Z,-71,1.1,z-.9,-67,1.2,z+.9,[.3,1,.8],6,{col:false});}
+  // ---- engine room: a core on a base, pipes up the walls ----
+  zoneBox(Z,64,0,0,78,3,14,hex('#4a4038'),7);for(const [x,z] of [[54,-16],[88,-16],[54,30],[88,30]])zoneBox(Z,x-1.5,0,z-1.5,x+1.5,40,z+1.5,hex('#5a4a3a'),7);
+  for(const z of [-10,6,22])zoneBox(Z,86,2,z,88.4,4,z+1.2,[1,.55,.2],6,{col:false});
+  // ---- holding cells: dividers and glowing bars ----
+  for(const x of [-80,-68,-56])zoneBox(Z,x-.4,0,-68,x+.4,8,-52,hex('#3a3236'),7);
+  for(const x of [-86,-74,-62,-50])for(let b=-3;b<=3;b++)zoneBox(Z,x+b*1.7-.12,0,-52.3,x+b*1.7+.12,8,-52,[1,.3,.4],6,{col:false});
+  zoneBox(Z,-92,7.8,-52.5,-44,8.4,-51.9,[1,.3,.4],6,{col:false});
+  // ---- control deck: consoles, a big screen, a holo table ----
+  for(const x of [50,58,66,74,82])zoneBox(Z,x-3.5,0,-64,x+3.5,2.2,-60.5,hex('#3b4766'),7);for(const x of [50,58,66,74,82])zoneBox(Z,x-3,2.2,-63.6,x+3,3.4,-61.2,[.4,.7,1],6,{col:false});
+  zoneBox(Z,50,8,-67.8,86,22,-67.5,[.2,.4,.8],6,{col:false});for(let k=0;k<5;k++)zoneBox(Z,52,10+k*2.4,-67.4,52+10+((k*37)%20),11+k*2.4,-67.3,[.8,.95,1],6,{col:false});
+  zoneBox(Z,62,0,-50,74,1.2,-38,hex('#3b4766'),7);zoneBox(Z,64,1.2,-48,72,1.5,-40,[.4,.7,1],6,{col:false});
+  // ---- vault: a pedestal under a ring of gold light ----
+  zoneBox(Z,-2.4,0,-2.4,2.4,2.2,2.4,hex('#8a7440'),7);zoneBox(Z,-3.2,.05,-3.2,3.2,.2,3.2,[1,.8,.4],6,{col:false});zoneBox(Z,-3.8,.05,-3.8,3.8,.15,-3.4,[1,.8,.4],6,{col:false});
+  for(const [x,z] of [[-12,-12],[12,-12],[-12,12],[12,12]])zoneBox(Z,x-.6,0,z-.6,x+.6,34,z+.6,[1,.8,.4],6,{col:false});
+  Z.lights.push({x:UFZ.x,y:UFZ.y+6,z:UFZ.z,r:30,c:[1,.8,.4],k:1.2});
+  // ---- the vault door: fills the slot between the antechamber and the vault, opens when the rooms are cleared ----
+  UF.door={x0:UFZ.x-4,x1:UFZ.x+4,y0:0,y1:34,z0:UFZ.z+14,z1:UFZ.z+18,col:hex('#8a7436'),mat:0,smash:false,dead:false,door:true};Z.cols.push(UF.door);Z.walls.push(UF.door);
+  zoneBake(Z);ufoRebuild(Z);
+}
+// the walls and the door are redrawn without whatever has been smashed or opened
+function ufoRebuild(Z){
+  const g=new Geo();for(const b of Z.walls){if(b.dead)continue;g.box(b.x0,b.y0,b.z0,b.x1,b.y1,b.z1,b.col,b.mat);}
+  const d=UF.door;if(d&&!d.dead){for(const x of [-3,3])g.box(d.x0+4+x-.3,3,d.z1-.05,d.x0+4+x+.3,31,d.z1+.1,[1,.8,.4],6);g.box(d.x0+1,15.5,d.z1-.05,d.x1-1,16.5,d.z1+.12,[1,.8,.4],6);}
+  if(Z.mesh2)freeMesh(Z.mesh2);Z.mesh2=g.idx.length?g.mesh():null;
+}
+// ---- entering, leaving, the rooms ----
+function ufoEnter(Z){
+  clearAliens();
+  for(const b of Z.walls)b.dead=false;Z.dirty=false;ufoRebuild(Z);
+  UF.rooms=UFROOMS.map(r=>({id:r[0],n:r[1],x0:r[2],x1:r[3],z0:r[4],z1:r[5],active:false,pending:0,alive:0,cleared:false,spawnT:0}));
+  UF.cleared=0;UF.doorOpen=false;UF.took=save.story.ufo>=2;UF.leaveT=-1;UF.spawnT=0;
+  const it=ufoItem();objective('Find the '+it.name);objectiveMark(UFZ.x,UFZ.y+8,UFZ.z+22,'Vault');
+  toast('Inside the UFO','Find the '+it.name+' · fly fast to smash through walls','cyan');
+}
+function ufoLeaveZone(Z){clearAliens();objective(null);objectiveMark(null);}
+function ufoOpenVault(Z){
+  UF.doorOpen=true;UF.door.dead=true;Z.dirty=true;
+  const d=UF.door,x=(d.x0+d.x1)/2,z=(d.z0+d.z1)/2;burst(x,10,z,60,22,1.2,[[1,.85,.4],[1,1,1]],1.6,0,2);ringFx(x,8,z,1,16,0.6,[1,.85,.4],[0,0,1]);SFX.boom(0.7,1.1);SFX.chime();addShake(0.5);
+  toast('The vault door opens','Something glows inside','gold');const it=ufoItem();objective('Find the '+it.name);objectiveMark(UFZ.x+UF.item.x,UFZ.y+UF.item.y+1,UFZ.z+UF.item.z,it.name);
+}
+function ufoPickItem(){
+  if(UF.took)return;UF.took=true;const S=save.story,id=ufoHero(),it=ufoItem();S.item=id;S.ufo=2;persist();
+  ufoReward(id);toast('You found the '+it.name,it.desc,'gold');SFX.chime();SFX.levelUp();flashWhite=Math.max(flashWhite,0.5);
+  const c=UF.item,x=UFZ.x+c.x,y=UFZ.y+c.y,z=UFZ.z+c.z;burst(x,y,z,90,26,1.4,[it.col,[1,1,1]],1.8,0,2);ringFx(x,y,z,1,24,0.8,it.col);ringFx(x,y,z,1,16,0.6,[1,1,1]);
+  objective('Leave the UFO');objectiveMark(UFZ.x+UF.pad.x,UFZ.y+2,UFZ.z+UF.pad.z,'Exit');UF.leaveT=4; // out through the hangar, or the UFO beams you out after 4 s
+}
+// test hook: teleport to the pedestal and take the item
+function ufoTakeItem(){
+  if(!zone||zone.id!=='ufo')return false;if(!UF.doorOpen)ufoOpenVault(zone);
+  P.pos.set(UFZ.x+UF.item.x,UFZ.y,UFZ.z+UF.item.z+1.5);P.vel.set(0,0,0);ufoPickItem();return true;
+}
+function ufoAliveCount(){let n=0;for(const a of ualiens)if(a.alive)n++;return n;}
+function ufoZoneUpdate(Z,dt){
+  const px=P.pos.x-UFZ.x,pz=P.pos.z-UFZ.z;
+  for(const rm of UF.rooms){
+    if(!rm.active&&px>rm.x0-3&&px<rm.x1+3&&pz>rm.z0-3&&pz<rm.z1+3&&Math.abs(P.pos.y-UFZ.y)<10){rm.active=true;rm.pending=rm.n;toast(UFLAB[rm.id],'Aliens!','red');} // the player walks into the room: its aliens come out, a few at a time
+    if(rm.active&&rm.pending>0&&ufoAliveCount()<16){rm.spawnT-=dt;if(rm.spawnT<=0){rm.spawnT=0.4;ufoSpawnIn(rm);}}
+    if(rm.active&&!rm.cleared&&rm.pending===0&&rm.alive===0){rm.cleared=true;UF.cleared++;toast(UFLAB[rm.id]+' secured',UF.cleared+' of 4 rooms cleared','cyan');SFX.chime();
+      if(UF.cleared>=4)ufoOpenVault(Z);else objective('Find the '+ufoItem().name+' · rooms cleared '+UF.cleared+'/4');}
+  }
+  for(const a of ualiens.slice())ualienUpdate(a,dt);
+  if(!P.dead&&!UF.took&&UF.doorOpen&&Math.hypot(px-UF.item.x,P.pos.y+1.3-UFZ.y-UF.item.y,pz-UF.item.z)<3.2)ufoPickItem();
+  if(UF.leaveT>=0){UF.leaveT-=dt;if(UF.leaveT<=0||Math.hypot(px-UF.pad.x,pz-UF.pad.z)<7){UF.leaveT=-1;ufoLeave();}}
+  if(Math.random()<dt*3)emit(UFZ.x+71+rr(-1,1),UFZ.y+rr(2,30),UFZ.z+7+rr(-1,1),rr(-3,3),rr(2,8),rr(-3,3),0.8,[1,.6,.25],rr(0.8,1.4),0,0.5); // the engine room's core spits sparks
+}
+function ufoSpawnIn(rm){
+  for(let t=0;t<12;t++){const x=UFZ.x+rr(rm.x0,rm.x1),z=UFZ.z+rr(rm.z0,rm.z1),hover=Math.random()<0.3;
+    if(Math.hypot(x-P.pos.x,z-P.pos.z)<10||inBuilding(x,1,z,1.4)||inBuilding(x,2.4,z,1.2))continue;
+    const a=ualienSpawn(rm,x,z,hover);rm.pending--;rm.alive++;burst(x,a.pos.y+1.2,z,20,8,0.6,[[.5,1,.6],[1,1,1]],1.2,0,2);ringFx(x,a.pos.y+0.1,z,0.5,3,0.4,[.5,1,.6]);return;}
+}
+function clearAliens(){for(const a of ualiens.slice())removeActor(a);ualiens.length=0;}
+// ================================================================
+// Aliens: grey-green humanoids with big heads and dark eyes (kind 'alien'), some hover
+// ================================================================
+const ualiens=[];
+const UAC={skin:c4('#8fae88'),hov:c4('#86aaa8'),suit:[.06,.07,.1,1],suit2:[.11,.13,.19,1],eye:[.008,.01,.016,1]};
+const UARAG={torso:UAC.suit,arms:UAC.skin,hands:UAC.skin,skin:UAC.skin,head:UAC.skin,legs:UAC.suit2};
+function ualienSpawn(rm,x,z,hover){
+  const lvl=save.level,hp=70+8*lvl;
+  const a={kind:'alien',faction:'alien',zid:'ufo',name:'Alien',room:rm,alive:true,hp,maxHp:hp,pos:new V3(x,hover?2.2:0,z),vel:new V3(),yaw:rr(0,TAU),heroYaw:rr(-3,3),hover,
+    flash:0,stun:0,slow:0,slowT:0,burn:0,burnDps:0,held:false,thrown:null,cy:hover?2.4:1.15,radius:0.75,ys:0.62,home:{x,z},phase:rr(0,TAU),bob:rr(0,TAU),aggro:false,los:false,scanT:rr(0,0.4),fireT:rr(1.2,2.6),meleeT:0,castT:-9,
+    lastHit:-99,deadT:0,rx:0,gunner:Math.random()<0.4,wander:{x,z,t:0},target:null,grudge:null,grudgeT:-99};
+  a.onHit=src=>{if(src===P)a.aggro=true;for(const o of ualiens)if(o.alive&&o.room===a.room&&Math.hypot(o.pos.x-a.pos.x,o.pos.z-a.pos.z)<25)o.aggro=true;}; // a hit wakes the neighbours
+  a.onDefeat=()=>{a.rm0=a.room;if(a.room)a.room.alive--;burst(a.pos.x,a.pos.y+1.2,a.pos.z,30,12,0.7,[[.5,1,.6],[.8,1,.8],[.3,.6,.4]],1.4,-3,1.5);SFX.tone('sawtooth',500,90,0.35,0.08*SFX.vol(a.pos.x,a.pos.y,a.pos.z));
+    if(a.vel.y<2&&!a.hover)a.vel.y=4;};
+  actors.push(a);ualiens.push(a);return a;
+}
+function ualienUpdate(a,dt){
+  a.flash=Math.max(0,a.flash-dt*5);if(a.slowT>0){a.slowT-=dt;if(a.slowT<=0)a.slow=0;}
+  if(a.burn>0&&a.alive){a.burn-=dt;Damage.apply(a.burnSrc,a,a.burnDps*dt,'burn');}
+  if(a.held)return;
+  const live=a.alive&&!(a.stun>0)&&!a.thrown,sk=1-(a.slow||0);
+  // ---- the mind ----
+  if(live){
+    const valid=!P.dead&&state==='play'&&!cutLocked(),dx=P.pos.x-a.pos.x,dz=P.pos.z-a.pos.z,dy=P.pos.y+1.3-(a.pos.y+a.cy),d=Math.hypot(dx,dz),d3=Math.hypot(dx,dy,dz);
+    a.scanT-=dt;if(a.scanT<=0){a.scanT=0.35;a.los=valid&&d3<75&&losClear(a.pos.x,a.pos.y+a.cy,a.pos.z,P.pos.x,P.pos.y+1.3,P.pos.z);if(a.los&&d3<45)a.aggro=true;if(d3>110)a.aggro=false;}
+    let wx=0,wz=0,wy=a.hover?a.vel.y:0;
+    if(valid&&a.aggro){
+      a.heroYaw=angLerp(a.heroYaw,Math.atan2(dx,dz),damp(8,dt));
+      const want=a.hover?13:a.gunner?15:2,sp=(a.hover?9:a.gunner?7:9.5)*sk,ux=dx/(d||1),uz=dz/(d||1);
+      if(d>want+3){wx=ux*sp;wz=uz*sp;}else if(a.hover||a.gunner){if(d<want-5){wx=-ux*sp*0.7;wz=-uz*sp*0.7;}const s=Math.sin(time*0.9+a.bob)>0?1:-1;wx+=-uz*s*sp*0.55;wz+=ux*s*sp*0.55;}else{wx=ux*sp*0.3;wz=uz*sp*0.3;}
+      if(a.hover){const ty=P.pos.y+3.8+Math.sin(time*1.3+a.bob)*1.2;wy=clamp((ty-a.pos.y)*1.6,-8,8);}
+      a.fireT-=dt;if(a.fireT<=0&&d3<58&&a.los){a.fireT=a.hover?rr(0.9,1.7):a.gunner?rr(1.1,2):rr(1.8,3);if(d>5||a.gunner||a.hover)ualienShoot(a,d3);}
+      a.meleeT-=dt;if(!a.hover&&d<2.4&&Math.abs(dy)<2.6&&a.meleeT<=0){a.meleeT=1;a.castT=time;Damage.apply(a,P,10+0.1*save.level,'punch',{knock:7});SFX.punch(0.5*SFX.vol(a.pos.x,a.pos.y,a.pos.z));}
+    }else{ // at rest: drift about the spot it spawned at
+      a.wander.t-=dt;if(a.wander.t<=0){a.wander.t=rr(2,5);a.wander.x=a.home.x+rr(-6,6);a.wander.z=a.home.z+rr(-6,6);}
+      const ex=a.wander.x-a.pos.x,ez=a.wander.z-a.pos.z,l=Math.hypot(ex,ez);if(l>1){wx=ex/l*2.2;wz=ez/l*2.2;a.heroYaw=angLerp(a.heroYaw,Math.atan2(ex,ez),damp(4,dt));}
+      if(a.hover)wy=clamp((2.4+Math.sin(time*1.2+a.bob)*0.5-a.pos.y)*1.5,-3,3);
+    }
+    const k=damp(a.hover?2.5:6,dt);a.vel.x+=(wx-a.vel.x)*k;a.vel.z+=(wz-a.vel.z)*k;if(a.hover)a.vel.y+=(wy-a.vel.y)*damp(3,dt);
+    a.phase+=Math.hypot(a.vel.x,a.vel.z)*dt*1.6;
+  }
+  // ---- the body ----
+  const prevY=a.pos.y;
+  if(!(a.hover&&live))a.vel.y-=34*dt; // hovering ones float while they are up and fighting
+  const pv=[a.vel.x,a.vel.y,a.vel.z];a.pos.addS(a.vel,dt);const col=collideBody(a.pos,a.vel,prevY,0.6,a.hover?3:2.3);
+  const flung=a.flungT&&time-a.flungT<2.5,spd=flung?Math.hypot(pv[0],pv[1],pv[2]):0;
+  if(flung){flungSweep(a,spd);if(col.wall&&spd>COMBAT.slamMin)slamWall(a,col.wall,spd,pv);else if(col.grounded&&-pv[1]>COMBAT.slamMin)slamGround(a,-pv[1]);}
+  if(col.grounded){const f=Math.pow(0.82,dt*60);a.vel.x*=f;a.vel.z*=f;}
+  if(a.stun>0)a.stun-=dt;
+  if(a.pos.y<-5)a.pos.y=0;
+  // others and the player: keep a little room
+  for(const o of ualiens){if(o===a||!o.alive||!a.alive)continue;const ox=a.pos.x-o.pos.x,oz=a.pos.z-o.pos.z,l=Math.hypot(ox,oz);if(l<1.4&&l>0.01){a.pos.x+=ox/l*(1.4-l)*0.4;a.pos.z+=oz/l*(1.4-l)*0.4;}}
+  if(a.alive&&!P.dead){const ox=a.pos.x-P.pos.x,oz=a.pos.z-P.pos.z,l=Math.hypot(ox,oz);if(l<1.3&&l>0.01&&Math.abs(a.pos.y-P.pos.y)<2){a.pos.x+=ox/l*(1.3-l)*0.5;a.pos.z+=oz/l*(1.3-l)*0.5;}}
+  if(!a.alive){a.deadT+=dt;a.rx=lerp(a.rx,Math.PI/2,damp(6,dt));if(a.deadT>5){removeActor(a);removeFrom(ualiens,a);}}
+}
+function ualienShoot(a,d3){
+  const o={x:a.pos.x+Math.sin(a.heroYaw)*0.5,y:a.pos.y+a.cy+0.1,z:a.pos.z+Math.cos(a.heroYaw)*0.5},tv=P.vel,lead=d3/50*0.5,v=dirTo(o,P.pos.x+tv.x*lead+rr(-1.2,1.2),P.pos.y+1.3+tv.y*lead*0.5+rr(-0.8,0.8),P.pos.z+tv.z*lead+rr(-1.2,1.2));
+  fireProj({kind:'plasma',owner:a,x:o.x,y:o.y,z:o.z,vx:v[0]*48,vy:v[1]*48,vz:v[2]*48,dmg:6+0.12*save.level,r:0.5,life:2.6,knock:6});a.castT=time;
+  SFX.tone('square',420,1000,0.12,0.05*SFX.vol(o.x,o.y,o.z));
+}
+function ualienDraw(a){
+  if(inView(a.pos.x,a.pos.z,160,30)<0)return;
+  if(a.rag){drawRagdoll(a,UARAG);return;}
+  const sk=a.hover?UAC.hov:UAC.skin,fl=a.flash*0.6,t=time,mv=Math.min(Math.hypot(a.vel.x,a.vel.z)/6,1),sw=Math.sin(a.phase)*mv*0.7,bob=a.hover?0.9+Math.sin(t*2.2+a.bob)*0.15:0;
+  const root=at(a.pos.x,a.pos.y+bob,a.pos.z,a.rx,a.heroYaw,0),b=child(root,0,0.98,0,a.alive&&mv>0.2?0.06:0,0,0);
+  queue(MESH.box,child(b,0,0.28,0,0,0,0,0.36,0.5,0.22),UAC.suit,F_SH,fl);queue(MESH.box,child(b,0,0.0,0,0,0,0,0.3,0.16,0.2),UAC.suit2,0,fl);
+  queue(MESH.glowBox,child(b,0,0.32,0.115,0,0,Math.PI/4,0.1,0.1,0.02),[.15,.55,.35,1],0);
+  queue(MESH.box,child(b,0,0.6,0,0,0,0,0.07,0.12,0.07),sk,0,fl);
+  const hd=child(b,0,0.9,0.02);
+  queue(MESH.sphere,child(hd,0,0,0,0,0,0,0.17,0.22,0.19),sk,F_SH,fl);queue(MESH.sphere,child(hd,0,-0.19,0.05,0,0,0,0.1,0.1,0.1),sk,0,fl);
+  for(const s of [-1,1]){queue(MESH.sphere,child(hd,s*0.082,-0.01,0.15,0,0,s*0.55,0.058,0.1,0.04),UAC.eye,0,0);queue(MESH.glowBox,child(hd,s*0.075,0.025,0.185,0,0,0,0.012,0.012,0.006),[.6,1,.9,1],0);}
+  const aim=t-a.castT<0.35;
+  for(const s of [-1,1]){const ax=aim&&s>0?-1.55:-s*sw*0.9,sh=child(b,s*0.24,0.5,0,ax,0,s*0.1);
+    queue(MESH.box,child(sh,0,-0.16,0,0,0,0,0.07,0.32,0.07),sk,0,fl);const eb=child(sh,0,-0.32,0,aim&&s>0?0:-0.3,0,0);queue(MESH.box,child(eb,0,-0.16,0,0,0,0,0.06,0.32,0.06),sk,0,fl);queue(MESH.box,child(eb,0,-0.35,0,0,0,0,0.07,0.1,0.05),sk,0,fl);
+    if(aim&&s>0)queue(MESH.glowSphere,child(eb,0,-0.5,0.05,0,0,0,0.16,0.16,0.16),[.5,1,.5,0.9],0);
+    const hp=child(b,s*0.1,-0.08,0,a.hover?0.25:s*sw,0,0);queue(MESH.box,child(hp,0,-0.24,0,0,0,0,0.1,0.48,0.11),UAC.suit2,0,fl);const kn=child(hp,0,-0.48,0,a.hover?0.5:Math.max(0,-s*Math.sin(a.phase))*mv*0.8,0,0);
+    queue(MESH.box,child(kn,0,-0.22,0,0,0,0,0.09,0.44,0.1),sk,0,fl);queue(MESH.box,child(kn,0,-0.46,0.05,0,0,0,0.1,0.06,0.2),UAC.suit,0,fl);}
+  if(a.hover&&a.alive){queue(MESH.glowCyl,at(a.pos.x,a.pos.y+0.12,a.pos.z,0,0,0,0.7,0.06,0.7),[.4,.9,1,0.5+0.2*Math.sin(t*9)],F_ADD);queue(MESH.glowSphere,at(a.pos.x,a.pos.y+0.1,a.pos.z,0,0,0,1.4,0.3,1.4),[.3,.8,1,0.25],F_ADD);}
+}
+// ---- the zone's moving parts ----
+function ufoZoneDraw(Z){
+  const t=time,o=UFZ;
+  for(const a of ualiens)ualienDraw(a);
+  // hangar: the window, the pad
+  queue(MESH.box,at(o.x,o.y+15,o.z+93.3,0,0,0,52,18,0.3),[.35,.6,1,0.1],F_BL);
+  queue(MESH.ring,at(o.x+UF.pad.x,o.y+0.1,o.z+UF.pad.z,0,0,0,8,1,8),[.3,.9,1,0.9],F_ADD);queue(MESH.ring,at(o.x+UF.pad.x,o.y+0.12,o.z+UF.pad.z,0,-t*0.6,0,5+Math.sin(t*2)*0.4,1,5+Math.sin(t*2)*0.4),[.5,1,1,0.7],F_ADD);
+  // lab: tubes of green liquid
+  for(const x of [-84,-76,-68,-60])for(const z of [-8,24]){queue(MESH.cyl,at(o.x+x,o.y+5.5,o.z+z,0,0,0,1.9,8,1.9),[.5,1,.8,0.2],F_BL);queue(MESH.glowCyl,at(o.x+x,o.y+5.5,o.z+z,0,0,0,1.2,7.6,1.2),[.3,1,.6,0.28+0.08*Math.sin(t*2+x)],F_ADD);
+    queue(MESH.glowSphere,at(o.x+x,o.y+3+Math.sin(t*1.3+x+z)*1.4,o.z+z,0,0,0,0.3,0.3,0.3),[.6,1,.8,0.6],F_ADD);}
+  // engine room: the core and its rings
+  {const p=0.75+0.25*Math.sin(t*3);queue(MESH.glowCyl,at(o.x+71,o.y+20,o.z+7,0,0,0,3.4,32,3.4),[1,.5,.15,0.3*p],F_ADD);queue(MESH.glowCyl,at(o.x+71,o.y+20,o.z+7,0,0,0,1.5,36,1.5),[1,.8,.45,0.55],F_ADD);
+    for(let k=0;k<4;k++)queue(MESH.ring,at(o.x+71,o.y+6+k*8+Math.sin(t*1.5+k)*1.2,o.z+7,0,t*(k%2?1:-1)*0.8,0,6+k*0.4,1,6+k*0.4),[1,.7,.3,0.8],F_ADD);queue(MESH.glowSphere,at(o.x+71,o.y+14,o.z+7,0,0,0,10,14,10),[1,.5,.15,0.1],F_ADD);}
+  // control deck: the holo table
+  queue(MESH.glowCyl,at(o.x+68,o.y+4,o.z-44,0,0,0,3.2,5,3.2),[.4,.8,1,0.14+0.05*Math.sin(t*4)],F_ADD);queue(MESH.ring,at(o.x+68,o.y+1.6,o.z-44,0,t*0.9,0,4.5,1,4.5),[.5,.85,1,0.9],F_ADD);
+  queue(MESH.glowSphere,at(o.x+68,o.y+4.6+Math.sin(t*1.7)*0.4,o.z-44,0,t,0,1.1,1.1,1.1),[.6,.9,1,0.5],F_ADD);
+  // the four lamps over the vault door: red until a room is cleared
+  for(let k=0;k<4;k++){const done=UF.cleared>k||UF.doorOpen;queue(MESH.glowBox,at(o.x-6+k*4,o.y+19,o.z+18.2,0,0,0,1.6,1.6,0.3),done?[.3,1,.5,1]:[1,.25,.25,0.6+0.4*Math.sin(t*4+k)],0);}
+  // the item on its pedestal
+  if(UF.doorOpen&&!UF.took){const it=ufoItem(),c=UF.item,y=o.y+c.y+Math.sin(t*2)*0.35;
+    queue(MESH.glowSphere,at(o.x+c.x,y,o.z+c.z,t*1.1,t*1.7,0,0.8,0.8,0.8),[it.col[0],it.col[1],it.col[2],1],0);queue(MESH.glowSphere,at(o.x+c.x,y,o.z+c.z,0,0,0,3,3,3),[it.col[0],it.col[1],it.col[2],0.28],F_ADD);
+    queue(MESH.ring,at(o.x+c.x,y,o.z+c.z,0.6,t,0,1.8,1,1.8),[it.col[0],it.col[1],it.col[2],0.9],F_ADD);queue(MESH.tube,at(o.x+c.x,o.y+17,o.z+c.z,0,0,0,1.2,30,1.2),[it.col[0],it.col[1],it.col[2],0.12],F_ADD);}
+}
+// ================================================================
 // HUD icon bar and the move list
 // ================================================================
 // A row of icons under your name, one per menu, each showing its key (like a game launcher's top bar). With the mouse locked,
@@ -7278,12 +7932,13 @@ let hintKey='';
 function updateMarkers(){
   let n=0;
   const on=state==='play'&&!creating&&!P.dead&&!inSpace()&&!voidbornAway();
-  if(on){
+  if(on&&!zone){ // (inside a story zone there are no crimes)
     const list=[];for(const c of crimes){const d=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);list.push([d,c]);}list.sort((a,b)=>a[0]-b[0]);
     for(const [d,c] of list.slice(0,6)){const big=c.heist||c.type==='vault'||c.type==='truck';
       placeMark(n++,c.x,groundY(c.x,c.z)+(big?9:5.5),c.z,big?'!!':'!',CRIME_COL[c.type]||'#ff5a3d',d<250?c.label+' · '+fmtDist(d):fmtDist(d),big?'big':'',fmtDist(d));}
   }
-  const g=on?rechargeGoal():null;
+  if(on)n=objectivePin(n); // the story's objective pin (66b_story.js)
+  const g=on&&!zone?rechargeGoal():null;
   if(g&&g.x!==undefined){const d=fmtDist(Math.hypot(g.x-P.pos.x,g.z-P.pos.z));placeMark(n++,g.x,g.y,g.z,g.icon,g.col,g.label+' · '+d,'goal',d);}
   for(let i=n;i<markPool.length;i++)if(!markPool[i].t.hidden)markPool[i].t.hidden=true;
   const h=$('lowhint'),k=g?g.hint+'|'+g.col:'';
@@ -7383,6 +8038,7 @@ const MAPO=EDGE+130,mapCv=document.createElement('canvas');mapCv.width=mapCv.hei
 const mapEl=$('map'),mctx=mapEl.getContext('2d');
 const CRIME_COL={shop:'#ff5a3d',atm:'#ffb13d',mug:'#ffb13d',car:'#ffb13d',vault:'#ff3d5e',truck:'#ff3d5e'};
 function drawMinimap(yaw){
+  if(zone){zoneMinimap(yaw);return;}
   const R=180,MS=R/230,c=mctx;c.clearRect(0,0,360,360);
   c.save();c.beginPath();c.arc(R,R,R-2,0,TAU);c.clip();c.fillStyle='#0e2a3d';c.fillRect(0,0,360,360);
   c.translate(R,R);c.rotate(yaw);c.scale(MS,MS);c.translate(-P.pos.x,-P.pos.z);
@@ -7400,6 +8056,7 @@ function drawMinimap(yaw){
   for(const cr of crimes){const q=plot(cr.x,cr.z,true);if(!q)continue;const big=cr.heist,rad=big?13:10;
     c.fillStyle=CRIME_COL[cr.type]||'#ff5a3d';c.globalAlpha=big?0.75+Math.sin(time*5)*0.25:0.95;c.beginPath();c.arc(q[0],q[1],rad,0,TAU);c.fill();c.globalAlpha=1;
     c.strokeStyle='#0b0f1a';c.lineWidth=2;c.stroke();c.fillStyle='#0b0f1a';c.fillText(cr.icon,q[0],q[1]+1);}
+  objMapMark(plot,c);
   c.fillStyle='#e9f3ff';c.font='700 22px "Chakra Petch", sans-serif';c.fillText('N',R+sn*(R-18),R-cs*(R-18));
   c.fillStyle=FACTION_COL[playerFaction()]==='#e9f3ff'?'#ffc93c':FACTION_COL[playerFaction()];
   c.beginPath();c.moveTo(R,R-13);c.lineTo(R+9,R+10);c.lineTo(R,R+5);c.lineTo(R-9,R+10);c.closePath();c.fill();
@@ -7422,6 +8079,7 @@ function updateTags(){
     else if(h.role==='boss'&&d<90*90)add(h.pos.x,h.pos.y+2.5,h.pos.z,h.name,'#c89bff',h.hp,h.maxHp);
     else if(time-(h.lastHit||-99)<3&&d<70*70)add(h.pos.x,h.pos.y+2.3,h.pos.z,'',null,h.hp,h.maxHp);}
   for(const dd of drones)if(dd.alive&&time-(dd.lastHit||-99)<3&&d2h(dd,P)<90*90)add(dd.pos.x,dd.pos.y+2.2,dd.pos.z,'',null,dd.hp,dd.maxHp);
+  if(zone)for(const a of ualiens)if(a.alive&&time-(a.lastHit||-99)<3&&d2h(a,P)<90*90)add(a.pos.x,a.pos.y+(a.hover?3.4:2.9),a.pos.z,'',null,a.hp,a.maxHp);
   for(const v of vehicles)if(v.alive&&(v.temp||v===P.car)&&time-(v.lastHit||-99)<3)add(v.pos.x,v.pos.y+3.4,v.pos.z,'',null,v.hp,v.maxHp);
   for(let i=n;i<tagPool.length;i++)tagPool[i].t.hidden=true;
   // floating damage numbers
@@ -7793,6 +8451,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyH'){toggleMoves();return;}
   if(paused||P.dead)return;
   if(voidbornLocked()){if(voidbornAway()&&e.code in XQ_CODES)voidbornAnswer(XQ_CODES[e.code]);return;} // Voidborn: only the masks' question can be answered
+  if(cutLocked())return; // a cutscene: no powers, no moving
   if(P.swim&&e.code==='KeyC')return; // C dives while swimming
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
@@ -7994,6 +8653,7 @@ function updatePlayer(dt){
   const inR=clamp((keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+touchIn.x,-1,1);
   if(P.car){driveCar(dt,inF,inR);return;}
   if(voidbornLocked()){P.vel.set(0,0,0);return;} // Voidborn stands frozen until the masks agree
+  if(cutLocked()){P.vel.set(0,0,0);return;} // a cutscene or a zone fade: you stand where you are
   if(P.lantern&&!oathFree&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // typing the oath: suspended where you are, construct and all (saying it leaves you free)
   spiderTick(dt);webAssist();
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
@@ -8348,6 +9008,7 @@ function updateCamera(dt){
   }else if(state!=='play'){
     const a=time*0.05;camPos.set(Math.cos(a)*420,170,Math.sin(a)*420);
     let fx=-camPos.x,fy=40-camPos.y,fz=-camPos.z;const l=Math.hypot(fx,fy,fz);camF.set(fx/l,fy/l,fz/l);fov=lerp(fov,60,damp(3,dt));
+  }else if(cutCamera(dt)){ // a story cutscene drives the camera (66b_story.js)
   }else if(voidbornAway()){ // Voidborn: the view is out in far space, facing the two masks
     const R=VOIDBORN.realm,s=time*0.2;camPos.set(R.x+Math.sin(s)*8,R.y+Math.sin(s*1.3)*4,R.z);
     let fx=-camPos.x+R.x,fy=R.y+20-camPos.y,fz=-560;const l=Math.hypot(fx,fy,fz);camF.set(fx/l,fy/l,fz/l);fov=lerp(fov,62,damp(3,dt));
@@ -8662,7 +9323,7 @@ function drawRemote(r){
   if(r.flags&FLAG.shield)queue(MESH.glowSphere,at(r.pos.x,r.pos.y+1.35,r.pos.z,0,time,0,1.9,2.1,1.9),[.3,.75,1,0.25],F_ADD);
 }
 function buildDrawList(){
-  dlN=0;drawSpace();drawXRealm();drawSunGod();
+  dlN=0;drawSpace();drawXRealm();drawSunGod();drawStory();
   if(!P.dead&&!P.car&&(state==='play'||creating||sheetOpen==='look'||state==='menu')){
     const A=P.alien;GHOST=A?(P.invisible>0?0.2:A.phase>0?0.4:0):P.cloak?0.18:P.phasing?0.45:0;
     if(A)drawAlien(P,A.id,true);else if(P.rag){const m=sgLook(LOOK);m.metal=P.metal;drawRagdoll(P,ragColorsSuper(m));}else if(P.construct&&conHidesRider(P.construct.id)){/* inside the race car, or the suit has become the vehicle */}else{const m=sgLook(LOOK);m.metal=P.metal;P.firing=!!beam;const cg=P.construct?conDrawGrow(P,P.construct.id,true):1,ro=P.construct?riderSeat(P.construct.id,cg):0,so=suitDrawOfs(),jx=(P.phasing||P.vibT>0?rr(-.07,.07):0)+(so?so[0]:0),jz=(jx&&!so?rr(-.07,.07):0)+(so?so[1]:0);P.pos.y+=ro;P.pos.x+=jx;P.pos.z+=jz;drawSuper(P,m,true);P.pos.y-=ro;P.pos.x-=jx;P.pos.z-=jz;if(P.construct)drawGiantWielder(P,P.construct.id,cg);}
@@ -8715,6 +9376,7 @@ function buildDrawList(){
     else if(p.kind==='bolt'){let px=p.x,py=p.y,pz=p.z;for(let i=1;i<=3;i++){const qx=p.x-p.vx*0.012*i+rr(-.4,.4),qy=p.y-p.vy*0.012*i+rr(-.4,.4),qz=p.z-p.vz*0.012*i+rr(-.4,.4);queue(MESH.glowBox,M4.beam(tmpM(),px,py,pz,qx,qy,qz,0.18),[1,.9,.5,1],F_ADD);px=qx;py=qy;pz=qz;}queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.1,1.1,1.1),[1,.8,.3,0.5],F_ADD);}
     else if(p.kind==='ring'){const s=p.small?0.28:0.5*(p.big||1);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.02,p.y-p.vy*0.02,p.z-p.vz*0.02,s*0.7),[RING_C[0],RING_C[1],RING_C[2],1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,s*2.4,s*2.4,s*2.4),[RING_C[0],RING_C[1],RING_C[2],0.35],F_ADD);}
     else if(p.kind==='web'){queue(MESH.sphere,at(p.x,p.y,p.z,time*6,time*4,0,0.55,0.55,0.55),[.95,.95,1,1],0);}
+    else if(p.kind==='plasma'){const sc=p.sc||1;queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.5*sc,0.5*sc,0.5*sc),[.7,1,.55,1],0);queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,1.5*sc,1.5*sc,1.5*sc),[.3,1,.3,0.35],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.05,p.y-p.vy*0.05,p.z-p.vz*0.05,0.3*sc),[.4,1,.3,0.5],F_ADD);}
     else if(p.kind==='rocket'&&p.meteor){queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,3,3,3),[1,.5,.2,1],0);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.15,p.y-p.vy*0.15,p.z-p.vz*0.15,2.2),[1,.4,.1,0.6],F_ADD);}
     else if(p.kind==='rocket'){const sc=p.sc||1;queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.03,p.y-p.vy*0.03,p.z-p.vz*0.03,0.5*sc),[1,.6,.3,1],0);if(sc>2)queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,sc,sc,sc),[1,.6,.3,0.5],F_ADD);}
     else{const sc=p.sc||1;queue(MESH.glowSphere,at(p.x,p.y,p.z,0,0,0,0.45*sc,0.45*sc,0.45*sc),[1,.25,.2,1],0);queue(MESH.glowBox,M4.beam(tmpM(),p.x,p.y,p.z,p.x-p.vx*0.05,p.y-p.vy*0.05,p.z-p.vz*0.05,0.3*sc),[1,.2,.15,0.5],F_ADD);}}
@@ -8743,10 +9405,12 @@ function setMainFrameUniforms(){
   gl.uniform3f(u.uCam,camPos.x,camPos.y,camPos.z);gl.uniform1f(u.uNight,env.night);gl.uniform1f(u.uTime,time);gl.uniform1f(u.uExpo,1.0);
   gl.uniform1f(u.uShTexel,1/SHADOW);gl.uniform1i(u.uShadow,0);gl.uniform1f(u.uShOn,gfx().shadows?1:0);
   const n=gatherLights();gl.uniform1f(u.uPLn,n);if(n){gl.uniform4fv(u.uPL,PL_POS);gl.uniform3fv(u.uPLC,PL_COL);}
+  if(zone)zoneUniforms(u); // a zone sets its own light, fog and point lights (66c_zones.js)
 }
 // the nearest lit street lamps (and car headlights) light the street around them at night
 const PL_MAX=20,PL_POS=new Float32Array(PL_MAX*4),PL_COL=new Float32Array(PL_MAX*3),plCand=[];
 function gatherLights(){
+  if(zone)return zoneLights();
   const night=env.night;if(night<0.08)return 0;
   const fx=state==='play'?P.pos.x:camPos.x,fz=state==='play'?P.pos.z:camPos.z;plCand.length=0;
   const bi0=cellI(fx),bj0=cellJ(fz);
@@ -8766,13 +9430,13 @@ const ID=M4.create(),WHITE=[1,1,1,1];
 // (a camera pulled far back behind a giant construct keeps them: the reach grows with how far the camera sits from you)
 const WATER_VIS=CEIL,CITY_VIS=9000;
 const camReach=()=>state==='play'&&!voidbornAway()?camDist:0;
-const cityVisible=()=>Math.hypot(camPos.x,camPos.y,camPos.z)<CITY_VIS+camReach();
-function drawItem(mesh,M,tint,unlit,emis){
-  const u=MAIN.u;gl.uniformMatrix4fv(u.uM,false,M);gl.uniform4fv(u.uTint,tint);gl.uniform1f(u.uUnlit,unlit?1:0);gl.uniform1f(u.uEmis,emis);
+const cityVisible=()=>!zone&&Math.hypot(camPos.x,camPos.y,camPos.z)<CITY_VIS+camReach();
+function drawItem(mesh,M,tint,unlit,emis,nofog){
+  const u=MAIN.u;gl.uniformMatrix4fv(u.uM,false,M);gl.uniform4fv(u.uTint,tint);gl.uniform1f(u.uUnlit,unlit?1:0);gl.uniform1f(u.uEmis,emis);gl.uniform1f(u.uNoFog,nofog?1:0);
   gl.bindVertexArray(mesh.vao);gl.drawElements(gl.TRIANGLES,mesh.n,mesh.type,0);
 }
 function render(){
-  if(gfx().shadows){
+  if(gfx().shadows&&!zone){
     gl.bindFramebuffer(gl.FRAMEBUFFER,shFbo);gl.viewport(0,0,SHADOW,SHADOW);
     gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.clear(gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(2.0,4.0);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);
@@ -8782,17 +9446,19 @@ function render(){
     gl.disable(gl.POLYGON_OFFSET_FILL);
   }
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
-  gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  if(zone&&zone.sky)gl.clearColor(zone.sky[0],zone.sky[1],zone.sky[2],1);else gl.clearColor(0,0,0,1);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   gl.disable(gl.DEPTH_TEST);gl.depthMask(false);gl.disable(gl.BLEND);gl.useProgram(SKY.p);const s=SKY.u,th=Math.tan(fov*Math.PI/360);
   gl.uniform3f(s.uFwd,camF.x,camF.y,camF.z);gl.uniform3f(s.uRight,camR.x,camR.y,camR.z);gl.uniform3f(s.uUp,camU.x,camU.y,camU.z);
   gl.uniform2f(s.uTan,th*W/H,th);gl.uniform3fv(s.uSunDir,env.sun);gl.uniform3fv(s.uZen,env.zen);gl.uniform3fv(s.uHor,env.hor);gl.uniform3fv(s.uSunCol,env.suncol);
   gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uTime,time);gl.uniform1f(s.uExpo,1.0);gl.uniform1f(s.uSpace,spaceK(camPos.y));
-  gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);
+  if(zone){gl.uniform1f(s.uNight,1);gl.uniform1f(s.uSpace,1);} // inside a zone the sky pass is only a field of stars (and only if the zone has windows)
+  if(!zone||zone.stars){gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);}
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   gl.useProgram(MAIN.p);setMainFrameUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,shTex);
-  if(camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);if(camPos.y<SEA_Y)drawItem(seabedMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
+  if(!zone&&camPos.y<WATER_VIS+camReach()){const k=clamp(camBig()/3,1,30),sx=Math.round(camPos.x/200)*200,sz=Math.round(camPos.z/200)*200;M4.compose(WATER_M,sx,0,sz,0,0,0,k,1,k);drawItem(waterMesh,WATER_M,WHITE,false,0);if(camPos.y<SEA_Y)drawItem(seabedMesh,WATER_M,WHITE,false,0);} /* the ocean follows you wherever you roam */
   if(cityVisible()){drawItem(groundMesh,ID,WHITE,false,0);drawItem(lakeMesh,ID,WHITE,false,0);drawItem(cityMesh,ID,WHITE,false,0);}
-  for(let i=0;i<dlN;i++){const d=drawList[i];if(d.flags&(F_ADD|F_BL))continue;drawItem(d.mesh,d.M,d.tint,d.flags&F_UN,d.emis);}
+  for(let i=0;i<dlN;i++){const d=drawList[i];if(d.flags&(F_ADD|F_BL))continue;drawItem(d.mesh,d.M,d.tint,d.flags&F_UN,d.emis,d.flags&F_NF);}
   gl.enable(gl.BLEND);gl.depthMask(false);gl.disable(gl.CULL_FACE);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   for(let i=0;i<dlN;i++){const d=drawList[i];if(!(d.flags&F_BL))continue;drawItem(d.mesh,d.M,d.tint,true,0);}
@@ -8895,9 +9561,10 @@ function frameBody(now){
   const live=(!paused||(state==='play'&&MP.online()))&&!Portal.inAd; // in a room the world never stops (except while a portal ad plays)
   if(live){
     time+=dt;timeFast=!!keys.KeyT&&state==='play';updateEnv(dt);
-    if(state==='play'&&!(frozenT>0)){if(mouseL)punch();updatePlayer(dt);}
+    if(state==='play'&&!(frozenT>0)){if(mouseL)punch();zonePlayerPre();updatePlayer(dt);zonePlayerPost();}
     updateTimeStop(dt);const wdt=dt*worldTimeK();
     updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);
+    storyTick(dt);
     if(state==='play'){saveT+=dt;if(saveT>CONFIG.autosave){saveT=0;persist();syncPlayerDoc();}}
   }
   updateCamera(live?dt:0);
@@ -8931,8 +9598,8 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   Portal,SFX,applyLook,rings,makeRemote,applyPresence,FLAG,updateTags,spawnMech,fireProj,mechPoint,get parks(){return typeof parks!=="undefined"?parks:null;},travStyle,setTravStyle,hasTravWheel,masteryLevel,PRESETS,get growTutOn(){return growTutOn;},respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
-  sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play')updatePlayer(dt);updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
-if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto}));
+  sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play'){zonePlayerPre();updatePlayer(dt);zonePlayerPost();}updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);storyTick(dt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
+if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({story:()=>save.story,storyAddActive:s=>{save.story.act+=+s||0;},ufoArrive:q=>ufoArrive(q===undefined?true:q),loadSave,enterZone,leaveZone,zone:()=>zone,askYesNo,cutscene,objective,objectiveMark,ufoTakeItem,UFO,UF,ualiens,ZONES,ZF,OBJ,get CUT(){return CUT;},get ASK(){return ASK;},storyTick,ufoLeave,ufoBeamUp,storyActiveNow,sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto}));
 })();
 </script>
 </body>

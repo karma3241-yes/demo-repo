@@ -25,6 +25,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyH'){toggleMoves();return;}
   if(paused||P.dead)return;
   if(voidbornLocked()){if(voidbornAway()&&e.code in XQ_CODES)voidbornAnswer(XQ_CODES[e.code]);return;} // Voidborn: only the masks' question can be answered
+  if(cutLocked())return; // a cutscene: no powers, no moving
   if(P.swim&&e.code==='KeyC')return; // C dives while swimming
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
@@ -226,6 +227,7 @@ function updatePlayer(dt){
   const inR=clamp((keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+touchIn.x,-1,1);
   if(P.car){driveCar(dt,inF,inR);return;}
   if(voidbornLocked()){P.vel.set(0,0,0);return;} // Voidborn stands frozen until the masks agree
+  if(cutLocked()){P.vel.set(0,0,0);return;} // a cutscene or a zone fade: you stand where you are
   if(P.lantern&&!oathFree&&!P.dead){P.vel.set(0,0,0);if(P.construct&&P.construct.spd)P.construct.spd=0;return;} // typing the oath: suspended where you are, construct and all (saying it leaves you free)
   spiderTick(dt);webAssist();
   const shift=!!(keys.ShiftLeft||keys.ShiftRight),AL=alienDef();
