@@ -237,7 +237,8 @@ function boostMul(kind,id){
   switch(kind){case 'hp':return 1.2;case 'dmgAll':return all?1.5:1;case 'speed':return all?1.3:h==='webSwing'?1.25:1;case 'cost':return all?0.5:1;case 'cd':return all?0.7:1;
     case 'dmg':return h==='armorFlight'&&BOOST_ARC.includes(id)?1.5:h==='stormFlight'&&id==='stormHammer'?1.6:1;}
   return 1;}
-const maxHp=()=>(CONFIG.health.base+CONFIG.health.perLevel*pv('vitality'))*(P.alien?ALIENS[P.alien.id].hp:1)*boostMul('hp');
+var arenaHp=1; // Kathana's arena (66f_kathana.js) sets this to 6: a big health pool there (var: maxHp runs before that file has loaded)
+const maxHp=()=>(CONFIG.health.base+CONFIG.health.perLevel*pv('vitality'))*(P.alien?ALIENS[P.alien.id].hp:1)*boostMul('hp')*(arenaHp||1);
 const maxEn=()=>CONFIG.energy.base+CONFIG.energy.perLevel*pv('energy');
 const enRegen=()=>CONFIG.energy.regen*(1+CONFIG.energy.regenBonus*pv('energy'));
 const hpRegen=()=>CONFIG.health.baseRegen+CONFIG.health.healPerLevel*pv('healing')+(hasPower('bladeClaws')?4+powerLevel('bladeClaws')*0.6:0);

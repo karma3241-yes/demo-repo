@@ -53,7 +53,8 @@ function buildTouchButtons(){
   tbMake('up','jump','up','','A0','jmp');tbMake('fly','fly','wing','Fly','A1','trav');tbMake('web','web','web','Web','A1','trav');
   tbMake('run','speed','run','Run','A1','trav');tbMake('dive','down','dive','Dive','A1','trav');
   tbMake('boost','speed','run','Boost','A2','trav');tbMake('lock','lock','target','Lock','A3','lk');
-  if(SG.on)sgTouchButtons();
+  if(PR.on)prTouchButtons();
+  else if(SG.on)sgTouchButtons();
   else if(P.alien)ALIENS[P.alien.id].abilities.forEach((ab,i)=>tbMake('p'+i,'a'+i,'burst',ab.name.split(' ').pop(),'B','ab alien','#c89bff'));
   else save.character.abilities.forEach((id,i)=>{const lk=PBAL&&slotLocked(i);
     if(lk&&i!==nextLockedSlot())return;
@@ -66,7 +67,7 @@ function buildTouchButtons(){
   {const v=vAction();tbMake('wheel','vkey',v?v.icon:'wheel',v?v.name:'Wheel','C');}
   tbMake('oath','oath','oath','Oath','C');tbMake('rebuild','rebuild','rebuild','Rebuild','C');
   tbMake('fast','fast','run','Fast','C');tbMake('phase','phase','phase','Walls','C');tbMake('dial','dialcycle','dialUp','Dial','C');
-  tbMake('suit','suit','shirt','Suit','C');tbMake('rewind','rewind','rewind','Rewind','C');
+  tbMake('suit','suit','shirt','Suit','C');tbMake('rewind','rewind','rewind','Rewind','C');tbMake('destroy','destroy','burst','Destroy','C','dz','#ff8aa8');
   layoutTouch(true);
 }
 // which buttons fit what you're doing right now
@@ -79,7 +80,7 @@ function tbWanted(){
     if(P.swim)on.add('dive');else if(!P.alien&&m==='webSwing')on.add('web');else if(!P.alien&&m==='superSpeed')on.add('run');else if(flyer)on.add('fly');}
   for(let i=0;i<4;i++)if(TB['p'+i])on.add('p'+i);
   if(nearestInteract())on.add('use');
-  if(P.alien||SG.on){on.add('wheel');return on;}
+  if(P.alien||SG.on||PR.on){if(!PR.on&&!arenaSG())on.add('wheel');return on;}
   if(heldSlot>=0||con){on.add('grow');on.add('shrink');}
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
@@ -88,9 +89,10 @@ function tbWanted(){
   if(isSpeed()){on.add('fast');on.add('phase');on.add('dial');}
   if(!con)on.add('suit');
   if(rewindOn())on.add('rewind');
+  if(destroyAvail())on.add('destroy');
   return on;
 }
-const TB_ORDER_C=['wheel','lock','use','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit','rewind'];
+const TB_ORDER_C=['wheel','lock','use','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit','rewind','destroy'];
 function layoutTouch(force){
   if(!touchOn()||state!=='play')return;
   if(!force&&time-tbT<0.15)return;tbT=time;
@@ -108,7 +110,7 @@ function layoutTouch(force){
   for(const id in TB){const t=TB[id];if(!on.has(id)||!ringA[t.ring])continue;const [d,sz]=ringA[t.ring];const [x,y]=at(A,d);put(t,x,y,sz);}
   // the powers share ring B, evenly from straight up to straight left
   const ps=[0,1,2,3,4].map(i=>'p'+i).filter(id=>on.has(id)),B=184*k,bs=58*k;
-  ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,bs);});
+  ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,PR.on?bs*1.5:bs);}); // the Prism form's one skill (Destroy) is big
   // ring C packs the rest from the top down, spilling into ring D
   let r=252*k,d=-1;const cs=48*k,step=r=>2*Math.asin(Math.min(1,(cs+8*k)/(2*r)))*180/Math.PI;
   for(const id of TB_ORDER_C){if(!on.has(id)||TB[id].ring!=='C')continue;
@@ -127,7 +129,7 @@ function stackLeft(on){if(!on){for(const q of LEFT_COL){const e=document.querySe
 // per frame: cooldowns, toggles that are on, and the USE button's label
 function updateTouchHud(){
   if(!touchOn()||state!=='play')return;layoutTouch(false);stackLeft(true);
-  if(!save.character||P.alien||SG.on)return;
+  if(!save.character||P.alien||SG.on||PR.on)return;
   save.character.abilities.forEach((id,i)=>{const t=TB['p'+i];if(!t||t.b.hidden||t.b.classList.contains('lockd'))return;const st=PS[id],c=POWERS[id],cd=t.b.querySelector('.cd');
     if(cd){const f=c.cooldown?st.cd/pstat(id,'cooldown'):0,v=Math.round(clamp(f,0,1)*100);if(t.cdv!==v){t.cdv=v;cd.style.setProperty('--p',v+'%');cd.hidden=v<=0;}}
     t.b.classList.toggle('on',!!(st.holding||(id==='energyShield'&&P.shieldOn)||(id==='ringShield'&&P.ringShield)||(id==='telekinesis'&&P.tk)||(id==='invisibility'&&P.cloak)||(id==='slowTime'&&P.slowOn)||((id==='metalSkin'||id==='metalForms')&&P.metal)));});
@@ -143,6 +145,7 @@ function touchAct(a,down){
   else if(/^a[0-3]$/.test(a)){if(P.car)return;const i=+a[1];if(down){heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');}else{if(heldSlot===i)heldSlot=-1;abilityUp(i);}}
   else if(a==='con'){if(down)summonConstruct();}
   else if(a==='vkey'){if(down)vPress();}
+  else if(a==='destroy'){if(down)destroyKey();}
   else if(a==='oath'){if(oathHoldMode()){if(down)holdOathStart('touch');else holdOathStop();}else if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}

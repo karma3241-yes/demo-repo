@@ -15,24 +15,25 @@ const sgBig=a=>a.kind==='boss'||(a.maxHp||0)>3000||!!a.bigBoss; // bosses take f
 function sgHit(a,bossDmg,type,opt){return Damage.apply(P,a,sgBig(a)?bossDmg:Math.ceil((a.hp||50)*2+100),type,opt);}
 const SGL={},SG_GOLD={suit:[1,.78,.2,1],suit2:[1,.93,.55,1],cape:[1,.52,.08,1],acc:[1,1,.85,1]},SG_DARK={suit:[.05,.04,.07,1],suit2:[.85,.62,.14,1],cape:[.03,.02,.06,1],acc:[1,.8,.3,1]};
 // the look drawSuper uses while Sun God is on: gold, or black and gold during Eclipse
-function sgLook(m){return SG.on?Object.assign(SGL,m,SG.ecl?SG_DARK:SG_GOLD,{metal:false,armor:false,capeOn:true}):m;}
+function sgLook(m){if(PR.on)return prismLook(m);return SG.on?Object.assign(SGL,m,SG.ecl?SG_DARK:SG_GOLD,{metal:false,armor:false,capeOn:true}):m;}
 function sunGodStart(src,force){
-  if(SG.on){if(src==='sun'&&SG.t<120-0.5){SG.t=SG.max=120;SG.src='sun';toast('The Sun feeds you','Sun God for 120 s','gold');}return false;}
+  if(SG.on){if(src==='sun'&&SG.t<120-0.5&&SG.src!=='arena'){SG.t=SG.max=120;SG.src='sun';toast('The Sun feeds you','Sun God for 120 s','gold');}return false;}
   if(state!=='play'||P.dead||(!force&&(!hasTrav('solarFlight')||!canAct())))return false;
+  if(PR.on&&src!=='arena')return false; // the Prism form has only Destroy
   if(src==='v'&&SG.cd>0){feed('Sun God is recharging',Math.ceil(SG.cd)+' s left');SFX.tone('square',300,200,0.12,0.06);return false;}
   if(P.alien)revertAlien(true);stopAllPowers();
-  SG.on=true;SG.src=src==='sun'?'sun':'v';SG.t=SG.max=src==='sun'?120:sgVDur();SG.cds=[0,0,0,0];SG.lance=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
+  SG.on=true;SG.src=src==='sun'?'sun':src==='arena'?'arena':'v';SG.t=SG.max=src==='sun'?120:src==='arena'?9999:sgVDur(); // 'arena': Kathana's fight, every hero, no timer, you can be hurtSG.cds=[0,0,0,0];SG.lance=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
   P.hp=maxHp();P.en=maxEn();P.flying=true;P.grounded=false;P.vel.y=Math.max(P.vel.y,6);P.stun=0;
   const c=center(P),cx=c.x,cy=c.y,cz=c.z;ringFx(cx,cy,cz,1,24,0.7,[1,.85,.35]);ringFx(cx,cy,cz,1,14,0.45,[1,1,.9]);burst(cx,cy,cz,120,30,1.2,[[1,.85,.3],[1,.6,.15],[1,1,.85]],2,0,1.6);
   flashWhite=0.7;SFX.transform();SFX.boom(1,1.4);addShake(0.5);
-  toast('SUN GOD',(SG.max)+' s · you cannot be hurt · 1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');
+  if(src!=='arena')toast('SUN GOD',(SG.max)+' s · you cannot be hurt · 1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');else toast('SUN GOD','1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');
   if(SG.src==='v'&&!save.guide.sgV){save.guide.sgV=true;persist();}
   buildHotbar();buildTouchButtons();sgHud(true);return true;}
-function sunGodEnd(silent){
+function sunGodEnd(silent,stay){ // stay: the Prism form starts inside the Sun, so don't push you out of it
   if(!SG.on)return;const src=SG.src;
   SG.on=false;SG.lance=false;SG.ecl=null;SG.waves.length=0;beam=null;SFX.setLaser(false);P.flash=0;
   if(src==='v')SG.cd=sgVCd();
-  if(SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
+  if(!stay&&SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
     if(d<SUN_B.r+900){const k=(SUN_B.r+1100)/(d||1),nx=d>1e-3?dx*k:0,ny=d>1e-3?dy*k:SUN_B.r+1100,nz=d>1e-3?dz*k:0;P.pos.set(SUN_B.x+nx,SUN_B.y+ny,SUN_B.z+nz);P.vel.set(0,0,0);P.sunT=time+3;} // the Sun lets go of you
   }
   const c=center(P);ringFx(c.x,c.y,c.z,1,18,0.6,[1,.85,.35]);burst(c.x,c.y,c.z,70,16,1,[[1,.85,.3],[1,1,.85]],1.6,0,1.6);flashWhite=Math.max(flashWhite,0.6);SFX.tone('sine',1200,200,0.5,0.1);
@@ -125,9 +126,10 @@ function updateSunGod(dt){
   if(isTitan&&!SG.on&&!save.guide.sgV&&!P.dead&&(SG.hintT+=dt)>=60){save.guide.sgV=true;persist();toast(touchOn()?'Tap the sun button':'Press V to become the Sun God',touchOn()?'Become the Sun God: invincible for 60 s':'Invincible for 60 s with four sun powers','gold');}
   if(isTitan&&!SG.on&&P.pos.y>CEIL&&SUN_B){const d=Math.hypot(P.pos.x-SUN_B.x,P.pos.y-SUN_B.y,P.pos.z-SUN_B.z);if(d>SUN_B.r+9000)SG.armed=true;else if(d<SUN_B.r+6000&&SG.armed&&sunGodStart('sun'))SG.armed=false;}
   if(!SG.on){sgTint(0,0);return;}
-  if(P.dead||!isTitan||P.alien){sunGodEnd(true);sgTint(0,0);return;}
-  SG.t-=dt;if(SG.t<=0){sunGodEnd(false);sgTint(0,0);return;}
-  P.hp=maxHp();P.en=maxEn();P.lastSpend=time;
+  const arena=SG.src==='arena';if(arena&&P.alien)revertAlien(true);
+  if(P.dead||(!isTitan&&!arena)||(P.alien&&!arena)){sunGodEnd(true);sgTint(0,0);return;}
+  if(!arena){SG.t-=dt;if(SG.t<=0){sunGodEnd(false);sgTint(0,0);return;}P.hp=maxHp();}
+  P.en=maxEn();P.lastSpend=time;
   if(SG.lance&&canAct())sgLance(dt);else{SG.lance=false;SG.lanceTo=null;}
   for(let i=1;i<4;i++)if(SG.cds[i]>0)SG.cds[i]=Math.max(0,SG.cds[i]-dt);
   sgWaveTick(dt);sgEclipseTick(dt);
@@ -135,7 +137,7 @@ function updateSunGod(dt){
   { // golden sparks and a rising glow of embers
     const c=center(P);for(let i=0;i<(SG.ecl?3:2);i++)emit(c.x+rr(-1,1),c.y+rr(-1.3,1.3),c.z+rr(-1,1),rr(-2,2),rr(1,5),rr(-2,2),rr(0.5,1),SG.ecl?(Math.random()<0.5?[.55,.25,1]:[1,.8,.3]):(Math.random()<0.5?[1,.85,.35]:[1,.55,.15]),rr(0.7,1.5),-1,0.6);}
   // the pill under the meters, and the hotbar slots
-  const txt=(SG.ecl?'ECLIPSE · ':'SUN GOD ')+Math.ceil(SG.t)+'s';if(SG.lastTxt!==txt){SG.lastTxt=txt;$('sgbar-t').textContent=txt;}
+  const txt=(SG.ecl?'ECLIPSE · ':'SUN GOD')+(arena?'':' '+Math.ceil(SG.t)+'s');if(SG.lastTxt!==txt){SG.lastTxt=txt;$('sgbar-t').textContent=txt;}
   {const b=$('sgbar');b.classList.toggle('dark',!!SG.ecl);}$('sgbar-f').style.width=(clamp(SG.t/SG.max,0,1)*100).toFixed(1)+'%';
   for(const s of slotEls){if(s.sg!==undefined){const i=s.sg,v=Math.round(clamp(i>0&&SG.cds[i]>0?SG.cds[i]/SG_CD[i]:0,0,1)*100);if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}
       s.s.classList.toggle('on',i===0?SG.lance:i===3?!!SG.ecl:false);s.s.classList.toggle('dk',!!SG.ecl);}
@@ -150,17 +152,17 @@ function sgTint(dark,tint){
 // ---- drawing: the glow around you, the lance and the dark rings ----
 function drawSunGod(){
   if(!SG.on||P.dead||state!=='play'&&state!=='menu')return;
-  const x=P.pos.x,y=P.pos.y+1.35,z=P.pos.z,p=0.5+0.5*Math.sin(time*6),dk=!!SG.ecl,s=2.3+p*0.35;
+  const FA=zone&&zone.white&&KA.flood>0.55?F_BL:F_ADD,x=P.pos.x,y=P.pos.y+1.35,z=P.pos.z,p=0.5+0.5*Math.sin(time*6),dk=!!SG.ecl,s=2.3+p*0.35;
   const g=dk?[.5,.22,.95]:[1,.75,.25];
-  queue(MESH.glowSphere,at(x,y,z,0,0,0,s,s*1.15,s),[g[0],g[1],g[2],0.1+0.05*p],F_ADD);
-  queue(MESH.glowSphere,at(x,y,z,0,0,0,s*1.6,s*1.7,s*1.6),[g[0],g[1],g[2],0.05],F_ADD);
-  queue(MESH.ring,M4.alignY(tmpM(),x,y,z,Math.sin(time*1.3)*0.5,1,Math.cos(time*1.1)*0.5,s*0.85),[1,.88,.45,0.55],F_ADD);
-  queue(MESH.ring,M4.alignY(tmpM(),x,y,z,Math.cos(time*1.7)*0.6,1,Math.sin(time*1.4)*0.6,s*1.15),dk?[.7,.4,1,0.5]:[1,.6,.2,0.45],F_ADD);
+  queue(MESH.glowSphere,at(x,y,z,0,0,0,s,s*1.15,s),[g[0],g[1],g[2],0.1+0.05*p],FA);
+  queue(MESH.glowSphere,at(x,y,z,0,0,0,s*1.6,s*1.7,s*1.6),[g[0],g[1],g[2],0.05],FA);
+  queue(MESH.ring,M4.alignY(tmpM(),x,y,z,Math.sin(time*1.3)*0.5,1,Math.cos(time*1.1)*0.5,s*0.85),[1,.88,.45,0.55],FA);
+  queue(MESH.ring,M4.alignY(tmpM(),x,y,z,Math.cos(time*1.7)*0.6,1,Math.sin(time*1.4)*0.6,s*1.15),dk?[.7,.4,1,0.5]:[1,.6,.2,0.45],FA);
   if(SG.lance&&SG.lanceTo){const e=P.eye,b=SG.lanceTo,w=1+Math.sin(time*40)*0.08;
-    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,0.7*w),[1,1,.9,1],F_ADD);
-    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,1.9*w),[1,.78,.25,0.55],F_ADD);
-    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,3.8*w),[1,.45,.1,0.22],F_ADD);
-    const q=3+Math.random()*1.2;queue(MESH.glowSphere,at(b.x,b.y,b.z,0,0,0,q,q,q),[1,.7,.25,0.6],F_ADD);queue(MESH.glowSphere,at(b.x,b.y,b.z,0,0,0,q*2.2,q*2.2,q*2.2),[1,.5,.15,0.2],F_ADD);}
+    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,0.7*w),[1,1,.9,1],FA);
+    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,1.9*w),[1,.78,.25,0.55],FA);
+    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,3.8*w),[1,.45,.1,0.22],FA);
+    const q=3+Math.random()*1.2;queue(MESH.glowSphere,at(b.x,b.y,b.z,0,0,0,q,q,q),[1,.7,.25,0.6],FA);queue(MESH.glowSphere,at(b.x,b.y,b.z,0,0,0,q*2.2,q*2.2,q*2.2),[1,.5,.15,0.2],FA);}
   for(const W of SG.waves){const k=Math.min(1,W.t/0.9),r=45*(1-(1-k)*(1-k)),f=Math.max(0,1-W.t/1.1);
-    queue(MESH.ring,M4.alignY(tmpM(),W.x,W.y-0.8,W.z,0,1,0,r),[1,.6,.2,0.7*f],F_ADD);queue(MESH.ring,M4.alignY(tmpM(),W.x,W.y+1,W.z,0,1,0,r*0.9),[1,.95,.7,0.5*f],F_ADD);}
+    queue(MESH.ring,M4.alignY(tmpM(),W.x,W.y-0.8,W.z,0,1,0,r),[1,.6,.2,0.7*f],FA);queue(MESH.ring,M4.alignY(tmpM(),W.x,W.y+1,W.z,0,1,0,r*0.9),[1,.95,.7,0.5*f],FA);}
 }

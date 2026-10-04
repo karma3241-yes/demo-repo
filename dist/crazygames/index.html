@@ -126,6 +126,9 @@ body.touch #sgbar{justify-self:start}
 #sgdark{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;background:radial-gradient(ellipse at center,rgba(10,0,24,.42) 0%,rgba(0,0,6,.86) 100%)}
 #sgtint{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,#fffbe6 0%,#ffd36b 60%,#ff9a1a 100%)}
 .slot.sg{border-color:rgba(255,210,100,.7)}.slot.sg small{color:#ffd36b}.slot.sg.dk{border-color:rgba(190,120,255,.7)}.slot.sg.dk small{color:#c89bff}
+.slot.prism{border-color:#fff;padding:7px 24px 6px;background:linear-gradient(120deg,rgba(255,60,120,.28),rgba(255,210,60,.26),rgba(60,255,160,.26),rgba(70,140,255,.3));animation:prismhue 3.2s linear infinite;pointer-events:auto;cursor:pointer}.slot.prism .nm{font-size:17px;letter-spacing:.2em}.slot.prism small{color:#fff}@keyframes prismhue{to{filter:hue-rotate(360deg)}}
+.slot.dz{border-color:rgba(255,120,150,.75);pointer-events:auto;cursor:pointer}.slot.dz small{color:#ff9fb4}.slot.dz kbd{border-color:rgba(255,120,150,.7)}
+.tb.prismb{background:linear-gradient(120deg,rgba(255,60,120,.5),rgba(255,210,60,.5),rgba(60,255,160,.5),rgba(70,140,255,.5));border-color:#fff;animation:prismhue 3.2s linear infinite}.tb.dz{background:rgba(255,80,120,.34)}
 .slot.band.sgv .tbar{width:74px;height:4px;margin-top:3px}.slot.band.sgv .tbar i{background:linear-gradient(90deg,#ff9a1a,#fff1b8)}
 .overlay{position:fixed;inset:0;display:grid;align-items:center;padding-inline:16px;z-index:4}
 #menu{background:linear-gradient(90deg,rgba(3,5,12,.92) 0%,rgba(3,5,12,.72) 42%,rgba(3,5,12,.05) 78%);justify-items:start;padding-inline:clamp(16px,7vw,110px);overflow-y:auto}
@@ -1901,7 +1904,8 @@ function boostMul(kind,id){
   switch(kind){case 'hp':return 1.2;case 'dmgAll':return all?1.5:1;case 'speed':return all?1.3:h==='webSwing'?1.25:1;case 'cost':return all?0.5:1;case 'cd':return all?0.7:1;
     case 'dmg':return h==='armorFlight'&&BOOST_ARC.includes(id)?1.5:h==='stormFlight'&&id==='stormHammer'?1.6:1;}
   return 1;}
-const maxHp=()=>(CONFIG.health.base+CONFIG.health.perLevel*pv('vitality'))*(P.alien?ALIENS[P.alien.id].hp:1)*boostMul('hp');
+var arenaHp=1; // Kathana's arena (66f_kathana.js) sets this to 6: a big health pool there (var: maxHp runs before that file has loaded)
+const maxHp=()=>(CONFIG.health.base+CONFIG.health.perLevel*pv('vitality'))*(P.alien?ALIENS[P.alien.id].hp:1)*boostMul('hp')*(arenaHp||1);
 const maxEn=()=>CONFIG.energy.base+CONFIG.energy.perLevel*pv('energy');
 const enRegen=()=>CONFIG.energy.regen*(1+CONFIG.energy.regenBonus*pv('energy'));
 const hpRegen=()=>CONFIG.health.baseRegen+CONFIG.health.healPerLevel*pv('healing')+(hasPower('bladeClaws')?4+powerLevel('bladeClaws')*0.6:0);
@@ -1994,7 +1998,7 @@ const Damage={
     if(tsIntercept(src,t,amount,type,opt))return amount;
     if(t===P){
       if(P.dead||state!=='play')return 0;
-      if(sunGodOn())return 0; // Sun God: nothing can hurt you
+      if(godSafe())return 0; // Sun God and the Prism form: nothing can hurt you (not in Kathana's arena)
       if(voidbornAway())return 0; // being questioned by the masks, far away
       if(cutLocked())return 0; // a cutscene or a zone fade: nothing touches you
       if(P.iframeT>0){if(time-(P.dodgeT||-9)>0.4){P.dodgeT=time;feed('Dodged','');}return 0;}
@@ -2348,6 +2352,7 @@ function faceAim(){P.heroYaw=Math.atan2(camF.x,camF.z);castT=time;}
 function handPoint(){const s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw);return {x:P.pos.x+s*0.8+c*0.45,y:P.pos.y+1.95,z:P.pos.z+c*0.8-s*0.45};}
 function dirTo(from,x,y,z){const dx=x-from.x,dy=y-from.y,dz=z-from.z,l=Math.hypot(dx,dy,dz)||1;return [dx/l,dy/l,dz/l];}
 function abilityDown(slot){
+  if(PR.on){if(slot===0&&canAct())destroyStart(true);return;} // the Prism form: slot 1 is Destroy
   if(SG.on){sgAbilityDown(slot);return;}
   if(P.alien){alienAbilityDown(slot);return;}
   const id=save.character&&save.character.abilities[slot];if(!id||!canAct())return;
@@ -2371,6 +2376,7 @@ function castPrimed(id){
   s.cd=(pstat(id,'cooldown')||0)*cdMul();withCast(id,POWER_FN[id]);
 }
 function abilityUp(slot,cancel){
+  if(PR.on)return;
   if(SG.on){sgAbilityUp(slot);return;}
   if(P.alien){alienAbilityUp(slot);return;}
   if(ringLocked())return; // opening the voice oath already let go of everything held
@@ -2649,10 +2655,10 @@ function lockable(a){
   if(!a||!a.alive||a.held||a===P)return false;
   if(zone?a.zid!==zone.id:a.zid)return false; // zone actors only inside their zone, city actors only in the city
   if(a.kind==='remote')return !(a.flags&FLAG.invis)&&!(a.flags&FLAG.dead);
-  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli'||a.kind==='alien';
+  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli'||a.kind==='alien'||a.kind==='korb';
 }
 function lockValid(a){return lockable(a);} // a manual lock has no range limit
-const hostileTo=a=>a.kind==='alien'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
+const hostileTo=a=>a.kind==='alien'||a.kind==='korb'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||a.kind==='drone'||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
 // after you beat your target, the lock jumps to the nearest enemy within the normal lock range
 function nextLock(prev){
   let best=null,bd=COMBAT.lockRange;
@@ -2670,8 +2676,8 @@ function pickLock(){
 }
 function lockToggle(){
   if(state!=='play'||P.dead||P.car)return;
-  if(lockT){lockT=null;SFX.tone('sine',700,400,0.08,0.05);return;}
-  lockT=pickLock();if(lockT){SFX.tone('sine',500,900,0.08,0.06);if(!save.guide.lock){save.guide.lock=true;toast('Locked on','Your camera and attacks now follow this target. Z again to let go.','cyan');}}
+  if(lockT){const nx=kathanaNextLock(lockT);lockT=nx||null;SFX.tone('sine',nx?600:700,nx?800:400,0.08,0.05);return;} // in Kathana's arena Z steps from orb to orb, then lets go
+  lockT=pickLock()||kathanaPickAny();if(lockT){SFX.tone('sine',500,900,0.08,0.06);if(!save.guide.lock){save.guide.lock=true;toast('Locked on','Your camera and attacks now follow this target. Z again to let go.','cyan');}}
   else feed('Nothing to lock on to','Face a target');
 }
 function updateLock(dt){
@@ -4799,7 +4805,7 @@ function updateSpace(dt){
   wasSpace=sp;
   if(P.pos.y>CEIL){
     // the planets are solid: land on them (the Sun burns)
-    for(const b of PLANETS){if(b.sun&&sunGodOn())continue; // the Sun God flies through the Sun unharmed
+    for(const b of PLANETS){if(b.sun&&(sunGodOn()||PR.on))continue; // the Sun God flies through the Sun unharmed
       const dx=P.pos.x-b.x,dy=P.pos.y+1-b.y,dz=P.pos.z-b.z,d=Math.hypot(dx,dy,dz)||1,min=b.r+(b.sun?800:1.4);
       if(d<min){const nx=dx/d,ny=dy/d,nz=dz/d;P.pos.set(b.x+nx*min,b.y+ny*min-1,b.z+nz*min);const vr=P.vel.x*nx+P.vel.y*ny+P.vel.z*nz;if(vr<0){P.vel.x-=nx*vr;P.vel.y-=ny*vr;P.vel.z-=nz*vr;}
         if(b.sun){if(time-(P.sunT||-9)>0.5){P.sunT=time;Damage.apply(null,P,25,'fire',{burn:{dps:8,time:2}});feed('Too hot','Nobody lands on the Sun');}P.vel.set(nx*400,ny*400,nz*400);}
@@ -5083,24 +5089,25 @@ const sgBig=a=>a.kind==='boss'||(a.maxHp||0)>3000||!!a.bigBoss; // bosses take f
 function sgHit(a,bossDmg,type,opt){return Damage.apply(P,a,sgBig(a)?bossDmg:Math.ceil((a.hp||50)*2+100),type,opt);}
 const SGL={},SG_GOLD={suit:[1,.78,.2,1],suit2:[1,.93,.55,1],cape:[1,.52,.08,1],acc:[1,1,.85,1]},SG_DARK={suit:[.05,.04,.07,1],suit2:[.85,.62,.14,1],cape:[.03,.02,.06,1],acc:[1,.8,.3,1]};
 // the look drawSuper uses while Sun God is on: gold, or black and gold during Eclipse
-function sgLook(m){return SG.on?Object.assign(SGL,m,SG.ecl?SG_DARK:SG_GOLD,{metal:false,armor:false,capeOn:true}):m;}
+function sgLook(m){if(PR.on)return prismLook(m);return SG.on?Object.assign(SGL,m,SG.ecl?SG_DARK:SG_GOLD,{metal:false,armor:false,capeOn:true}):m;}
 function sunGodStart(src,force){
-  if(SG.on){if(src==='sun'&&SG.t<120-0.5){SG.t=SG.max=120;SG.src='sun';toast('The Sun feeds you','Sun God for 120 s','gold');}return false;}
+  if(SG.on){if(src==='sun'&&SG.t<120-0.5&&SG.src!=='arena'){SG.t=SG.max=120;SG.src='sun';toast('The Sun feeds you','Sun God for 120 s','gold');}return false;}
   if(state!=='play'||P.dead||(!force&&(!hasTrav('solarFlight')||!canAct())))return false;
+  if(PR.on&&src!=='arena')return false; // the Prism form has only Destroy
   if(src==='v'&&SG.cd>0){feed('Sun God is recharging',Math.ceil(SG.cd)+' s left');SFX.tone('square',300,200,0.12,0.06);return false;}
   if(P.alien)revertAlien(true);stopAllPowers();
-  SG.on=true;SG.src=src==='sun'?'sun':'v';SG.t=SG.max=src==='sun'?120:sgVDur();SG.cds=[0,0,0,0];SG.lance=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
+  SG.on=true;SG.src=src==='sun'?'sun':src==='arena'?'arena':'v';SG.t=SG.max=src==='sun'?120:src==='arena'?9999:sgVDur(); // 'arena': Kathana's fight, every hero, no timer, you can be hurtSG.cds=[0,0,0,0];SG.lance=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
   P.hp=maxHp();P.en=maxEn();P.flying=true;P.grounded=false;P.vel.y=Math.max(P.vel.y,6);P.stun=0;
   const c=center(P),cx=c.x,cy=c.y,cz=c.z;ringFx(cx,cy,cz,1,24,0.7,[1,.85,.35]);ringFx(cx,cy,cz,1,14,0.45,[1,1,.9]);burst(cx,cy,cz,120,30,1.2,[[1,.85,.3],[1,.6,.15],[1,1,.85]],2,0,1.6);
   flashWhite=0.7;SFX.transform();SFX.boom(1,1.4);addShake(0.5);
-  toast('SUN GOD',(SG.max)+' s · you cannot be hurt · 1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');
+  if(src!=='arena')toast('SUN GOD',(SG.max)+' s · you cannot be hurt · 1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');else toast('SUN GOD','1 Lance · 2 Heat Wave · 3 Star · 4 Eclipse','gold');
   if(SG.src==='v'&&!save.guide.sgV){save.guide.sgV=true;persist();}
   buildHotbar();buildTouchButtons();sgHud(true);return true;}
-function sunGodEnd(silent){
+function sunGodEnd(silent,stay){ // stay: the Prism form starts inside the Sun, so don't push you out of it
   if(!SG.on)return;const src=SG.src;
   SG.on=false;SG.lance=false;SG.ecl=null;SG.waves.length=0;beam=null;SFX.setLaser(false);P.flash=0;
   if(src==='v')SG.cd=sgVCd();
-  if(SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
+  if(!stay&&SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
     if(d<SUN_B.r+900){const k=(SUN_B.r+1100)/(d||1),nx=d>1e-3?dx*k:0,ny=d>1e-3?dy*k:SUN_B.r+1100,nz=d>1e-3?dz*k:0;P.pos.set(SUN_B.x+nx,SUN_B.y+ny,SUN_B.z+nz);P.vel.set(0,0,0);P.sunT=time+3;} // the Sun lets go of you
   }
   const c=center(P);ringFx(c.x,c.y,c.z,1,18,0.6,[1,.85,.35]);burst(c.x,c.y,c.z,70,16,1,[[1,.85,.3],[1,1,.85]],1.6,0,1.6);flashWhite=Math.max(flashWhite,0.6);SFX.tone('sine',1200,200,0.5,0.1);
@@ -5193,9 +5200,10 @@ function updateSunGod(dt){
   if(isTitan&&!SG.on&&!save.guide.sgV&&!P.dead&&(SG.hintT+=dt)>=60){save.guide.sgV=true;persist();toast(touchOn()?'Tap the sun button':'Press V to become the Sun God',touchOn()?'Become the Sun God: invincible for 60 s':'Invincible for 60 s with four sun powers','gold');}
   if(isTitan&&!SG.on&&P.pos.y>CEIL&&SUN_B){const d=Math.hypot(P.pos.x-SUN_B.x,P.pos.y-SUN_B.y,P.pos.z-SUN_B.z);if(d>SUN_B.r+9000)SG.armed=true;else if(d<SUN_B.r+6000&&SG.armed&&sunGodStart('sun'))SG.armed=false;}
   if(!SG.on){sgTint(0,0);return;}
-  if(P.dead||!isTitan||P.alien){sunGodEnd(true);sgTint(0,0);return;}
-  SG.t-=dt;if(SG.t<=0){sunGodEnd(false);sgTint(0,0);return;}
-  P.hp=maxHp();P.en=maxEn();P.lastSpend=time;
+  const arena=SG.src==='arena';if(arena&&P.alien)revertAlien(true);
+  if(P.dead||(!isTitan&&!arena)||(P.alien&&!arena)){sunGodEnd(true);sgTint(0,0);return;}
+  if(!arena){SG.t-=dt;if(SG.t<=0){sunGodEnd(false);sgTint(0,0);return;}P.hp=maxHp();}
+  P.en=maxEn();P.lastSpend=time;
   if(SG.lance&&canAct())sgLance(dt);else{SG.lance=false;SG.lanceTo=null;}
   for(let i=1;i<4;i++)if(SG.cds[i]>0)SG.cds[i]=Math.max(0,SG.cds[i]-dt);
   sgWaveTick(dt);sgEclipseTick(dt);
@@ -5203,7 +5211,7 @@ function updateSunGod(dt){
   { // golden sparks and a rising glow of embers
     const c=center(P);for(let i=0;i<(SG.ecl?3:2);i++)emit(c.x+rr(-1,1),c.y+rr(-1.3,1.3),c.z+rr(-1,1),rr(-2,2),rr(1,5),rr(-2,2),rr(0.5,1),SG.ecl?(Math.random()<0.5?[.55,.25,1]:[1,.8,.3]):(Math.random()<0.5?[1,.85,.35]:[1,.55,.15]),rr(0.7,1.5),-1,0.6);}
   // the pill under the meters, and the hotbar slots
-  const txt=(SG.ecl?'ECLIPSE · ':'SUN GOD ')+Math.ceil(SG.t)+'s';if(SG.lastTxt!==txt){SG.lastTxt=txt;$('sgbar-t').textContent=txt;}
+  const txt=(SG.ecl?'ECLIPSE · ':'SUN GOD')+(arena?'':' '+Math.ceil(SG.t)+'s');if(SG.lastTxt!==txt){SG.lastTxt=txt;$('sgbar-t').textContent=txt;}
   {const b=$('sgbar');b.classList.toggle('dark',!!SG.ecl);}$('sgbar-f').style.width=(clamp(SG.t/SG.max,0,1)*100).toFixed(1)+'%';
   for(const s of slotEls){if(s.sg!==undefined){const i=s.sg,v=Math.round(clamp(i>0&&SG.cds[i]>0?SG.cds[i]/SG_CD[i]:0,0,1)*100);if(s.cdv!==v){s.cdv=v;s.cd.style.setProperty('--p',v+'%');s.cd.hidden=v<=0;}
       s.s.classList.toggle('on',i===0?SG.lance:i===3?!!SG.ecl:false);s.s.classList.toggle('dk',!!SG.ecl);}
@@ -5218,19 +5226,19 @@ function sgTint(dark,tint){
 // ---- drawing: the glow around you, the lance and the dark rings ----
 function drawSunGod(){
   if(!SG.on||P.dead||state!=='play'&&state!=='menu')return;
-  const x=P.pos.x,y=P.pos.y+1.35,z=P.pos.z,p=0.5+0.5*Math.sin(time*6),dk=!!SG.ecl,s=2.3+p*0.35;
+  const FA=zone&&zone.white&&KA.flood>0.55?F_BL:F_ADD,x=P.pos.x,y=P.pos.y+1.35,z=P.pos.z,p=0.5+0.5*Math.sin(time*6),dk=!!SG.ecl,s=2.3+p*0.35;
   const g=dk?[.5,.22,.95]:[1,.75,.25];
-  queue(MESH.glowSphere,at(x,y,z,0,0,0,s,s*1.15,s),[g[0],g[1],g[2],0.1+0.05*p],F_ADD);
-  queue(MESH.glowSphere,at(x,y,z,0,0,0,s*1.6,s*1.7,s*1.6),[g[0],g[1],g[2],0.05],F_ADD);
-  queue(MESH.ring,M4.alignY(tmpM(),x,y,z,Math.sin(time*1.3)*0.5,1,Math.cos(time*1.1)*0.5,s*0.85),[1,.88,.45,0.55],F_ADD);
-  queue(MESH.ring,M4.alignY(tmpM(),x,y,z,Math.cos(time*1.7)*0.6,1,Math.sin(time*1.4)*0.6,s*1.15),dk?[.7,.4,1,0.5]:[1,.6,.2,0.45],F_ADD);
+  queue(MESH.glowSphere,at(x,y,z,0,0,0,s,s*1.15,s),[g[0],g[1],g[2],0.1+0.05*p],FA);
+  queue(MESH.glowSphere,at(x,y,z,0,0,0,s*1.6,s*1.7,s*1.6),[g[0],g[1],g[2],0.05],FA);
+  queue(MESH.ring,M4.alignY(tmpM(),x,y,z,Math.sin(time*1.3)*0.5,1,Math.cos(time*1.1)*0.5,s*0.85),[1,.88,.45,0.55],FA);
+  queue(MESH.ring,M4.alignY(tmpM(),x,y,z,Math.cos(time*1.7)*0.6,1,Math.sin(time*1.4)*0.6,s*1.15),dk?[.7,.4,1,0.5]:[1,.6,.2,0.45],FA);
   if(SG.lance&&SG.lanceTo){const e=P.eye,b=SG.lanceTo,w=1+Math.sin(time*40)*0.08;
-    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,0.7*w),[1,1,.9,1],F_ADD);
-    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,1.9*w),[1,.78,.25,0.55],F_ADD);
-    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,3.8*w),[1,.45,.1,0.22],F_ADD);
-    const q=3+Math.random()*1.2;queue(MESH.glowSphere,at(b.x,b.y,b.z,0,0,0,q,q,q),[1,.7,.25,0.6],F_ADD);queue(MESH.glowSphere,at(b.x,b.y,b.z,0,0,0,q*2.2,q*2.2,q*2.2),[1,.5,.15,0.2],F_ADD);}
+    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,0.7*w),[1,1,.9,1],FA);
+    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,1.9*w),[1,.78,.25,0.55],FA);
+    queue(MESH.glowBox,M4.beam(tmpM(),e.x,e.y-0.1,e.z,b.x,b.y,b.z,3.8*w),[1,.45,.1,0.22],FA);
+    const q=3+Math.random()*1.2;queue(MESH.glowSphere,at(b.x,b.y,b.z,0,0,0,q,q,q),[1,.7,.25,0.6],FA);queue(MESH.glowSphere,at(b.x,b.y,b.z,0,0,0,q*2.2,q*2.2,q*2.2),[1,.5,.15,0.2],FA);}
   for(const W of SG.waves){const k=Math.min(1,W.t/0.9),r=45*(1-(1-k)*(1-k)),f=Math.max(0,1-W.t/1.1);
-    queue(MESH.ring,M4.alignY(tmpM(),W.x,W.y-0.8,W.z,0,1,0,r),[1,.6,.2,0.7*f],F_ADD);queue(MESH.ring,M4.alignY(tmpM(),W.x,W.y+1,W.z,0,1,0,r*0.9),[1,.95,.7,0.5*f],F_ADD);}
+    queue(MESH.ring,M4.alignY(tmpM(),W.x,W.y-0.8,W.z,0,1,0,r),[1,.6,.2,0.7*f],FA);queue(MESH.ring,M4.alignY(tmpM(),W.x,W.y+1,W.z,0,1,0,r*0.9),[1,.95,.7,0.5*f],FA);}
 }
 // ================================================================
 // NPCs: people, drones, vehicles, rival supers, shops
@@ -7221,9 +7229,9 @@ function storyTick(dt){
     zoneFadeTick(dt);cutTick(dt);boostTick(dt);
     if(solo&&state==='play'&&!P.dead){
       if(storyActiveNow())save.story.act+=dt;
-      ufoTick(dt);
+      ufoTick(dt);kathanaTick(dt);
       if(zone&&zone.update)zone.update(dt*worldTimeK());
-    }
+    }else if(PR.on&&(P.dead||!solo))prismEnd('lost');
     objRefresh();
   }catch(e){logErr(e);}
 }
@@ -7322,6 +7330,7 @@ function askClose(yes){ // yes: true / false / null (closed without an answer)
 }
 function askKey(e){
   if(e.ctrlKey||e.metaKey||e.altKey)return; // browser shortcuts pass
+  if(e.repeat){e.preventDefault();e.stopImmediatePropagation();return;} // a held key (Enter opened this popup) must not answer it
   if(e.code==='KeyY'||e.code==='Enter'||e.code==='NumpadEnter')askClose(true);else if(e.code==='KeyN'||e.code==='Escape')askClose(false);
   if(['Space','Tab','Enter','Escape','ArrowUp','ArrowDown','KeyY','KeyN'].includes(e.code))e.preventDefault();e.stopImmediatePropagation(); // the game gets no keys while the popup is open
 }
@@ -7427,10 +7436,10 @@ function zoneBreak(Z,b){
 }
 // ---- drawing and lighting ----
 function drawStory(){
-  ufoDraw();
+  ufoDraw();prismDraw();
   const Z=zone;if(!Z)return;
   if(Z.dirty&&Z.rebuild&&time-Z.rebuildT>0.2){Z.dirty=false;Z.rebuildT=time;Z.rebuild();}
-  if(Z.mesh)queue(Z.mesh,ID,WHITE,0);if(Z.mesh2)queue(Z.mesh2,ID,WHITE,0);
+  if(Z.mesh&&!Z.hide)queue(Z.mesh,ID,Z.tint||WHITE,0);if(Z.mesh2)queue(Z.mesh2,ID,WHITE,0); // Z.tint / Z.hide: the Kathana arena fades its floor in
   if(Z.draw)Z.draw();
 }
 function zoneUniforms(u){
@@ -7983,6 +7992,482 @@ function boostTick(dt){
   }catch(e){logErr(e);REW.on=false;canvas.classList.remove('rewind');}
 }
 // ================================================================
+// The Prism form, Destroy, and Kathana's first stage
+// ================================================================
+// Prism (PR): a Sun Titan whose Sun God came from V (SG.src==='v') and flies into the Sun becomes a rainbow being for 120 s or until Destroy: invincible, flying, colours
+// carousel (prismLook, called by sgLook), a ring of rainbow light (prismDraw), and the hotbar holds one skill, DESTROY (key 1, a big touch button).
+// Destroy: Prism form (no question), or every hero once save.story.ufo>=2 (Enter, a hotbar slot after V/Rewind, a touch button, with a yes/no popup).
+// destroyStart -> kathanaBegin: enterZone('void') into a pitch-black arena where only the hero is lit (about 2.5 s, a low rumble), then the light floods in: ZONES.void,
+// an endless all-white floor (local origin KAR at z=80000, soft wall of radius 500 m), Sun God for every hero with no timer (SG.src==='arena', you CAN be hurt, big
+// health pool: arenaHp=6) and a cutscene where Kathana, the Seer of All, rises. Stage 1: her body can't be hurt, her four orbs (actors kind 'korb') can; she slams the
+// ground (shockwave rings: jump or fly over), sweeps a gaze beam across the floor, and every orb fires slow homing bolts (actors 'kshot', any hit destroys them).
+// Knocked out: back to the city (save.story.kathana stays/sets 1). All four orbs gone: kathanaStage2() (a stub for the next phase).
+// For the next phase: the body is drawn from KA (position KA.bx/KA.bz, yaw, KA.by height offset, KA.vis hides her whole body, KA.split 0..1 opens the torso along a
+// vertical seam with a glow inside at kCore()), the hands are KA.hands[i] (local x,y,z, dead) and orbs KA.orbs[i] ({a: the actor, dead, col}).
+const PR={on:false,t:0,max:120};
+const KAR={x:0,y:0,z:80000};
+const KORB_COL=[[1,.04,.1],[.04,.32,1],[.04,.85,.2],[.62,.08,1]],KO_HP=12000,KA_REACH=148,KA_L1=72,KA_L2=82;
+const KS=[[-40,132,0],[40,132,0],[-30,98,6],[30,98,6]],KR=[[-108,122,92],[108,122,92],[-64,74,112],[64,74,112]]; // shoulders and resting hands (local: x right, y up, z toward the player)
+const KA={on:false,stage:0,phase:'',t:0,rise:0,open:0,fight:false,lost:false,vis:true,split:0,yaw:0,bx:KAR.x,bz:KAR.z-280,by:-215,ret:null,hands:[],orbs:[],shots:[],waves:[],fx:[],atk:null,cd:2.5,last:'',eyeGlow:0,gz:null,beam:null,dead:0,flood:0,src:{kind:'korb',name:'Kathana',alive:true,faction:'kathana',pos:new V3()},availSeen:null,
+  hint:0,markers:[],shadow:true};
+const arenaSG=()=>SG.on&&SG.src==='arena';
+const godSafe=()=>PR.on||(SG.on&&SG.src!=='arena');
+const destroyAvail=()=>!!save.story&&(save.story.ufo>=2||save.story.destroy===true);
+const kDmg=f=>maxHp()*f/CONFIG.health.npcTaken; // damage that takes a fraction f of your (arena) health pool
+const inVoid=()=>!!(zone&&zone.id==='void');
+// ---- colours ----
+function hue(h,s,v){h=(((h%1)+1)%1)*6;const i=Math.floor(h),f=h-i,p=v*(1-s),q=v*(1-s*f),t=v*(1-s*(1-f));switch(i){case 0:return [v,t,p];case 1:return [q,v,p];case 2:return [p,v,t];case 3:return [p,q,v];case 4:return [t,p,v];default:return [v,p,q];}}
+function prismLook(m){const h=time*0.3,c=(o)=>{const r=hue(h+o,0.95,0.55);r.push(1);return r;};
+  return Object.assign(SGL,m,{suit:c(0),suit2:c(0.33),cape:c(0.66),acc:[.8,.8,.8,1],metal:false,armor:false,capeOn:true});}
+// ================================================================
+// Prism form
+// ================================================================
+function prismStart(){
+  if(PR.on||state!=='play'||P.dead||zone||KA.on||!storySolo())return false;
+  if(SG.on)sunGodEnd(true,true); // (stay: don't push the hero out of the Sun)
+  stopAllPowers();PR.on=true;PR.t=PR.max;P.flying=true;P.grounded=false;P.hp=maxHp();P.en=maxEn();P.alien&&revertAlien(true);
+  const c=center(P);ringFx(c.x,c.y,c.z,1,30,0.8,[1,.5,.9]);ringFx(c.x,c.y,c.z,1,20,0.6,[.5,1,.9]);burst(c.x,c.y,c.z,140,36,1.3,[[1,.3,.5],[1,.9,.3],[.3,1,.6],[.4,.6,1],[.8,.4,1]],2.2,0,1.5);
+  flashWhite=0.9;SFX.transform();SFX.chime();addShake(0.5);
+  cutscene({dur:4,control:true,letterbox:true,text:'You are something else now'});
+  buildHotbar();buildTouchButtons();return true;
+}
+function prismEnd(why){
+  if(!PR.on)return;PR.on=false;
+  if(why==='time'||why==='lost'){toast('The rainbow fades','Fly into the Sun again to return to it','purple');
+    if(SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
+      if(d<SUN_B.r+900){const k=(SUN_B.r+1100)/(d||1),nx=d>1e-3?dx*k:0,ny=d>1e-3?dy*k:SUN_B.r+1100,nz=d>1e-3?dz*k:0;P.pos.set(SUN_B.x+nx,SUN_B.y+ny,SUN_B.z+nz);P.vel.set(0,0,0);P.sunT=time+3;}}}
+  P.flash=0;sgTint(0,0);buildHotbar();buildTouchButtons();
+}
+function prismTick(dt){
+  if(PR.on){
+    PR.t-=dt;
+    if(P.dead){prismEnd('lost');return;}
+    if(!KA.on||KA.phase!=='dark'){P.hp=maxHp();P.en=maxEn();P.lastSpend=time;}
+    P.flash=0.16+0.06*Math.sin(time*6);
+    const c=center(P);for(let i=0;i<3;i++){const h=hue(time*0.4+rr(0,1),1,1);emit(c.x+rr(-1,1),c.y+rr(-1.3,1.3),c.z+rr(-1,1),rr(-2,2),rr(1,5),rr(-2,2),rr(0.5,1),h,rr(0.7,1.5),-1,0.6);}
+    let tint=0;if(SUN_B&&P.pos.y>CEIL){const d=Math.hypot(P.pos.x-SUN_B.x,P.pos.y-SUN_B.y,P.pos.z-SUN_B.z);tint=clamp((SUN_B.r+2500-d)/(2500+SUN_B.r*0.2),0,1)*0.6;}
+    sgTint(0,tint);
+    if(PR.t<=0&&!KA.on)prismEnd('time');
+    return;
+  }
+  // a Sun God from V that flies into the Sun becomes the Prism Being
+  if(SG.on&&SG.src==='v'&&hasTrav('solarFlight')&&SUN_B&&P.pos.y>CEIL&&!zone&&!KA.on){
+    if(Math.hypot(P.pos.x-SUN_B.x,P.pos.y-SUN_B.y,P.pos.z-SUN_B.z)<SUN_B.r)prismStart();}
+}
+// the ring of rainbow light around the Prism Being (additive, so it is only for the dark phase and the city/space)
+const KGS=primMesh(primSphere(24,16),6),KTORP=primMesh(primTorus(1,0.03,56,6),6);
+function prismDraw(){
+  if(!PR.on||P.dead||(state!=='play'&&state!=='menu'))return;
+  const x=P.pos.x,y=P.pos.y+1.35,z=P.pos.z,t=time;
+  queue(KGS,at(x,y,z,0,0,0,2.3,2.5,2.3),[...hue(t*0.3,0.8,1),0.07],F_ADD);
+  for(let i=0;i<5;i++){const a=t*(0.9+i*0.17)*(i%2?1:-1),r=1.75+0.22*i,h=hue(t*0.25+i/5,1,1);
+    queue(KTORP,at(x,y+Math.sin(t*1.7+i)*0.25,z,Math.sin(a)*0.9,a*0.7+i,Math.cos(a*0.9)*0.9,r,r,r),[h[0],h[1],h[2],0.7],F_ADD);}
+  for(let i=0;i<10;i++){const a=t*1.6+i*TAU/10,h=hue(t*0.4+i/10,1,1),r=1.9;queue(KGS,at(x+Math.cos(a)*r,y+Math.sin(a*2+t)*0.5,z+Math.sin(a)*r,0,0,0,0.12,0.12,0.12),[h[0],h[1],h[2],0.95],F_ADD);}
+}
+// once per frame from storyTick (solo, playing, alive)
+function kathanaTick(dt){
+  prismTick(dt);
+  const a=destroyAvail();
+  if(a!==KA.availSeen){const first=KA.availSeen===null;KA.availSeen=a;if(!PR.on&&!SG.on){buildHotbar();buildTouchButtons();}if(a&&!first)feed('Destroy unlocked',touchOn()?'The DESTROY button':'Press Enter');}
+}
+// ---- the hotbar and touch button of the Prism form, and the Destroy slot ----
+function prBuildHotbar(){
+  const s=el('div',{class:'slot prism'},el('kbd',{text:touchOn()?'':'1'}),el('span',{class:'nm',text:'DESTROY'}),el('small',{text:'Prism'}));s.addEventListener('click',()=>{if(canAct())destroyStart(true);});
+  hud.hotbar.appendChild(s);slotEls.push({pr:true,s});
+}
+function prTouchButtons(){const b=tbMake('p0','a0','burst','DESTROY','B','ab prismb');b.prepend(el('i',{class:'cd',hidden:true}));}
+function prDestroySlot(){
+  const s=el('div',{class:'slot dz'},el('kbd',{text:touchOn()?'':'Enter'}),el('span',{class:'nm',text:'DESTROY'}),el('small',{text:'Kathana'}));s.addEventListener('click',()=>destroyKey());
+  hud.hotbar.appendChild(s);slotEls.push({pr:true,s});
+}
+// ================================================================
+// Destroy
+// ================================================================
+// Enter / the slot / the touch button: Prism form goes straight in; the others (UFO done) get the popup. Returns true when it took the key.
+function destroyKey(){
+  if(state!=='play'||paused||P.dead||ASK||dialOpen||cutLocked()||zone||KA.on||!storySolo())return false;
+  if(PR.on){destroyStart(true);return true;}
+  if(!destroyAvail())return false;
+  destroyStart(false);return true;
+}
+function destroyStart(skipAsk){
+  if(!storySolo()||state!=='play'||P.dead||zone||cutLocked()||ASK||ZF.phase||KA.on||P.car)return false;
+  if(skipAsk){kathanaBegin();return true;}
+  return askYesNo('Destroy everything?','This starts the hardest fight in the game.','Destroy','Not yet',kathanaBegin);
+}
+function kathanaBegin(){
+  if(KA.on||zone||ZF.phase||state!=='play'||P.dead)return false;
+  KA.on=true;KA.phase='enter';KA.lost=false;KA.stage=1;
+  KA.ret=P.pos.y>CEIL?{x:-80,y:44,z:0,yaw:Math.PI/2,fly:true}:null; // from space (the Prism form's Sun) the way back is above the city
+  if(!enterZone('void',{x:0,y:0,z:70,yaw:0},kathanaDark)){KA.on=false;KA.phase='';return false;}
+  return true;
+}
+// the dark: only the hero is lit, a low rumble, then the light floods in (4.6 s, no control)
+function kathanaDark(){
+  if(!inVoid())return;KA.phase='dark';
+  cutscene({dur:4.6,control:false,letterbox:true,skippable:false,onTick:kDarkTick,onEnd:kRiseStart});
+  SFX.tone('sawtooth',46,24,2.6,0.2);SFX.boom(0.5,1.6);
+}
+function kDarkTick(k,dt,C){
+  const t=C.t;if(!inVoid())return;
+  if(!C.rb1&&t>1.2){C.rb1=true;SFX.boom(0.7,2.2);addShake(0.3);}
+  if(!C.rb2&&t>2.0){C.rb2=true;SFX.tone('sawtooth',34,18,1.6,0.22);addShake(0.4);}
+  if(!C.fl&&t>=2.6){C.fl=true;
+    if(PR.on)prismEnd('destroy'); // the Prism Being's Destroy is used
+    arenaHp=6;sunGodStart('arena',true);P.hp=maxHp();SFX.boom(1,2.4);SFX.chime();SFX.tone('sine',200,1400,1.2,0.14);addShake(0.6);}
+  KA.flood=clamp((t-2.6)/1.6,0,1);KA.flood=KA.flood*KA.flood*(3-2*KA.flood);kLight();
+  if(SG.on)P.flash=Math.max(P.flash,0.3);
+}
+// ---- the zone: a white floor to the horizon, no fog, soft wall of radius 500 ----
+const KLD={dir:[.35,1,.4],lcol:[.95,.92,.88],sky:[.5,.5,.58],gnd:[.2,.2,.26],fogC:[0,0,0],fog:[300,1600]};
+const KLW={dir:[.3,1,.45],lcol:[.78,.74,.66],sky:[.5,.52,.6],gnd:[.26,.26,.33],fogC:[2.42,2.42,2.42],fog:[1000,3200]};
+const KLL={dir:[.3,1,.4],lcol:[0,0,0],sky:[0,0,0],gnd:[0,0,0],fogC:[0,0,0],fog:[300,1600]},KSKY=[0,0,0],KTINT=[0,0,0,1];
+function kLight(){
+  const f=KA.flood,Z=ZONES.void,m=(a,b)=>lerp(a,b,f);
+  for(const k of ['dir','lcol','sky','gnd','fogC','fog']){const A=KLD[k],B=KLW[k],o=KLL[k];for(let i=0;i<o.length;i++)o[i]=m(A[i],B[i]);}
+  const s=0.97*f;KSKY[0]=KSKY[1]=KSKY[2]=s;Z.sky=KSKY;Z.light=KLL;KTINT[0]=KTINT[1]=KTINT[2]=f;Z.tint=KTINT;Z.hide=f<0.002;
+}
+const KZ=zoneNew({id:'void',name:'The White',origin:KAR,spawn:{x:0,y:0,z:70,yaw:0},stars:false,white:true,sky:[0,0,0],bounds:{x0:-520,x1:520,z0:-520,z1:520,y1:360},light:KLL,lights:[],
+  plan:[[-500,500,-500,500]],planCol:'#c9cfe0',
+  build(){kBuild(KZ);},enter(){kathanaEnter();},leave(){kathanaLeave();},update(dt){kathanaUpdate(dt);},draw(){kathanaDraw();},
+  mapMarks(plot,c){
+    for(const o of KA.orbs){if(o.dead)continue;const q=plot(o.a.pos.x,o.a.pos.z,true);if(!q)continue;c.fillStyle='rgb('+o.col.map(v=>Math.round(v*255)).join(',')+')';c.strokeStyle='#0b0f1a';c.lineWidth=2;c.beginPath();c.arc(q[0],q[1],6,0,TAU);c.fill();c.stroke();}
+    const q=plot(KA.bx,KA.bz,true);if(q){c.fillStyle='#ffc93c';c.strokeStyle='#0b0f1a';c.lineWidth=2;c.beginPath();c.moveTo(q[0],q[1]-10);c.lineTo(q[0]+9,q[1]+8);c.lineTo(q[0]-9,q[1]+8);c.closePath();c.fill();c.stroke();}
+  }});
+function kBuild(Z){
+  zoneBox(Z,-1800,-6,-1800,1800,0,1800,[1.515,1.515,1.515],6,{col:false}); // unlit white (mat 6): the same white as the sky at the horizon
+  const L=[.7,.72,.8];
+  for(let v=-1000;v<=1000;v+=50){zoneBox(Z,v-0.35,0,-1000,v+0.35,0.3,1000,L,6,{col:false});zoneBox(Z,-1000,0,v-0.35,1000,0.3,v+0.35,L,6,{col:false});}
+  zoneBake(Z);
+}
+function kathanaEnter(){
+  KA.t=0;KA.rise=0;KA.open=0;KA.fight=false;KA.vis=true;KA.split=0;KA.dead=0;KA.flood=0;KA.atk=null;KA.cd=2.5;KA.last='';KA.eyeGlow=0;KA.beam=null;KA.yaw=0;KA.by=-215;KA.stage=1;KA.shots.length=0;KA.waves.length=0;KA.fx.length=0;
+  KA.bx=KAR.x;KA.bz=KAR.z-280;
+  kHandsInit();kLight();
+}
+function kathanaLeave(){
+  for(const o of KA.orbs)if(o.a)removeActor(o.a);KA.orbs.length=0;kClearShots();
+  if(SG.on&&SG.src==='arena')sunGodEnd(true);
+  if(PR.on)prismEnd('lost');
+  arenaHp=1;P.hp=Math.min(P.hp,maxHp());lockT=null;
+  KA.on=false;KA.fight=false;KA.phase='';KA.atk=null;KA.beam=null;objective(null);objectiveMark(null);
+  const f=$('fade');if(f&&!ZF.phase)f.style.opacity='0';
+}
+// Kathana rises (7.5 s cutscene), then the fight starts
+function kRiseStart(){
+  if(!inVoid())return;KA.phase='rise';
+  const S=save.story;if(S.kathana<1){S.kathana=1;persist();}
+  const o=KAR;kOrbsMake();
+  cutscene({dur:7.6,control:false,letterbox:true,skippable:true,fov:76,text:'KATHANA, THE SEER OF ALL',
+    from:{x:o.x-20,y:6,z:o.z+105},to:{x:o.x-70,y:46,z:o.z-70},look:k=>({x:o.x,y:22+135*k*k*(3-2*k),z:KA.bz+10}),
+    onTick:(k,dt,C)=>{const r=clamp(k/0.82,0,1);KA.rise=r*r*(3-2*r);KA.open=clamp((k-0.72)/0.22,0,1);
+      if(k<0.85&&Math.random()<dt*14)smoke(KA.bx+rr(-60,60),2,KA.bz+rr(-50,50),1,8,16,4,0.7);
+      if(!C.sh&&k>0.04){C.sh=true;SFX.tone('sawtooth',40,22,3.2,0.24);}
+      if(KA.rise<0.85)addShake(0.05);if(!C.sh2&&k>0.7){C.sh2=true;SFX.boom(1,2.6);SFX.tone('sine',90,400,1.6,0.12);addShake(0.7);}},
+    onEnd:kFightStart});
+}
+function kOrbsMake(){
+  for(const o of KA.orbs)if(o.a)removeActor(o.a);KA.orbs.length=0;
+  for(let i=0;i<4;i++){const a={kind:'korb',faction:'kathana',zid:'void',name:'Orb',alive:true,hp:KO_HP,maxHp:KO_HP,pos:new V3(),vel:new V3(),yaw:0,heroYaw:0,flash:0,stun:0,slow:0,slowT:0,burn:0,burnDps:0,held:false,thrown:null,cy:0,radius:11,ys:1,lastHit:-99,grudge:null,grudgeT:-99,idx:i,bigBoss:true};
+    a.onDefeat=()=>korbBreak(i);actors.push(a);KA.orbs.push({a,col:KORB_COL[i],dead:false,i,r:11});}
+  KA.dead=0;kSyncOrbs();
+}
+function kFightStart(){
+  if(!inVoid())return;KA.phase='fight';KA.rise=1;KA.open=1;
+  for(const h of KA.hands){h.x=h.rx;h.y=h.ry;h.z=h.rz;}
+  if(KA.orbs.length!==4)kOrbsMake();kSyncOrbs();
+  KA.fight=true;KA.atk=null;KA.cd=2.2;
+  objective('Shatter the four orbs · 4 left');
+  toast('Kathana, the Seer of All','Her body cannot be hurt. Shatter the four orbs · Z locks on','red');
+}
+// the boss bar (99_main.js updateHud): the four orbs' health together. true = I drew it
+function kathanaBar(){
+  if(!(KA.on&&KA.fight&&inVoid()))return false;
+  hud.bossbar.hidden=false;setText(hud.bossname,'bn','KATHANA, THE SEER OF ALL');setW(hud.bossb,'boss',kHpFrac());return true;
+}
+function kHpFrac(){let h=0;for(const o of KA.orbs)if(!o.dead)h+=Math.max(0,o.a.hp);return h/(4*KO_HP);}
+// ---- lock-on: Z steps from orb to orb in the arena ----
+function kathanaPickAny(){
+  if(!inVoid()||!KA.fight)return null;let best=null,bd=1e9;
+  for(const o of KA.orbs){if(o.dead||!o.a.alive)continue;const d=Math.hypot(o.a.pos.x-P.pos.x,o.a.pos.z-P.pos.z);if(d<bd){bd=d;best=o.a;}}return best;
+}
+function kathanaNextLock(cur){
+  if(!inVoid()||!cur||cur.kind!=='korb')return null;
+  const l=KA.orbs.filter(o=>!o.dead&&o.a.alive).map(o=>o.a),i=l.indexOf(cur);return i>=0&&i+1<l.length?l[i+1]:null;
+}
+// ================================================================
+// Losing, winning
+// ================================================================
+Bus.on('playerDefeated',()=>{if(KA.on&&inVoid()&&!KA.lost)kathanaLose();});
+function kathanaLose(){
+  KA.lost=true;KA.fight=false;KA.atk=null;KA.beam=null;kClearShots();
+  P.dead=false;$('dead').hidden=true;P.hp=maxHp();P.vel.set(0,0,0);lockT=null;
+  const S=save.story;if(S.kathana<1){S.kathana=1;persist();}
+  if(!leaveZone(KA.ret,()=>toast('Kathana casts you out','Destroy again when ready.','red'))){KA.lost=false;zoneAbort();}
+}
+function korbBreak(i){
+  const o=KA.orbs[i];if(!o||o.dead)return;o.dead=true;KA.dead++;const a=o.a,x=a.pos.x,y=a.pos.y,z=a.pos.z,c=o.col;
+  for(let k=0;k<26;k++){const s=rr(0.9,2.6);spawnPiece(x+rr(-5,5),y+rr(-5,5),z+rr(-5,5),MESH.box,s,s*0.8,s*1.2,[c[0]*0.9+0.1,c[1]*0.9+0.1,c[2]*0.9+0.1],rr(-24,24),rr(4,26),rr(-24,24),9);}
+  smoke(x,y,z,10,8,14,3,0.2);KA.fx.push({x,y,z,t:0,dur:1.1,r0:8,r1:90,col:c},{x,y,z,t:0,dur:0.7,r0:4,r1:50,col:[1,1,1]});
+  SFX.boom(1,2.4);SFX.chime();addShake(1.1);toast(KA.dead+'/4 orbs shattered',KA.dead<4?'Kathana grows desperate':'','gold');
+  for(const s of KA.shots)if(s.orb===i)kShotKill(s);
+  objective(KA.dead<4?'Shatter Kathana\'s four orbs · '+(4-KA.dead)+' left':null);
+  if(lockT===a)lockT=null;
+  if(KA.dead>=4){KA.fight=false;KA.atk=null;KA.beam=null;kClearShots();later(1.8,()=>{if(KA.on&&inVoid()&&!KA.lost)kathanaStage2();});}
+}
+// STUB for the next phase: Kathana screams and splits (P7). For now the fight just ends with a win.
+function kathanaStage2(){
+  KA.stage=2;KA.fight=false;const S=save.story;if(S.kathana<1){S.kathana=1;persist();}
+  toast('Kathana screams...','The orbs are gone','red');SFX.tone('sawtooth',120,40,2.4,0.25);SFX.boom(1,2.4);addShake(1);
+  later(3,()=>{if(KA.on&&inVoid()&&!KA.lost&&!ZF.phase)leaveZone(KA.ret,()=>toast('Kathana vanishes','For now.','gold'));});
+}
+// test hook: every orb gone at once
+function kathanaWinStage1(){for(const o of KA.orbs){if(o.dead)continue;o.a.hp=0;o.a.alive=false;korbBreak(o.i);}}
+// ================================================================
+// The fight
+// ================================================================
+function kHandsInit(){
+  KA.hands.length=0;
+  for(let i=0;i<4;i++){const r=KR[i];KA.hands.push({i,x:r[0],y:r[1]-90,z:r[2],rx:r[0],ry:r[1],rz:r[2],s:KS[i],side:i%2?1:-1,ph:i*1.9,busy:false,k:2.2,tx:r[0],ty:r[1],tz:r[2],dead:false,slam:0});}
+}
+// world <-> local (Kathana's frame: y is up, +z faces the way she looks)
+function kwa(x,y,z){const s=Math.sin(KA.yaw),c=Math.cos(KA.yaw);return [KA.bx+x*c+z*s,KA.by+y,KA.bz-x*s+z*c];}
+function kla(wx,wz){const s=Math.sin(KA.yaw),c=Math.cos(KA.yaw),dx=wx-KA.bx,dz=wz-KA.bz;return [dx*c-dz*s,dx*s+dz*c];}
+function kReach(h,x,y,z){const S=h.s,dx=x-S[0],dy=y-S[1],dz=z-S[2],L=Math.hypot(dx,dy,dz)||1;if(L<=KA_REACH)return [x,y,z];const k=KA_REACH/L;return [S[0]+dx*k,S[1]+dy*k,S[2]+dz*k];}
+function kElbow(S,H,side){
+  const dx=H[0]-S[0],dy=H[1]-S[1],dz=H[2]-S[2],D=Math.min(Math.hypot(dx,dy,dz)||1,KA_L1+KA_L2-1),ux=dx/(Math.hypot(dx,dy,dz)||1),uy=dy/(Math.hypot(dx,dy,dz)||1),uz=dz/(Math.hypot(dx,dy,dz)||1);
+  const a=(KA_L1*KA_L1-KA_L2*KA_L2+D*D)/(2*D),h=Math.sqrt(Math.max(0,KA_L1*KA_L1-a*a));
+  let px=side*0.9,py=-0.5,pz=-0.6;const dp=px*ux+py*uy+pz*uz;px-=dp*ux;py-=dp*uy;pz-=dp*uz;const pl=Math.hypot(px,py,pz)||1;
+  return [S[0]+ux*a+px/pl*h,S[1]+uy*a+py/pl*h,S[2]+uz*a+pz/pl*h];
+}
+const kEase=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
+function kCore(){return kwa(0,114,8);} // where the heart is (the next phase's being appears here)
+function kathanaUpdate(dt){
+  KA.t+=dt;const d=KA.dead,I=1+0.28*d;
+  // she turns to face you and drifts closer when you keep away
+  const px=P.pos.x,pz=P.pos.z,dxp=px-KA.bx,dzp=pz-KA.bz,dist=Math.hypot(dxp,dzp);
+  if(KA.rise>=1||KA.phase==='fight'){KA.yaw=angLerp(KA.yaw,Math.atan2(dxp,dzp),damp(0.8,dt));
+    if(dist>230&&KA.fight){const sp=Math.min(10,(dist-230)*0.5)*dt;KA.bx+=dxp/dist*sp;KA.bz+=dzp/dist*sp;}}
+  else KA.yaw=angLerp(KA.yaw,Math.atan2(dxp,dzp),damp(1.2,dt));
+  KA.by=-215*(1-KA.rise)+Math.sin(KA.t*0.5)*1.4*KA.rise;
+  KA.src.pos.set(KA.bx,60,KA.bz);
+  // arms: slow drift, or what the attack asks for
+  const hs=KA.hands;
+  for(const h of hs){
+    let wx=h.rx+Math.sin(KA.t*0.37+h.ph)*13*I,wy=h.ry+Math.sin(KA.t*0.51+h.ph*1.7)*9*I,wz=h.rz+Math.sin(KA.t*0.29+h.ph*0.6)*13*I,k=1.6;
+    if(h.dead){wy=h.ry-26+Math.sin(KA.t*0.4+h.ph)*4;wx=h.rx*0.92;wz=h.rz*0.9;k=0.9;}
+    if(KA.rise<1)wy-=60*(1-KA.rise);
+    if(h.busy){wx=h.tx;wy=h.ty;wz=h.tz;k=h.k;}
+    const r=kReach(h,wx,wy,wz);h.x+=(r[0]-h.x)*damp(k,dt);h.y+=(r[1]-h.y)*damp(k,dt);h.z+=(r[2]-h.z)*damp(k,dt);
+  }
+  kSyncOrbs();
+  if(KA.fight&&!P.dead&&!KA.lost)kAttacks(dt);
+  kWaves(dt);kShots(dt);if(KA.lost)KA.beam=null;
+  for(let i=KA.fx.length-1;i>=0;i--){const f=KA.fx[i];f.t+=dt;if(f.t>=f.dur)KA.fx.splice(i,1);}
+  KA.eyeGlow=KA.atk&&KA.atk.type==='gaze'?KA.atk.glow:Math.max(0,KA.eyeGlow-dt*1.5);
+  // the arena's wall (a soft push, then a hard stop) and her body (you can't stand inside her)
+  if(!P.dead){const ox=P.pos.x-KAR.x,oz=P.pos.z-KAR.z,r=Math.hypot(ox,oz);
+    if(r>455){const push=(r-455)*1.6*dt;P.vel.x-=ox/r*push*30;P.vel.z-=oz/r*push*30;if(r>498){P.pos.x=KAR.x+ox/r*498;P.pos.z=KAR.z+oz/r*498;}}
+    const bx=P.pos.x-KA.bx,bz=P.pos.z-KA.bz,br=Math.hypot(bx,bz);if(br<48&&P.pos.y<92&&KA.rise>0.5){P.pos.x=KA.bx+bx/(br||1)*48;P.pos.z=KA.bz+bz/(br||1)*48;}}
+}
+function kSyncOrbs(){
+  for(const o of KA.orbs){if(o.dead)continue;const h=KA.hands[o.i],w=kwa(h.x,h.y+17,h.z);o.a.pos.set(w[0],w[1],w[2]);o.a.vel.set(0,0,0);o.a.held=false;o.a.stun=0;o.a.alive=o.a.hp>0;o.a.radius=11*(0.72+0.28*clamp(o.a.hp/KO_HP,0,1));}
+}
+// ---- the three attacks: hand slam, gaze, orb barrage ----
+function kAttacks(dt){
+  const d=KA.dead;
+  if(!KA.atk){KA.cd-=dt;if(KA.cd<=0)kPick();}
+  const A=KA.atk;if(!A)return;A.t+=dt;
+  if(A.type==='slam'){
+    for(const S of A.s){
+      const h=KA.hands[S.h];S.t+=dt;
+      if(S.ph===0){ // the hand rises over you; the mark on the floor follows you, then holds
+        if(S.t<0.95){const lead=0.35;S.x=P.pos.x+P.vel.x*lead;S.z=P.pos.z+P.vel.z*lead;}
+        const l=kla(S.x,S.z),r=kReach(h,l[0],150,l[1]);h.busy=true;h.tx=r[0];h.ty=r[1];h.tz=r[2];h.k=3.2;
+        const m=kReach(h,l[0],6,l[1]),wm=kwa(m[0],0,m[2]);S.mx=wm[0];S.mz=wm[2];
+        if(S.t>=1.45){S.ph=1;S.t=0;const q=kReach(h,l[0],5,l[1]);h.tx=q[0];h.ty=q[1];h.tz=q[2];h.k=26;}
+      }else if(S.ph===1){
+        const w=kwa(h.x,h.y,h.z);
+        if(h.y<14||S.t>0.45){S.ph=2;S.t=0;kImpact(w[0],w[2],d);}
+      }else if(S.ph===2){if(S.t>0.9){S.ph=3;h.busy=false;}}
+    }
+    if(A.s.every(S=>S.ph===3)){KA.atk=null;KA.cd=Math.max(1.2,3-0.45*d);}
+  }else if(A.type==='gaze'){
+    if(A.ph===0){A.glow=Math.min(1,A.t/1.6);const lx=A.gx=P.pos.x,lz=A.gz=P.pos.z;if(A.t>=1.6){A.ph=1;A.t=0;A.fx=lx;A.fz=lz;const hx=KA.bx-lx,hz=KA.bz-lz,l=Math.hypot(hx,hz)||1;A.px=-hz/l;A.pz=hx/l;A.sw=80+14*d;A.dur=2.5-0.25*d;SFX.tone('sawtooth',90,500,A.dur,0.2);SFX.boom(0.8,1.4);addShake(0.4);}}
+    else if(A.ph===1){
+      A.glow=1;const u=clamp(A.t/A.dur,0,1),dir=A.rev?1-u:u,off=-A.sw+2*A.sw*dir,tx=A.fx+A.px*off,tz=A.fz+A.pz*off,hd=kwa(0,172,24);
+      KA.beam={ax:hd[0],ay:hd[1],az:hd[2],bx:tx,bz:tz};
+      // the player is hit when close to the beam (a segment from the head to the floor)
+      const c=center(P),abx=tx-hd[0],aby=-hd[1],abz=tz-hd[2],L2=abx*abx+aby*aby+abz*abz,k=clamp(((c.x-hd[0])*abx+(c.y-hd[1])*aby+(c.z-hd[2])*abz)/L2,0,1),qx=hd[0]+abx*k,qy=hd[1]+aby*k,qz=hd[2]+abz*k;
+      if(Math.hypot(c.x-qx,c.y-qy,c.z-qz)<6&&time-(A.hitT||-9)>0.18){A.hitT=time;Damage.apply(KA.src,P,kDmg(0.022),'fire',{knock:6});}
+      if(Math.random()<dt*40)smoke(tx,1,tz,1,3,7,1.2,0.35);
+      if(Math.random()<dt*30)KA.fx.push({x:tx+rr(-3,3),y:0.4,z:tz+rr(-3,3),t:0,dur:2.2,r0:4,r1:3,col:[.25,.2,.2],flat:true});
+      if(A.t>=A.dur){if(d>=3&&!A.rev){A.rev=true;A.t=0;}else{A.ph=2;A.t=0;KA.beam=null;}}
+    }else{A.glow=Math.max(0,1-A.t/0.8);if(A.t>=0.8){KA.atk=null;KA.cd=Math.max(1.2,3.2-0.45*d);}}
+  }else if(A.type==='barrage'){
+    A.n-=dt;if(A.n<=0&&A.round<A.rounds){A.n=0.55;A.round++;let first=true;
+      for(const o of KA.orbs){if(o.dead||o.a.hp<=0)continue;kShot(o,first?0:rr(-1,1));first=false;}SFX.tone('square',300,900,0.18,0.08);}
+    if(A.round>=A.rounds&&A.t>A.rounds*0.55+0.8){KA.atk=null;KA.cd=Math.max(1.3,3.2-0.45*d);}
+  }
+}
+function kPick(){
+  const d=KA.dead,alive=KA.orbs.filter(o=>!o.dead).length,pool=[['slam',40],['gaze',30],['barrage',alive?30:0]].filter(p=>p[0]!==KA.last);let tot=0;for(const p of pool)tot+=p[1];let r=Math.random()*tot,type=pool[0][0];
+  for(const p of pool){r-=p[1];if(r<=0){type=p[0];break;}}
+  KA.last=type;
+  if(type==='slam'){const free=KA.hands.filter(h=>!h.busy),n=Math.min(free.length,d>=2?2:1),s=[];
+    for(let i=0;i<n;i++){const j=(Math.random()*free.length)|0,h=free.splice(j,1)[0];s.push({h:h.i,ph:0,t:-i*0.35,x:P.pos.x,z:P.pos.z,mx:0,mz:0});}
+    KA.atk={type,t:0,s};}
+  else if(type==='gaze'){KA.atk={type,t:0,ph:0,glow:0};SFX.tone('sine',300,900,1.5,0.1);}
+  else{KA.atk={type,t:0,n:0,round:0,rounds:Math.min(6,3+d)};}
+}
+function kImpact(x,z,d){
+  KA.waves.push({x,z,r:8,spd:80+8*d,max:200,hit:false});KA.fx.push({x,y:0.5,z,t:0,dur:0.7,r0:6,r1:40,col:[1,.6,.2]});
+  smoke(x,2,z,14,10,16,3,0.3);SFX.boom(1,1.8);addShake(0.9);flashWhite=Math.max(flashWhite,0.0);
+  for(let k=0;k<12;k++){const a=rr(0,TAU),s=rr(14,30),w=rr(1,3.4);spawnPiece(x+Math.cos(a)*8,1,z+Math.sin(a)*8,MESH.box,w,w*0.7,w*1.2,[.75,.71,.64],Math.cos(a)*s,rr(10,26),Math.sin(a)*s,7);}
+}
+function kWaves(dt){
+  for(let i=KA.waves.length-1;i>=0;i--){const w=KA.waves[i];if(!w)continue;w.r+=w.spd*dt;
+    if(!w.hit&&!P.dead){const dd=Math.hypot(P.pos.x-w.x,P.pos.z-w.z);
+      if(Math.abs(dd-w.r)<5&&P.pos.y<9){w.hit=true;const l=dd||1,nx=(P.pos.x-w.x)/l,nz=(P.pos.z-w.z)/l;Damage.apply(KA.src,P,kDmg(0.1),'blast',{knock:22});P.vel.x+=nx*18;P.vel.z+=nz*18;}}
+    if(w.r>w.max)KA.waves.splice(i,1);}
+}
+// ---- orb bolts: slow, homing, any hit destroys them ----
+function kShot(o,spread){
+  if(KA.shots.length>=26)return;const a0=o.a,sp=26+2*KA.dead;
+  const a={kind:'kshot',faction:'kathana',zid:'void',name:'Orb bolt',alive:true,hp:1,maxHp:1,pos:new V3(a0.pos.x,a0.pos.y,a0.pos.z),vel:new V3(),yaw:0,heroYaw:0,flash:0,stun:0,slow:0,slowT:0,burn:0,burnDps:0,held:false,thrown:null,cy:0,radius:2.4,ys:1,lastHit:-99,grudge:null,grudgeT:-99,orb:o.i,life:9,deadT:0,col:o.col};
+  const dx=P.pos.x-a.pos.x,dy=P.pos.y+1.3-a.pos.y,dz=P.pos.z-a.pos.z,l=Math.hypot(dx,dy,dz)||1;a.vel.set(dx/l*sp+spread*14,dy/l*sp+rr(2,10),dz/l*sp+spread*14);a.sp=sp;
+  a.onDefeat=()=>kShotBurst(a);actors.push(a);KA.shots.push(a);
+}
+function kShotBurst(a){
+  const c=a.col;for(let k=0;k<5;k++){const s=rr(0.4,1);spawnPiece(a.pos.x,a.pos.y,a.pos.z,MESH.box,s,s,s,c,rr(-12,12),rr(2,12),rr(-12,12),3);}
+  smoke(a.pos.x,a.pos.y,a.pos.z,3,1.5,5,1.5,0.35);SFX.tone('triangle',700,200,0.18,0.07*SFX.vol(a.pos.x,a.pos.y,a.pos.z));
+}
+function kShotKill(a){if(a.alive){a.alive=false;a.hp=0;kShotBurst(a);}}
+function kShots(dt){
+  for(let i=KA.shots.length-1;i>=0;i--){const a=KA.shots[i];if(!a)continue; // (a hit that knocks you out clears the list while we loop)
+    if(!a.alive){a.deadT+=dt;if(a.deadT>0.05){removeActor(a);KA.shots.splice(i,1);}continue;}
+    a.life-=dt;
+    if(!P.dead){const dx=P.pos.x-a.pos.x,dy=P.pos.y+1.3-a.pos.y,dz=P.pos.z-a.pos.z,l=Math.hypot(dx,dy,dz)||1,k=damp(1.25,dt),sp=a.sp;
+      a.vel.x+=(dx/l*sp-a.vel.x)*k;a.vel.y+=(dy/l*sp-a.vel.y)*k;a.vel.z+=(dz/l*sp-a.vel.z)*k;
+      if(l<3.2){a.alive=false;a.hp=0;kShotBurst(a);Damage.apply(KA.src,P,kDmg(0.045),'blast',{knock:12});continue;}}
+    a.pos.addS(a.vel,dt);if(a.pos.y<1.2){a.pos.y=1.2;a.vel.y=Math.abs(a.vel.y)*0.3;}
+    if(a.life<=0)kShotKill(a);}
+}
+function kClearShots(){for(const a of KA.shots)removeActor(a);KA.shots.length=0;KA.waves.length=0;KA.beam=null;}
+// ================================================================
+// Drawing: Kathana, the markers, the shadows
+// ================================================================
+const KST=[.58,.54,.47,1],KST2=[.4,.37,.34,1],KDK=[.05,.04,.08,1],KGD=[1,.74,.22,1],KGD2=[.85,.55,.14,1],KTOR=primMesh(primTorus(1,0.07,72,8),6);
+function kb(x,y,z,sx,sy,sz,col,ry,mesh){const w=kwa(x,y,z);queue(mesh||MESH.box,at(w[0],w[1],w[2],0,KA.yaw+(ry||0),0,sx,sy,sz),col,0);}
+function kc(x,y,z,rx,h,rz,col){const w=kwa(x,y,z);queue(MESH.cyl,at(w[0],w[1],w[2],0,KA.yaw,0,rx,h,rz),col,0);}
+function ks(x,y,z,rx,ry,rz,col,mesh){const w=kwa(x,y,z);queue(mesh||MESH.sphere,at(w[0],w[1],w[2],0,KA.yaw,0,rx,ry,rz),col,0);}
+function kbeam(a,b,w,col,mesh,fl){queue(mesh||MESH.box,M4.beam(tmpM(),a[0],a[1],a[2],b[0],b[1],b[2],w),col,fl||0);}
+function kathanaDraw(){
+  const Z=ZONES.void,t=time;
+  if(KA.vis&&KA.rise>0.001)kBody(t);
+  if(KA.rise>0.001)kHandsDraw(t);
+  if(KA.eyeGlow>0.02&&KA.vis){const g=KA.eyeGlow,w=kwa(0,176,28),r=2+13*g;queue(MESH.glowSphere,at(w[0],w[1],w[2],0,0,0,r,r,r),[1,.35,.1,1],0);queue(KGS,at(w[0],w[1],w[2],0,0,0,r*2.4,r*2.4,r*2.4),[1,.5,.15,0.3],F_BL);} // the gaze charging
+  kMarkers(t);
+  // soft shadows (blobs on the floor): under you, under her, under her hands
+  if(KA.flood>0.4){
+    const sh=(x,z,r,a)=>queue(MESH.disc,at(x,0.12,z,0,0,0,r,1,r),[0.05,0.05,0.12,a*KA.flood],F_BL);
+    {const h=Math.max(0,P.pos.y),r=1.3+h*0.04;sh(P.pos.x,P.pos.z,r,Math.max(0.1,0.32-h*0.004));}
+    if(KA.vis&&KA.rise>0.5){sh(KA.bx,KA.bz,62,0.26);for(const hd of KA.hands){const w=kwa(hd.x,hd.y,hd.z),h=Math.max(0,w[1]),r=16+h*0.05;sh(w[0],w[2],r,Math.max(0.07,0.24-h*0.0016));}}
+    for(const s of KA.shots)if(s.alive)sh(s.pos.x,s.pos.z,2.4,0.2);
+  }
+  // shockwaves: a low orange ring on the floor, tall enough that you must jump or fly over it
+  for(const w of KA.waves){const f=clamp(1-w.r/w.max,0,1);queue(KTOR,at(w.x,3.2,w.z,0,0,0,w.r,0.6,w.r),[1,.4,.08,1],0);queue(KTOR,at(w.x,3.6,w.z,0,0,0,w.r*0.99,0.3,w.r*0.99),[1,.85,.4,1],0);queue(KTOR,at(w.x,3.2,w.z,0,0,0,w.r*0.97,1.1,w.r*0.97),[1,.5,.1,0.25*f],F_BL);}
+  // the gaze beam
+  if(KA.beam){const B=KA.beam,a=[B.ax,B.ay,B.az],b=[B.bx,0.3,B.bz],pu=1+Math.sin(t*50)*0.1;
+    kbeam(a,b,2.2*pu,[1,.25,.1,1],MESH.glowBox);kbeam(a,b,5.5*pu,[1,.7,.2,0.55],MESH.glowBox,F_BL);kbeam(a,b,10*pu,[1,.5,.15,0.2],MESH.glowBox,F_BL);
+    queue(MESH.glowSphere,at(B.bx,1,B.bz,0,0,0,8*pu,3,8*pu),[1,.55,.15,0.7],F_BL);}
+  // effects: expanding colour spheres (orbs shattering, shockwave flashes) and the burnt trail of the beam
+  for(const f of KA.fx){const k=f.t/f.dur,r=lerp(f.r0,f.r1,f.flat?k:Math.sqrt(k));
+    if(f.flat)queue(MESH.disc,at(f.x,0.16,f.z,0,0,0,r,1,r),[f.col[0],f.col[1],f.col[2],0.35*(1-k)],F_BL);
+    else queue(MESH.glowSphere,at(f.x,f.y,f.z,0,0,0,r,r,r),[f.col[0],f.col[1],f.col[2],0.5*(1-k)],F_BL);}
+  // bolts
+  for(const s of KA.shots){if(!s.alive)continue;const c=s.col,p=1+Math.sin(t*14+s.orb)*0.12,r=2.1*p;
+    queue(MESH.glowSphere,at(s.pos.x,s.pos.y,s.pos.z,0,0,0,r,r,r),[c[0],c[1],c[2],1],0);queue(MESH.glowSphere,at(s.pos.x,s.pos.y,s.pos.z,0,0,0,r*1.7,r*1.7,r*1.7),[c[0],c[1],c[2],0.3],F_BL);
+    queue(MESH.sphere,at(s.pos.x,s.pos.y,s.pos.z,0,0,0,r*0.5,r*0.5,r*0.5),[1,1,1,1],0);}
+}
+// the floor marks of the attacks
+function kMarkers(t){
+  const A=KA.atk;if(!A)return;
+  if(A.type==='slam')for(const S of A.s){if(S.ph>1||S.t<0)continue;const lock=S.ph===1||S.t>0.95,f=lock?(0.5+0.5*Math.sin(t*28)):0.6,r=16;
+    queue(MESH.ring,at(S.mx,0.2,S.mz,0,0,0,r,1,r),[1,.2,.1,0.5+0.4*f],F_BL);queue(MESH.disc,at(S.mx,0.18,S.mz,0,0,0,r,1,r),[1,.25,.1,0.18+0.14*f],F_BL);
+    queue(MESH.ring,at(S.mx,0.22,S.mz,0,0,0,r*1.6,1,r*1.6),[1,.4,.1,0.25],F_BL);queue(MESH.glowCyl,at(S.mx,45,S.mz,0,0,0,r*0.85,90,r*0.85),[1,.25,.1,0.07+0.1*f],F_BL);}
+  if(A.type==='gaze'&&A.ph===0){const hd=kwa(0,172,24),l=Math.hypot(A.gx-hd[0],A.gz-hd[2])||1,mx=(A.gx+hd[0])/2,mz=(A.gz+hd[2])/2,ang=Math.atan2(A.gx-hd[0],A.gz-hd[2]);
+    queue(MESH.box,at(mx,0.2,mz,0,ang,0,3+9*A.glow,0.05,l),[1,.2,.1,0.12+0.3*A.glow],F_BL);
+    queue(MESH.ring,at(A.gx,0.22,A.gz,0,0,0,7,1,7),[1,.25,.1,0.4+0.4*A.glow],F_BL);}
+  if(A.type==='gaze'&&A.ph===1){const hd=kwa(0,172,24);for(const sgn of [-1,1]){const off=sgn*A.sw,tx=A.fx+A.px*off,tz=A.fz+A.pz*off;queue(MESH.ring,at(tx,0.2,tz,0,0,0,5,1,5),[1,.3,.1,0.3],F_BL);}}
+}
+// ---- the body ----
+const KIN=[.06,.04,.14,1],KIN2=[.03,.02,.08,1];
+function kbz(x,y,z,sx,sy,sz,col,rz){const w=kwa(x,y,z);queue(MESH.box,at(w[0],w[1],w[2],0,KA.yaw,rz||0,sx,sy,sz),col,0);}
+function kBody(t){
+  const e=KA.open,g=KA.eyeGlow,sp=KA.split;
+  // the robe: six ink-dark tiers with gold bands, a bone panel down the front
+  for(let k=0;k<6;k++){const r=54-k*3.6,y=6+k*14;kc(0,y,0,r,14.2,r,k%2?KIN2:KIN);kc(0,y+7.2,0,r+0.9,1.8,r+0.9,KGD);}
+  kb(0,44,53,22,84,3,KST);kb(0,44,54.8,2.6,80,1,KGD);kb(-8,44,54.8,1.2,80,1,KGD2);kb(8,44,54.8,1.2,80,1,KGD2);
+  for(let k=0;k<12;k++){const a=k*TAU/12+0.2;kb(Math.sin(a)*52,16,Math.cos(a)*52,3.4,22,3.4,KGD,a);}
+  // the torso: two halves that can part along the middle (KA.split) around a glowing core
+  const so=sp*26,sy=sp*0.5;
+  for(const sd of [-1,1]){
+    const ox=sd*(17.5+so),w=kwa(ox,112,0);queue(MESH.box,at(w[0],w[1],w[2],0,KA.yaw+sd*sy,0,34,60,40),KST,0);
+    kb(ox+sd*sp*0.6,112,20.6,30,50,1.4,KIN,sd*sy);
+    for(const yy of [128,116,104,92])kb(ox+sd*sp*0.6,yy,21.4,31,2.4,1,KGD,sd*sy);
+    kb(ox,112,-20.5,33,52,1,KIN2,sd*sy);
+  }
+  if(sp>0.01){kb(0,112,0,10+so*1.5,56,34,[1,.78,.3,1],0,MESH.glowBox);ks(0,112,6,18+so*0.6,24,14,[1,.9,.55,1],MESH.glowSphere);}
+  else{ // the chest sigil: two gold rings round a dark eye with a glowing pupil
+    const w=kwa(0,112,22.4);queue(KTOR,at(w[0],w[1],w[2],Math.PI/2,KA.yaw,0,15,15,15),KGD,0);queue(KTOR,at(w[0],w[1],w[2],Math.PI/2,KA.yaw,0,8.5,8.5,8.5),KGD,0);
+    ks(0,112,22,6,10,1.6,KDK);ks(0,112,23,2.2,4.4,0.9,[1,.85,.4,1],MESH.glowSphere);}
+  // shoulders (bone, gold collars, gold spikes) and neck
+  for(const sd of [-1,1]){ks(sd*43,134,0,18,16,18,KST2);kc(sd*43,148,0,14,4,14,KGD);ks(sd*43,143,0,13,9,13,KST);
+    for(let k=0;k<3;k++){const w=kwa(sd*(48+k*7),140+k*6,0),w2=kwa(sd*(58+k*14),160+k*11,0);kbeam(w,w2,5-k,KGD,MESH.box);}}
+  kc(0,148,0,10,16,10,KIN2);kb(0,142,0,40,6,34,KGD2);
+  // the head: a tall bone mask with a black vertical mouth and many eyes
+  ks(0,174,0,17,32,16,KST);kb(0,204,1,24,4,20,KST2);
+  kb(0,153,14.4,7.4,30,3,KDK);kb(0,153,15.9,3.2,27,1.4,[1,.2,.1,1],0,MESH.glowBox);
+  for(let k=0;k<5;k++){kb(-4.8,142+k*6,15.8,1.6,2.6,1.6,KGD);kb(4.8,142+k*6,15.8,1.6,2.6,1.6,KGD);}
+  const eye=(x,y,z,r,o)=>{const oo=Math.max(0.06,e*o),ec=[1,1-0.55*g,0.72-0.62*g,1],r2=r*(1+0.9*g*(r>3?0.4:1));
+    ks(x,y,z-r*0.3,r2*1.14,r2*1.14*Math.max(oo,0.3),r2*0.7,KIN2);ks(x,y,z,r2,r2*oo,r2*0.7,ec,MESH.glowSphere);ks(x,y,z+r2*0.5,r2*0.62,r2*0.62*oo,r2*0.3,KGD,MESH.glowSphere);ks(x,y,z+r2*0.66,r2*0.17,r2*0.6*oo,r2*0.2,KDK);};
+  eye(-7.5,176,13.2,4.6,1);eye(7.5,176,13.2,4.6,1);
+  kbz(-8.4,182.4,14.6,11,2.2,2,KIN2,-0.32);kbz(8.4,182.4,14.6,11,2.2,2,KIN2,0.32); // brows, slanted in: it glares
+  for(let k=0;k<5;k++)eye((k-2)*5.4,190-Math.abs(k-2)*1.8,10.4,2.1,0.9);
+  for(const sd of [-1,1]){eye(sd*12.5,162,10.4,2.5,0.95);eye(sd*15.2,174,7.4,2.1,0.9);eye(sd*13.5,150,8.4,2,0.9);}
+  // the crown: a gold ring of eyes behind the head with gold spikes between them, turning slowly
+  { const w=kwa(0,174,-12);queue(KTOR,at(w[0],w[1],w[2],Math.PI/2,KA.yaw,0,40,40,40),KGD,0);queue(KTOR,at(w[0],w[1],w[2],Math.PI/2,KA.yaw,0,52,52,52),KGD2,0);}
+  for(let k=0;k<13;k++){const a=t*0.1+k*TAU/13,b=a+TAU/26,cx=Math.sin(a)*40,cy=174+Math.cos(a)*40;
+    eye(cx,cy,-9,3.1,1);
+    const w1=kwa(Math.sin(b)*40,174+Math.cos(b)*40,-12),w2=kwa(Math.sin(b)*70,174+Math.cos(b)*70,-12);kbeam(w1,w2,6,KGD,MESH.box);}
+  // stone fragments turning about her
+  for(let k=0;k<12;k++){const a=t*0.07+k*TAU/12,r=118+(k%3)*18,y=40+(k*37%150)+Math.sin(t*0.4+k)*4,s=5+(k%4)*2.4,w=kwa(Math.sin(a)*r,y,Math.cos(a)*r);
+    queue(MESH.box,at(w[0],w[1],w[2],t*0.2+k,t*0.3+k*2,0,s,s*1.4,s*0.9),k%2?KST2:KST,0);}
+}
+function kHandsDraw(t){
+  for(const h of KA.hands){
+    const S=h.s,H=[h.x,h.y,h.z],E=kElbow(S,H,h.side),dead=h.dead,sc=dead?KDK:KST,sc2=dead?[.12,.11,.15,1]:KST2,
+      ws=kwa(S[0],S[1],S[2]),we=kwa(E[0],E[1],E[2]),wh=kwa(H[0],H[1],H[2]);
+    kbeam(ws,we,16,sc,MESH.box);kbeam(we,wh,12,sc2,MESH.box);
+    queue(MESH.sphere,at(we[0],we[1],we[2],0,0,0,10,10,10),dead?KDK:KGD2,0);
+    // the hand: a wide palm and five curled fingers cupping the orb
+    queue(MESH.box,at(wh[0],wh[1],wh[2],0,KA.yaw,0,24,5,26),sc,0);queue(MESH.cyl,at(wh[0],wh[1]-2,wh[2],0,KA.yaw,0,7,6,7),dead?KDK:KGD,0);
+    for(let f=0;f<5;f++){const a=KA.yaw+f*TAU/5+0.4,r0=10,r1=dead?14:15.5,up=dead?3+f%2*2:18,b0=[wh[0]+Math.sin(a)*r0,wh[1]+2,wh[2]+Math.cos(a)*r0],b1=[wh[0]+Math.sin(a)*r1,wh[1]+up,wh[2]+Math.cos(a)*r1];
+      kbeam(b0,b1,3.8,sc2,MESH.box);queue(MESH.sphere,at(b1[0],b1[1],b1[2],0,0,0,2.4,2.4,2.4),sc,0);}
+    if(dead){for(let c=0;c<4;c++){const a=KA.yaw+c*1.6,b0=[wh[0]+Math.sin(a)*3,wh[1]+3,wh[2]+Math.cos(a)*3],b1=[wh[0]+Math.sin(a)*12,wh[1]+3.2,wh[2]+Math.cos(a)*12];kbeam(b0,b1,0.8,[1,.35,.15,1],MESH.glowBox);}
+      kbeam(kwa(E[0],E[1],E[2]),kwa(E[0]+3,E[1]-6,E[2]),1.1,[1,.35,.15,1],MESH.glowBox);continue;}
+    queue(MESH.disc,at(wh[0],wh[1]+2.6,wh[2],0,0,0,8,1,8),KGD,0);
+    const o=KA.orbs[h.i];if(!o||o.dead)continue;
+    // the orb: a bright core in the colour of the hand, a halo, three gold rings
+    const a=o.a,c=o.col,p=1+Math.sin(t*3+h.i)*0.04,r=a.radius*p,fl=a.flash*0.7,cc=[Math.min(1,c[0]+fl),Math.min(1,c[1]+fl),Math.min(1,c[2]+fl),1];
+    queue(MESH.glowSphere,at(a.pos.x,a.pos.y,a.pos.z,0,0,0,r,r,r),cc,0);
+    queue(MESH.glowSphere,at(a.pos.x,a.pos.y,a.pos.z,0,0,0,r*0.55,r*0.55,r*0.55),[c[0]*0.4+0.6,c[1]*0.4+0.6,c[2]*0.4+0.6,1],0);
+    queue(MESH.glowSphere,at(a.pos.x,a.pos.y,a.pos.z,0,0,0,r*1.45,r*1.45,r*1.45),[c[0],c[1],c[2],0.22],F_BL);
+    for(let k=0;k<3;k++){const ang=t*(0.8+k*0.3)*(k%2?-1:1);queue(MESH.ring,M4.alignY(tmpM(),a.pos.x,a.pos.y,a.pos.z,Math.sin(ang+k)*0.9,1,Math.cos(ang*0.8+k)*0.9,r*(1.3+k*0.12)),[1,.78,.28,0.95],F_BL);}
+  }
+}
+// ================================================================
 // HUD icon bar and the move list
 // ================================================================
 // A row of icons under your name, one per menu, each showing its key (like a game launcher's top bar). With the mouse locked,
@@ -8200,6 +8685,7 @@ const SLOT_KEYS=['1','2','3','4'],SLOT_ALT=['Q','E','R',''];
 let slotEls=[];
 function buildHotbar(){
   hud.hotbar.textContent='';slotEls=[];renderHeroKeys();fitMoves();if(!save.character)return;
+  if(PR.on){prBuildHotbar();return;}
   if(SG.on){sgBuildHotbar();return;}
   if(P.alien){const a=ALIENS[P.alien.id];
     a.abilities.forEach((ab,i)=>{const cd=el('i',{class:'cd'});const s=el('div',{class:'slot alien'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:ab.name}),el('small',{text:a.name}));hud.hotbar.appendChild(s);slotEls.push({alien:i,s,cd});});
@@ -8213,6 +8699,7 @@ function buildHotbar(){
   });
   {const cd=el('i',{class:'cd',hidden:true}),kb=el('kbd'),nm=el('span',{class:'nm'});const s=el('div',{class:'slot vslot',hidden:true},cd,kb,nm);s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({vs:true,s,cd,kb,nm});} // the V / B slot: filled in by the per-frame update
   if(rewindOn()){const cd=el('i',{class:'cd',hidden:true}),s=el('div',{class:'slot rewslot'},cd,el('kbd',{text:touchOn()?'':'X'}),el('span',{class:'nm',text:'⟲ Rewind'}));s.addEventListener('click',()=>rewind());hud.hotbar.appendChild(s);slotEls.push({rw:true,s,cd});} // Chrono Core: an extra slot after V
+  if(destroyAvail())prDestroySlot(); // Destroy (Enter): after V and Rewind, once the UFO is done
   for(const id of save.character.movement){
     const lv=el('small');const pre=PRESETS[id];const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':POWERS[id].key}),el('span',{class:'nm',text:pre?pre.name:POWERS[id].name}),lv);
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd:null,lv,trav:true});
@@ -8569,7 +9056,7 @@ function vAction(){
   if(hasTravWheel())return {key:'V',name:'Style',icon:'wheel'};
   return null;}
 // what clicking the slot or tapping the button does: the same as the key
-function vPress(){const v=vAction();if(!v||state!=='play'||dialOpen||P.dead)return;
+function vPress(){const v=vAction();if(!v||state!=='play'||dialOpen||P.dead||arenaSG())return;
   if(v.key==='B'){summonConstruct();return;}
   if(v.name==='Sun God'){sunGodKey();return;}
   if(isRing()){if(ringLocked())oathBusy();else openDial('construct');}else if(hasPower('morphBand'))bandPress();else if(armorForms())openDial('armor');else openDial('trav');}
@@ -8651,7 +9138,9 @@ addEventListener('keydown',e=>{
   if(P.swim&&e.code==='KeyC')return; // C dives while swimming
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
-  if(e.code==='KeyU'){suitToggle();return;}
+  if(e.code==='KeyU'&&!arenaSG()){suitToggle();return;}
+  if(arenaSG()&&(e.code==='KeyV'||e.code==='KeyB'||e.code==='KeyU'||e.code==='KeyN'))return; // in Kathana's arena you fight as the Sun God: no forms
+  if(e.code==='Enter'||e.code==='NumpadEnter'){if(!e.repeat&&destroyKey())e.preventDefault();return;}
   if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else if(P.construct)vHoldStart(e.timeStamp);else openDial('construct');}else if(hasTrav('solarFlight')&&!hasPower('morphBand')&&!P.alien)sunGodKey();else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else if(hasTravWheel()&&!hasPower('morphBand'))openDial('trav');else bandPress();return;}
   if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
   if(e.code==='KeyO'&&isRing()){if(oathHoldMode())holdOathStart('key');else if(ringLocked())closeOath();else openOath();return;}
@@ -9029,7 +9518,8 @@ function buildTouchButtons(){
   tbMake('up','jump','up','','A0','jmp');tbMake('fly','fly','wing','Fly','A1','trav');tbMake('web','web','web','Web','A1','trav');
   tbMake('run','speed','run','Run','A1','trav');tbMake('dive','down','dive','Dive','A1','trav');
   tbMake('boost','speed','run','Boost','A2','trav');tbMake('lock','lock','target','Lock','A3','lk');
-  if(SG.on)sgTouchButtons();
+  if(PR.on)prTouchButtons();
+  else if(SG.on)sgTouchButtons();
   else if(P.alien)ALIENS[P.alien.id].abilities.forEach((ab,i)=>tbMake('p'+i,'a'+i,'burst',ab.name.split(' ').pop(),'B','ab alien','#c89bff'));
   else save.character.abilities.forEach((id,i)=>{const lk=PBAL&&slotLocked(i);
     if(lk&&i!==nextLockedSlot())return;
@@ -9042,7 +9532,7 @@ function buildTouchButtons(){
   {const v=vAction();tbMake('wheel','vkey',v?v.icon:'wheel',v?v.name:'Wheel','C');}
   tbMake('oath','oath','oath','Oath','C');tbMake('rebuild','rebuild','rebuild','Rebuild','C');
   tbMake('fast','fast','run','Fast','C');tbMake('phase','phase','phase','Walls','C');tbMake('dial','dialcycle','dialUp','Dial','C');
-  tbMake('suit','suit','shirt','Suit','C');tbMake('rewind','rewind','rewind','Rewind','C');
+  tbMake('suit','suit','shirt','Suit','C');tbMake('rewind','rewind','rewind','Rewind','C');tbMake('destroy','destroy','burst','Destroy','C','dz','#ff8aa8');
   layoutTouch(true);
 }
 // which buttons fit what you're doing right now
@@ -9055,7 +9545,7 @@ function tbWanted(){
     if(P.swim)on.add('dive');else if(!P.alien&&m==='webSwing')on.add('web');else if(!P.alien&&m==='superSpeed')on.add('run');else if(flyer)on.add('fly');}
   for(let i=0;i<4;i++)if(TB['p'+i])on.add('p'+i);
   if(nearestInteract())on.add('use');
-  if(P.alien||SG.on){on.add('wheel');return on;}
+  if(P.alien||SG.on||PR.on){if(!PR.on&&!arenaSG())on.add('wheel');return on;}
   if(heldSlot>=0||con){on.add('grow');on.add('shrink');}
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
@@ -9064,9 +9554,10 @@ function tbWanted(){
   if(isSpeed()){on.add('fast');on.add('phase');on.add('dial');}
   if(!con)on.add('suit');
   if(rewindOn())on.add('rewind');
+  if(destroyAvail())on.add('destroy');
   return on;
 }
-const TB_ORDER_C=['wheel','lock','use','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit','rewind'];
+const TB_ORDER_C=['wheel','lock','use','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit','rewind','destroy'];
 function layoutTouch(force){
   if(!touchOn()||state!=='play')return;
   if(!force&&time-tbT<0.15)return;tbT=time;
@@ -9084,7 +9575,7 @@ function layoutTouch(force){
   for(const id in TB){const t=TB[id];if(!on.has(id)||!ringA[t.ring])continue;const [d,sz]=ringA[t.ring];const [x,y]=at(A,d);put(t,x,y,sz);}
   // the powers share ring B, evenly from straight up to straight left
   const ps=[0,1,2,3,4].map(i=>'p'+i).filter(id=>on.has(id)),B=184*k,bs=58*k;
-  ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,bs);});
+  ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,PR.on?bs*1.5:bs);}); // the Prism form's one skill (Destroy) is big
   // ring C packs the rest from the top down, spilling into ring D
   let r=252*k,d=-1;const cs=48*k,step=r=>2*Math.asin(Math.min(1,(cs+8*k)/(2*r)))*180/Math.PI;
   for(const id of TB_ORDER_C){if(!on.has(id)||TB[id].ring!=='C')continue;
@@ -9103,7 +9594,7 @@ function stackLeft(on){if(!on){for(const q of LEFT_COL){const e=document.querySe
 // per frame: cooldowns, toggles that are on, and the USE button's label
 function updateTouchHud(){
   if(!touchOn()||state!=='play')return;layoutTouch(false);stackLeft(true);
-  if(!save.character||P.alien||SG.on)return;
+  if(!save.character||P.alien||SG.on||PR.on)return;
   save.character.abilities.forEach((id,i)=>{const t=TB['p'+i];if(!t||t.b.hidden||t.b.classList.contains('lockd'))return;const st=PS[id],c=POWERS[id],cd=t.b.querySelector('.cd');
     if(cd){const f=c.cooldown?st.cd/pstat(id,'cooldown'):0,v=Math.round(clamp(f,0,1)*100);if(t.cdv!==v){t.cdv=v;cd.style.setProperty('--p',v+'%');cd.hidden=v<=0;}}
     t.b.classList.toggle('on',!!(st.holding||(id==='energyShield'&&P.shieldOn)||(id==='ringShield'&&P.ringShield)||(id==='telekinesis'&&P.tk)||(id==='invisibility'&&P.cloak)||(id==='slowTime'&&P.slowOn)||((id==='metalSkin'||id==='metalForms')&&P.metal)));});
@@ -9119,6 +9610,7 @@ function touchAct(a,down){
   else if(/^a[0-3]$/.test(a)){if(P.car)return;const i=+a[1];if(down){heldSlot=i;abilityDown(i);if(!slotLocked(i))guideDone('ability');}else{if(heldSlot===i)heldSlot=-1;abilityUp(i);}}
   else if(a==='con'){if(down)summonConstruct();}
   else if(a==='vkey'){if(down)vPress();}
+  else if(a==='destroy'){if(down)destroyKey();}
   else if(a==='oath'){if(oathHoldMode()){if(down)holdOathStart('touch');else holdOathStop();}else if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
@@ -9693,7 +10185,7 @@ function updateHud(dt){
   setText(hud.mode,'mode',P.dead?'Down':inSpace()?spaceMode():P.car?'Driving · '+Math.round(Math.abs(P.car.spd||0)*3.6)+' km/h':P.alien?ALIENS[P.alien.id].name+(P.alien.phase>0?' · Phasing':P.invisible>0?' · Veiled':''):P.wall?'Wall-climbing':P.web?'Swinging':P.flying?(sp>150?'Flight · Mach':'Flight'):P.phasing?'Phasing':timeStopT>0?'Time stopped':frozenT>0?'Frozen in time':P.speeding?'Super speed x'+Math.min(P.dial,dialMax()):isSpeed()?'On foot · dial x'+Math.min(P.dial,dialMax())+(P.fastMode?' · fast mode':''):P.charging?'Charging':P.swim?(P.pos.y<SWIM_Y-1?'Diving':'Swimming'):P.wade?'Wading':P.grounded?'On foot':'Airborne');
   for(const s of slotEls){
     if(s.rw){const c=REW.cd>0?Math.round(clamp(REW.cd/REW_CD,0,1)*100):0;if(s.cdv!==c){s.cdv=c;s.cd.style.setProperty('--p',c+'%');s.cd.hidden=c<=0;}s.s.classList.toggle('on',REW.on);continue;}
-    if(s.sg!==undefined||s.sgTimer)continue; // Sun God's slots are driven by updateSunGod
+    if(s.sg!==undefined||s.sgTimer||s.pr)continue; // Sun God's slots are driven by updateSunGod, the Destroy slots by 66f_kathana.js
     if(s.vs){const v=vAction();if(s.s.hidden!==!v)s.s.hidden=!v;if(!v)continue;const k=v.key+v.name;if(s.vk!==k){s.vk=k;s.kb.textContent=touchOn()?'':v.key;s.nm.textContent=v.name;}
       const mb=v.name==='Morph'||v.name==='Revert'||v.name==='Aliens',f=v.name==='Morph'&&band.cd>0?band.cd/pstat('morphBand','recharge'):v.name==='Sun God'&&SG.cd>0?SG.cd/sgVCd():0,c=Math.round(clamp(f,0,1)*100);if(s.cdv!==c){s.cdv=c;s.cd.style.setProperty('--p',c+'%');s.cd.hidden=c<=0;}
       s.s.classList.toggle('on',mb&&(!!P.alien||dialOpen));s.s.classList.toggle('bad',mb&&PS.morphBand.flash>0);continue;}
@@ -9716,7 +10208,7 @@ function updateHud(dt){
   hud.charge.hidden=!P.charging&&!P.cp;if(P.charging||P.cp){setText(hud.charge.firstChild,'chl',P.cp?'CHARGED PUNCH':'SUPER JUMP');setW(hud.chargeb,'charge',P.cp?P.cp.t/1.2:P.chargeT/1.0);}
   hud.vig.style.opacity=(hurtFlash*0.9+(P.hp/maxHp()<0.3?0.35+Math.sin(time*6)*0.1:0)).toFixed(3);
   hud.flash.style.opacity=flashWhite.toFixed(3);
-  if(boss&&!boss.leave){hud.bossbar.hidden=false;setText(hud.bossname,'bn',boss.name);setW(hud.bossb,'boss',boss.hp/boss.maxHp);}else hud.bossbar.hidden=true;
+  if(kathanaBar()){/* Kathana's arena draws its own bar (66f_kathana.js) */}else if(boss&&!boss.leave){hud.bossbar.hidden=false;setText(hud.bossname,'bn',boss.name);setW(hud.bossb,'boss',boss.hp/boss.maxHp);}else hud.bossbar.hidden=true;
   updateMoves();
   updateGrowTut();
   // the touch buttons follow what you're doing in updateTouchHud (81_touch.js)
@@ -9799,7 +10291,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   Portal,SFX,applyLook,rings,makeRemote,applyPresence,FLAG,updateTags,spawnMech,fireProj,mechPoint,get parks(){return typeof parks!=="undefined"?parks:null;},travStyle,setTravStyle,hasTravWheel,masteryLevel,PRESETS,get growTutOn(){return growTutOn;},respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play'){zonePlayerPre();updatePlayer(dt);zonePlayerPost();}updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);storyTick(dt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
-if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({growStep,ufoReward,rewind,boostMul,ufoBoost,REW,boostPanel,shiftMaster,stormAxe,ringInf,meterInf,sgVDur,sgVCd,ufoWebReel,skyAnchor,findAnchor,story:()=>save.story,storyAddActive:s=>{save.story.act+=+s||0;},ufoArrive:q=>ufoArrive(q===undefined?true:q),loadSave,enterZone,leaveZone,zone:()=>zone,askYesNo,cutscene,objective,objectiveMark,ufoTakeItem,UFO,UF,ualiens,ZONES,ZF,OBJ,get CUT(){return CUT;},get ASK(){return ASK;},storyTick,ufoLeave,ufoBeamUp,storyActiveNow,sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto}));
+if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({growStep,ufoReward,rewind,boostMul,ufoBoost,REW,boostPanel,shiftMaster,stormAxe,ringInf,meterInf,sgVDur,sgVCd,ufoWebReel,skyAnchor,findAnchor,story:()=>save.story,storyAddActive:s=>{save.story.act+=+s||0;},ufoArrive:q=>ufoArrive(q===undefined?true:q),loadSave,enterZone,leaveZone,zone:()=>zone,askYesNo,cutscene,objective,objectiveMark,ufoTakeItem,UFO,UF,ualiens,ZONES,ZF,OBJ,get CUT(){return CUT;},get ASK(){return ASK;},storyTick,ufoLeave,ufoBeamUp,storyActiveNow,sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto,prismStart,destroyStart,destroyKey,destroyAvail,PR,get kathana(){return KA;},get korbs(){return KA.orbs;},kathanaWinStage1,kathanaStage2,kathanaLose}));
 })();
 </script>
 </body>

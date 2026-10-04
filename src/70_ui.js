@@ -32,6 +32,7 @@ const SLOT_KEYS=['1','2','3','4'],SLOT_ALT=['Q','E','R',''];
 let slotEls=[];
 function buildHotbar(){
   hud.hotbar.textContent='';slotEls=[];renderHeroKeys();fitMoves();if(!save.character)return;
+  if(PR.on){prBuildHotbar();return;}
   if(SG.on){sgBuildHotbar();return;}
   if(P.alien){const a=ALIENS[P.alien.id];
     a.abilities.forEach((ab,i)=>{const cd=el('i',{class:'cd'});const s=el('div',{class:'slot alien'},cd,el('kbd',{text:touchOn()?'':SLOT_KEYS[i]}),el('span',{class:'nm',text:ab.name}),el('small',{text:a.name}));hud.hotbar.appendChild(s);slotEls.push({alien:i,s,cd});});
@@ -45,6 +46,7 @@ function buildHotbar(){
   });
   {const cd=el('i',{class:'cd',hidden:true}),kb=el('kbd'),nm=el('span',{class:'nm'});const s=el('div',{class:'slot vslot',hidden:true},cd,kb,nm);s.addEventListener('click',vPress);hud.hotbar.appendChild(s);slotEls.push({vs:true,s,cd,kb,nm});} // the V / B slot: filled in by the per-frame update
   if(rewindOn()){const cd=el('i',{class:'cd',hidden:true}),s=el('div',{class:'slot rewslot'},cd,el('kbd',{text:touchOn()?'':'X'}),el('span',{class:'nm',text:'⟲ Rewind'}));s.addEventListener('click',()=>rewind());hud.hotbar.appendChild(s);slotEls.push({rw:true,s,cd});} // Chrono Core: an extra slot after V
+  if(destroyAvail())prDestroySlot(); // Destroy (Enter): after V and Rewind, once the UFO is done
   for(const id of save.character.movement){
     const lv=el('small');const pre=PRESETS[id];const s=el('div',{class:'slot move'},el('kbd',{text:touchOn()?'':POWERS[id].key}),el('span',{class:'nm',text:pre?pre.name:POWERS[id].name}),lv);
     hud.hotbar.appendChild(s);slotEls.push({id,s,cd:null,lv,trav:true});
@@ -401,7 +403,7 @@ function vAction(){
   if(hasTravWheel())return {key:'V',name:'Style',icon:'wheel'};
   return null;}
 // what clicking the slot or tapping the button does: the same as the key
-function vPress(){const v=vAction();if(!v||state!=='play'||dialOpen||P.dead)return;
+function vPress(){const v=vAction();if(!v||state!=='play'||dialOpen||P.dead||arenaSG())return;
   if(v.key==='B'){summonConstruct();return;}
   if(v.name==='Sun God'){sunGodKey();return;}
   if(isRing()){if(ringLocked())oathBusy();else openDial('construct');}else if(hasPower('morphBand'))bandPress();else if(armorForms())openDial('armor');else openDial('trav');}

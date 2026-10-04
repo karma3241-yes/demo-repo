@@ -21,9 +21,9 @@ function storyTick(dt){
     zoneFadeTick(dt);cutTick(dt);boostTick(dt);
     if(solo&&state==='play'&&!P.dead){
       if(storyActiveNow())save.story.act+=dt;
-      ufoTick(dt);
+      ufoTick(dt);kathanaTick(dt);
       if(zone&&zone.update)zone.update(dt*worldTimeK());
-    }
+    }else if(PR.on&&(P.dead||!solo))prismEnd('lost');
     objRefresh();
   }catch(e){logErr(e);}
 }
@@ -122,6 +122,7 @@ function askClose(yes){ // yes: true / false / null (closed without an answer)
 }
 function askKey(e){
   if(e.ctrlKey||e.metaKey||e.altKey)return; // browser shortcuts pass
+  if(e.repeat){e.preventDefault();e.stopImmediatePropagation();return;} // a held key (Enter opened this popup) must not answer it
   if(e.code==='KeyY'||e.code==='Enter'||e.code==='NumpadEnter')askClose(true);else if(e.code==='KeyN'||e.code==='Escape')askClose(false);
   if(['Space','Tab','Enter','Escape','ArrowUp','ArrowDown','KeyY','KeyN'].includes(e.code))e.preventDefault();e.stopImmediatePropagation(); // the game gets no keys while the popup is open
 }

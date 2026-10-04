@@ -38,7 +38,7 @@ const Damage={
     if(tsIntercept(src,t,amount,type,opt))return amount;
     if(t===P){
       if(P.dead||state!=='play')return 0;
-      if(sunGodOn())return 0; // Sun God: nothing can hurt you
+      if(godSafe())return 0; // Sun God and the Prism form: nothing can hurt you (not in Kathana's arena)
       if(voidbornAway())return 0; // being questioned by the masks, far away
       if(cutLocked())return 0; // a cutscene or a zone fade: nothing touches you
       if(P.iframeT>0){if(time-(P.dodgeT||-9)>0.4){P.dodgeT=time;feed('Dodged','');}return 0;}
