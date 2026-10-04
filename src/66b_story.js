@@ -17,14 +17,14 @@ function storyActiveNow(){return state==='play'&&!paused&&!sheetOpen&&!creating&
 function storyTick(dt){
   try{
     const solo=storySolo();
-    if(!solo){if(CUT)cutEnd(false);if(ASK)askClose(null);if(zone)zoneAbort();}
+    if(!solo){if(CUT)cutEnd(false);if(ASK)askClose(null);if(zone)zoneAbort();invMpGuard();}
     zoneFadeTick(dt);cutTick(dt);boostTick(dt);
     if(solo&&state==='play'&&!P.dead){
       if(storyActiveNow())save.story.act+=dt;
       ufoTick(dt);kathanaTick(dt);invTick(dt);cyberTick(dt);spireTick(dt);
       if(zone&&zone.update)zone.update(dt*worldTimeK());
     }else if(PR.on&&(P.dead||!solo))prismEnd('lost');
-    objRefresh();
+    objRefresh();hushSync();
   }catch(e){logErr(e);}
 }
 // ---- cutscenes ----
@@ -79,11 +79,14 @@ function objRefresh(){
   const bu=!$('bossbar').hidden;if(document.body.classList.contains('bossup')!==bu)document.body.classList.toggle('bossup',bu);
   if(show)objFit(e);
 }
-// on a phone the pill goes into the gap between the player panel and the icon bar (it truncates when the gap is small)
+// on a phone the pill goes into the gap between the player panel and the icon bar; when that gap is too small to read (small phones) it sits bottom centre, between the stick and the buttons
 function objFit(e){
-  if(!touchOn()){if(e.style.left){e.style.left=e.style.maxWidth=e.style.transform='';}return;}
-  const hb=$('hudbar').getBoundingClientRect(),lefty=save.settings.tHand==='l',L=lefty?(hb.width?hb.right+8:200):200,R=lefty?innerWidth-200:(hb.width?hb.left-8:innerWidth-130),k=Math.round(L)+'|'+Math.round(R);
-  if(e.dataset.fit===k)return;e.dataset.fit=k;e.style.left=L+'px';e.style.transform='none';e.style.maxWidth=Math.max(140,R-L)+'px';
+  if(!touchOn()){if(e.dataset.fit){e.dataset.fit='';e.classList.remove('low');e.style.left=e.style.maxWidth=e.style.transform=e.style.top=e.style.bottom='';}return;}
+  const hb=$('hudbar').getBoundingClientRect(),lefty=save.settings.tHand==='l',L=lefty?(hb.width?hb.right+8:200):200,R=lefty?innerWidth-200:(hb.width?hb.left-8:innerWidth-130),low=R-L<230,
+    l=lefty?250:140,r=lefty?innerWidth-140:innerWidth-250,k=low?'b'+l+'|'+r:Math.round(L)+'|'+Math.round(R);
+  if(e.dataset.fit===k)return;e.dataset.fit=k;e.classList.toggle('low',low);
+  if(low){e.style.left=(l+r)/2+'px';e.style.transform='translateX(-50%)';e.style.maxWidth=Math.max(140,r-l)+'px';e.style.top='auto';e.style.bottom='calc(10px + var(--safe-b,0px))';}
+  else{e.style.left=L+'px';e.style.transform='none';e.style.maxWidth=Math.max(140,R-L)+'px';e.style.top=e.style.bottom='';}
 }
 function objectivePin(n){
   const m=OBJ.mark;if(!m||!OBJ.text||!storySolo()||(CUT&&!CUT.control))return n;
@@ -110,14 +113,14 @@ function askInfo(title,lines,btn,onClose){
     el('div',{class:'ask-btns'},el('button',{type:'button',class:'go',onclick:()=>askClose(true)},el('kbd',{text:'Y'}),btn||'Got it')))),onClose,onClose);
 }
 function askShow(root,onYes,onNo){
-  document.body.appendChild(root);ASK={root,onYes,onNo};
+  document.body.appendChild(root);ASK={root,onYes,onNo};hushSync();
   paused=true;mouseL=false;for(const k in keys)keys[k]=false;touchIn.x=touchIn.y=0;for(let i=0;i<4;i++)abilityUp(i,true);heldSlot=-1;webRelease();SFX.setLaser(false);SFX.setWind(0);SFX.setEngine(false,0);
   if(locked){manualUnlock=true;document.exitPointerLock();} // paused is set first, so letting go of the mouse doesn't open the pause menu
   const b=root.querySelector('.go');if(b)b.focus({preventScroll:true});
   return true;
 }
 function askClose(yes){ // yes: true / false / null (closed without an answer)
-  const A=ASK;if(!A)return;ASK=null;A.root.remove();paused=false;if(save.settings.autoLock&&!touchOn())requestLock();
+  const A=ASK;if(!A)return;ASK=null;A.root.remove();paused=false;hushSync();if(save.settings.autoLock&&!touchOn())requestLock();
   try{if(yes===true&&A.onYes)A.onYes();else if(yes===false&&A.onNo)A.onNo();}catch(e){logErr(e);}
 }
 function askKey(e){

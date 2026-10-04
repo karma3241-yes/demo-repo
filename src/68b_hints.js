@@ -26,3 +26,9 @@ function updateHints(){
   if(txt){setText($('lockon-t'),'lot',txt);$('lockon-k').hidden=touch;lo.classList.toggle('sm',lk||!!save.guide.lock);}
   if(TB.lock)TB.lock.b.classList.toggle('hint',touch&&live&&!lk&&foeNear);
 }
+// hush: the hint pills (#lockon, #lhint, #goal, the guide) hide during cutscenes, the QTE, zone fades and popups; the guide also in story zones and boss fights.
+// (a CSS class so it works while a popup has the game paused)
+function hushSync(){
+  const h=!!(CUT||ASK||(KQ&&KQ.on)||ZF.phase>0),g=h||!!zone||KA.on||PF.on||invActive()||SOV.on||!$('bossbar').hidden;
+  const b=document.body.classList;if(b.contains('hush')!==h)b.toggle('hush',h);if(b.contains('hushg')!==g)b.toggle('hushg',g);
+}

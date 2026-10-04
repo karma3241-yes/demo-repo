@@ -32,7 +32,7 @@ function enterZone(id,at,after){
   return zoneFade(()=>zoneSwitch(Z,at),after);
 }
 function zoneSwitch(Z,at){
-  zoneRet={x:P.pos.x,y:P.pos.y,z:P.pos.z,yaw:P.yaw,fly:P.flying};
+  zoneRet=Math.hypot(P.pos.x,P.pos.z)>1600||P.pos.y>2000||P.pos.y<-20?{x:SPAWNS[0][0],y:0,z:SPAWNS[0][1],yaw:SPAWNS[0][2],fly:false}:{x:P.pos.x,y:P.pos.y,z:P.pos.z,yaw:P.yaw,fly:P.flying}; // (from far away, like the end of a light-speed jump, the way back is the hospital)
   if(P.car)exitCar(true);
   stopAllPowers();lockT=null;comboN=0;
   if(!Z.built){Z.built=true;Z.build();}

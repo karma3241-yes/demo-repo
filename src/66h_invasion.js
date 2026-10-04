@@ -335,6 +335,13 @@ function lsTick(k,dt,C){
 }
 function lsEnd(){if(!INV.ls)return;if(INV.ls.dest==='earth')earthArrive();else cyberArrive();}
 // cyberArrive() (called above) is in 66i_cyber.js: the hyper-advanced civilisation.
+// a room opened while the fleet event (or its light-speed jump) had you up in space: the event waits and you are put back on the ground
+function invMpGuard(){
+  if(INV.list.length)clearInvaders();
+  const was=INV.state==='battle'||INV.state==='cut'||INV.state==='win';
+  if(was){INV.state='idle';INV.go=true;INV.freeT=0;}
+  if(was||INV.ls){INV.ls=null;INV.lsHold=0;lockT=null;if(P.pos.y>SPACE.y||Math.hypot(P.pos.x,P.pos.z)>1600){const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.vel.set(0,0,0);P.yaw=s[2];P.flying=false;P.grounded=true;P.web=null;P.floatT=0;camDist=8;}}
+}
 // ---- the tick ----
 function invTick(dt){
   for(let i=INV.blasts.length-1;i>=0;i--){const b=INV.blasts[i];b.t+=dt;if(b.t>1.5)INV.blasts.splice(i,1);}

@@ -17,16 +17,21 @@ const hud={root:$('hud'),hname:$('hname'),htier:$('htier'),lvl:$('lvl'),xpb:$('x
 // the first minute of a first session is quiet: only gold toasts (the welcome, rewards) and red ones (an answer to what you just pressed) show; the guide panel is the teacher
 let playStartT=null;
 const quietMinute=()=>playStartT!==null&&time-playStartT<60&&Object.values(save.stats).every(v=>!v);
+// identical titles within 3 s collapse into one line with "xN" (Sun God skills razing buildings would otherwise spam the feed)
+function dupLine(box,title,sub,mk,life){
+  const d=box._d||(box._d={}),p=d[title],now=performance.now();
+  if(p&&p.e.isConnected&&now-p.t<3000){p.n++;p.t=now;p.b.textContent=title+' ×'+p.n;if(sub&&p.b.nextSibling)p.b.nextSibling.textContent=sub;p.e.classList.remove('out');clearTimeout(p.to);clearTimeout(p.to2);p.to=setTimeout(()=>{p.e.classList.add('out');p.to2=setTimeout(()=>p.e.remove(),500);},life);return;}
+  const e=mk(),b=e.firstChild,q=d[title]={e,b,n:1,t:now,to:0,to2:0};box.appendChild(e);
+  q.to=setTimeout(()=>{e.classList.add('out');q.to2=setTimeout(()=>e.remove(),500);},life);
+}
 function toast(title,sub='',cls=''){
   if(cls!=='gold'&&cls!=='red'&&quietMinute())return;
-  const e=el('div',{class:'toast panel '+cls},el('b',{text:title}),sub?el('span',{text:sub}):null);
-  hud.toasts.appendChild(e);while(hud.toasts.children.length>3)hud.toasts.firstChild.remove();
-  setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),500);},2800);
+  dupLine(hud.toasts,title,sub,()=>el('div',{class:'toast panel '+cls},el('b',{text:title}),sub?el('span',{text:sub}):null),2800);
+  while(hud.toasts.children.length>3)hud.toasts.firstChild.remove();
 }
 function feed(title,sub=''){
-  const e=el('div',{class:'fline'},el('b',{text:title}),sub?el('span',{text:sub}):null);
-  hud.feed.appendChild(e);while(hud.feed.children.length>5)hud.feed.firstChild.remove();
-  setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),500);},3200);
+  dupLine(hud.feed,title,sub,()=>el('div',{class:'fline'},el('b',{text:title}),sub?el('span',{text:sub}):null),3200);
+  while(hud.feed.children.length>5)hud.feed.firstChild.remove();
 }
 const SLOT_KEYS=['1','2','3','4'],SLOT_ALT=['Q','E','R',''];
 let slotEls=[];
