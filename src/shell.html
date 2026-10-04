@@ -357,6 +357,7 @@ body.touch #growtut:not([hidden])~#goal{display:none}
 #hb-fold{width:26px;height:40px;border-radius:8px}#hb-fold .ico{width:16px;height:16px;transition:transform .2s;transform:rotate(180deg)}#hudbar.folded #hb-fold .ico{transform:none}body.touch #hb-fold .ico{transform:none}body.touch #hudbar.folded #hb-fold .ico{transform:rotate(180deg)}
 #hudbar.folded .hbtn:not(#hb-fold){display:none}
 body.touch #hudbar{top:calc(8px + var(--safe-t))!important;left:auto;right:calc(62px + var(--safe-r));max-width:calc(100% - 290px);justify-content:flex-end}body.touch .hbtn{width:40px;height:40px}body.touch .hbtn kbd,body.touch .hbtn.kbm{display:none}
+@media (max-width:760px){body.touch #hudbar{gap:4px;max-width:calc(100% - 258px)}body.touch .hbtn{width:36px;height:36px}body.touch #hb-fold{width:22px}body.touch .hbtn .ico{width:20px;height:20px}} /* small phones: the icon row (with the fullscreen button and the fold arrow) still fits one line */
 .ico{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pick .pico{width:28px;height:28px;margin-bottom:2px}
 body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l));top:calc(310px + var(--safe-t));width:176px;padding:7px 9px}body.touch #guide li{font-size:11px}
