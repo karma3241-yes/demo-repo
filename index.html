@@ -9288,7 +9288,7 @@ function superTick(dt){
 // Every hero can fly during the event (invFlyOk, used by toggleFlight / flyChargeStart; the battle also keeps you flying). Solo only (storySolo).
 // The fleet is 4 baked ship meshes drawn as 100 instances (F_NF: no fog, so it is a dark shape in the city sky). The invaders are actors of kind 'invader'
 // (faction 'alien', lockable, hostile), they live in INV.list; the bomber's orbs in INV.orbs.
-const INV={fleet:[],built:false,meshes:null,state:'idle',go:false,arm:null,freeT:0,wave:0,nw:1,live:false,pend:[],breath:0,spawnT:0,list:[],orbs:[],blasts:[],start:null,cutT:0,tickT:0,warnT:-99,near:0,winT:-1,boomI:0,order:null,ls:null,lsHold:0,lsPct:-1,seen:{},ws:null,msgT:0};
+const INV={fleet:[],built:false,meshes:null,state:'idle',go:false,arm:null,freeT:0,wave:0,nw:1,live:false,pend:[],breath:0,spawnT:0,list:[],orbs:[],blasts:[],start:null,cutT:0,tickT:0,warnT:-99,near:0,winT:-1,boomI:0,order:null,ls:null,lsHold:0,lsPct:-1,seen:{},ws:null,msgT:0,hitT:0};
 const INV_C={x:0,y:4300,z:0},INV_R=2300,INV_CAP=25,INV_K=1.6; // INV_K: how big the ships are drawn
 const INV_WAVES=[{n:5,mix:{blaster:3,brute:2}},{n:15,mix:{blaster:5,brute:3,shield:4,blinker:3}},{n:60,mix:{blaster:13,brute:10,shield:10,lancer:10,bomber:9,blinker:8}}];
 const INV_V={ // armour colour, glow colour, health factor, size, a hint shown the first time one appears
@@ -9387,7 +9387,7 @@ function invPlace(){
   P.pos.set(s.x,s.y,s.z);P.vel.set(0,0,0);P.yaw=s.yaw;P.pitch=s.pitch;P.flying=true;P.grounded=false;P.web=null;P.reel=null;P.wall=null;P.wallRun=null;P.zip=null;P.floatT=0;P.charging=false;P.fCharge=false;
   camDist=8;projs.length=0;debris.length=0;tracers.length=0;lockT=null;comboN=0;P.hp=maxHp();P.en=maxEn();P.dead=false;
   spaceMsgT=time;wasSpace=true;flashWhite=Math.max(flashWhite,0.5);SFX.boom(0.6,1.4);SFX.chime();
-  INV.breath=3;INV.wave=0;INV.nw=1;INV.live=false;INV.seen={};clearInvaders();
+  INV.breath=3;INV.wave=0;INV.nw=1;INV.live=false;INV.seen={};INV.hitT=time;clearInvaders();
   toast('The fleet is above you','Every hero can fly up here · Z locks on','red');objective('Hold the line');
 }
 function invWaveJump(n){ // test hook: jump straight to a wave
@@ -9402,12 +9402,12 @@ function invRespawn(){
   const s=INV.start;clearInvaders();
   P.dead=false;P.pos.set(s.x,s.y,s.z);P.vel.set(0,0,0);P.yaw=s.yaw;P.pitch=s.pitch;P.flying=true;P.grounded=false;P.hp=maxHp();P.en=maxEn();P.stun=0;P.lastHit=-99;P.web=null;P.wall=null;camDist=8;projs.length=0;
   $('dead').hidden=true;flashWhite=Math.max(flashWhite,0.4);
-  if(INV.live){INV.nw=Math.max(1,INV.wave);INV.live=false;}INV.pend.length=0;INV.breath=2.5;toast('Back in the fight','Wave '+INV.nw+' starts again','gold');
+  if(INV.live){INV.nw=Math.max(1,INV.wave);INV.live=false;}INV.pend.length=0;INV.breath=2.5;INV.hitT=time;toast('Back in the fight','Wave '+INV.nw+' starts again','gold');
   return true;
 }
 // ---- the waves ----
 function invWaveStart(n){
-  INV.wave=n;INV.nw=n+1;INV.live=true;const W=INV_WAVES[n-1],a=[];for(const k in W.mix)for(let i=0;i<W.mix[k];i++)a.push(k);
+  INV.wave=n;INV.nw=n+1;INV.live=true;INV.hitT=time;const W=INV_WAVES[n-1],a=[];for(const k in W.mix)for(let i=0;i<W.mix[k];i++)a.push(k);
   for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0,t=a[i];a[i]=a[j];a[j]=t;}
   INV.pend=a;INV.breath=0;INV.spawnT=0.4;toast('WAVE '+n+' / 3',W.n+' invaders','red');SFX.tone('sawtooth',90,60,0.9,0.1);addShake(0.2);
 }
@@ -9428,6 +9428,7 @@ function invSpawn(vt){
 }
 const INV_BLOCK={punch:1,shot:1,bullet:1,blast:1,beam:1,slash:1,ring:1,throw:1,damage:1,hit:1}; // what the Shieldbearer's front shield stops (fire, shock, slams, wind and the like get round it)
 function invOnHit(a,src,amt,type){
+  if(src===P)INV.hitT=time; // the pointers to the enemies (invPointers) wait for 10 s without a hit from you
   if(a.vt!=='shield'||a.broke||!a.alive||!INV_BLOCK[type]||!src||!src.pos)return;
   const dx=src.pos.x-a.pos.x,dy=src.pos.y-a.pos.y,dz=src.pos.z-a.pos.z,l=Math.hypot(dx,dy,dz)||1,fx=Math.sin(a.yaw),fz=Math.cos(a.yaw);
   if((dx*fx+dz*fz)/l>0.4){a.hp=Math.min(a.maxHp,a.hp+amt*0.93);a.flash=0;a.sh=1;const px=a.pos.x+fx*1.9*a.sc,py=a.pos.y+a.cy,pz=a.pos.z+fz*1.9*a.sc;burst(px,py,pz,8,9,0.3,[[.5,.9,1],[1,1,1]],1.2,0,2);ringFx(px,py,pz,0.4,2.4,0.2,[.5,.9,1]);SFX.tone('square',1500,900,0.07,0.05*SFX.vol(px,py,pz));
@@ -9450,6 +9451,17 @@ function invWaveTick(dt){
     if(INV.wave>=3){invWin(false);return;}
     INV.live=false;toast('Wave cleared','Wave '+INV.nw+' in 3 s','gold');SFX.chime();INV.breath=3;
   }
+}
+// not hit an enemy for 10 s while some are alive: pins on the 3 nearest (placeMark in 68_markers.js turns the pin into an edge arrow when it is off screen); a hit hides them
+const INV_NP=[null,null,null],INV_ND=[0,0,0];
+function invPointers(n){
+  if(!invBattle()||P.dead||CUT||ASK||paused||INV.ls||time-INV.hitT<10)return n;
+  let c=0;INV_NP[0]=INV_NP[1]=INV_NP[2]=null;
+  for(const a of INV.list){if(!a.alive)continue;const d=Math.hypot(a.pos.x-P.pos.x,a.pos.y-P.pos.y,a.pos.z-P.pos.z);let i=c<3?c:(d<INV_ND[2]?2:-1);if(i<0)continue;if(c<3)c++;
+    while(i>0&&INV_ND[i-1]>d){INV_ND[i]=INV_ND[i-1];INV_NP[i]=INV_NP[i-1];i--;}INV_ND[i]=d;INV_NP[i]=a;}
+  for(let i=0;i<c;i++){const a=INV_NP[i],d=fmtDist(INV_ND[i]);placeMark(n++,a.pos.x,a.pos.y+a.cy+2.2*a.sc,a.pos.z,'▼',i?'#ff8a5c':'#ff4a3d',INV_V[a.vt].name+' · '+d,i?'':'big',d);}
+  if(c&&!INV.seen.pin){INV.seen.pin=1;feed('Enemies marked','Follow the red arrows');}
+  return n;
 }
 function invText(){
   if(INV.breath>0)return INV.wave>=1&&!INV.live&&INV.nw>INV.wave?'WAVE '+INV.wave+'/3 cleared · next in '+Math.ceil(INV.breath):'WAVE '+Math.min(3,INV.nw)+'/3 · starts in '+Math.ceil(INV.breath);
@@ -10971,6 +10983,7 @@ function updateMarkers(){
       placeMark(n++,c.x,groundY(c.x,c.z)+(big?9:5.5),c.z,big?'!!':'!',CRIME_COL[c.type]||'#ff5a3d',d<250?c.label+' · '+fmtDist(d):fmtDist(d),big?'big':'',fmtDist(d));}
   }
   if(on)n=objectivePin(n); // the story's objective pin (66b_story.js)
+  if(state==='play'&&!zone)n=invPointers(n); // the fleet fight: where the enemies are after 10 s without a hit (66h_invasion.js; it is in space, so `on` is off there)
   const g=on&&!zone?rechargeGoal():null;
   if(g&&g.x!==undefined){const d=fmtDist(Math.hypot(g.x-P.pos.x,g.z-P.pos.z));placeMark(n++,g.x,g.y,g.z,g.icon,g.col,g.label+' · '+d,'goal',d);}
   for(let i=n;i<markPool.length;i++)if(!markPool[i].t.hidden)markPool[i].t.hidden=true;

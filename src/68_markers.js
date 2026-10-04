@@ -51,6 +51,7 @@ function updateMarkers(){
       placeMark(n++,c.x,groundY(c.x,c.z)+(big?9:5.5),c.z,big?'!!':'!',CRIME_COL[c.type]||'#ff5a3d',d<250?c.label+' · '+fmtDist(d):fmtDist(d),big?'big':'',fmtDist(d));}
   }
   if(on)n=objectivePin(n); // the story's objective pin (66b_story.js)
+  if(state==='play'&&!zone)n=invPointers(n); // the fleet fight: where the enemies are after 10 s without a hit (66h_invasion.js; it is in space, so `on` is off there)
   const g=on&&!zone?rechargeGoal():null;
   if(g&&g.x!==undefined){const d=fmtDist(Math.hypot(g.x-P.pos.x,g.z-P.pos.z));placeMark(n++,g.x,g.y,g.z,g.icon,g.col,g.label+' · '+d,'goal',d);}
   for(let i=n;i<markPool.length;i++)if(!markPool[i].t.hidden)markPool[i].t.hidden=true;
