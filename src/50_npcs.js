@@ -65,7 +65,7 @@ function npcScan(h){
 }
 function stepHuman(h,dx,dz,speed,dt){
   const s=speed*(1-(h.slow||0));h.pos.x+=dx*s*dt;h.pos.z+=dz*s*dt;
-  collideBody(h.pos,h.vel,h.pos.y,0.45,1.9);h.pos.y=groundY(h.pos.x,h.pos.z,h.pos.y+0.5);
+  collideBody(h.pos,h.vel,h.pos.y,0.45,1.9);vehicleBlock(h.pos,h.vel,0.45,1.9,h.pos.y,true,false,dt);h.pos.y=groundY(h.pos.x,h.pos.z,h.pos.y+0.5);
   if(!zone){h.pos.x=clamp(h.pos.x,-LIMIT,LIMIT);h.pos.z=clamp(h.pos.z,-LIMIT,LIMIT);}
   h.yaw=angLerp(h.yaw,Math.atan2(dx,dz),damp(10,dt));h.moving=s;h.phase+=s*dt*2.2;
 }
@@ -211,6 +211,43 @@ function makeVehicle(vtype,model){
   if(model==='taxi'||model==='police')v.tint=[1,1,1,1];
   v.onDefeat=src=>vehicleDestroyed(v,src);
   vehicles.push(v);actors.push(v);return v;
+}
+// ---- solid vehicles: one shared push-out for the player and the NPCs ----
+// every vehicle is an oriented box (x/z turned by its yaw, plus a y range): walk into it and you slide along its side, land on it and you stand on the roof.
+// vehicleBlock(pos,vel,R,HT,prevY,npc,big,dt,px,pz) moves a body out of every box nearby. npc: people only bump into cars, never stand on roofs; big: giant heroes aren't pushed (the caller damages VB.hit);
+// prevY/px/pz/dt: where the body was last frame (picks the side you came from, carries you on a moving roof). After the call VB.hit = the vehicle touched on its side, VB.land = stood on a roof.
+const VB={npc:false,big:false,dt:0.016,prev:false,px:0,pz:0,prevY:0,hit:null,land:false};
+const vTop=v=>VEH_S*(v.vtype==='truck'?3.4:v.vtype==='van'?3:(v.state==='wreck'&&Math.abs(v.rz)>1?1.4:1.75));
+const vMove=v=>v.state==='road'||v.state==='chase'?v.spd||0:v.state==='flee'||v.state==='stolen'?v.maxSpd*1.5:0; // how fast a vehicle drives along its yaw
+function vbBox(pos,vel,R,HT,bx,bz,yaw,hw,hl,y0,y1,vx,vz,veh){
+  if(pos.y>=y1||pos.y+HT<=y0)return;
+  const c=Math.cos(yaw),s=Math.sin(yaw),dx=pos.x-bx,dz=pos.z-bz,ex=hw+R*0.6,el=hl+R*0.6,lx=dx*c-dz*s,lz=dx*s+dz*c;
+  if(lx>=ex||lx<=-ex||lz>=el||lz<=-el)return;
+  if(VB.prevY>=y1-0.7){if(VB.npc)return;pos.y=y1;if(vel.y<0)vel.y=0;VB.land=true;pos.x+=vx*VB.dt;pos.z+=vz*VB.dt;return;} // came down onto the roof: stand on it (and ride along)
+  if(veh)VB.hit=veh;if(VB.big)return;
+  const pdx=VB.px-bx,pdz=VB.pz-bz,plx=pdx*c-pdz*s,plz=pdx*s+pdz*c,ox=Math.abs(plx)-ex,oz=Math.abs(plz)-el;
+  let fx; // which face to leave by: the side you came from, else the nearest
+  if(VB.prev&&(ox>0||oz>0))fx=ox>oz;else fx=ex-Math.abs(lx)<el-Math.abs(lz);
+  let nx,nz;
+  if(fx){const g=(VB.prev&&ox>0?plx:lx)<0?-1:1;nx=g*c;nz=-g*s;pos.x=bx+g*ex*c+lz*s;pos.z=bz-g*ex*s+lz*c;}
+  else{const g=(VB.prev&&oz>0?plz:lz)<0?-1:1;nx=g*s;nz=g*c;pos.x=bx+lx*c+g*el*s;pos.z=bz-lx*s+g*el*c;}
+  const vn=vel.x*nx+vel.z*nz,wn=vx*nx+vz*nz; // slide along the side; a moving vehicle carries you along its own push
+  if(vn<wn){vel.x+=(wn-vn)*nx;vel.z+=(wn-vn)*nz;}
+}
+function vehicleBlock(pos,vel,R,HT,prevY,npc,big,dt,px,pz){
+  VB.hit=null;VB.land=false;VB.prevY=prevY;VB.npc=npc;VB.big=big;VB.dt=dt;VB.prev=px!==undefined;VB.px=px;VB.pz=pz;
+  for(const v of vehicles){
+    if(Math.abs(v.pos.x-pos.x)>7||Math.abs(v.pos.z-pos.z)>7||v.state==='thrown'||v.state==='held'||v.state==='wreckAir'||v.held||v===P.car)continue;
+    const m=vMove(v);vbBox(pos,vel,R,HT,v.pos.x,v.pos.z,v.yaw,v.hw,v.hl,v.pos.y,v.pos.y+vTop(v),Math.sin(v.yaw)*m,Math.cos(v.yaw)*m,v);}
+  if(VB.npc)return; // people only bump into cars; the rest hangs over the player's patch
+  for(const h of helis){if(h.crash||h.held||Math.abs(h.pos.x-pos.x)>9||Math.abs(h.pos.z-pos.z)>9)continue;
+    vbBox(pos,vel,R,HT,h.pos.x+Math.sin(h.yaw)*0.5,h.pos.z+Math.cos(h.yaw)*0.5,h.yaw,1.6,2.8,h.pos.y,h.pos.y+3.4,h.vel.x,h.vel.z,null);} // the cabin; the tail boom and rotor stay thin air
+  for(const b of boats){
+    if(!b.on||Math.abs(b.x-pos.x)>16||Math.abs(b.z-pos.z)>16)continue;const K=b.kind,s=Math.sin(b.yaw),c=Math.cos(b.yaw),v=onIsland(b.x+s*8,b.z+c*8)?0:K.spd;
+    vbBox(pos,vel,R,HT,b.x,b.z,b.yaw,K.W/2,K.L/2,SEA_Y-1,SEA_Y+1.3,s*v,c*v,null); // the hull
+    if(K.ferry)vbBox(pos,vel,R,HT,b.x-s*2,b.z-c*2,b.yaw,K.W*0.4,K.L*0.3,SEA_Y+1.3,SEA_Y+5.2,s*v,c*v,null);} // the ferry's cabin, which you can stand on too
+  if(zone&&zone.id==='cyber')for(const c of CY.cars){cyCarPose(c,CYP);if(Math.abs(CYP.x-pos.x)>9||Math.abs(CYP.z-pos.z)>9||Math.abs(CYP.y-pos.y)>6)continue;
+    const m=c.v*c.dir,sx=Math.sin(CYP.yaw),cz=Math.cos(CYP.yaw);vbBox(pos,vel,R,HT,CYP.x+sx*0.85,CYP.z+cz*0.85,CYP.yaw,1.8,4.8,CYP.y-0.9,CYP.y+1.1,c.ax===0?0:m,c.ax===0?m:0,null);} // the cyber world's hover cars
 }
 const laneOff=d=>d>0?-4.5:4.5;
 function setVehiclePos(v){if(v.axis===0){v.pos.set(v.lane,0,v.s);v.ty=v.dir>0?0:Math.PI;}else{v.pos.set(v.s,0,v.lane);v.ty=v.dir>0?Math.PI/2:-Math.PI/2;}if(v.state==='parked')v.yaw=v.ty;}

@@ -5481,7 +5481,7 @@ function npcScan(h){
 }
 function stepHuman(h,dx,dz,speed,dt){
   const s=speed*(1-(h.slow||0));h.pos.x+=dx*s*dt;h.pos.z+=dz*s*dt;
-  collideBody(h.pos,h.vel,h.pos.y,0.45,1.9);h.pos.y=groundY(h.pos.x,h.pos.z,h.pos.y+0.5);
+  collideBody(h.pos,h.vel,h.pos.y,0.45,1.9);vehicleBlock(h.pos,h.vel,0.45,1.9,h.pos.y,true,false,dt);h.pos.y=groundY(h.pos.x,h.pos.z,h.pos.y+0.5);
   if(!zone){h.pos.x=clamp(h.pos.x,-LIMIT,LIMIT);h.pos.z=clamp(h.pos.z,-LIMIT,LIMIT);}
   h.yaw=angLerp(h.yaw,Math.atan2(dx,dz),damp(10,dt));h.moving=s;h.phase+=s*dt*2.2;
 }
@@ -5627,6 +5627,43 @@ function makeVehicle(vtype,model){
   if(model==='taxi'||model==='police')v.tint=[1,1,1,1];
   v.onDefeat=src=>vehicleDestroyed(v,src);
   vehicles.push(v);actors.push(v);return v;
+}
+// ---- solid vehicles: one shared push-out for the player and the NPCs ----
+// every vehicle is an oriented box (x/z turned by its yaw, plus a y range): walk into it and you slide along its side, land on it and you stand on the roof.
+// vehicleBlock(pos,vel,R,HT,prevY,npc,big,dt,px,pz) moves a body out of every box nearby. npc: people only bump into cars, never stand on roofs; big: giant heroes aren't pushed (the caller damages VB.hit);
+// prevY/px/pz/dt: where the body was last frame (picks the side you came from, carries you on a moving roof). After the call VB.hit = the vehicle touched on its side, VB.land = stood on a roof.
+const VB={npc:false,big:false,dt:0.016,prev:false,px:0,pz:0,prevY:0,hit:null,land:false};
+const vTop=v=>VEH_S*(v.vtype==='truck'?3.4:v.vtype==='van'?3:(v.state==='wreck'&&Math.abs(v.rz)>1?1.4:1.75));
+const vMove=v=>v.state==='road'||v.state==='chase'?v.spd||0:v.state==='flee'||v.state==='stolen'?v.maxSpd*1.5:0; // how fast a vehicle drives along its yaw
+function vbBox(pos,vel,R,HT,bx,bz,yaw,hw,hl,y0,y1,vx,vz,veh){
+  if(pos.y>=y1||pos.y+HT<=y0)return;
+  const c=Math.cos(yaw),s=Math.sin(yaw),dx=pos.x-bx,dz=pos.z-bz,ex=hw+R*0.6,el=hl+R*0.6,lx=dx*c-dz*s,lz=dx*s+dz*c;
+  if(lx>=ex||lx<=-ex||lz>=el||lz<=-el)return;
+  if(VB.prevY>=y1-0.7){if(VB.npc)return;pos.y=y1;if(vel.y<0)vel.y=0;VB.land=true;pos.x+=vx*VB.dt;pos.z+=vz*VB.dt;return;} // came down onto the roof: stand on it (and ride along)
+  if(veh)VB.hit=veh;if(VB.big)return;
+  const pdx=VB.px-bx,pdz=VB.pz-bz,plx=pdx*c-pdz*s,plz=pdx*s+pdz*c,ox=Math.abs(plx)-ex,oz=Math.abs(plz)-el;
+  let fx; // which face to leave by: the side you came from, else the nearest
+  if(VB.prev&&(ox>0||oz>0))fx=ox>oz;else fx=ex-Math.abs(lx)<el-Math.abs(lz);
+  let nx,nz;
+  if(fx){const g=(VB.prev&&ox>0?plx:lx)<0?-1:1;nx=g*c;nz=-g*s;pos.x=bx+g*ex*c+lz*s;pos.z=bz-g*ex*s+lz*c;}
+  else{const g=(VB.prev&&oz>0?plz:lz)<0?-1:1;nx=g*s;nz=g*c;pos.x=bx+lx*c+g*el*s;pos.z=bz-lx*s+g*el*c;}
+  const vn=vel.x*nx+vel.z*nz,wn=vx*nx+vz*nz; // slide along the side; a moving vehicle carries you along its own push
+  if(vn<wn){vel.x+=(wn-vn)*nx;vel.z+=(wn-vn)*nz;}
+}
+function vehicleBlock(pos,vel,R,HT,prevY,npc,big,dt,px,pz){
+  VB.hit=null;VB.land=false;VB.prevY=prevY;VB.npc=npc;VB.big=big;VB.dt=dt;VB.prev=px!==undefined;VB.px=px;VB.pz=pz;
+  for(const v of vehicles){
+    if(Math.abs(v.pos.x-pos.x)>7||Math.abs(v.pos.z-pos.z)>7||v.state==='thrown'||v.state==='held'||v.state==='wreckAir'||v.held||v===P.car)continue;
+    const m=vMove(v);vbBox(pos,vel,R,HT,v.pos.x,v.pos.z,v.yaw,v.hw,v.hl,v.pos.y,v.pos.y+vTop(v),Math.sin(v.yaw)*m,Math.cos(v.yaw)*m,v);}
+  if(VB.npc)return; // people only bump into cars; the rest hangs over the player's patch
+  for(const h of helis){if(h.crash||h.held||Math.abs(h.pos.x-pos.x)>9||Math.abs(h.pos.z-pos.z)>9)continue;
+    vbBox(pos,vel,R,HT,h.pos.x+Math.sin(h.yaw)*0.5,h.pos.z+Math.cos(h.yaw)*0.5,h.yaw,1.6,2.8,h.pos.y,h.pos.y+3.4,h.vel.x,h.vel.z,null);} // the cabin; the tail boom and rotor stay thin air
+  for(const b of boats){
+    if(!b.on||Math.abs(b.x-pos.x)>16||Math.abs(b.z-pos.z)>16)continue;const K=b.kind,s=Math.sin(b.yaw),c=Math.cos(b.yaw),v=onIsland(b.x+s*8,b.z+c*8)?0:K.spd;
+    vbBox(pos,vel,R,HT,b.x,b.z,b.yaw,K.W/2,K.L/2,SEA_Y-1,SEA_Y+1.3,s*v,c*v,null); // the hull
+    if(K.ferry)vbBox(pos,vel,R,HT,b.x-s*2,b.z-c*2,b.yaw,K.W*0.4,K.L*0.3,SEA_Y+1.3,SEA_Y+5.2,s*v,c*v,null);} // the ferry's cabin, which you can stand on too
+  if(zone&&zone.id==='cyber')for(const c of CY.cars){cyCarPose(c,CYP);if(Math.abs(CYP.x-pos.x)>9||Math.abs(CYP.z-pos.z)>9||Math.abs(CYP.y-pos.y)>6)continue;
+    const m=c.v*c.dir,sx=Math.sin(CYP.yaw),cz=Math.cos(CYP.yaw);vbBox(pos,vel,R,HT,CYP.x+sx*0.85,CYP.z+cz*0.85,CYP.yaw,1.8,4.8,CYP.y-0.9,CYP.y+1.1,c.ax===0?0:m,c.ax===0?m:0,null);} // the cyber world's hover cars
 }
 const laneOff=d=>d>0?-4.5:4.5;
 function setVehiclePos(v){if(v.axis===0){v.pos.set(v.lane,0,v.s);v.ty=v.dir>0?0:Math.PI;}else{v.pos.set(v.s,0,v.lane);v.ty=v.dir>0?Math.PI/2:-Math.PI/2;}if(v.state==='parked')v.yaw=v.ty;}
@@ -9881,9 +9918,11 @@ function cyUpdate(Z,dt){
   if(!P.dead&&!cutLocked()&&time-CY.enterT>6&&S.tower<2){const lx=P.pos.x-CYO.x,lz=P.pos.z-CYO.z,ly=P.pos.y-CYO.y;if(Math.abs(lx)<CYARCH.w+1&&lz>CYARCH.z0-3&&lz<CYARCH.z1+2&&ly<CYARCH.h+2&&ly>-1)towerEnter();} // reaching the arch's mouth is enough (stopping at the glow used to do nothing)
 }
 // ---- drawing: cars, drones, the gate, fountains, beacons, the shield ----
+const CYP={x:0,y:0,z:0,yaw:0}; // a hover car's place in the world right now (drawing and collision share it)
+function cyCarPose(c,o){if(c.ax===0){o.x=CYO.x+c.line+c.off;o.z=CYO.z+c.t;o.yaw=c.dir>0?0:Math.PI;}else{o.z=CYO.z+c.line+c.off;o.x=CYO.x+c.t;o.yaw=c.dir>0?Math.PI/2:-Math.PI/2;}o.y=c.y+Math.sin(time*1.6+c.v)*0.4;}
 function cyCarDraw(c,t){
-  let x,z,yaw;if(c.ax===0){x=CYO.x+c.line+c.off;z=CYO.z+c.t;yaw=c.dir>0?0:Math.PI;}else{z=CYO.z+c.line+c.off;x=CYO.x+c.t;yaw=c.dir>0?Math.PI/2:-Math.PI/2;}
-  if(inView(x,z,1800,60)<0)return;const y=c.y+Math.sin(t*1.6+c.v)*0.4,sx=Math.sin(yaw),cz=Math.cos(yaw),root=at(x,y,z,Math.sin(t*1.3+c.v)*0.03,yaw,Math.sin(t*1.1+c.v)*0.04),d2=(x-camPos.x)**2+(z-camPos.z)**2,K=1.7,tr=c.tr;
+  cyCarPose(c,CYP);const x=CYP.x,z=CYP.z,yaw=CYP.yaw;
+  if(inView(x,z,1800,60)<0)return;const y=CYP.y,sx=Math.sin(yaw),cz=Math.cos(yaw),root=at(x,y,z,Math.sin(t*1.3+c.v)*0.03,yaw,Math.sin(t*1.1+c.v)*0.04),d2=(x-camPos.x)**2+(z-camPos.z)**2,K=1.7,tr=c.tr;
   queue(MESH.box,child(root,0,0,0,0,0,0,2.0*K,0.55*K,4.6*K),c.col,0,0.12);                    // hull
   queue(MESH.box,child(root,0,-0.05*K,2.5*K,-0.35,0,0,1.7*K,0.4*K,1.6*K),c.col,0,0.12);      // sloping nose
   queue(MESH.sphere,child(root,0,0.38*K,-0.1*K,0,0,0,0.85*K,0.45*K,1.5*K),[.1,.35,.85,1],0,0.55); // canopy
@@ -11611,24 +11650,18 @@ function driveCar(dt,inF,inR){
   if(hb&&sp>12&&Math.random()<0.6)smoke(v.pos.x-fx*2,0.3,v.pos.z-fz*2,1,0.6,1.8,0.8,0.5);
   SFX.setEngine(true,clamp(sp/D.maxSpeed,0,1));
 }
-function playerBodies(prevY){
+function playerBodies(prevY,prevX,prevZ,dt){
   const sp=Math.hypot(P.vel.x,P.vel.z),big=(P.alien&&alienDef().scale>2)||P.giantS>2;
   for(const h of humans){if(!h.alive||h.air||h.held||h.hidden)continue;const dx=h.pos.x-P.pos.x,dz=h.pos.z-P.pos.z;
     if(Math.abs(dx)>P.radius+1||Math.abs(dz)>P.radius+1||Math.abs(h.pos.y-P.pos.y)>P.height)continue;
     const d=Math.hypot(dx,dz)||0.01,min=P.radius+0.45;if(d>=min)continue;
     if((sp>16||big&&sp>4)&&!P.speeding&&time-(h.bumpT||-9)>0.6){h.bumpT=time;Damage.apply(P,h,sp*0.5,'bump',{knock:Math.max(10,sp*0.8)});}
     else{const push=min-d;h.pos.x+=dx/d*push*0.8;h.pos.z+=dz/d*push*0.8;P.pos.x-=dx/d*push*0.2;P.pos.z-=dz/d*push*0.2;}}
-  for(const v of vehicles){if(v===P.car||v.state==='thrown'||v.state==='held'||v.state==='wreckAir')continue;if(Math.abs(v.pos.x-P.pos.x)>6||Math.abs(v.pos.z-P.pos.z)>6)continue;
-    const c=Math.cos(v.yaw),s=Math.sin(v.yaw),dx=P.pos.x-v.pos.x,dz=P.pos.z-v.pos.z;const lx=dx*c-dz*s,lz=dx*s+dz*c;
-    const hw=v.hw+P.radius*0.6,hl=v.hl+P.radius*0.6,top=VEH_S*(v.vtype==='truck'?3.4:v.vtype==='van'?3:(v.state==='wreck'&&Math.abs(v.rz)>1?1.4:1.75));
-    if(Math.abs(lx)<hw&&Math.abs(lz)<hl&&P.pos.y<v.pos.y+top&&P.pos.y+P.height>v.pos.y){
-      if(prevY>=v.pos.y+top-0.7){P.pos.y=v.pos.y+top;if(P.vel.y<0)P.vel.y=0;P.grounded=true;
-        if(v.state==='road'||v.state==='chase'){P.pos.x+=Math.sin(v.yaw)*v.spd*(1/60);P.pos.z+=Math.cos(v.yaw)*v.spd*(1/60);}}
-      else if(big){if(v.alive&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,40,'crash');}}
-      else{let nlx=lx,nlz=lz;if(hw-Math.abs(lx)<hl-Math.abs(lz))nlx=Math.sign(lx||1)*hw;else nlz=Math.sign(lz||1)*hl;
-        P.pos.x=v.pos.x+nlx*c+nlz*s;P.pos.z=v.pos.z-nlx*s+nlz*c;
-        if(sp>24&&v.alive&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,sp*0.8,'crash');SFX.crash(0.6);burst(P.pos.x,1.2,P.pos.z,12,8,0.4,SPARK,0.8,15,1);}
-        P.vel.x*=0.4;P.vel.z*=0.4;}}}
+  vehicleBlock(P.pos,P.vel,P.radius,P.height,prevY,false,big,dt,prevX,prevZ); // cars, trucks, helicopters, boats, hover cars: solid (50_npcs.js)
+  if(VB.land)P.grounded=true;
+  if(VB.hit){const v=VB.hit; // a hard hit hurts the vehicle (a giant's touch always does)
+    if(big){if(v.alive&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,40,'crash');}}
+    else if(sp>24&&v.alive&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,sp*0.8,'crash');SFX.crash(0.6);burst(P.pos.x,1.2,P.pos.z,12,8,0.4,SPARK,0.8,15,1);}}
   if(P.pos.y<9)for(const p of propsNear(P.pos.x,P.pos.z,P.radius+0.5).slice()){if(P.pos.y>p.y+3.5)continue;const dx=P.pos.x-p.x,dz=P.pos.z-p.z,d=Math.hypot(dx,dz)||0.01,min=P.radius*0.8+p.r;if(d>=min)continue;
     if(sp>18||big||P.dashT>0){breakProp(p,P,P.vel.x*0.6,P.vel.z*0.6);}else{P.pos.x=p.x+dx/d*min;P.pos.z=p.z+dz/d*min;}}
 }
@@ -11711,7 +11744,7 @@ function updatePlayer(dt){
         const ix=fwdX*inF+rX*inR,iz=fwdZ*inF+rZ*inR;if(-(ix*col.wall.nx+iz*col.wall.nz)>0.5){P.wall=col.wall;P.vel.set(0,0,0);P.charging=false;P.grounded=false;}}
       if(!P.wall&&col.wall&&!(P.flungT&&time-P.flungT<2)&&!phasing)tryWallRun(col,inF,inR,fwdX,fwdZ,rX,rZ,shift);
       if(P.zip&&col.wall&&P.zip.t>0.15){P.zip=null;P.vel.set(col.wall.nx*4,14,col.wall.nz*4);}
-      playerBodies(prevY);}
+      playerBodies(prevY,prevX,prevZ,dt);}
   }
   // free roam: the ocean goes on past the city and nothing pulls you back (only the edge of the solar system stops you)
   P.pos.x=clamp(P.pos.x,-SPACE.lim,SPACE.lim);P.pos.z=clamp(P.pos.z,-SPACE.lim,SPACE.lim);
@@ -12609,7 +12642,7 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,spawnDrone,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   Portal,SFX,applyLook,rings,makeRemote,applyPresence,FLAG,updateTags,spawnMech,fireProj,mechPoint,get parks(){return typeof parks!=="undefined"?parks:null;},travStyle,setTravStyle,hasTravWheel,masteryLevel,PRESETS,get growTutOn(){return growTutOn;},respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
   sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play'){zonePlayerPre();updatePlayer(dt);zonePlayerPost();}updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);storyTick(dt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
-if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({growStep,ufoReward,rewind,boostMul,ufoBoost,REW,boostPanel,shiftMaster,stormAxe,ringInf,meterInf,sgVDur,sgVCd,ufoWebReel,skyAnchor,findAnchor,story:()=>save.story,storyAddActive:s=>{save.story.act+=+s||0;},ufoArrive:q=>ufoArrive(q===undefined?true:q),loadSave,enterZone,leaveZone,zone:()=>zone,askYesNo,askInfo,cutscene,objective,objectiveMark,ufoTakeItem,UFO,UF,ualiens,ZONES,ZF,OBJ,get CUT(){return CUT;},get ASK(){return ASK;},storyTick,ufoLeave,ufoBeamUp,storyActiveNow,sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto,prismStart,destroyStart,destroyKey,destroyAvail,PR,get kathana(){return KA;},get korbs(){return KA.orbs;},kathanaWinStage1,kathanaStage2,kathanaLose,kathanaWin,qteWin,KQ,PF,get kperfect(){return PF.real;},worldUpgrade,humanSuper,superTick,invasionStart:q=>invBegin(q===undefined?true:q),invasionWave:n=>invWaveJump(n),invasionWin:q=>invWin(!!q),lightSpeed:lsStart,INV,get invaders(){return INV.list;},cyberArrive,invText,masteryInv,invMastery,invSpawn,cyberGoArch,cyberStats,towerEnter,CY,CYZ,cyberTick,cyberRespawn,spireEnter,spireFloor,spireClearFloor,get sovereign(){return SOV;},sovereignHalf,sovereignWin,wormholeTo,SP,SPR,SOV,spStartAt,cyReal,zoneHop,spRespawn,spSpawn,CB,sovIntro,spRide,SPO,SPFY,sovereignAtk}));
+if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({growStep,ufoReward,rewind,boostMul,ufoBoost,REW,boostPanel,shiftMaster,stormAxe,ringInf,meterInf,sgVDur,sgVCd,ufoWebReel,skyAnchor,findAnchor,story:()=>save.story,storyAddActive:s=>{save.story.act+=+s||0;},ufoArrive:q=>ufoArrive(q===undefined?true:q),loadSave,enterZone,leaveZone,zone:()=>zone,askYesNo,askInfo,cutscene,objective,objectiveMark,ufoTakeItem,UFO,UF,ualiens,ZONES,ZF,OBJ,get CUT(){return CUT;},get ASK(){return ASK;},storyTick,ufoLeave,ufoBeamUp,storyActiveNow,sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto,prismStart,destroyStart,destroyKey,destroyAvail,PR,get kathana(){return KA;},get korbs(){return KA.orbs;},kathanaWinStage1,kathanaStage2,kathanaLose,kathanaWin,qteWin,KQ,PF,get kperfect(){return PF.real;},worldUpgrade,humanSuper,superTick,invasionStart:q=>invBegin(q===undefined?true:q),invasionWave:n=>invWaveJump(n),invasionWin:q=>invWin(!!q),lightSpeed:lsStart,INV,get invaders(){return INV.list;},cyberArrive,invText,masteryInv,invMastery,invSpawn,cyberGoArch,cyberStats,towerEnter,CY,CYZ,cyberTick,cyberRespawn,spireEnter,spireFloor,spireClearFloor,get sovereign(){return SOV;},sovereignHalf,sovereignWin,wormholeTo,SP,SPR,SOV,spStartAt,cyReal,zoneHop,spRespawn,spSpawn,CB,sovIntro,spRide,SPO,SPFY,sovereignAtk,makeVehicle,vehicleBlock,VB,cyCarPose,CYP,setVehiclePos}));
 })();
 </script>
 </body>

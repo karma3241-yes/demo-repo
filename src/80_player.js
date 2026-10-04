@@ -189,24 +189,18 @@ function driveCar(dt,inF,inR){
   if(hb&&sp>12&&Math.random()<0.6)smoke(v.pos.x-fx*2,0.3,v.pos.z-fz*2,1,0.6,1.8,0.8,0.5);
   SFX.setEngine(true,clamp(sp/D.maxSpeed,0,1));
 }
-function playerBodies(prevY){
+function playerBodies(prevY,prevX,prevZ,dt){
   const sp=Math.hypot(P.vel.x,P.vel.z),big=(P.alien&&alienDef().scale>2)||P.giantS>2;
   for(const h of humans){if(!h.alive||h.air||h.held||h.hidden)continue;const dx=h.pos.x-P.pos.x,dz=h.pos.z-P.pos.z;
     if(Math.abs(dx)>P.radius+1||Math.abs(dz)>P.radius+1||Math.abs(h.pos.y-P.pos.y)>P.height)continue;
     const d=Math.hypot(dx,dz)||0.01,min=P.radius+0.45;if(d>=min)continue;
     if((sp>16||big&&sp>4)&&!P.speeding&&time-(h.bumpT||-9)>0.6){h.bumpT=time;Damage.apply(P,h,sp*0.5,'bump',{knock:Math.max(10,sp*0.8)});}
     else{const push=min-d;h.pos.x+=dx/d*push*0.8;h.pos.z+=dz/d*push*0.8;P.pos.x-=dx/d*push*0.2;P.pos.z-=dz/d*push*0.2;}}
-  for(const v of vehicles){if(v===P.car||v.state==='thrown'||v.state==='held'||v.state==='wreckAir')continue;if(Math.abs(v.pos.x-P.pos.x)>6||Math.abs(v.pos.z-P.pos.z)>6)continue;
-    const c=Math.cos(v.yaw),s=Math.sin(v.yaw),dx=P.pos.x-v.pos.x,dz=P.pos.z-v.pos.z;const lx=dx*c-dz*s,lz=dx*s+dz*c;
-    const hw=v.hw+P.radius*0.6,hl=v.hl+P.radius*0.6,top=VEH_S*(v.vtype==='truck'?3.4:v.vtype==='van'?3:(v.state==='wreck'&&Math.abs(v.rz)>1?1.4:1.75));
-    if(Math.abs(lx)<hw&&Math.abs(lz)<hl&&P.pos.y<v.pos.y+top&&P.pos.y+P.height>v.pos.y){
-      if(prevY>=v.pos.y+top-0.7){P.pos.y=v.pos.y+top;if(P.vel.y<0)P.vel.y=0;P.grounded=true;
-        if(v.state==='road'||v.state==='chase'){P.pos.x+=Math.sin(v.yaw)*v.spd*(1/60);P.pos.z+=Math.cos(v.yaw)*v.spd*(1/60);}}
-      else if(big){if(v.alive&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,40,'crash');}}
-      else{let nlx=lx,nlz=lz;if(hw-Math.abs(lx)<hl-Math.abs(lz))nlx=Math.sign(lx||1)*hw;else nlz=Math.sign(lz||1)*hl;
-        P.pos.x=v.pos.x+nlx*c+nlz*s;P.pos.z=v.pos.z-nlx*s+nlz*c;
-        if(sp>24&&v.alive&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,sp*0.8,'crash');SFX.crash(0.6);burst(P.pos.x,1.2,P.pos.z,12,8,0.4,SPARK,0.8,15,1);}
-        P.vel.x*=0.4;P.vel.z*=0.4;}}}
+  vehicleBlock(P.pos,P.vel,P.radius,P.height,prevY,false,big,dt,prevX,prevZ); // cars, trucks, helicopters, boats, hover cars: solid (50_npcs.js)
+  if(VB.land)P.grounded=true;
+  if(VB.hit){const v=VB.hit; // a hard hit hurts the vehicle (a giant's touch always does)
+    if(big){if(v.alive&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,40,'crash');}}
+    else if(sp>24&&v.alive&&time-(v.bumpT||-9)>0.5){v.bumpT=time;Damage.apply(P,v,sp*0.8,'crash');SFX.crash(0.6);burst(P.pos.x,1.2,P.pos.z,12,8,0.4,SPARK,0.8,15,1);}}
   if(P.pos.y<9)for(const p of propsNear(P.pos.x,P.pos.z,P.radius+0.5).slice()){if(P.pos.y>p.y+3.5)continue;const dx=P.pos.x-p.x,dz=P.pos.z-p.z,d=Math.hypot(dx,dz)||0.01,min=P.radius*0.8+p.r;if(d>=min)continue;
     if(sp>18||big||P.dashT>0){breakProp(p,P,P.vel.x*0.6,P.vel.z*0.6);}else{P.pos.x=p.x+dx/d*min;P.pos.z=p.z+dz/d*min;}}
 }
@@ -289,7 +283,7 @@ function updatePlayer(dt){
         const ix=fwdX*inF+rX*inR,iz=fwdZ*inF+rZ*inR;if(-(ix*col.wall.nx+iz*col.wall.nz)>0.5){P.wall=col.wall;P.vel.set(0,0,0);P.charging=false;P.grounded=false;}}
       if(!P.wall&&col.wall&&!(P.flungT&&time-P.flungT<2)&&!phasing)tryWallRun(col,inF,inR,fwdX,fwdZ,rX,rZ,shift);
       if(P.zip&&col.wall&&P.zip.t>0.15){P.zip=null;P.vel.set(col.wall.nx*4,14,col.wall.nz*4);}
-      playerBodies(prevY);}
+      playerBodies(prevY,prevX,prevZ,dt);}
   }
   // free roam: the ocean goes on past the city and nothing pulls you back (only the edge of the solar system stops you)
   P.pos.x=clamp(P.pos.x,-SPACE.lim,SPACE.lim);P.pos.z=clamp(P.pos.z,-SPACE.lim,SPACE.lim);

@@ -224,9 +224,11 @@ function cyUpdate(Z,dt){
   if(!P.dead&&!cutLocked()&&time-CY.enterT>6&&S.tower<2){const lx=P.pos.x-CYO.x,lz=P.pos.z-CYO.z,ly=P.pos.y-CYO.y;if(Math.abs(lx)<CYARCH.w+1&&lz>CYARCH.z0-3&&lz<CYARCH.z1+2&&ly<CYARCH.h+2&&ly>-1)towerEnter();} // reaching the arch's mouth is enough (stopping at the glow used to do nothing)
 }
 // ---- drawing: cars, drones, the gate, fountains, beacons, the shield ----
+const CYP={x:0,y:0,z:0,yaw:0}; // a hover car's place in the world right now (drawing and collision share it)
+function cyCarPose(c,o){if(c.ax===0){o.x=CYO.x+c.line+c.off;o.z=CYO.z+c.t;o.yaw=c.dir>0?0:Math.PI;}else{o.z=CYO.z+c.line+c.off;o.x=CYO.x+c.t;o.yaw=c.dir>0?Math.PI/2:-Math.PI/2;}o.y=c.y+Math.sin(time*1.6+c.v)*0.4;}
 function cyCarDraw(c,t){
-  let x,z,yaw;if(c.ax===0){x=CYO.x+c.line+c.off;z=CYO.z+c.t;yaw=c.dir>0?0:Math.PI;}else{z=CYO.z+c.line+c.off;x=CYO.x+c.t;yaw=c.dir>0?Math.PI/2:-Math.PI/2;}
-  if(inView(x,z,1800,60)<0)return;const y=c.y+Math.sin(t*1.6+c.v)*0.4,sx=Math.sin(yaw),cz=Math.cos(yaw),root=at(x,y,z,Math.sin(t*1.3+c.v)*0.03,yaw,Math.sin(t*1.1+c.v)*0.04),d2=(x-camPos.x)**2+(z-camPos.z)**2,K=1.7,tr=c.tr;
+  cyCarPose(c,CYP);const x=CYP.x,z=CYP.z,yaw=CYP.yaw;
+  if(inView(x,z,1800,60)<0)return;const y=CYP.y,sx=Math.sin(yaw),cz=Math.cos(yaw),root=at(x,y,z,Math.sin(t*1.3+c.v)*0.03,yaw,Math.sin(t*1.1+c.v)*0.04),d2=(x-camPos.x)**2+(z-camPos.z)**2,K=1.7,tr=c.tr;
   queue(MESH.box,child(root,0,0,0,0,0,0,2.0*K,0.55*K,4.6*K),c.col,0,0.12);                    // hull
   queue(MESH.box,child(root,0,-0.05*K,2.5*K,-0.35,0,0,1.7*K,0.4*K,1.6*K),c.col,0,0.12);      // sloping nose
   queue(MESH.sphere,child(root,0,0.38*K,-0.1*K,0,0,0,0.85*K,0.45*K,1.5*K),[.1,.35,.85,1],0,0.55); // canopy
