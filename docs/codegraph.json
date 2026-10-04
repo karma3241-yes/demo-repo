@@ -1,8 +1,8 @@
 {
  "files": {
   "00_engine.js": {
-   "kb": 42.4,
-   "lines": 606,
+   "kb": 42.7,
+   "lines": 607,
    "purpose": "Math helpers",
    "uses": {
     "40_powers.js": 1,
@@ -128,7 +128,7 @@
    }
   },
   "42_combat.js": {
-   "kb": 17.4,
+   "kb": 17.5,
    "lines": 217,
    "purpose": "Melee combat: lock-on, 4-hit chains, finishers, dash, wall slams",
    "uses": {
@@ -137,7 +137,7 @@
     "30_systems.js": 70,
     "60_multiplayer.js": 4,
     "40_powers.js": 19,
-    "66f_kathana.js": 2,
+    "66f_kathana.js": 3,
     "00_engine.js": 46,
     "20_core.js": 9,
     "70_ui.js": 5,
@@ -764,8 +764,8 @@
    }
   },
   "66_icons.js": {
-   "kb": 10.6,
-   "lines": 102,
+   "kb": 10.8,
+   "lines": 103,
    "purpose": "Icons: small line drawings for the HUD icon bar and the power cards",
    "uses": {
     "10_world.js": 9,
@@ -831,24 +831,25 @@
    }
   },
   "66d_ufo.js": {
-   "kb": 34.6,
-   "lines": 376,
+   "kb": 36.8,
+   "lines": 400,
    "purpose": "The UFO event: a saucer over Nova Bay, a way in, an interior full of aliens, and one item per hero",
    "uses": {
     "20_core.js": 25,
-    "10_world.js": 16,
-    "66b_story.js": 39,
+    "10_world.js": 19,
+    "66b_story.js": 41,
     "66e_boost.js": 3,
-    "30_systems.js": 48,
+    "30_systems.js": 52,
     "44_movement.js": 1,
-    "00_engine.js": 201,
+    "00_engine.js": 206,
     "40_powers.js": 15,
     "70_ui.js": 7,
     "45_aliens.js": 1,
     "90_render.js": 5,
     "49h_space.js": 1,
     "66c_zones.js": 48,
-    "80_player.js": 5,
+    "80_player.js": 6,
+    "99_main.js": 1,
     "50_npcs.js": 4,
     "47_abilities.js": 2,
     "42_combat.js": 7,
@@ -884,22 +885,22 @@
    }
   },
   "66f_kathana.js": {
-   "kb": 38,
-   "lines": 494,
+   "kb": 38.2,
+   "lines": 495,
    "purpose": "The Prism form, Destroy, and Kathana's first stage",
    "uses": {
     "49k_sungod.js": 28,
-    "20_core.js": 36,
+    "20_core.js": 37,
     "66c_zones.js": 9,
     "66b_story.js": 18,
-    "30_systems.js": 87,
+    "30_systems.js": 89,
     "40_powers.js": 19,
     "10_world.js": 15,
     "66g_kperfect.js": 16,
     "99_main.js": 9,
     "45_aliens.js": 3,
     "00_engine.js": 177,
-    "70_ui.js": 16,
+    "70_ui.js": 17,
     "81_touch.js": 4,
     "66d_ufo.js": 1,
     "50_npcs.js": 7,
@@ -910,24 +911,24 @@
    }
   },
   "66g_kperfect.js": {
-   "kb": 46,
-   "lines": 546,
+   "kb": 53.4,
+   "lines": 634,
    "purpose": "Kathana, stage 2: the scream, the split, the Perfect Form, the break-free QTE and the duel; then the super-pow",
    "uses": {
-    "30_systems.js": 86,
+    "30_systems.js": 115,
     "66b_story.js": 20,
     "10_world.js": 7,
     "66d_ufo.js": 3,
-    "66f_kathana.js": 25,
-    "50_npcs.js": 16,
-    "00_engine.js": 257,
-    "40_powers.js": 7,
-    "20_core.js": 14,
-    "47_abilities.js": 1,
-    "99_main.js": 8,
+    "66f_kathana.js": 30,
+    "50_npcs.js": 18,
+    "00_engine.js": 277,
+    "40_powers.js": 10,
+    "20_core.js": 16,
+    "47_abilities.js": 2,
+    "99_main.js": 9,
     "66e_boost.js": 3,
-    "42_combat.js": 8,
-    "70_ui.js": 8,
+    "42_combat.js": 9,
+    "70_ui.js": 9,
     "80_player.js": 6,
     "90_render.js": 4,
     "49h_space.js": 1,
@@ -936,15 +937,15 @@
    }
   },
   "66h_invasion.js": {
-   "kb": 50.4,
-   "lines": 564,
+   "kb": 50.5,
+   "lines": 565,
    "purpose": "The invasion: 100 warships over Earth, three waves of superpowered invaders in space, then light-speed travel",
    "uses": {
     "20_core.js": 57,
     "66i_cyber.js": 4,
     "66b_story.js": 48,
     "40_powers.js": 56,
-    "00_engine.js": 298,
+    "00_engine.js": 299,
     "10_world.js": 12,
     "30_systems.js": 153,
     "42_combat.js": 21,
@@ -957,7 +958,7 @@
     "50_npcs.js": 4,
     "47_abilities.js": 1,
     "65_rewards.js": 1,
-    "99_main.js": 3,
+    "99_main.js": 4,
     "68_markers.js": 3,
     "49b_speed.js": 3,
     "66f_kathana.js": 1,
@@ -1023,14 +1024,14 @@
    }
   },
   "67_hudbar.js": {
-   "kb": 8.2,
-   "lines": 98,
+   "kb": 9.7,
+   "lines": 111,
    "purpose": "HUD icon bar and the move list",
    "uses": {
     "65_rewards.js": 8,
     "10_world.js": 1,
-    "20_core.js": 16,
-    "66_icons.js": 15,
+    "20_core.js": 17,
+    "66_icons.js": 18,
     "70_ui.js": 27,
     "30_systems.js": 11,
     "80_player.js": 8,
@@ -1080,13 +1081,13 @@
    }
   },
   "70_ui.js": {
-   "kb": 48.6,
-   "lines": 465,
+   "kb": 49.1,
+   "lines": 467,
    "purpose": "HUD",
    "uses": {
     "80_player.js": 21,
-    "30_systems.js": 32,
-    "20_core.js": 250,
+    "30_systems.js": 33,
+    "20_core.js": 253,
     "49c_suit.js": 2,
     "67_hudbar.js": 5,
     "66f_kathana.js": 4,
@@ -1098,7 +1099,7 @@
     "66d_ufo.js": 2,
     "66h_invasion.js": 3,
     "10_world.js": 39,
-    "00_engine.js": 30,
+    "00_engine.js": 31,
     "66c_zones.js": 1,
     "50_npcs.js": 37,
     "66b_story.js": 1,
@@ -1120,8 +1121,8 @@
    }
   },
   "80_player.js": {
-   "kb": 35.3,
-   "lines": 352,
+   "kb": 35.4,
+   "lines": 353,
    "purpose": "Input: keyboard, mouse, pointer lock, touch",
    "uses": {
     "20_core.js": 60,
@@ -1154,6 +1155,7 @@
     "49d_wanted.js": 1,
     "10_world.js": 21,
     "47_abilities.js": 4,
+    "66d_ufo.js": 1,
     "54_ambient.js": 1,
     "53_water.js": 6,
     "49f_constructs.js": 3,
@@ -1161,8 +1163,8 @@
    }
   },
   "81_touch.js": {
-   "kb": 16.4,
-   "lines": 186,
+   "kb": 16.7,
+   "lines": 189,
    "purpose": "Touch controls (phones and tablets, played sideways)",
    "uses": {
     "80_player.js": 22,
@@ -1178,7 +1180,7 @@
     "49k_sungod.js": 3,
     "45_aliens.js": 2,
     "65_rewards.js": 4,
-    "70_ui.js": 12,
+    "70_ui.js": 11,
     "66e_boost.js": 8,
     "66h_invasion.js": 2,
     "40_powers.js": 12,
@@ -1318,7 +1320,7 @@
     "66c_zones.js": 1,
     "66d_ufo.js": 7,
     "66f_kathana.js": 8,
-    "66g_kperfect.js": 4,
+    "66g_kperfect.js": 6,
     "66h_invasion.js": 8,
     "66i_cyber.js": 7,
     "66j_spire.js": 16,
@@ -1360,10 +1362,10 @@
     "65b_goals.js": 1,
     "66b_story.js": 2,
     "66c_zones.js": 2,
-    "66d_ufo.js": 4,
+    "66d_ufo.js": 6,
     "66e_boost.js": 3,
     "66f_kathana.js": 9,
-    "66g_kperfect.js": 18,
+    "66g_kperfect.js": 19,
     "66h_invasion.js": 5,
     "66i_cyber.js": 4,
     "66j_spire.js": 11,
@@ -1769,7 +1771,7 @@
   },
   "DEPTH_VS": {
    "file": "00_engine.js",
-   "line": 263,
+   "line": 264,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 1
@@ -1777,7 +1779,7 @@
   },
   "DEPTH_FS": {
    "file": "00_engine.js",
-   "line": 266,
+   "line": 267,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 1
@@ -1785,7 +1787,7 @@
   },
   "SKY_VS": {
    "file": "00_engine.js",
-   "line": 269,
+   "line": 270,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 2
@@ -1793,7 +1795,7 @@
   },
   "SKY_FS": {
    "file": "00_engine.js",
-   "line": 271,
+   "line": 272,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 2
@@ -1801,7 +1803,7 @@
   },
   "vec3": {
    "file": "00_engine.js",
-   "line": 282,
+   "line": 283,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 146
@@ -1809,7 +1811,7 @@
   },
   "PART_VS": {
    "file": "00_engine.js",
-   "line": 356,
+   "line": 357,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 1
@@ -1817,7 +1819,7 @@
   },
   "PART_FS": {
    "file": "00_engine.js",
-   "line": 360,
+   "line": 361,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 1
@@ -1825,7 +1827,7 @@
   },
   "MAIN": {
    "file": "00_engine.js",
-   "line": 364,
+   "line": 365,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 1,
@@ -1834,7 +1836,7 @@
   },
   "SKY": {
    "file": "00_engine.js",
-   "line": 364,
+   "line": 365,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 1,
@@ -1843,7 +1845,7 @@
   },
   "storyVariant": {
    "file": "00_engine.js",
-   "line": 365,
+   "line": 366,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 2
@@ -1851,7 +1853,7 @@
   },
   "storyProgs": {
    "file": "00_engine.js",
-   "line": 366,
+   "line": 367,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 2,
@@ -1860,7 +1862,7 @@
   },
   "storyReady": {
    "file": "00_engine.js",
-   "line": 368,
+   "line": 369,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 1,
@@ -1869,7 +1871,7 @@
   },
   "storyPoll": {
    "file": "00_engine.js",
-   "line": 369,
+   "line": 370,
    "kind": "fn",
    "usedBy": {
     "90_render.js": 1
@@ -1877,7 +1879,7 @@
   },
   "DEPTH": {
    "file": "00_engine.js",
-   "line": 372,
+   "line": 373,
    "kind": "const",
    "usedBy": {
     "90_render.js": 4
@@ -1885,7 +1887,7 @@
   },
   "PART": {
    "file": "00_engine.js",
-   "line": 373,
+   "line": 374,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 2,
@@ -1894,7 +1896,7 @@
   },
   "skyVao": {
    "file": "00_engine.js",
-   "line": 374,
+   "line": 375,
    "kind": "const",
    "usedBy": {
     "90_render.js": 1
@@ -1902,7 +1904,7 @@
   },
   "SHADOW": {
    "file": "00_engine.js",
-   "line": 377,
+   "line": 378,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 2,
@@ -1911,7 +1913,7 @@
   },
   "shTex": {
    "file": "00_engine.js",
-   "line": 378,
+   "line": 379,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 2,
@@ -1920,7 +1922,7 @@
   },
   "shFbo": {
    "file": "00_engine.js",
-   "line": 387,
+   "line": 388,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 1,
@@ -1929,7 +1931,7 @@
   },
   "primBox": {
    "file": "00_engine.js",
-   "line": 396,
+   "line": 397,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 1
@@ -1937,7 +1939,7 @@
   },
   "primSphere": {
    "file": "00_engine.js",
-   "line": 408,
+   "line": 409,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 3,
@@ -1949,7 +1951,7 @@
   },
   "primCyl": {
    "file": "00_engine.js",
-   "line": 416,
+   "line": 417,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 4,
@@ -1959,7 +1961,7 @@
   },
   "primTorus": {
    "file": "00_engine.js",
-   "line": 430,
+   "line": 431,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 1,
@@ -1970,7 +1972,7 @@
   },
   "primRing": {
    "file": "00_engine.js",
-   "line": 438,
+   "line": 439,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 2,
@@ -1979,7 +1981,7 @@
   },
   "primQuad": {
    "file": "00_engine.js",
-   "line": 444,
+   "line": 445,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 1
@@ -1987,7 +1989,7 @@
   },
   "primPrism": {
    "file": "00_engine.js",
-   "line": 445,
+   "line": 446,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 2
@@ -1995,7 +1997,7 @@
   },
   "PRIM": {
    "file": "00_engine.js",
-   "line": 457,
+   "line": 458,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 14,
@@ -2008,13 +2010,13 @@
   },
   "TM": {
    "file": "00_engine.js",
-   "line": 459,
+   "line": 460,
    "kind": "const",
    "usedBy": {}
   },
   "makeMesh": {
    "file": "00_engine.js",
-   "line": 478,
+   "line": 479,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 1
@@ -2022,7 +2024,7 @@
   },
   "freeMesh": {
    "file": "00_engine.js",
-   "line": 487,
+   "line": 488,
    "kind": "fn",
    "usedBy": {
     "10_world.js": 1,
@@ -2033,7 +2035,7 @@
   },
   "primMesh": {
    "file": "00_engine.js",
-   "line": 489,
+   "line": 490,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 14,
@@ -2046,7 +2048,7 @@
   },
   "MESH": {
    "file": "00_engine.js",
-   "line": 491,
+   "line": 492,
    "kind": "const",
    "usedBy": {
     "30_systems.js": 5,
@@ -2075,7 +2077,7 @@
     "66d_ufo.js": 39,
     "66e_boost.js": 4,
     "66f_kathana.js": 50,
-    "66g_kperfect.js": 31,
+    "66g_kperfect.js": 35,
     "66h_invasion.js": 43,
     "66i_cyber.js": 27,
     "66j_spire.js": 100,
@@ -2084,7 +2086,7 @@
   },
   "F_SH": {
    "file": "00_engine.js",
-   "line": 501,
+   "line": 502,
    "kind": "const",
    "usedBy": {
     "43_ragdoll.js": 1,
@@ -2104,7 +2106,7 @@
   },
   "F_UN": {
    "file": "00_engine.js",
-   "line": 501,
+   "line": 502,
    "kind": "const",
    "usedBy": {
     "45b_voidborn.js": 2,
@@ -2116,7 +2118,7 @@
   },
   "F_ADD": {
    "file": "00_engine.js",
-   "line": 501,
+   "line": 502,
    "kind": "const",
    "usedBy": {
     "40_powers.js": 3,
@@ -2146,7 +2148,7 @@
   },
   "F_BL": {
    "file": "00_engine.js",
-   "line": 501,
+   "line": 502,
    "kind": "const",
    "usedBy": {
     "46_buildings.js": 1,
@@ -2159,7 +2161,7 @@
     "54_ambient.js": 1,
     "66d_ufo.js": 2,
     "66f_kathana.js": 18,
-    "66g_kperfect.js": 26,
+    "66g_kperfect.js": 28,
     "66h_invasion.js": 1,
     "66i_cyber.js": 1,
     "66j_spire.js": 12,
@@ -2168,7 +2170,7 @@
   },
   "F_NF": {
    "file": "00_engine.js",
-   "line": 501,
+   "line": 502,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 1,
@@ -2180,7 +2182,7 @@
   },
   "drawList": {
    "file": "00_engine.js",
-   "line": 502,
+   "line": 503,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 2,
@@ -2191,7 +2193,7 @@
   },
   "matPool": {
    "file": "00_engine.js",
-   "line": 503,
+   "line": 504,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 3
@@ -2199,7 +2201,7 @@
   },
   "tmpM": {
    "file": "00_engine.js",
-   "line": 504,
+   "line": 505,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 2,
@@ -2217,7 +2219,7 @@
     "52_heli.js": 2,
     "54_ambient.js": 2,
     "66f_kathana.js": 2,
-    "66g_kperfect.js": 15,
+    "66g_kperfect.js": 18,
     "66h_invasion.js": 8,
     "66i_cyber.js": 2,
     "66j_spire.js": 12,
@@ -2226,7 +2228,7 @@
   },
   "queue": {
    "file": "00_engine.js",
-   "line": 505,
+   "line": 506,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 1,
@@ -2252,7 +2254,7 @@
     "66d_ufo.js": 43,
     "66e_boost.js": 4,
     "66f_kathana.js": 42,
-    "66g_kperfect.js": 44,
+    "66g_kperfect.js": 47,
     "66h_invasion.js": 52,
     "66i_cyber.js": 28,
     "66j_spire.js": 110,
@@ -2261,7 +2263,7 @@
   },
   "child": {
    "file": "00_engine.js",
-   "line": 506,
+   "line": 507,
    "kind": "fn",
    "usedBy": {
     "45b_voidborn.js": 7,
@@ -2276,7 +2278,7 @@
     "65_rewards.js": 6,
     "66d_ufo.js": 21,
     "66e_boost.js": 6,
-    "66g_kperfect.js": 19,
+    "66g_kperfect.js": 15,
     "66h_invasion.js": 31,
     "66i_cyber.js": 13,
     "66j_spire.js": 58,
@@ -2285,19 +2287,19 @@
   },
   "at": {
    "file": "00_engine.js",
-   "line": 507,
+   "line": 508,
    "kind": "fn",
    "usedBy": {}
   },
   "FX": {
    "file": "00_engine.js",
-   "line": 547,
+   "line": 548,
    "kind": "const",
    "usedBy": {}
   },
   "SMOKE": {
    "file": "00_engine.js",
-   "line": 547,
+   "line": 548,
    "kind": "const",
    "usedBy": {
     "00_engine.js": 1,
@@ -2308,7 +2310,7 @@
   },
   "emit": {
    "file": "00_engine.js",
-   "line": 548,
+   "line": 549,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 4,
@@ -2340,7 +2342,7 @@
     "66d_ufo.js": 2,
     "66e_boost.js": 2,
     "66f_kathana.js": 1,
-    "66g_kperfect.js": 4,
+    "66g_kperfect.js": 6,
     "66h_invasion.js": 2,
     "66j_spire.js": 6,
     "80_player.js": 7,
@@ -2349,7 +2351,7 @@
   },
   "smoke": {
    "file": "00_engine.js",
-   "line": 549,
+   "line": 550,
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 6,
@@ -2371,7 +2373,7 @@
   },
   "burst": {
    "file": "00_engine.js",
-   "line": 552,
+   "line": 553,
    "kind": "fn",
    "usedBy": {
     "20_core.js": 2,
@@ -2399,11 +2401,11 @@
     "62_worldsync.js": 1,
     "66_icons.js": 7,
     "66c_zones.js": 1,
-    "66d_ufo.js": 5,
+    "66d_ufo.js": 6,
     "66e_boost.js": 1,
     "66f_kathana.js": 2,
-    "66g_kperfect.js": 9,
-    "66h_invasion.js": 20,
+    "66g_kperfect.js": 10,
+    "66h_invasion.js": 21,
     "66i_cyber.js": 1,
     "66j_spire.js": 27,
     "80_player.js": 8,
@@ -2412,7 +2414,7 @@
   },
   "GLASSC": {
    "file": "00_engine.js",
-   "line": 556,
+   "line": 557,
    "kind": "const",
    "usedBy": {
     "30_systems.js": 1,
@@ -2421,7 +2423,7 @@
   },
   "WATER": {
    "file": "00_engine.js",
-   "line": 556,
+   "line": 557,
    "kind": "const",
    "usedBy": {
     "30_systems.js": 1,
@@ -2432,7 +2434,7 @@
   },
   "LEAF": {
    "file": "00_engine.js",
-   "line": 556,
+   "line": 557,
    "kind": "const",
    "usedBy": {
     "30_systems.js": 1
@@ -2440,7 +2442,7 @@
   },
   "FIRE": {
    "file": "00_engine.js",
-   "line": 557,
+   "line": 558,
    "kind": "const",
    "usedBy": {
     "30_systems.js": 8,
@@ -2456,7 +2458,7 @@
   },
   "SPARK": {
    "file": "00_engine.js",
-   "line": 557,
+   "line": 558,
    "kind": "const",
    "usedBy": {
     "30_systems.js": 2,
@@ -2466,12 +2468,13 @@
     "47_abilities.js": 2,
     "48_spider.js": 1,
     "50_npcs.js": 4,
+    "66d_ufo.js": 1,
     "80_player.js": 3
    }
   },
   "CYAN": {
    "file": "00_engine.js",
-   "line": 557,
+   "line": 558,
    "kind": "const",
    "usedBy": {
     "30_systems.js": 4,
@@ -2481,7 +2484,7 @@
   },
   "GOLD": {
    "file": "00_engine.js",
-   "line": 557,
+   "line": 558,
    "kind": "const",
    "usedBy": {
     "10_world.js": 3,
@@ -2490,7 +2493,7 @@
   },
   "DUST": {
    "file": "00_engine.js",
-   "line": 557,
+   "line": 558,
    "kind": "const",
    "usedBy": {
     "30_systems.js": 1,
@@ -2507,7 +2510,7 @@
   },
   "RED": {
    "file": "00_engine.js",
-   "line": 557,
+   "line": 558,
    "kind": "const",
    "usedBy": {
     "10_world.js": 8,
@@ -2516,7 +2519,7 @@
   },
   "SFX": {
    "file": "00_engine.js",
-   "line": 561,
+   "line": 562,
    "kind": "const",
    "usedBy": {
     "30_systems.js": 14,
@@ -2554,14 +2557,14 @@
     "65c_daily.js": 2,
     "66b_story.js": 3,
     "66c_zones.js": 1,
-    "66d_ufo.js": 17,
+    "66d_ufo.js": 18,
     "66e_boost.js": 4,
     "66f_kathana.js": 21,
-    "66g_kperfect.js": 44,
+    "66g_kperfect.js": 50,
     "66h_invasion.js": 56,
     "66i_cyber.js": 1,
     "66j_spire.js": 67,
-    "70_ui.js": 7,
+    "70_ui.js": 8,
     "80_player.js": 17,
     "81_touch.js": 3,
     "99_main.js": 4
@@ -3293,6 +3296,7 @@
     "49e_meters.js": 4,
     "66b_story.js": 2,
     "66c_zones.js": 1,
+    "66d_ufo.js": 1,
     "66h_invasion.js": 2,
     "66i_cyber.js": 20,
     "66j_spire.js": 11
@@ -3628,7 +3632,7 @@
     "50_npcs.js": 5,
     "66b_story.js": 5,
     "66c_zones.js": 43,
-    "66d_ufo.js": 10,
+    "66d_ufo.js": 11,
     "66e_boost.js": 3,
     "66f_kathana.js": 8,
     "66g_kperfect.js": 4,
@@ -3649,7 +3653,8 @@
    "kind": "fn",
    "usedBy": {
     "10_world.js": 3,
-    "66c_zones.js": 2
+    "66c_zones.js": 2,
+    "66d_ufo.js": 1
    }
   },
   "GR": {
@@ -4409,7 +4414,7 @@
     "67_hudbar.js": 10,
     "68_markers.js": 2,
     "68b_hints.js": 6,
-    "70_ui.js": 90,
+    "70_ui.js": 93,
     "80_player.js": 15,
     "81_touch.js": 8,
     "99_main.js": 34
@@ -4466,10 +4471,10 @@
     "65b_goals.js": 1,
     "66b_story.js": 2,
     "66e_boost.js": 1,
-    "66f_kathana.js": 4,
+    "66f_kathana.js": 5,
     "66g_kperfect.js": 2,
     "66h_invasion.js": 1,
-    "67_hudbar.js": 2,
+    "67_hudbar.js": 3,
     "68_markers.js": 8,
     "68b_hints.js": 1,
     "70_ui.js": 15,
@@ -4561,7 +4566,7 @@
     "66d_ufo.js": 1,
     "66e_boost.js": 3,
     "66f_kathana.js": 8,
-    "66g_kperfect.js": 2,
+    "66g_kperfect.js": 3,
     "66h_invasion.js": 4,
     "66i_cyber.js": 3,
     "66j_spire.js": 16,
@@ -4919,7 +4924,7 @@
     "62_worldsync.js": 10,
     "66d_ufo.js": 1,
     "66f_kathana.js": 3,
-    "66g_kperfect.js": 1,
+    "66g_kperfect.js": 2,
     "66h_invasion.js": 2,
     "66i_cyber.js": 1,
     "66j_spire.js": 3,
@@ -5011,7 +5016,7 @@
     "65c_daily.js": 2,
     "66b_story.js": 6,
     "66c_zones.js": 2,
-    "66d_ufo.js": 6,
+    "66d_ufo.js": 7,
     "66e_boost.js": 6,
     "66f_kathana.js": 6,
     "66g_kperfect.js": 4,
@@ -5021,7 +5026,7 @@
     "67_hudbar.js": 3,
     "68_markers.js": 2,
     "68b_hints.js": 1,
-    "70_ui.js": 10,
+    "70_ui.js": 11,
     "80_player.js": 29,
     "81_touch.js": 7,
     "90_render.js": 15,
@@ -5093,7 +5098,7 @@
     "65b_goals.js": 1,
     "66b_story.js": 6,
     "66c_zones.js": 2,
-    "66d_ufo.js": 13,
+    "66d_ufo.js": 15,
     "66e_boost.js": 3,
     "66f_kathana.js": 13,
     "66g_kperfect.js": 10,
@@ -5203,7 +5208,7 @@
     "62_worldsync.js": 5,
     "66d_ufo.js": 4,
     "66f_kathana.js": 2,
-    "66g_kperfect.js": 3,
+    "66g_kperfect.js": 4,
     "66h_invasion.js": 4,
     "66j_spire.js": 5,
     "99_main.js": 3
@@ -5244,7 +5249,7 @@
     "66d_ufo.js": 1,
     "66e_boost.js": 4,
     "66f_kathana.js": 4,
-    "66g_kperfect.js": 1,
+    "66g_kperfect.js": 3,
     "66h_invasion.js": 3,
     "66j_spire.js": 3,
     "68b_hints.js": 1,
@@ -5292,7 +5297,7 @@
     "66c_zones.js": 1,
     "66e_boost.js": 2,
     "66f_kathana.js": 3,
-    "66g_kperfect.js": 17,
+    "66g_kperfect.js": 22,
     "66h_invasion.js": 1,
     "66j_spire.js": 4,
     "68b_hints.js": 1,
@@ -5340,9 +5345,9 @@
     "50_npcs.js": 2,
     "50b_hunters.js": 1,
     "66c_zones.js": 1,
-    "66d_ufo.js": 4,
+    "66d_ufo.js": 5,
     "66f_kathana.js": 9,
-    "66g_kperfect.js": 10,
+    "66g_kperfect.js": 11,
     "66h_invasion.js": 8,
     "66i_cyber.js": 1,
     "66j_spire.js": 12,
@@ -5373,7 +5378,7 @@
     "62_worldsync.js": 5,
     "66d_ufo.js": 2,
     "66f_kathana.js": 3,
-    "66g_kperfect.js": 3,
+    "66g_kperfect.js": 4,
     "66h_invasion.js": 4,
     "66j_spire.js": 7,
     "70_ui.js": 1,
@@ -5416,7 +5421,7 @@
     "66d_ufo.js": 2,
     "66e_boost.js": 1,
     "66f_kathana.js": 3,
-    "66g_kperfect.js": 1,
+    "66g_kperfect.js": 2,
     "66h_invasion.js": 2,
     "66j_spire.js": 5,
     "70_ui.js": 3,
@@ -5513,8 +5518,8 @@
    "usedBy": {
     "20_core.js": 1,
     "30_systems.js": 4,
-    "66f_kathana.js": 28,
-    "66g_kperfect.js": 4,
+    "66f_kathana.js": 29,
+    "66g_kperfect.js": 18,
     "66h_invasion.js": 11,
     "70_ui.js": 1,
     "90_render.js": 1,
@@ -5703,7 +5708,7 @@
     "66d_ufo.js": 4,
     "66e_boost.js": 1,
     "66f_kathana.js": 2,
-    "66g_kperfect.js": 10,
+    "66g_kperfect.js": 13,
     "66h_invasion.js": 15,
     "66j_spire.js": 19,
     "80_player.js": 3
@@ -5730,7 +5735,7 @@
     "65c_daily.js": 2,
     "66c_zones.js": 1,
     "66e_boost.js": 2,
-    "66f_kathana.js": 1,
+    "66f_kathana.js": 2,
     "66g_kperfect.js": 2,
     "66h_invasion.js": 2,
     "66i_cyber.js": 1,
@@ -5781,7 +5786,7 @@
     "52_heli.js": 1,
     "66c_zones.js": 1,
     "66f_kathana.js": 3,
-    "66g_kperfect.js": 2,
+    "66g_kperfect.js": 3,
     "66h_invasion.js": 1,
     "66j_spire.js": 1
    }
@@ -6059,7 +6064,7 @@
     "49i_moreconstructs.js": 9,
     "49k_sungod.js": 8,
     "66d_ufo.js": 4,
-    "66g_kperfect.js": 1,
+    "66g_kperfect.js": 2,
     "66h_invasion.js": 14,
     "66j_spire.js": 8,
     "99_main.js": 9
@@ -6085,7 +6090,7 @@
     "66_icons.js": 2,
     "66e_boost.js": 2,
     "66f_kathana.js": 16,
-    "66g_kperfect.js": 5,
+    "66g_kperfect.js": 7,
     "66h_invasion.js": 10,
     "66i_cyber.js": 2,
     "66j_spire.js": 10,
@@ -6973,7 +6978,7 @@
     "50b_hunters.js": 2,
     "66b_story.js": 1,
     "66d_ufo.js": 2,
-    "66g_kperfect.js": 1,
+    "66g_kperfect.js": 2,
     "66h_invasion.js": 8,
     "66j_spire.js": 19,
     "70_ui.js": 5,
@@ -7980,7 +7985,7 @@
     "62_worldsync.js": 5,
     "66d_ufo.js": 2,
     "66f_kathana.js": 2,
-    "66g_kperfect.js": 1,
+    "66g_kperfect.js": 2,
     "66h_invasion.js": 1,
     "66j_spire.js": 2,
     "80_player.js": 3,
@@ -11095,7 +11100,7 @@
     "62_worldsync.js": 6,
     "66d_ufo.js": 2,
     "66f_kathana.js": 4,
-    "66g_kperfect.js": 3,
+    "66g_kperfect.js": 5,
     "66h_invasion.js": 2,
     "66i_cyber.js": 2,
     "66j_spire.js": 4
@@ -13315,12 +13320,13 @@
    "line": 5,
    "kind": "const",
    "usedBy": {
-    "66_icons.js": 2
+    "66_icons.js": 2,
+    "67_hudbar.js": 1
    }
   },
   "POWER_GLYPH": {
    "file": "66_icons.js",
-   "line": 88,
+   "line": 89,
    "kind": "const",
    "usedBy": {
     "66_icons.js": 1
@@ -13328,7 +13334,7 @@
   },
   "GLYPH_COL": {
    "file": "66_icons.js",
-   "line": 97,
+   "line": 98,
    "kind": "const",
    "usedBy": {
     "66_icons.js": 1
@@ -13336,7 +13342,7 @@
   },
   "RING_KIT": {
    "file": "66_icons.js",
-   "line": 98,
+   "line": 99,
    "kind": "const",
    "usedBy": {
     "66_icons.js": 1
@@ -13344,19 +13350,19 @@
   },
   "glyph": {
    "file": "66_icons.js",
-   "line": 99,
+   "line": 100,
    "kind": "fn",
    "usedBy": {
     "65c_daily.js": 1,
     "66_icons.js": 3,
-    "67_hudbar.js": 15,
+    "67_hudbar.js": 17,
     "70_ui.js": 2,
     "81_touch.js": 1
    }
   },
   "powerIcon": {
    "file": "66_icons.js",
-   "line": 101,
+   "line": 102,
    "kind": "fn",
    "usedBy": {
     "65_rewards.js": 1,
@@ -13377,7 +13383,7 @@
    "kind": "fn",
    "usedBy": {
     "66b_story.js": 7,
-    "66d_ufo.js": 2,
+    "66d_ufo.js": 3,
     "66e_boost.js": 2,
     "66f_kathana.js": 3,
     "66h_invasion.js": 8,
@@ -13465,7 +13471,7 @@
     "00_engine.js": 1,
     "30_systems.js": 1,
     "66b_story.js": 2,
-    "66d_ufo.js": 9,
+    "66d_ufo.js": 10,
     "66e_boost.js": 2,
     "66f_kathana.js": 5,
     "66g_kperfect.js": 8,
@@ -13912,7 +13918,7 @@
     "49k_sungod.js": 1,
     "66b_story.js": 3,
     "66c_zones.js": 2,
-    "66d_ufo.js": 100,
+    "66d_ufo.js": 105,
     "66e_boost.js": 15,
     "66f_kathana.js": 1,
     "66g_kperfect.js": 3,
@@ -13925,7 +13931,7 @@
    "line": 10,
    "kind": "const",
    "usedBy": {
-    "66d_ufo.js": 11
+    "66d_ufo.js": 12
    }
   },
   "UFO_Y": {
@@ -13941,7 +13947,7 @@
    "line": 10,
    "kind": "const",
    "usedBy": {
-    "66d_ufo.js": 9
+    "66d_ufo.js": 11
    }
   },
   "UFO_ITEMS": {
@@ -14021,9 +14027,25 @@
     "66d_ufo.js": 1
    }
   },
+  "ufoHitT": {
+   "file": "66d_ufo.js",
+   "line": 61,
+   "kind": "const",
+   "usedBy": {
+    "66d_ufo.js": 2
+   }
+  },
+  "ufoBlock": {
+   "file": "66d_ufo.js",
+   "line": 62,
+   "kind": "fn",
+   "usedBy": {
+    "80_player.js": 1
+   }
+  },
   "ufoDraw": {
    "file": "66d_ufo.js",
-   "line": 59,
+   "line": 76,
    "kind": "fn",
    "usedBy": {
     "66c_zones.js": 1
@@ -14031,15 +14053,23 @@
   },
   "ufoTick": {
    "file": "66d_ufo.js",
-   "line": 72,
+   "line": 89,
    "kind": "fn",
    "usedBy": {
     "66b_story.js": 1
    }
   },
+  "ufoCamY": {
+   "file": "66d_ufo.js",
+   "line": 110,
+   "kind": "fn",
+   "usedBy": {
+    "66d_ufo.js": 7
+   }
+  },
   "ufoArrive": {
    "file": "66d_ufo.js",
-   "line": 92,
+   "line": 115,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1,
@@ -14048,7 +14078,7 @@
   },
   "ufoAsk": {
    "file": "66d_ufo.js",
-   "line": 104,
+   "line": 128,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14056,7 +14086,7 @@
   },
   "ufoBeamUp": {
    "file": "66d_ufo.js",
-   "line": 109,
+   "line": 133,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1,
@@ -14065,7 +14095,7 @@
   },
   "ufoReturnPoint": {
    "file": "66d_ufo.js",
-   "line": 117,
+   "line": 141,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14073,7 +14103,7 @@
   },
   "ufoLeave": {
    "file": "66d_ufo.js",
-   "line": 118,
+   "line": 142,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1,
@@ -14082,7 +14112,7 @@
   },
   "ufoLeaveCut": {
    "file": "66d_ufo.js",
-   "line": 120,
+   "line": 144,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 2
@@ -14090,13 +14120,13 @@
   },
   "UF": {
    "file": "66d_ufo.js",
-   "line": 132,
+   "line": 156,
    "kind": "const",
    "usedBy": {}
   },
   "UFZ": {
    "file": "66d_ufo.js",
-   "line": 133,
+   "line": 157,
    "kind": "const",
    "usedBy": {
     "66d_ufo.js": 41
@@ -14104,7 +14134,7 @@
   },
   "UFR": {
    "file": "66d_ufo.js",
-   "line": 134,
+   "line": 158,
    "kind": "const",
    "usedBy": {
     "66d_ufo.js": 4
@@ -14112,7 +14142,7 @@
   },
   "UFROOMS": {
    "file": "66d_ufo.js",
-   "line": 143,
+   "line": 167,
    "kind": "const",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14120,7 +14150,7 @@
   },
   "UFLAB": {
    "file": "66d_ufo.js",
-   "line": 144,
+   "line": 168,
    "kind": "const",
    "usedBy": {
     "66d_ufo.js": 2
@@ -14128,7 +14158,7 @@
   },
   "ufoZone": {
    "file": "66d_ufo.js",
-   "line": 145,
+   "line": 169,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14136,7 +14166,7 @@
   },
   "ufoBuild": {
    "file": "66d_ufo.js",
-   "line": 154,
+   "line": 178,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14144,7 +14174,7 @@
   },
   "ufoRebuild": {
    "file": "66d_ufo.js",
-   "line": 223,
+   "line": 247,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 3
@@ -14152,7 +14182,7 @@
   },
   "ufoEnter": {
    "file": "66d_ufo.js",
-   "line": 229,
+   "line": 253,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14160,7 +14190,7 @@
   },
   "ufoLeaveZone": {
    "file": "66d_ufo.js",
-   "line": 237,
+   "line": 261,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14168,7 +14198,7 @@
   },
   "ufoOpenVault": {
    "file": "66d_ufo.js",
-   "line": 238,
+   "line": 262,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 2
@@ -14176,7 +14206,7 @@
   },
   "ufoPickItem": {
    "file": "66d_ufo.js",
-   "line": 243,
+   "line": 267,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 2
@@ -14184,7 +14214,7 @@
   },
   "ufoTakeItem": {
    "file": "66d_ufo.js",
-   "line": 250,
+   "line": 274,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 1
@@ -14192,7 +14222,7 @@
   },
   "ufoAliveCount": {
    "file": "66d_ufo.js",
-   "line": 254,
+   "line": 278,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14200,7 +14230,7 @@
   },
   "ufoZoneUpdate": {
    "file": "66d_ufo.js",
-   "line": 255,
+   "line": 279,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14208,7 +14238,7 @@
   },
   "ufoSpawnIn": {
    "file": "66d_ufo.js",
-   "line": 268,
+   "line": 292,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14216,7 +14246,7 @@
   },
   "clearAliens": {
    "file": "66d_ufo.js",
-   "line": 273,
+   "line": 297,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 2
@@ -14224,7 +14254,7 @@
   },
   "ualiens": {
    "file": "66d_ufo.js",
-   "line": 277,
+   "line": 301,
    "kind": "const",
    "usedBy": {
     "66d_ufo.js": 10,
@@ -14235,7 +14265,7 @@
   },
   "UAC": {
    "file": "66d_ufo.js",
-   "line": 278,
+   "line": 302,
    "kind": "const",
    "usedBy": {
     "66d_ufo.js": 13
@@ -14243,7 +14273,7 @@
   },
   "UARAG": {
    "file": "66d_ufo.js",
-   "line": 279,
+   "line": 303,
    "kind": "const",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14251,7 +14281,7 @@
   },
   "ualienSpawn": {
    "file": "66d_ufo.js",
-   "line": 280,
+   "line": 304,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14259,7 +14289,7 @@
   },
   "ualienUpdate": {
    "file": "66d_ufo.js",
-   "line": 290,
+   "line": 314,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14267,7 +14297,7 @@
   },
   "ualienShoot": {
    "file": "66d_ufo.js",
-   "line": 329,
+   "line": 353,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14275,7 +14305,7 @@
   },
   "ualienDraw": {
    "file": "66d_ufo.js",
-   "line": 334,
+   "line": 358,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14283,7 +14313,7 @@
   },
   "ufoZoneDraw": {
    "file": "66d_ufo.js",
-   "line": 354,
+   "line": 378,
    "kind": "fn",
    "usedBy": {
     "66d_ufo.js": 1
@@ -14553,7 +14583,7 @@
    "kind": "const",
    "usedBy": {
     "66f_kathana.js": 11,
-    "66g_kperfect.js": 10
+    "66g_kperfect.js": 14
    }
   },
   "KORB_COL": {
@@ -14657,7 +14687,7 @@
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 3,
-    "66g_kperfect.js": 1,
+    "66g_kperfect.js": 2,
     "66j_spire.js": 1
    }
   },
@@ -14666,7 +14696,7 @@
    "line": 25,
    "kind": "fn",
    "usedBy": {
-    "66f_kathana.js": 11,
+    "66f_kathana.js": 12,
     "66g_kperfect.js": 5
    }
   },
@@ -14931,7 +14961,7 @@
   },
   "kathanaBar": {
    "file": "66f_kathana.js",
-   "line": 203,
+   "line": 204,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 1
@@ -14939,7 +14969,7 @@
   },
   "kHpFrac": {
    "file": "66f_kathana.js",
-   "line": 208,
+   "line": 209,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -14947,15 +14977,15 @@
   },
   "kathanaPickAny": {
    "file": "66f_kathana.js",
-   "line": 210,
+   "line": 211,
    "kind": "fn",
    "usedBy": {
-    "42_combat.js": 1
+    "42_combat.js": 2
    }
   },
   "kathanaNextLock": {
    "file": "66f_kathana.js",
-   "line": 215,
+   "line": 216,
    "kind": "fn",
    "usedBy": {
     "42_combat.js": 1
@@ -14963,7 +14993,7 @@
   },
   "kathanaLose": {
    "file": "66f_kathana.js",
-   "line": 224,
+   "line": 225,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1,
@@ -14972,7 +15002,7 @@
   },
   "korbBreak": {
    "file": "66f_kathana.js",
-   "line": 232,
+   "line": 233,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 2
@@ -14980,7 +15010,7 @@
   },
   "kathanaWinStage1": {
    "file": "66f_kathana.js",
-   "line": 244,
+   "line": 245,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 1
@@ -14988,7 +15018,7 @@
   },
   "kHandsInit": {
    "file": "66f_kathana.js",
-   "line": 248,
+   "line": 249,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -14996,7 +15026,7 @@
   },
   "kwa": {
    "file": "66f_kathana.js",
-   "line": 253,
+   "line": 254,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 26,
@@ -15005,7 +15035,7 @@
   },
   "kla": {
    "file": "66f_kathana.js",
-   "line": 254,
+   "line": 255,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15013,7 +15043,7 @@
   },
   "kReach": {
    "file": "66f_kathana.js",
-   "line": 255,
+   "line": 256,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 4
@@ -15021,7 +15051,7 @@
   },
   "kElbow": {
    "file": "66f_kathana.js",
-   "line": 256,
+   "line": 257,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15029,13 +15059,13 @@
   },
   "kEase": {
    "file": "66f_kathana.js",
-   "line": 262,
+   "line": 263,
    "kind": "fn",
    "usedBy": {}
   },
   "kCore": {
    "file": "66f_kathana.js",
-   "line": 263,
+   "line": 264,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15043,7 +15073,7 @@
   },
   "kathanaUpdate": {
    "file": "66f_kathana.js",
-   "line": 264,
+   "line": 265,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1,
@@ -15052,7 +15082,7 @@
   },
   "kSyncOrbs": {
    "file": "66f_kathana.js",
-   "line": 296,
+   "line": 297,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 3
@@ -15060,7 +15090,7 @@
   },
   "kAttacks": {
    "file": "66f_kathana.js",
-   "line": 300,
+   "line": 301,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15068,7 +15098,7 @@
   },
   "kPick": {
    "file": "66f_kathana.js",
-   "line": 336,
+   "line": 337,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15076,7 +15106,7 @@
   },
   "kImpact": {
    "file": "66f_kathana.js",
-   "line": 346,
+   "line": 347,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15084,7 +15114,7 @@
   },
   "kWaves": {
    "file": "66f_kathana.js",
-   "line": 351,
+   "line": 352,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15092,7 +15122,7 @@
   },
   "kShot": {
    "file": "66f_kathana.js",
-   "line": 358,
+   "line": 359,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15100,7 +15130,7 @@
   },
   "kShotBurst": {
    "file": "66f_kathana.js",
-   "line": 364,
+   "line": 365,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 3
@@ -15108,7 +15138,7 @@
   },
   "kShotKill": {
    "file": "66f_kathana.js",
-   "line": 368,
+   "line": 369,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 2
@@ -15116,7 +15146,7 @@
   },
   "kShots": {
    "file": "66f_kathana.js",
-   "line": 369,
+   "line": 370,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15124,7 +15154,7 @@
   },
   "kClearShots": {
    "file": "66f_kathana.js",
-   "line": 379,
+   "line": 380,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 3,
@@ -15133,7 +15163,7 @@
   },
   "KST": {
    "file": "66f_kathana.js",
-   "line": 383,
+   "line": 384,
    "kind": "const",
    "usedBy": {
     "66f_kathana.js": 6
@@ -15141,7 +15171,7 @@
   },
   "KST2": {
    "file": "66f_kathana.js",
-   "line": 383,
+   "line": 384,
    "kind": "const",
    "usedBy": {
     "66f_kathana.js": 4
@@ -15149,7 +15179,7 @@
   },
   "KDK": {
    "file": "66f_kathana.js",
-   "line": 383,
+   "line": 384,
    "kind": "const",
    "usedBy": {
     "66f_kathana.js": 6
@@ -15157,7 +15187,7 @@
   },
   "KGD": {
    "file": "66f_kathana.js",
-   "line": 383,
+   "line": 384,
    "kind": "const",
    "usedBy": {
     "66f_kathana.js": 15
@@ -15165,7 +15195,7 @@
   },
   "KGD2": {
    "file": "66f_kathana.js",
-   "line": 383,
+   "line": 384,
    "kind": "const",
    "usedBy": {
     "66f_kathana.js": 5
@@ -15173,7 +15203,7 @@
   },
   "KTOR": {
    "file": "66f_kathana.js",
-   "line": 383,
+   "line": 384,
    "kind": "const",
    "usedBy": {
     "66f_kathana.js": 7
@@ -15181,25 +15211,25 @@
   },
   "kb": {
    "file": "66f_kathana.js",
-   "line": 384,
+   "line": 385,
    "kind": "fn",
    "usedBy": {}
   },
   "kc": {
    "file": "66f_kathana.js",
-   "line": 385,
+   "line": 386,
    "kind": "fn",
    "usedBy": {}
   },
   "ks": {
    "file": "66f_kathana.js",
-   "line": 386,
+   "line": 387,
    "kind": "fn",
    "usedBy": {}
   },
   "kbeam": {
    "file": "66f_kathana.js",
-   "line": 387,
+   "line": 388,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 10
@@ -15207,7 +15237,7 @@
   },
   "kathanaDraw": {
    "file": "66f_kathana.js",
-   "line": 388,
+   "line": 389,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1,
@@ -15216,7 +15246,7 @@
   },
   "kMarkers": {
    "file": "66f_kathana.js",
-   "line": 417,
+   "line": 418,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15224,7 +15254,7 @@
   },
   "KIN": {
    "file": "66f_kathana.js",
-   "line": 428,
+   "line": 429,
    "kind": "const",
    "usedBy": {
     "66f_kathana.js": 2
@@ -15232,7 +15262,7 @@
   },
   "KIN2": {
    "file": "66f_kathana.js",
-   "line": 428,
+   "line": 429,
    "kind": "const",
    "usedBy": {
     "66f_kathana.js": 6
@@ -15240,7 +15270,7 @@
   },
   "kbz": {
    "file": "66f_kathana.js",
-   "line": 429,
+   "line": 430,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 2
@@ -15248,7 +15278,7 @@
   },
   "kBody": {
    "file": "66f_kathana.js",
-   "line": 430,
+   "line": 431,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1,
@@ -15257,7 +15287,7 @@
   },
   "kHandsDraw": {
    "file": "66f_kathana.js",
-   "line": 471,
+   "line": 472,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1,
@@ -15298,12 +15328,20 @@
     "66g_kperfect.js": 5
    }
   },
+  "PFZ": {
+   "file": "66g_kperfect.js",
+   "line": 15,
+   "kind": "const",
+   "usedBy": {
+    "66g_kperfect.js": 40
+   }
+  },
   "PFH": {
    "file": "66g_kperfect.js",
    "line": 15,
    "kind": "const",
    "usedBy": {
-    "66g_kperfect.js": 2
+    "66g_kperfect.js": 3
    }
   },
   "KQ_NEED": {
@@ -15319,7 +15357,7 @@
    "line": 17,
    "kind": "fn",
    "usedBy": {
-    "66g_kperfect.js": 10
+    "66g_kperfect.js": 12
    }
   },
   "inKS": {
@@ -15420,9 +15458,17 @@
     "66g_kperfect.js": 1
    }
   },
+  "pfAura": {
+   "file": "66g_kperfect.js",
+   "line": 75,
+   "kind": "fn",
+   "usedBy": {
+    "66g_kperfect.js": 2
+   }
+  },
   "PFL": {
    "file": "66g_kperfect.js",
-   "line": 74,
+   "line": 84,
    "kind": "const",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15430,7 +15476,7 @@
   },
   "pfFigureLite": {
    "file": "66g_kperfect.js",
-   "line": 75,
+   "line": 85,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15438,7 +15484,7 @@
   },
   "pfMake": {
    "file": "66g_kperfect.js",
-   "line": 87,
+   "line": 97,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 3
@@ -15446,7 +15492,7 @@
   },
   "pfHit": {
    "file": "66g_kperfect.js",
-   "line": 94,
+   "line": 104,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15454,7 +15500,7 @@
   },
   "pfPop": {
    "file": "66g_kperfect.js",
-   "line": 98,
+   "line": 108,
    "kind": "fn",
    "usedBy": {
     "49k_sungod.js": 1,
@@ -15463,15 +15509,15 @@
   },
   "pfFace": {
    "file": "66g_kperfect.js",
-   "line": 104,
+   "line": 114,
    "kind": "fn",
    "usedBy": {
-    "66g_kperfect.js": 10
+    "66g_kperfect.js": 11
    }
   },
   "pfClampPos": {
    "file": "66g_kperfect.js",
-   "line": 105,
+   "line": 115,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 5
@@ -15479,7 +15525,7 @@
   },
   "pfSteer": {
    "file": "66g_kperfect.js",
-   "line": 106,
+   "line": 116,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15487,7 +15533,7 @@
   },
   "pfHurt": {
    "file": "66g_kperfect.js",
-   "line": 107,
+   "line": 117,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 4
@@ -15495,23 +15541,23 @@
   },
   "pfPh2": {
    "file": "66g_kperfect.js",
-   "line": 108,
+   "line": 118,
    "kind": "fn",
    "usedBy": {
-    "66g_kperfect.js": 4
+    "66g_kperfect.js": 6
    }
   },
   "pfDone": {
    "file": "66g_kperfect.js",
-   "line": 109,
+   "line": 119,
    "kind": "fn",
    "usedBy": {
-    "66g_kperfect.js": 7
+    "66g_kperfect.js": 8
    }
   },
   "pfFx": {
    "file": "66g_kperfect.js",
-   "line": 110,
+   "line": 120,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 5
@@ -15519,7 +15565,7 @@
   },
   "pfPose": {
    "file": "66g_kperfect.js",
-   "line": 114,
+   "line": 124,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 3
@@ -15527,7 +15573,7 @@
   },
   "pfThink": {
    "file": "66g_kperfect.js",
-   "line": 132,
+   "line": 142,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 2
@@ -15535,7 +15581,7 @@
   },
   "pfOrbit": {
    "file": "66g_kperfect.js",
-   "line": 155,
+   "line": 166,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15543,7 +15589,7 @@
   },
   "pfPick": {
    "file": "66g_kperfect.js",
-   "line": 165,
+   "line": 176,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 2
@@ -15551,7 +15597,7 @@
   },
   "pfEvade": {
    "file": "66g_kperfect.js",
-   "line": 171,
+   "line": 182,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15559,7 +15605,7 @@
   },
   "pfBlink": {
    "file": "66g_kperfect.js",
-   "line": 177,
+   "line": 188,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15567,7 +15613,7 @@
   },
   "pfStrike": {
    "file": "66g_kperfect.js",
-   "line": 187,
+   "line": 198,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 2
@@ -15575,7 +15621,7 @@
   },
   "pfCombo": {
    "file": "66g_kperfect.js",
-   "line": 193,
+   "line": 204,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15583,7 +15629,7 @@
   },
   "pfShardPos": {
    "file": "66g_kperfect.js",
-   "line": 208,
+   "line": 219,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 2
@@ -15591,7 +15637,7 @@
   },
   "pfShardsMove": {
    "file": "66g_kperfect.js",
-   "line": 209,
+   "line": 220,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15599,7 +15645,87 @@
   },
   "pfShardTick": {
    "file": "66g_kperfect.js",
-   "line": 221,
+   "line": 232,
+   "kind": "fn",
+   "usedBy": {
+    "66g_kperfect.js": 1
+   }
+  },
+  "PO_HP": {
+   "file": "66g_kperfect.js",
+   "line": 245,
+   "kind": "const",
+   "usedBy": {
+    "66g_kperfect.js": 2
+   }
+  },
+  "PO_R": {
+   "file": "66g_kperfect.js",
+   "line": 245,
+   "kind": "const",
+   "usedBy": {
+    "66g_kperfect.js": 6
+   }
+  },
+  "PO_SP": {
+   "file": "66g_kperfect.js",
+   "line": 245,
+   "kind": "const",
+   "usedBy": {
+    "66g_kperfect.js": 3
+   }
+  },
+  "PO_FORM": {
+   "file": "66g_kperfect.js",
+   "line": 245,
+   "kind": "const",
+   "usedBy": {
+    "66g_kperfect.js": 3
+   }
+  },
+  "pfOrbSpawn": {
+   "file": "66g_kperfect.js",
+   "line": 246,
+   "kind": "fn",
+   "usedBy": {
+    "66g_kperfect.js": 1
+   }
+  },
+  "pfOrbBreak": {
+   "file": "66g_kperfect.js",
+   "line": 255,
+   "kind": "fn",
+   "usedBy": {
+    "66g_kperfect.js": 2
+   }
+  },
+  "pfOrbsClear": {
+   "file": "66g_kperfect.js",
+   "line": 260,
+   "kind": "fn",
+   "usedBy": {
+    "66g_kperfect.js": 2
+   }
+  },
+  "pfOrbsTick": {
+   "file": "66g_kperfect.js",
+   "line": 261,
+   "kind": "fn",
+   "usedBy": {
+    "66g_kperfect.js": 1
+   }
+  },
+  "pfOrbsDraw": {
+   "file": "66g_kperfect.js",
+   "line": 274,
+   "kind": "fn",
+   "usedBy": {
+    "66g_kperfect.js": 1
+   }
+  },
+  "pfOrbsMove": {
+   "file": "66g_kperfect.js",
+   "line": 284,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15607,7 +15733,7 @@
   },
   "pfStillMove": {
    "file": "66g_kperfect.js",
-   "line": 231,
+   "line": 293,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15615,7 +15741,7 @@
   },
   "pfStillEnd": {
    "file": "66g_kperfect.js",
-   "line": 248,
+   "line": 310,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 5
@@ -15623,7 +15749,7 @@
   },
   "pfSplit": {
    "file": "66g_kperfect.js",
-   "line": 250,
+   "line": 312,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 2
@@ -15631,7 +15757,7 @@
   },
   "pfSplitTick": {
    "file": "66g_kperfect.js",
-   "line": 251,
+   "line": 313,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15639,7 +15765,7 @@
   },
   "pfUpdate": {
    "file": "66g_kperfect.js",
-   "line": 265,
+   "line": 327,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1,
@@ -15648,7 +15774,7 @@
   },
   "pfClear": {
    "file": "66g_kperfect.js",
-   "line": 276,
+   "line": 339,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 2,
@@ -15657,7 +15783,7 @@
   },
   "pfStop": {
    "file": "66g_kperfect.js",
-   "line": 280,
+   "line": 343,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15665,7 +15791,7 @@
   },
   "pfBar": {
    "file": "66g_kperfect.js",
-   "line": 281,
+   "line": 344,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15673,15 +15799,71 @@
   },
   "pfPickLock": {
    "file": "66g_kperfect.js",
-   "line": 285,
+   "line": 348,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 2
    }
   },
+  "PF_RED": {
+   "file": "66g_kperfect.js",
+   "line": 356,
+   "kind": "const",
+   "usedBy": {
+    "66g_kperfect.js": 5
+   }
+  },
+  "PF_BLUE": {
+   "file": "66g_kperfect.js",
+   "line": 356,
+   "kind": "const",
+   "usedBy": {
+    "66g_kperfect.js": 3
+   }
+  },
+  "PF_PUR": {
+   "file": "66g_kperfect.js",
+   "line": 356,
+   "kind": "const",
+   "usedBy": {
+    "66g_kperfect.js": 5
+   }
+  },
+  "pfBand": {
+   "file": "66g_kperfect.js",
+   "line": 357,
+   "kind": "fn",
+   "usedBy": {
+    "66g_kperfect.js": 8
+   }
+  },
+  "pfZone": {
+   "file": "66g_kperfect.js",
+   "line": 358,
+   "kind": "fn",
+   "usedBy": {
+    "66g_kperfect.js": 7
+   }
+  },
+  "pfLane": {
+   "file": "66g_kperfect.js",
+   "line": 364,
+   "kind": "fn",
+   "usedBy": {
+    "66g_kperfect.js": 4
+   }
+  },
+  "pfTelegraphs": {
+   "file": "66g_kperfect.js",
+   "line": 365,
+   "kind": "fn",
+   "usedBy": {
+    "66g_kperfect.js": 2
+   }
+  },
   "pfDraw": {
    "file": "66g_kperfect.js",
-   "line": 289,
+   "line": 382,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1,
@@ -15690,7 +15872,7 @@
   },
   "kCracksMake": {
    "file": "66g_kperfect.js",
-   "line": 313,
+   "line": 400,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15698,7 +15880,7 @@
   },
   "kCracksDraw": {
    "file": "66g_kperfect.js",
-   "line": 320,
+   "line": 407,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15706,7 +15888,7 @@
   },
   "kathanaStage2": {
    "file": "66g_kperfect.js",
-   "line": 330,
+   "line": 417,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 3,
@@ -15716,7 +15898,7 @@
   },
   "kScreamTick": {
    "file": "66g_kperfect.js",
-   "line": 342,
+   "line": 429,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15724,7 +15906,7 @@
   },
   "kScreamSfx": {
    "file": "66g_kperfect.js",
-   "line": 350,
+   "line": 437,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15732,7 +15914,7 @@
   },
   "kSplitDraw": {
    "file": "66g_kperfect.js",
-   "line": 365,
+   "line": 452,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 2,
@@ -15741,7 +15923,7 @@
   },
   "pfStand": {
    "file": "66g_kperfect.js",
-   "line": 380,
+   "line": 467,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 2
@@ -15749,7 +15931,7 @@
   },
   "pfCam": {
    "file": "66g_kperfect.js",
-   "line": 381,
+   "line": 468,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 2
@@ -15757,7 +15939,7 @@
   },
   "kSplitStart": {
    "file": "66g_kperfect.js",
-   "line": 384,
+   "line": 471,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15765,7 +15947,7 @@
   },
   "kSplitTick": {
    "file": "66g_kperfect.js",
-   "line": 393,
+   "line": 480,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15773,7 +15955,7 @@
   },
   "kSplitEnd": {
    "file": "66g_kperfect.js",
-   "line": 411,
+   "line": 498,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15781,7 +15963,7 @@
   },
   "pfRetryStart": {
    "file": "66g_kperfect.js",
-   "line": 418,
+   "line": 505,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1
@@ -15789,7 +15971,7 @@
   },
   "qteEl": {
    "file": "66g_kperfect.js",
-   "line": 430,
+   "line": 517,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 4,
@@ -15798,7 +15980,7 @@
   },
   "qteHide": {
    "file": "66g_kperfect.js",
-   "line": 431,
+   "line": 518,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 5,
@@ -15807,7 +15989,7 @@
   },
   "pfQteStart": {
    "file": "66g_kperfect.js",
-   "line": 432,
+   "line": 519,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 3
@@ -15815,7 +15997,7 @@
   },
   "pfPress": {
    "file": "66g_kperfect.js",
-   "line": 439,
+   "line": 526,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 2
@@ -15823,15 +16005,15 @@
   },
   "qteTick": {
    "file": "66g_kperfect.js",
-   "line": 446,
+   "line": 534,
    "kind": "fn",
    "usedBy": {
-    "66g_kperfect.js": 2
+    "66g_kperfect.js": 3
    }
   },
   "pfQteFail": {
    "file": "66g_kperfect.js",
-   "line": 454,
+   "line": 542,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15839,15 +16021,15 @@
   },
   "pfQteWin": {
    "file": "66g_kperfect.js",
-   "line": 460,
+   "line": 548,
    "kind": "fn",
    "usedBy": {
-    "66g_kperfect.js": 1
+    "66g_kperfect.js": 2
    }
   },
   "qteWin": {
    "file": "66g_kperfect.js",
-   "line": 468,
+   "line": 556,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 1
@@ -15855,7 +16037,7 @@
   },
   "kathanaWin": {
    "file": "66g_kperfect.js",
-   "line": 472,
+   "line": 560,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 1
@@ -15863,7 +16045,7 @@
   },
   "pfDefeated": {
    "file": "66g_kperfect.js",
-   "line": 473,
+   "line": 561,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 2
@@ -15871,7 +16053,7 @@
   },
   "pfWinTick": {
    "file": "66g_kperfect.js",
-   "line": 483,
+   "line": 571,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15879,7 +16061,7 @@
   },
   "pfReturn": {
    "file": "66g_kperfect.js",
-   "line": 493,
+   "line": 581,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15887,7 +16069,7 @@
   },
   "pfWorldBack": {
    "file": "66g_kperfect.js",
-   "line": 499,
+   "line": 587,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 3
@@ -15895,7 +16077,7 @@
   },
   "pfAfterWin": {
    "file": "66g_kperfect.js",
-   "line": 507,
+   "line": 595,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1
@@ -15903,7 +16085,7 @@
   },
   "SUP": {
    "file": "66g_kperfect.js",
-   "line": 517,
+   "line": 605,
    "kind": "const",
    "usedBy": {
     "66g_kperfect.js": 11,
@@ -15912,7 +16094,7 @@
   },
   "superOn": {
    "file": "66g_kperfect.js",
-   "line": 518,
+   "line": 606,
    "kind": "fn",
    "usedBy": {
     "50_npcs.js": 1,
@@ -15921,7 +16103,7 @@
   },
   "humanSuper": {
    "file": "66g_kperfect.js",
-   "line": 519,
+   "line": 607,
    "kind": "fn",
    "usedBy": {
     "50_npcs.js": 1,
@@ -15931,7 +16113,7 @@
   },
   "worldUpgrade": {
    "file": "66g_kperfect.js",
-   "line": 523,
+   "line": 611,
    "kind": "fn",
    "usedBy": {
     "66g_kperfect.js": 1,
@@ -15940,7 +16122,7 @@
   },
   "superTick": {
    "file": "66g_kperfect.js",
-   "line": 524,
+   "line": 612,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1,
@@ -16429,15 +16611,15 @@
   },
   "invSwBurst": {
    "file": "66h_invasion.js",
-   "line": 326,
+   "line": 327,
    "kind": "fn",
    "usedBy": {
-    "66h_invasion.js": 2
+    "66h_invasion.js": 3
    }
   },
   "invSwClear": {
    "file": "66h_invasion.js",
-   "line": 332,
+   "line": 333,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 2
@@ -16445,7 +16627,7 @@
   },
   "invSwEnd": {
    "file": "66h_invasion.js",
-   "line": 333,
+   "line": 334,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 3
@@ -16453,7 +16635,7 @@
   },
   "invSwAbort": {
    "file": "66h_invasion.js",
-   "line": 336,
+   "line": 337,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 4
@@ -16461,7 +16643,7 @@
   },
   "invSwTick": {
    "file": "66h_invasion.js",
-   "line": 337,
+   "line": 338,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1
@@ -16469,7 +16651,7 @@
   },
   "invSwPt": {
    "file": "66h_invasion.js",
-   "line": 377,
+   "line": 378,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 8
@@ -16477,7 +16659,7 @@
   },
   "invSwDraw": {
    "file": "66h_invasion.js",
-   "line": 378,
+   "line": 379,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1,
@@ -16486,7 +16668,7 @@
   },
   "invSwAura": {
    "file": "66h_invasion.js",
-   "line": 379,
+   "line": 380,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1
@@ -16494,7 +16676,7 @@
   },
   "invWin": {
    "file": "66h_invasion.js",
-   "line": 386,
+   "line": 387,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 5,
@@ -16503,7 +16685,7 @@
   },
   "invBoom": {
    "file": "66h_invasion.js",
-   "line": 396,
+   "line": 397,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1
@@ -16511,7 +16693,7 @@
   },
   "invWinTick": {
    "file": "66h_invasion.js",
-   "line": 402,
+   "line": 403,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1
@@ -16519,7 +16701,7 @@
   },
   "masteryInv": {
    "file": "66h_invasion.js",
-   "line": 407,
+   "line": 408,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 2,
@@ -16528,7 +16710,7 @@
   },
   "invMastery": {
    "file": "66h_invasion.js",
-   "line": 412,
+   "line": 413,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1,
@@ -16537,7 +16719,7 @@
   },
   "invWinEnd": {
    "file": "66h_invasion.js",
-   "line": 417,
+   "line": 418,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1
@@ -16545,7 +16727,7 @@
   },
   "invMaxSpeed": {
    "file": "66h_invasion.js",
-   "line": 425,
+   "line": 426,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1,
@@ -16554,7 +16736,7 @@
   },
   "lsTick0": {
    "file": "66h_invasion.js",
-   "line": 426,
+   "line": 427,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1
@@ -16562,7 +16744,7 @@
   },
   "LSC": {
    "file": "66h_invasion.js",
-   "line": 438,
+   "line": 439,
    "kind": "const",
    "usedBy": {
     "66h_invasion.js": 4
@@ -16570,7 +16752,7 @@
   },
   "LSL": {
    "file": "66h_invasion.js",
-   "line": 438,
+   "line": 439,
    "kind": "const",
    "usedBy": {
     "66h_invasion.js": 4
@@ -16578,7 +16760,7 @@
   },
   "lsStart": {
    "file": "66h_invasion.js",
-   "line": 439,
+   "line": 440,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 2,
@@ -16588,7 +16770,7 @@
   },
   "lsTick": {
    "file": "66h_invasion.js",
-   "line": 450,
+   "line": 451,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1
@@ -16596,7 +16778,7 @@
   },
   "lsEnd": {
    "file": "66h_invasion.js",
-   "line": 457,
+   "line": 458,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 2,
@@ -16605,7 +16787,7 @@
   },
   "invMpGuard": {
    "file": "66h_invasion.js",
-   "line": 460,
+   "line": 461,
    "kind": "fn",
    "usedBy": {
     "66b_story.js": 1
@@ -16613,7 +16795,7 @@
   },
   "invTick": {
    "file": "66h_invasion.js",
-   "line": 468,
+   "line": 469,
    "kind": "fn",
    "usedBy": {
     "66b_story.js": 1
@@ -16621,7 +16803,7 @@
   },
   "invDraw1": {
    "file": "66h_invasion.js",
-   "line": 502,
+   "line": 503,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1
@@ -16629,7 +16811,7 @@
   },
   "invDraw": {
    "file": "66h_invasion.js",
-   "line": 535,
+   "line": 536,
    "kind": "fn",
    "usedBy": {
     "66c_zones.js": 1
@@ -16637,7 +16819,7 @@
   },
   "RING2": {
    "file": "66h_invasion.js",
-   "line": 547,
+   "line": 548,
    "kind": "const",
    "usedBy": {
     "66h_invasion.js": 2
@@ -16645,7 +16827,7 @@
   },
   "lsDraw": {
    "file": "66h_invasion.js",
-   "line": 548,
+   "line": 549,
    "kind": "fn",
    "usedBy": {
     "66h_invasion.js": 1
@@ -17776,9 +17958,41 @@
     "99_main.js": 1
    }
   },
+  "fsOk": {
+   "file": "67_hudbar.js",
+   "line": 13,
+   "kind": "fn",
+   "usedBy": {
+    "67_hudbar.js": 1
+   }
+  },
+  "fsOn": {
+   "file": "67_hudbar.js",
+   "line": 14,
+   "kind": "fn",
+   "usedBy": {
+    "67_hudbar.js": 4
+   }
+  },
+  "fsToggle": {
+   "file": "67_hudbar.js",
+   "line": 15,
+   "kind": "fn",
+   "usedBy": {
+    "67_hudbar.js": 1
+   }
+  },
+  "hudFold": {
+   "file": "67_hudbar.js",
+   "line": 19,
+   "kind": "const",
+   "usedBy": {
+    "67_hudbar.js": 5
+   }
+  },
   "rewardsLater": {
    "file": "67_hudbar.js",
-   "line": 12,
+   "line": 20,
    "kind": "fn",
    "usedBy": {
     "67_hudbar.js": 4
@@ -17786,15 +18000,15 @@
   },
   "HUDBAR": {
    "file": "67_hudbar.js",
-   "line": 13,
+   "line": 21,
    "kind": "const",
    "usedBy": {
-    "67_hudbar.js": 3
+    "67_hudbar.js": 4
    }
   },
   "HUDBAR_KEYS": {
    "file": "67_hudbar.js",
-   "line": 33,
+   "line": 42,
    "kind": "const",
    "usedBy": {
     "67_hudbar.js": 1,
@@ -17803,7 +18017,7 @@
   },
   "hbVal": {
    "file": "67_hudbar.js",
-   "line": 34,
+   "line": 43,
    "kind": "fn",
    "usedBy": {
     "67_hudbar.js": 1
@@ -17811,7 +18025,7 @@
   },
   "sheetToggle": {
    "file": "67_hudbar.js",
-   "line": 35,
+   "line": 44,
    "kind": "fn",
    "usedBy": {
     "67_hudbar.js": 7
@@ -17819,7 +18033,7 @@
   },
   "hudbarT": {
    "file": "67_hudbar.js",
-   "line": 36,
+   "line": 45,
    "kind": "const",
    "usedBy": {
     "67_hudbar.js": 2
@@ -17827,7 +18041,7 @@
   },
   "buildHudbar": {
    "file": "67_hudbar.js",
-   "line": 37,
+   "line": 46,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 1
@@ -17835,17 +18049,17 @@
   },
   "updateHudbar": {
    "file": "67_hudbar.js",
-   "line": 45,
+   "line": 56,
    "kind": "fn",
    "usedBy": {
     "64_portal.js": 1,
-    "67_hudbar.js": 2,
+    "67_hudbar.js": 3,
     "99_main.js": 1
    }
   },
   "lbMiniKey": {
    "file": "67_hudbar.js",
-   "line": 55,
+   "line": 68,
    "kind": "const",
    "usedBy": {
     "67_hudbar.js": 2
@@ -17853,7 +18067,7 @@
   },
   "lbMiniTop": {
    "file": "67_hudbar.js",
-   "line": 55,
+   "line": 68,
    "kind": "const",
    "usedBy": {
     "67_hudbar.js": 2
@@ -17861,7 +18075,7 @@
   },
   "lbRows": {
    "file": "67_hudbar.js",
-   "line": 56,
+   "line": 69,
    "kind": "fn",
    "usedBy": {
     "67_hudbar.js": 1
@@ -17869,7 +18083,7 @@
   },
   "LB_TABS": {
    "file": "67_hudbar.js",
-   "line": 61,
+   "line": 74,
    "kind": "const",
    "usedBy": {
     "67_hudbar.js": 1
@@ -17877,7 +18091,7 @@
   },
   "updateLBMini": {
    "file": "67_hudbar.js",
-   "line": 62,
+   "line": 75,
    "kind": "fn",
    "usedBy": {
     "67_hudbar.js": 2,
@@ -17886,7 +18100,7 @@
   },
   "movesShown": {
    "file": "67_hudbar.js",
-   "line": 80,
+   "line": 93,
    "kind": "fn",
    "usedBy": {
     "67_hudbar.js": 3,
@@ -17895,7 +18109,7 @@
   },
   "toggleMoves": {
    "file": "67_hudbar.js",
-   "line": 81,
+   "line": 94,
    "kind": "fn",
    "usedBy": {
     "67_hudbar.js": 1,
@@ -17905,7 +18119,7 @@
   },
   "fitT": {
    "file": "67_hudbar.js",
-   "line": 82,
+   "line": 95,
    "kind": "const",
    "usedBy": {
     "67_hudbar.js": 2
@@ -17913,7 +18127,7 @@
   },
   "updateMoves": {
    "file": "67_hudbar.js",
-   "line": 83,
+   "line": 96,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 1
@@ -17921,7 +18135,7 @@
   },
   "fitMoves": {
    "file": "67_hudbar.js",
-   "line": 85,
+   "line": 98,
    "kind": "fn",
    "usedBy": {
     "67_hudbar.js": 3,
@@ -18138,7 +18352,7 @@
     "67_hudbar.js": 5,
     "70_ui.js": 16,
     "80_player.js": 1,
-    "81_touch.js": 2,
+    "81_touch.js": 1,
     "99_main.js": 38
    }
   },
@@ -18193,8 +18407,8 @@
     "65c_daily.js": 3,
     "66d_ufo.js": 6,
     "66e_boost.js": 3,
-    "66f_kathana.js": 4,
-    "66g_kperfect.js": 4,
+    "66f_kathana.js": 5,
+    "66g_kperfect.js": 5,
     "66h_invasion.js": 6,
     "66i_cyber.js": 3,
     "66j_spire.js": 10,
@@ -18667,7 +18881,7 @@
    "line": 331,
    "kind": "const",
    "usedBy": {
-    "70_ui.js": 7,
+    "70_ui.js": 8,
     "80_player.js": 1,
     "90_render.js": 2
    }
@@ -18677,7 +18891,7 @@
    "line": 331,
    "kind": "const",
    "usedBy": {
-    "70_ui.js": 8
+    "70_ui.js": 9
    }
   },
   "creatorMode": {
@@ -18685,7 +18899,7 @@
    "line": 332,
    "kind": "const",
    "usedBy": {
-    "70_ui.js": 4,
+    "70_ui.js": 5,
     "80_player.js": 1
    }
   },
@@ -18694,7 +18908,7 @@
    "line": 333,
    "kind": "fn",
    "usedBy": {
-    "70_ui.js": 3,
+    "70_ui.js": 4,
     "99_main.js": 1
    }
   },
@@ -18724,7 +18938,7 @@
   },
   "finishCreator": {
    "file": "70_ui.js",
-   "line": 361,
+   "line": 362,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 1,
@@ -18733,7 +18947,7 @@
   },
   "startAsRingBearer": {
    "file": "70_ui.js",
-   "line": 372,
+   "line": 373,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 2
@@ -18741,7 +18955,7 @@
   },
   "menuButtons": {
    "file": "70_ui.js",
-   "line": 378,
+   "line": 379,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 1
@@ -18749,7 +18963,7 @@
   },
   "newHero": {
    "file": "70_ui.js",
-   "line": 379,
+   "line": 381,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 2,
@@ -18758,7 +18972,7 @@
   },
   "tryRechoose": {
    "file": "70_ui.js",
-   "line": 383,
+   "line": 385,
    "kind": "fn",
    "usedBy": {
     "67_hudbar.js": 1,
@@ -18767,7 +18981,7 @@
   },
   "dialOpen": {
    "file": "70_ui.js",
-   "line": 389,
+   "line": 391,
    "kind": "const",
    "usedBy": {
     "45b_voidborn.js": 1,
@@ -18784,7 +18998,7 @@
   },
   "dialSel": {
    "file": "70_ui.js",
-   "line": 389,
+   "line": 391,
    "kind": "const",
    "usedBy": {
     "70_ui.js": 4,
@@ -18793,7 +19007,7 @@
   },
   "dialVX": {
    "file": "70_ui.js",
-   "line": 389,
+   "line": 391,
    "kind": "const",
    "usedBy": {
     "70_ui.js": 5
@@ -18801,7 +19015,7 @@
   },
   "dialVY": {
    "file": "70_ui.js",
-   "line": 389,
+   "line": 391,
    "kind": "const",
    "usedBy": {
     "70_ui.js": 5
@@ -18809,7 +19023,7 @@
   },
   "dialKind": {
    "file": "70_ui.js",
-   "line": 389,
+   "line": 391,
    "kind": "const",
    "usedBy": {
     "70_ui.js": 5
@@ -18817,7 +19031,7 @@
   },
   "dialEl": {
    "file": "70_ui.js",
-   "line": 390,
+   "line": 392,
    "kind": "const",
    "usedBy": {
     "70_ui.js": 8
@@ -18825,7 +19039,7 @@
   },
   "dialItems": {
    "file": "70_ui.js",
-   "line": 394,
+   "line": 396,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 4,
@@ -18834,7 +19048,7 @@
   },
   "TRAV_GLOW": {
    "file": "70_ui.js",
-   "line": 402,
+   "line": 404,
    "kind": "const",
    "usedBy": {
     "70_ui.js": 1
@@ -18842,7 +19056,7 @@
   },
   "hasTravWheel": {
    "file": "70_ui.js",
-   "line": 403,
+   "line": 405,
    "kind": "fn",
    "usedBy": {
     "49c_suit.js": 1,
@@ -18853,7 +19067,7 @@
   },
   "vAction": {
    "file": "70_ui.js",
-   "line": 405,
+   "line": 407,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 2,
@@ -18863,7 +19077,7 @@
   },
   "vPress": {
    "file": "70_ui.js",
-   "line": 414,
+   "line": 416,
    "kind": "fn",
    "usedBy": {
     "49k_sungod.js": 1,
@@ -18873,7 +19087,7 @@
   },
   "setTravStyle": {
    "file": "70_ui.js",
-   "line": 418,
+   "line": 420,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 1,
@@ -18882,7 +19096,7 @@
   },
   "applyTravStyle": {
    "file": "70_ui.js",
-   "line": 420,
+   "line": 422,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 2,
@@ -18891,13 +19105,13 @@
   },
   "dialPage": {
    "file": "70_ui.js",
-   "line": 426,
+   "line": 428,
    "kind": "const",
    "usedBy": {}
   },
   "dialPageTurn": {
    "file": "70_ui.js",
-   "line": 427,
+   "line": 429,
    "kind": "fn",
    "usedBy": {
     "80_player.js": 2,
@@ -18906,7 +19120,7 @@
   },
   "openDial": {
    "file": "70_ui.js",
-   "line": 428,
+   "line": 430,
    "kind": "fn",
    "usedBy": {
     "45_aliens.js": 2,
@@ -18917,7 +19131,7 @@
   },
   "setDialSel": {
    "file": "70_ui.js",
-   "line": 438,
+   "line": 440,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 3,
@@ -18926,7 +19140,7 @@
   },
   "DIAL_INNER": {
    "file": "70_ui.js",
-   "line": 440,
+   "line": 442,
    "kind": "const",
    "usedBy": {
     "70_ui.js": 4
@@ -18934,7 +19148,7 @@
   },
   "dialMove": {
    "file": "70_ui.js",
-   "line": 441,
+   "line": 443,
    "kind": "fn",
    "usedBy": {
     "80_player.js": 1
@@ -18942,7 +19156,7 @@
   },
   "dialConfirm": {
    "file": "70_ui.js",
-   "line": 445,
+   "line": 447,
    "kind": "fn",
    "usedBy": {
     "80_player.js": 3
@@ -18950,7 +19164,7 @@
   },
   "closeDial": {
    "file": "70_ui.js",
-   "line": 446,
+   "line": 448,
    "kind": "fn",
    "usedBy": {
     "45b_voidborn.js": 1,
@@ -18962,7 +19176,7 @@
   },
   "hasWheel": {
    "file": "70_ui.js",
-   "line": 448,
+   "line": 450,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 1
@@ -18970,7 +19184,7 @@
   },
   "wheelWhat": {
    "file": "70_ui.js",
-   "line": 449,
+   "line": 451,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 2
@@ -18978,7 +19192,7 @@
   },
   "GUIDE": {
    "file": "70_ui.js",
-   "line": 450,
+   "line": 452,
    "kind": "const",
    "usedBy": {
     "70_ui.js": 1
@@ -18986,7 +19200,7 @@
   },
   "guideDone": {
    "file": "70_ui.js",
-   "line": 453,
+   "line": 455,
    "kind": "fn",
    "usedBy": {
     "50_npcs.js": 1,
@@ -18998,7 +19212,7 @@
   },
   "renderGuide": {
    "file": "70_ui.js",
-   "line": 454,
+   "line": 456,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 1,
@@ -19007,7 +19221,7 @@
   },
   "growTutOn": {
    "file": "70_ui.js",
-   "line": 458,
+   "line": 460,
    "kind": "const",
    "usedBy": {
     "70_ui.js": 2,
@@ -19016,7 +19230,7 @@
   },
   "updateGrowTut": {
    "file": "70_ui.js",
-   "line": 459,
+   "line": 461,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 1,
@@ -19025,7 +19239,7 @@
   },
   "growTutDone": {
    "file": "70_ui.js",
-   "line": 462,
+   "line": 464,
    "kind": "fn",
    "usedBy": {
     "49_ring.js": 1
@@ -19033,7 +19247,7 @@
   },
   "guideList": {
    "file": "70_ui.js",
-   "line": 463,
+   "line": 465,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 2
@@ -19106,7 +19320,7 @@
     "60_multiplayer.js": 6,
     "62_worldsync.js": 7,
     "66b_story.js": 5,
-    "66d_ufo.js": 4,
+    "66d_ufo.js": 5,
     "66e_boost.js": 1,
     "66f_kathana.js": 1,
     "66g_kperfect.js": 5,
@@ -19392,7 +19606,7 @@
   },
   "separateHumans": {
    "file": "80_player.js",
-   "line": 208,
+   "line": 209,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 2
@@ -19400,7 +19614,7 @@
   },
   "moved": {
    "file": "80_player.js",
-   "line": 213,
+   "line": 214,
    "kind": "const",
    "usedBy": {
     "64_portal.js": 1,
@@ -19411,7 +19625,7 @@
   },
   "updatePlayer": {
    "file": "80_player.js",
-   "line": 214,
+   "line": 215,
    "kind": "fn",
    "usedBy": {
     "66c_zones.js": 1,
@@ -19420,13 +19634,13 @@
   },
   "tl": {
    "file": "81_touch.js",
-   "line": 14,
+   "line": 17,
    "kind": "const",
    "usedBy": {}
   },
   "stick": {
    "file": "81_touch.js",
-   "line": 14,
+   "line": 17,
    "kind": "const",
    "usedBy": {
     "66b_story.js": 2,
@@ -19435,7 +19649,7 @@
   },
   "knob": {
    "file": "81_touch.js",
-   "line": 14,
+   "line": 17,
    "kind": "const",
    "usedBy": {
     "81_touch.js": 6
@@ -19443,7 +19657,7 @@
   },
   "tbtns": {
    "file": "81_touch.js",
-   "line": 14,
+   "line": 17,
    "kind": "const",
    "usedBy": {
     "81_touch.js": 3
@@ -19451,7 +19665,7 @@
   },
   "tHand": {
    "file": "81_touch.js",
-   "line": 15,
+   "line": 18,
    "kind": "fn",
    "usedBy": {
     "20_core.js": 4,
@@ -19463,7 +19677,7 @@
   },
   "tSizeMul": {
    "file": "81_touch.js",
-   "line": 15,
+   "line": 18,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 1
@@ -19471,7 +19685,7 @@
   },
   "safeIn": {
    "file": "81_touch.js",
-   "line": 17,
+   "line": 20,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 8
@@ -19479,7 +19693,7 @@
   },
   "tScale": {
    "file": "81_touch.js",
-   "line": 19,
+   "line": 22,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 3
@@ -19487,7 +19701,7 @@
   },
   "endTouch": {
    "file": "81_touch.js",
-   "line": 28,
+   "line": 31,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 2
@@ -19495,7 +19709,7 @@
   },
   "placeStick": {
    "file": "81_touch.js",
-   "line": 31,
+   "line": 34,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 3
@@ -19503,7 +19717,7 @@
   },
   "bindTouchBtn": {
    "file": "81_touch.js",
-   "line": 33,
+   "line": 36,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 2
@@ -19511,13 +19725,13 @@
   },
   "TB": {
    "file": "81_touch.js",
-   "line": 42,
+   "line": 45,
    "kind": "const",
    "usedBy": {}
   },
   "tbSig": {
    "file": "81_touch.js",
-   "line": 42,
+   "line": 45,
    "kind": "const",
    "usedBy": {
     "81_touch.js": 4
@@ -19525,7 +19739,7 @@
   },
   "tbT": {
    "file": "81_touch.js",
-   "line": 42,
+   "line": 45,
    "kind": "const",
    "usedBy": {
     "81_touch.js": 2
@@ -19533,7 +19747,7 @@
   },
   "tbMake": {
    "file": "81_touch.js",
-   "line": 43,
+   "line": 46,
    "kind": "fn",
    "usedBy": {
     "49k_sungod.js": 1,
@@ -19543,7 +19757,7 @@
   },
   "buildTouchButtons": {
    "file": "81_touch.js",
-   "line": 48,
+   "line": 51,
    "kind": "fn",
    "usedBy": {
     "45_aliens.js": 2,
@@ -19559,7 +19773,7 @@
   },
   "tbWanted": {
    "file": "81_touch.js",
-   "line": 74,
+   "line": 77,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 1,
@@ -19568,7 +19782,7 @@
   },
   "TB_ORDER_C": {
    "file": "81_touch.js",
-   "line": 96,
+   "line": 99,
    "kind": "const",
    "usedBy": {
     "81_touch.js": 1
@@ -19576,7 +19790,7 @@
   },
   "layoutTouch": {
    "file": "81_touch.js",
-   "line": 97,
+   "line": 100,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 5,
@@ -19585,7 +19799,7 @@
   },
   "LEFT_COL": {
    "file": "81_touch.js",
-   "line": 126,
+   "line": 129,
    "kind": "const",
    "usedBy": {
     "81_touch.js": 2
@@ -19593,7 +19807,7 @@
   },
   "stackLeft": {
    "file": "81_touch.js",
-   "line": 127,
+   "line": 130,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 2
@@ -19601,7 +19815,7 @@
   },
   "updateTouchHud": {
    "file": "81_touch.js",
-   "line": 131,
+   "line": 134,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 2
@@ -19609,7 +19823,7 @@
   },
   "touchAct": {
    "file": "81_touch.js",
-   "line": 141,
+   "line": 144,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 2
@@ -19617,7 +19831,7 @@
   },
   "applyTouchUI": {
    "file": "81_touch.js",
-   "line": 172,
+   "line": 175,
    "kind": "fn",
    "usedBy": {
     "64_portal.js": 1,
@@ -19627,7 +19841,7 @@
   },
   "checkOrient": {
    "file": "81_touch.js",
-   "line": 176,
+   "line": 179,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 3,
@@ -19636,7 +19850,7 @@
   },
   "audioWake": {
    "file": "81_touch.js",
-   "line": 181,
+   "line": 184,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 5
@@ -20279,9 +20493,11 @@
     "50_npcs.js": 2,
     "64_portal.js": 1,
     "66b_story.js": 1,
+    "66d_ufo.js": 1,
     "66e_boost.js": 1,
     "66f_kathana.js": 2,
-    "66h_invasion.js": 2,
+    "66g_kperfect.js": 1,
+    "66h_invasion.js": 3,
     "66i_cyber.js": 1,
     "66j_spire.js": 2,
     "70_ui.js": 2,

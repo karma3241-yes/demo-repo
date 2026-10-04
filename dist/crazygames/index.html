@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Skyline Guardian</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +16,7 @@
   --display:"Bungee", Impact, "Arial Black", system-ui, sans-serif;--hud:"Chakra Petch", "Segoe UI", system-ui, sans-serif;
 }
 [hidden]{display:none!important}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--hud);-webkit-user-select:none;user-select:none}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--hud);-webkit-user-select:none;user-select:none;touch-action:pan-x pan-y} /* no pinch or double-tap zoom anywhere (scrolling sheets still pan) */
 #gl{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
 .panel{background:var(--panel);border:1px solid var(--edge);border-radius:6px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .bar{position:relative;height:8px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
@@ -233,8 +233,10 @@ body.touch #keys,body.touch #prompt,body.touch #clock,body.touch #mode{display:n
 body.touch .hud-tr{top:8px;right:auto;left:50%;transform:translateX(-50%);background:rgba(4,8,18,.55);padding:3px 8px;text-align:center}body.touch .hud-tr:has(#online:empty){display:none}
 body.touch .hud-tl{top:calc(10px + var(--safe-t));left:calc(10px + var(--safe-l));padding:7px 9px;min-width:0;width:176px;box-sizing:border-box;gap:5px}
 body.touch .stats{gap:2px 8px;font-size:10px;letter-spacing:.05em}
-body.touch .hud-bc{top:calc(108px + var(--safe-t));bottom:auto;left:calc(10px + var(--safe-l));transform:none;width:176px;justify-items:stretch}
-body.touch .meters{grid-template-columns:1fr;gap:6px;padding:7px 9px}
+/* touch: health and energy are two thin lines at the bottom centre (between the stick and the buttons), the label above each */
+body.touch .hud-bc{top:auto;bottom:calc(10px + var(--safe-b));left:50%;transform:translateX(-50%);width:min(230px,calc(100% - 520px));justify-items:stretch;gap:4px}
+body.touch .meters{grid-template-columns:1fr;gap:5px;padding:0;background:none;border:0;border-radius:0;backdrop-filter:none;-webkit-backdrop-filter:none}
+body.touch .meter{gap:2px}body.touch .meter span{font-size:9px;letter-spacing:.18em;color:var(--ink);text-shadow:0 0 4px rgba(0,0,0,.95),0 0 2px #000}body.touch .meter .bar{height:4px}
 body.touch .hotbar{display:none}
 body.touch #map{top:calc(192px + var(--safe-t));bottom:auto;left:calc(10px + var(--safe-l));width:104px;height:104px}
 body.touch #toasts{top:max(26%,134px);left:45%;width:clamp(220px,calc(100% - 540px),320px)}
@@ -283,7 +285,7 @@ body.touch #oath{top:calc(52px + var(--safe-t));bottom:auto;width:min(560px,calc
 body.touch #oath.mini{left:50%;right:auto;transform:translateX(-50%);text-align:center;width:clamp(260px,calc(100% - 400px),440px);padding:8px 10px;background:rgba(4,8,18,.78);border:1px solid rgba(93,255,134,.4);border-radius:12px}body.touch #oath.mini p{color:rgba(233,243,255,.75)}body.touch #oath-next{min-height:40px;padding:0 16px}body.touch #oath input{min-height:40px}
 body.touch #oath{top:calc(var(--vv-top,0px) + 6px + var(--safe-t));max-height:calc(var(--vv-h,100vh) - 12px);overflow:auto}body.touch #oath.kb{padding:6px 10px}body.touch #oath.kb h3,body.touch #oath.kb small{display:none}body.touch #oath.kb p{font-size:12px;margin-bottom:4px;line-height:1.3}body.touch #oath.kb input{min-height:34px;padding:6px 10px}
 /* left-handed touch layout: the buttons go bottom-left, so the HUD column, icon bar and pause swap to the right */
-body.touch.lefty .hud-tl,body.touch.lefty .hud-bc,body.touch.lefty #map,body.touch.lefty #guide,body.touch.lefty #growtut{left:auto;right:calc(10px + var(--safe-r))}
+body.touch.lefty .hud-tl,body.touch.lefty #map,body.touch.lefty #guide,body.touch.lefty #growtut{left:auto;right:calc(10px + var(--safe-r))}
 body.touch.lefty #hudbar{right:auto;left:calc(62px + var(--safe-l));justify-content:flex-start}body.touch.lefty #tpause{right:auto;left:calc(10px + var(--safe-l))}
 body.touch.lefty #toasts{left:55%}body.touch.lefty #dial-x{right:auto;left:calc(12px + var(--safe-l))}
 #dial-x{display:none}body.touch #dial-x{display:block;position:absolute;right:calc(12px + var(--safe-r));top:calc(10px + var(--safe-t));z-index:2}body.touch #dial.all #dial-ring{width:min(calc(100% - 96px),960px);justify-self:start}
@@ -339,10 +341,9 @@ body.touch #growtut:not([hidden])~#guide{display:none}
 /* starter goal pill: desktop sits under the icon bar (top is set from script); touch takes Getting started's place in the left column */
 #goal{position:absolute;left:16px;top:130px;max-width:330px;box-sizing:border-box;padding:6px 10px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;font-size:12px;line-height:1.3;border-color:rgba(255,201,60,.45)}
 #goal b{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}#goal em{font-style:normal;font-size:11px;font-weight:700;color:var(--gold)}#goal em:empty{display:none}
-body.touch #goal{left:calc(10px + var(--safe-l));top:calc(310px + var(--safe-t))!important;width:176px;max-width:none;padding:5px 8px;font-size:11px}
+body.touch #goal{left:calc(10px + var(--safe-l));width:176px;max-width:none;padding:5px 8px;font-size:11px}
 body.touch.lefty #goal{left:auto;right:calc(10px + var(--safe-r))}
 body.touch #growtut:not([hidden])~#goal{display:none}
-@media (max-height:520px){body.touch #goal{top:calc(186px + var(--safe-t))!important}}
 #hudbar{position:absolute;left:16px;top:122px;display:flex;flex-wrap:wrap;gap:6px;max-width:330px;pointer-events:none}
 .hbtn{pointer-events:auto;position:relative;width:40px;height:40px;padding:0;display:grid;place-items:center;color:var(--ink);background:var(--panel);border:1px solid var(--edge);border-radius:10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;transition:border-color .15s,background .15s}
 .hbtn:hover{background:rgba(79,216,255,.16);border-color:var(--energy)}.hbtn:focus-visible{outline:2px solid var(--energy);outline-offset:2px}
@@ -352,7 +353,11 @@ body.touch #growtut:not([hidden])~#goal{display:none}
 .hbtn .dot{position:absolute;right:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);display:none}.hbtn.badge .dot{display:block}
 .hbtn:hover::after{content:attr(data-tip);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);white-space:nowrap;padding:4px 8px;font:600 12px var(--hud);color:var(--ink);background:rgba(4,8,18,.92);border:1px solid var(--edge);border-radius:6px;pointer-events:none;z-index:3}
 #hb-xp{color:var(--gold)}#hb-refill{color:#7dffb0}#hb-trials{color:#c89bff}#hb-cos{color:#ff9bd2}
+/* the arrow folds the icon row away (toward the pause button on touch, toward the left edge on desktop) */
+#hb-fold{width:26px;height:40px;border-radius:8px}#hb-fold .ico{width:16px;height:16px;transition:transform .2s;transform:rotate(180deg)}#hudbar.folded #hb-fold .ico{transform:none}body.touch #hb-fold .ico{transform:none}body.touch #hudbar.folded #hb-fold .ico{transform:rotate(180deg)}
+#hudbar.folded .hbtn:not(#hb-fold){display:none}
 body.touch #hudbar{top:calc(8px + var(--safe-t))!important;left:auto;right:calc(62px + var(--safe-r));max-width:calc(100% - 290px);justify-content:flex-end}body.touch .hbtn{width:40px;height:40px}body.touch .hbtn kbd,body.touch .hbtn.kbm{display:none}
+@media (max-width:760px){body.touch #hudbar{gap:4px;max-width:calc(100% - 258px)}body.touch .hbtn{width:36px;height:36px}body.touch #hb-fold{width:22px}body.touch .hbtn .ico{width:20px;height:20px}} /* small phones: the icon row (with the fullscreen button and the fold arrow) still fits one line */
 .ico{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pick .pico{width:28px;height:28px;margin-bottom:2px}
 body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l));top:calc(310px + var(--safe-t));width:176px;padding:7px 9px}body.touch #guide li{font-size:11px}
@@ -769,7 +774,8 @@ void main(){
   if(mat>8.5&&mat<9.5){ // cyber tower (66i_cyber.js): a pale shell with glowing blue glass bands
     float side=1.0-step(0.5,abs(n.y));float u=abs(n.x)>0.5?vW.z:vW.x;float v=vW.y;
     float f=fract(v/4.2),fi=floor(v/4.2),cu=u/3.6,cf=fract(cu),ci=floor(cu);
-    float win=step(0.16,f)*step(f,0.8)*step(0.07,cf)*step(cf,0.93)*side*step(3.0,v);
+    float fwv=fwidth(v/4.2)*0.75+1e-4,fwu=fwidth(cu)*0.75+1e-4; // (fwidth of the unwrapped coordinate: fract() jumps at the wrap) anti-aliased window edges, so they don't crawl as you move
+    float win=smoothstep(0.16-fwv,0.16+fwv,f)*(1.0-smoothstep(0.8-fwv,0.8+fwv,f))*smoothstep(0.07-fwu,0.07+fwu,cf)*(1.0-smoothstep(0.93-fwu,0.93+fwu,cf))*side*step(3.0,v);
     float pk=1.0-smoothstep(0.2,0.55,max(fwidth(v)/4.2,fwidth(u)/3.6));win=mix(0.55*side*step(3.0,v),win,pk); // far away the bands blur into one even glass colour
     float hh=h31(vec3(fi,ci,vD.y*37.0));vec3 gc=mix(vec3(0.16,0.5,1.0),vec3(0.45,0.92,1.0),fract(vD.y*7.0)*0.7+0.15*hh);
     float dif=max(dot(n,uLDir),0.0);vec3 amb=mix(uGnd,uSky,n.y*0.5+0.5);vec3 shell=vC*uTint.rgb*(amb+uLCol*dif);
@@ -2796,10 +2802,10 @@ function lockable(a){
   if(!a||!a.alive||a.held||a===P)return false;
   if(zone?a.zid!==zone.id:a.zid)return false; // zone actors only inside their zone, city actors only in the city
   if(a.kind==='remote')return !(a.flags&FLAG.invis)&&!(a.flags&FLAG.dead);
-  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli'||a.kind==='alien'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='invader'||a.kind==='cyborg';
+  return a.kind==='human'||a.kind==='drone'||a.kind==='rival'||a.kind==='boss'||a.kind==='heli'||a.kind==='alien'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='pforb'||a.kind==='invader'||a.kind==='cyborg';
 }
 function lockValid(a){return lockable(a);} // a manual lock has no range limit
-const hostileTo=a=>a.kind==='alien'||a.kind==='invader'||a.kind==='cyborg'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||(a.kind==='drone'&&(a.role!=='cyberpol'||!!a.target))||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
+const hostileTo=a=>a.kind==='alien'||a.kind==='invader'||a.kind==='cyborg'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='pforb'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||(a.kind==='drone'&&(a.role!=='cyberpol'||!!a.target))||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
 // after you beat your target, the lock jumps to the nearest enemy within the normal lock range
 function nextLock(prev){
   let best=null,bd=COMBAT.lockRange;
@@ -2824,7 +2830,7 @@ function lockToggle(){
 function updateLock(dt){
   if(lockT&&(!lockValid(lockT)||P.car||P.dead)){const was=lockT;lockT=null;
     const beaten=!was.alive||was.downed>0||(was.kind==='remote'&&(was.flags&FLAG.dead));
-    if(beaten&&!P.car&&!P.dead){lockT=nextLock(was);if(lockT)SFX.tone('sine',500,900,0.08,0.05);}}
+    if(beaten&&!P.car&&!P.dead){lockT=was.kind==='korb'||was.kind==='pforb'?kathanaPickAny():nextLock(was);if(lockT)SFX.tone('sine',500,900,0.08,0.05);}}
   if(!lockT)return;
   const c=center(lockT),dx=c.x-P.pos.x,dy=c.y-(P.pos.y+1.8),dz=c.z-P.pos.z,h=Math.hypot(dx,dz)||1;
   const wantYaw=Math.atan2(-dx,-dz),wantPitch=clamp(Math.atan2(dy,h)-0.12,-1.1,0.9),k=damp(time-lookT<0.25?3:9,dt);
@@ -7355,6 +7361,7 @@ const GLYPHS={
   dialUp:'<path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4-5"/><path d="M17 4h4M19 2v4"/>',
   dialDn:'<path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l-4-5"/><path d="M17 4h4"/>',
   steps:'<path d="M3 20h5v-5h5v-5h5V5h3"/><path d="M3 20h18"/>',
+  expand:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',shrink:'<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>',chev:'<path d="M9 6l6 6-6 6"/>',
   trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8M9.5 18h5"/>',
   x2:'<path d="M4 8l6 8M10 8l-6 8"/><path d="M13.5 9.5a3 3 0 0 1 6 0c0 2.5-6 4-6 6.5h6"/>',
   refill:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M11 9.5v5M8.5 12h5"/>',
@@ -7557,7 +7564,7 @@ function askKey(e){
 // ================================================================
 // Zones: separate playable areas far from the city (the UFO interior now; the Kathana arena, the cyber world and the tower later)
 // ================================================================
-// The city is one fixed world, so every other place is a ZONE: a box-built area parked far away (the UFO at z=40000), entered with a fade.
+// The city is one fixed world, so every other place is a ZONE: a box-built area parked far away (the UFO at z=6000), entered with a fade.
 //   ZONES[id]={id,name,origin:{x,y,z},spawn:{x,y,z,yaw},build(),cols:[],mesh,mesh2,draw(),update(dt),enter(),leave(),rebuild(),mapMarks(plot,c),
 //              sky:[r,g,b],stars:bool,smash:bool,bounds:{x0,x1,z0,z1,y1},light:{dir,lcol,sky,gnd,fogC,fog:[near,far]},lights:[{x,y,z,r,c:[r,g,b]}],plan:[[x0,x1,z0,z1]]}
 //   zone = the current zone object or null (zone.id is its id). enterZone(id,at): fade out, teleport the player to origin+at ({x,y,z,yaw}, local coordinates), set zone,
@@ -7725,7 +7732,7 @@ function zoneMinimap(yaw){
 // ================================================================
 // After 3 minutes of active play (save.story.act >= 180) a huge saucer descends over the city (an 8 s cutscene) and stays until you go in (save.story.ufo: 0 not
 // yet, 1 waiting, 2 item taken, 3 done). Fly up into the hole in its belly, or say yes to the popup (after 60 s, 15 s for heroes that can't fly) and be beamed up.
-// Inside (ZONES.ufo, parked at z=40000) are a hangar, corridors, four rooms with aliens (lab, engine room, holding cells, control deck) and a vault whose door opens
+// Inside (ZONES.ufo, parked at z=6000) are a hangar, corridors, four rooms with aliens (lab, engine room, holding cells, control deck) and a vault whose door opens
 // once all four rooms are cleared. The item on its pedestal depends on the hero (UFO_ITEMS); touching it saves save.story.item and calls ufoReward(id). Then you are
 // sent back above the city and the saucer flies off (5 s cutscene). The rewards live in 66e_boost.js (boostGranted); the Web Runner's reel is ufoWebReel below.
 const UFO={on:false,x:0,y:420,z:0,rot:0,mesh:null,waitT:0,waitMax:60,leaving:false,lift:null};
@@ -7778,6 +7785,23 @@ function ufoMesh(){
   for(let k=0;k<48;k++){const a=k*TAU/48,c=k%3===0?[1,.4,.85]:k%3===1?[.25,.85,1]:[.85,.92,1];g.prim(UP.sph,Math.cos(a)*(UFO_R+3.5),0,Math.sin(a)*(UFO_R+3.5),0,0,0,2,2,2,c,6);} // rim lights
   return UFO.mesh=g.mesh();
 }
+// the saucer is solid: its hull is a flattened ellipsoid (the same 130 x 26 x 130 the mesh is drawn with). The player is pushed out along the surface and bounces off
+// a hard hit; the saucer takes no damage. The opening in the belly stays clear (that is the way in), and so does the web reel, which pulls you through its own path.
+let ufoHitT=-9;
+function ufoBlock(){
+  if(!UFO.on||zone||state!=='play'||P.reel||P.dead||UFO.leaving||!storySolo())return;
+  const R=P.radius,hh=P.height*0.5,a=UFO_R+3+R,b=26+hh+0.8,dx=P.pos.x-UFO.x,dy=P.pos.y+hh-UFO.y,dz=P.pos.z-UFO.z;
+  if(Math.abs(dx)>a||Math.abs(dz)>a||Math.abs(dy)>b)return;
+  if(dy<0&&dx*dx+dz*dz<(UFO_HOLE+4)*(UFO_HOLE+4))return;
+  const a2=a*a,b2=b*b,gx=dx/a2,gy=dy/b2,gz=dz/a2,d=Math.sqrt(dx*gx+dy*gy+dz*gz);if(d>=1)return;
+  const gl=Math.hypot(gx,gy,gz);let nx=0,ny=1,nz=0,step=b-dy;
+  if(gl>1e-9){nx=gx/gl;ny=gy/gl;nz=gz/gl;step=Math.min(a,(1-d)*d/gl+0.02);}
+  P.pos.x+=nx*step;P.pos.y+=ny*step;P.pos.z+=nz*step;
+  const vn=P.vel.x*nx+P.vel.y*ny+P.vel.z*nz;
+  if(vn<0){P.vel.x-=vn*nx*1.3;P.vel.y-=vn*ny*1.3;P.vel.z-=vn*nz*1.3; // cancel the way in, plus a little bounce
+    if(-vn>18&&time-ufoHitT>0.5){ufoHitT=time;addShake(clamp(-vn*0.012,0.2,0.8));SFX.crash(clamp(-vn*0.02,0.3,0.8));burst(P.pos.x,P.pos.y+hh,P.pos.z,10,8,0.4,SPARK,0.8,15,1);}}
+  if(ny>0.6){P.grounded=true;if(P.vel.y<0)P.vel.y=0;}
+}
 function ufoDraw(){
   const L=UFO.lift;
   if(L){const k=clamp(L.t/2.4,0,1),h=300;queue(MESH.tube,at(L.x,L.y0+h/2-4,L.z,0,0,0,2.2,h,2.2),[.7,.92,1,0.2],F_ADD);queue(MESH.tube,at(L.x,L.y0+h/2-4,L.z,0,0,0,4.2,h,4.2),[.5,.85,1,0.07],F_ADD);queue(MESH.ring,at(L.x,L.y0+0.2,L.z,0,0,0,3+k*3,1,3+k*3),[.8,.95,1,1-k*0.6],F_ADD);}
@@ -7810,6 +7834,12 @@ function ufoTick(dt){
     }
   }
 }
+// the cutscene cameras look up at the saucer from street level, where a tower beside the player would fill the frame (or the camera would sit inside it):
+// ufoCamY lifts a camera point to 5 m above the tallest roof within 26 m, so nothing but sky is between it and the saucer
+function ufoCamY(x,z,y){
+  let top=0;for(const b of nearCols(x,z)){if(b.dead)continue;const dx=Math.max(b.x0-x,0,x-b.x1),dz=Math.max(b.z0-z,0,z-b.z1);if(dx*dx+dz*dz<26*26&&b.y1>top)top=b.y1;}
+  return Math.max(y,top+5);
+}
 // the saucer arrives (the 8 s cutscene); quick skips the cutscene (tests)
 function ufoArrive(quick){
   const S=save.story;if(S.ufo===4||(UFO.on&&S.ufo>=1))return;
@@ -7817,7 +7847,8 @@ function ufoArrive(quick){
   if(quick||state!=='play'){UFO.y=UFO_Y;return;}
   const ex=P.pos.x,ez=P.pos.z,hx=ex-UFO.x,hz=ez-UFO.z,hl=Math.hypot(hx,hz);let cx=ex,cz=ez;
   if(hl<110){const ux=hl>1?hx/hl:1,uz=hl>1?hz/hl:0;cx=UFO.x+ux*110;cz=UFO.z+uz*110;} // right under it, the camera steps back so it can look up at an angle
-  const from={x:cx,y:P.pos.y+3,z:cz},to={x:cx+(UFO.x-cx)*0.22,y:P.pos.y+14,z:cz+(UFO.z-cz)*0.22};
+  const tx=cx+(UFO.x-cx)*0.22,tz=cz+(UFO.z-cz)*0.22,up=Math.max(ufoCamY(cx,cz,0),ufoCamY(tx,tz,0),ufoCamY((cx+tx)/2,(cz+tz)/2,0)); // one clear height for the whole glide
+  const from={x:cx,y:Math.max(P.pos.y+3,up),z:cz},to={x:tx,y:Math.max(P.pos.y+14,up+9),z:tz};
   UFO.y=1100;UFO.leaving=false;
   cutscene({dur:8,text:'Something huge just arrived over Nova Bay',from,to,look:()=>({x:UFO.x,y:UFO.y,z:UFO.z}),fov:62,
     onTick:(k,dt)=>{const e=1-Math.pow(1-k,3);UFO.y=lerp(1100,UFO_Y,e);addShake(0.05*(1-k)+0.02);if(k>0.02&&k<0.04)SFX.tone('sawtooth',50,35,6,0.12);},
@@ -7831,7 +7862,7 @@ function ufoAsk(){
 function ufoBeamUp(){
   if(P.car)exitCar(true);
   const p={x:P.pos.x,y:P.pos.y,z:P.pos.z};UFO.lift={x:p.x,z:p.z,y0:p.y,t:0};SFX.tone('sine',200,1400,2.2,0.12);
-  cutscene({dur:2.4,letterbox:false,from:{x:p.x+9,y:p.y+3,z:p.z+9},to:{x:p.x+13,y:p.y+16,z:p.z+13},look:()=>({x:P.pos.x,y:P.pos.y+1.5,z:P.pos.z}),fov:60,
+  cutscene({dur:2.4,letterbox:false,from:{x:p.x+9,y:ufoCamY(p.x+9,p.z+9,p.y+3),z:p.z+9},to:{x:p.x+13,y:ufoCamY(p.x+13,p.z+13,p.y+16),z:p.z+13},look:()=>({x:P.pos.x,y:P.pos.y+1.5,z:P.pos.z}),fov:60,
     onTick:(k,dt)=>{UFO.lift.t+=dt;P.pos.y=UFO.lift.y0+k*k*60;for(let i=0;i<3;i++)emit(p.x+rr(-2.5,2.5),P.pos.y+rr(-3,6),p.z+rr(-2.5,2.5),0,rr(8,20),0,0.6,[.7,.92,1],rr(0.5,1),0,0);},
     onEnd:()=>{UFO.lift=null;flashWhite=Math.max(flashWhite,0.5);enterZone('ufo');}});
 }
@@ -7841,7 +7872,7 @@ function ufoLeave(){if(zone&&zone.id==='ufo'&&!ZF.phase)leaveZone(ufoReturnPoint
 // the saucer flies off into space (5 s), and the event is over
 function ufoLeaveCut(){
   const S=save.story;if(UFO.leaving||state!=='play')return;UFO.leaving=true;UFO.on=true;UFO.y=UFO_Y;
-  const p={x:P.pos.x,y:P.pos.y+3,z:P.pos.z};
+  const p={x:P.pos.x,y:ufoCamY(P.pos.x,P.pos.z,P.pos.y+3),z:P.pos.z};
   cutscene({dur:5,from:p,to:{x:p.x,y:p.y+10,z:p.z},look:()=>({x:UFO.x,y:UFO.y,z:UFO.z}),fov:66,
     onTick:(k)=>{UFO.y=UFO_Y+k*k*k*3400;UFO.rot+=k*0.15;addShake(0.04*k);if(k>0.1&&k<0.13)SFX.tone('sawtooth',40,900,3.5,0.1);},
     onEnd:()=>{UFO.on=false;UFO.leaving=false;S.ufo=3;objective(null);objectiveMark(null);flashWhite=Math.max(flashWhite,0.45);persist();toast('The UFO is gone','Nova Bay is quiet again','cyan');}});
@@ -7852,7 +7883,7 @@ function ufoLeaveCut(){
 // A 200 x 200 m floor plan on a 2 m grid, local coordinates with the vault at (0,0) and the hangar to the south (+z). Every open rectangle becomes floor and a ceiling
 // (its own height), and 4 m thick walls grow around it in panels of up to 8 x 8 m (the panels are what fast flight smashes). The vault and the outer edge are not smashable.
 const UF={rooms:[],cleared:0,doorOpen:false,took:false,leaveT:-1,door:null,item:{x:0,y:4.6,z:0},pad:{x:0,z:76},spawnT:0};
-const UFZ={x:0,y:0,z:40000};
+const UFZ={x:0,y:0,z:6000}; // (zones are parked 6 to 15 km out, not further: vertices are float32, and past 65000 a coordinate is only good to 8 mm, which made close walls shimmer)
 const UFR=[ // [id, x0, x1, z0, z1, ceiling height, light colour, floor colour]
   ['hangar',-36,36,60,92,32,[.3,.85,1],'#2a3340'],['spine',-6,6,34,60,18,[.5,.55,1],'#1c2230'],['ante',-32,32,18,34,24,[.75,.45,1],'#262033'],
   ['c2',-50,-32,20,32,18,[.45,.55,1],'#1c2230'],['c3',32,50,20,32,18,[.45,.55,1],'#1c2230'],
@@ -8249,14 +8280,14 @@ function boostTick(dt){
 // carousel (prismLook, called by sgLook), a ring of rainbow light (prismDraw), and the hotbar holds one skill, DESTROY (key 1, a big touch button).
 // Destroy: Prism form (no question), or every hero once save.story.ufo>=2 (Enter, a hotbar slot after V/Rewind, a touch button, with a yes/no popup).
 // destroyStart -> kathanaBegin: enterZone('void') into a pitch-black arena where only the hero is lit (about 2.5 s, a low rumble), then the light floods in: ZONES.void,
-// an endless all-white floor (local origin KAR at z=80000, soft wall of radius 500 m), Sun God for every hero with no timer (SG.src==='arena', you CAN be hurt, big
+// an endless all-white floor (local origin KAR at z=9000, soft wall of radius 500 m), Sun God for every hero with no timer (SG.src==='arena', you CAN be hurt, big
 // health pool: arenaHp=6) and a cutscene where Kathana, the Seer of All, rises. Stage 1: her body can't be hurt, her four orbs (actors kind 'korb') can; she slams the
 // ground (shockwave rings: jump or fly over), sweeps a gaze beam across the floor, and every orb fires slow homing bolts (actors 'kshot', any hit destroys them).
 // Knocked out: back to the city (save.story.kathana stays/sets 1). All four orbs gone: kathanaStage2() (a stub for the next phase).
 // For the next phase: the body is drawn from KA (position KA.bx/KA.bz, yaw, KA.by height offset, KA.vis hides her whole body, KA.split 0..1 opens the torso along a
 // vertical seam with a glow inside at kCore()), the hands are KA.hands[i] (local x,y,z, dead) and orbs KA.orbs[i] ({a: the actor, dead, col}).
 const PR={on:false,t:0,max:120};
-const KAR={x:0,y:0,z:80000};
+const KAR={x:0,y:0,z:9000};
 const KORB_COL=[[1,.04,.1],[.04,.32,1],[.04,.85,.2],[.62,.08,1]],KO_HP=12000,KA_REACH=148,KA_L1=72,KA_L2=82;
 const KS=[[-40,132,0],[40,132,0],[-30,98,6],[30,98,6]],KR=[[-108,122,92],[108,122,92],[-64,74,112],[64,74,112]]; // shoulders and resting hands (local: x right, y up, z toward the player)
 const KA={on:false,stage:0,phase:'',t:0,rise:0,open:0,fight:false,lost:false,vis:true,split:0,yaw:0,bx:KAR.x,bz:KAR.z-280,by:-215,ret:null,hands:[],orbs:[],shots:[],waves:[],fx:[],atk:null,cd:2.5,last:'',eyeGlow:0,gz:null,beam:null,dead:0,flood:0,src:{kind:'korb',name:'Kathana',alive:true,faction:'kathana',pos:new V3()},availSeen:null,
@@ -8441,7 +8472,8 @@ function kFightStart(){
   if(KA.orbs.length!==4)kOrbsMake();kSyncOrbs();
   KA.fight=true;KA.atk=null;KA.cd=2.2;kFly(12);
   objective('Shatter the four orbs · 4 left');
-  toast('Kathana, the Seer of All','Her body cannot be hurt. Shatter the four orbs · '+(touchOn()?'Attack':'Click')+' fires the Solar Lance · Z locks on','red');
+  toast('Kathana, the Seer of All','Her body cannot be hurt. Shatter the four orbs · '+(touchOn()?'Attack':'Click')+' fires the Solar Lance','red');
+  later(1.3,()=>{if(KA.fight&&inVoid())toast('Lock onto the orbs',touchOn()?'Tap the Lock button, tap again for the next orb':'Press Z (or the Lock button) to lock on, Z again for the next orb','gold');});
 }
 // the boss bar (99_main.js updateHud): the four orbs' health together. true = I drew it
 function kathanaBar(){
@@ -8746,10 +8778,10 @@ function kHandsDraw(t,side){
 // Winning (first time): kathana=2, invasion=1, and ufo=4 (skipped for good) if the UFO event wasn't done. While kathana>=2 every human spawns with x2 HP, x1.5 speed
 // and a random power (humanSuper / superTick, 50_npcs.js calls the first, kathanaTick the second).
 var KQ={on:false,phase:'',meter:0,t:0,n:0,fails:0}; // var: cutLocked (66b_story.js) reads it
-const PF={on:false,real:null,list:[],fight:false,show:false,bar:0,won:false,split:0,still:null,stillCd:6,dmgW:0,evCd:0,shards:[],od:1,decAtk:0,decGate:0,popN:0,popT:-9,tmp:[]};
+const PF={on:false,real:null,list:[],orbs:[],fight:false,show:false,bar:0,won:false,split:0,still:null,stillCd:6,dmgW:0,evCd:0,shards:[],od:1,decAtk:0,decGate:0,popN:0,popT:-9,tmp:[]};
 const PF_DEC=50; // afterimages per split: the figures are drawn lite, think cheaply and at most 3 of them attack at once
 const KW={first:false}; // the win that is playing out (pfClear must not reset it: the zone is left in the middle of it)
-const PF_HP=36000,PFH=1.38; // the model is 1.95 tall; the hero is about 2.8
+const PF_HP=36000,PFZ=2.2,PFH=1.38*PFZ; // the model is 1.95 tall, x1.38 x PFZ in the world (the hero is about 2.8): big enough to read in a white arena. PFZ also scales its reach and distances
 const KQ_NEED=5; // seconds
 const sm01=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
 const inKS=()=>KA.on&&inVoid()&&!KA.lost;
@@ -8769,7 +8801,7 @@ function pfIK(S,T,l1,l2,p){ // two-bone chain: [elbow x,y,z, clamped end x,y,z]
 // the figure: a sculpture of a being, ellipsoids and tapered limbs, no edges anywhere, a thin glowing seam down the featureless face
 function pfFigure(a,t){
   if(a.al<=0.02||!a.vis)return;
-  const al=a.al,k=PFH*a.sc,fl=al<0.97?F_BL:0,T=[0.94,0.96,1,al],GL=[1,0.93,0.7,al],bob=Math.sin(t*1.9+a.ph)*0.05;
+  const al=a.al,k=PFH*a.sc,fl=al<0.97?F_BL:0,T=[0.7,0.74,0.9,al],GL=[1,0.93,0.7,al],bob=Math.sin(t*1.9+a.ph)*0.05;
   const R=at(a.pos.x,a.pos.y+(0.16+bob)*k,a.pos.z,a.lean,a.yaw,0,k,k,k);
   const E=(x,y,z,sx,sy,sz,rx,ry,rz)=>queue(PFS,child(R,x,y,z,rx||0,ry||0,rz||0,sx,sy,sz),T,fl);
   const L=(A,B,r0,r1)=>{const wa=pfLW(R,A[0],A[1],A[2]),wb=pfLW(R,B[0],B[1],B[2]);queue(PFC,M4.beam(tmpM(),wa[0],wa[1],wa[2],wb[0],wb[1],wb[2],r0*k),T,fl);};
@@ -8803,26 +8835,36 @@ function pfFigure(a,t){
   // a halo behind the head and a thin ring that turns about the chest
   queue(PFT,child(R,0,1.87,-0.2,Math.PI/2,0,0,0.34,0.34,0.34),T,fl);
   queue(PFG,child(R,0,1.4,0,0.5+0.25*Math.sin(t*0.8),t*0.5,0,0.5,0.5,0.5),[1,0.9,0.6,al*0.85],fl);
-  if(a.real&&fl===0){const p=0.5+0.5*Math.sin(t*3);queue(MESH.glowSphere,child(R,0,1.1,0,0,0,0,0.78,1.2,0.62),[1,0.9,0.55,0.07+0.04*p],F_BL);queue(MESH.glowSphere,child(R,0,1.1,0,0,0,0,1.15,1.6,0.9),[1,0.85,0.45,0.035],F_BL);}
+  if(fl===0)pfAura(a,t,k,a.real?2:0);
   if(a.flash>0.02)queue(MESH.glowSphere,child(R,0,1.1,0,0,0,0,0.6,1.1,0.5),[1,1,1,a.flash*0.55],F_BL);
   if(a.glow>0.02){const g=a.glow,h=a.hand||0,w=a.hw[h];queue(MESH.glowSphere,at(w[0],w[1],w[2],0,0,0,0.25*g*k,0.25*g*k,0.25*g*k),[1,0.85,0.4,1],0);queue(MESH.glowSphere,at(w[0],w[1],w[2],0,0,0,0.7*g*k,0.7*g*k,0.7*g*k),[1,0.7,0.2,0.3],F_BL);}
+}
+// the aura: warm gold-orange layers (alpha-blended: additive light would vanish on the white floor), rotating bands and a pillar of light. lvl 2 = the real one in plain sight
+// (bands, pillar), 1 = the glow it keeps while it hides among the fakes (the tell), 0 = a faint halo for a fake
+function pfAura(a,t,k,lvl){
+  const x=a.pos.x,y=a.pos.y+1.0*k,z=a.pos.z,p=0.5+0.5*Math.sin(t*3+a.ph),al=a.al,w=lvl===0?0.05:lvl===1?0.16:0.27;
+  queue(MESH.glowSphere,at(x,y,z,0,0,0,0.95*k,1.35*k,0.95*k),[1,.55,.05,(w+0.06*p)*al],F_BL);queue(MESH.glowSphere,at(x,y,z,0,0,0,1.5*k,2*k,1.5*k),[1,.7,.2,w*0.45*al],F_BL);
+  if(lvl<2)return;
+  queue(MESH.glowSphere,at(x,y,z,0,0,0,2.4*k,3*k,2.4*k),[1,.65,.15,0.1*al],F_BL);
+  pfBand(x,y,z,Math.sin(t*0.8),1,Math.cos(t*0.6),1.25*k,[1,.55,.08],0.55*al);pfBand(x,y,z,Math.cos(t*0.7),0.4,Math.sin(t*1.1),1.6*k,[1,.45,.05],0.4*al);
+  queue(MESH.glowCyl,at(x,y+1.5*k,z,0,0,0,0.5*k,5*k,0.5*k),[1,.6,.1,0.16*al],F_BL); // a pillar of light through it, so it can be found from across the arena
 }
 // the same sculpture in nine pieces, for the fakes (and the real one while it hides among them) that are only circling (no hands to pose, no seam, no shadow): 50 of them are on screen at once
 const PFL=[[-0.31,1.52,0,-0.28,1.2,0.4,0.07],[0.31,1.52,0,0.3,1.12,0.44,0.07],[-0.115,0.95,0,-0.12,0.2,0.05,0.085],[0.115,0.95,0,0.12,0.22,-0.05,0.085]]; // arm and leg: from x y z to x y z, radius
 function pfFigureLite(a,t){
   if(a.al<=0.02||!a.vis)return;
-  const al=a.al,k=PFH*a.sc,fl=al<0.97?F_BL:0,T=a.tt||(a.tt=[0.94,0.96,1,1]);T[3]=al; // one tint per fake, kept in place
+  const al=a.al,k=PFH*a.sc,fl=al<0.97?F_BL:0,T=a.tt||(a.tt=[0.7,0.74,0.9,1]);T[3]=al; // one tint per fake, kept in place
   const R=at(a.pos.x,a.pos.y+(0.16+Math.sin(t*1.9+a.ph)*0.05)*k,a.pos.z,a.lean,a.yaw,0,k,k,k);
   queue(PFS,child(R,0,1.3,0,0,0,0,0.24,0.38,0.14),T,fl);queue(PFS,child(R,0,0.97,0,0,0,0,0.19,0.125,0.14),T,fl);queue(PFS,child(R,0,1.57,0,0,0,0,0.25,0.06,0.12),T,fl);queue(PFS,child(R,0,1.84,0,0,0,0,0.105,0.145,0.12),T,fl);
   for(let i=0;i<4;i++){const q=PFL[i];queue(PFC,M4.beam(tmpM(),R[0]*q[0]+R[4]*q[1]+R[8]*q[2]+R[12],R[1]*q[0]+R[5]*q[1]+R[9]*q[2]+R[13],R[2]*q[0]+R[6]*q[1]+R[10]*q[2]+R[14],R[0]*q[3]+R[4]*q[4]+R[8]*q[5]+R[12],R[1]*q[3]+R[5]*q[4]+R[9]*q[5]+R[13],R[2]*q[3]+R[6]*q[4]+R[10]*q[5]+R[14],q[6]*k),T,fl);}
   queue(PFT,child(R,0,1.87,-0.2,Math.PI/2,0,0,0.34,0.34,0.34),T,fl);
-  if(a.real&&fl===0){const p=0.5+0.5*Math.sin(t*3);queue(MESH.glowSphere,child(R,0,1.1,0,0,0,0,0.78,1.2,0.62),[1,0.9,0.55,0.07+0.04*p],F_BL);queue(MESH.glowSphere,child(R,0,1.1,0,0,0,0,1.15,1.6,0.9),[1,0.85,0.45,0.035],F_BL);} // the real one's faint glow, the only tell
+  if(fl===0)pfAura(a,t,k,a.real?1:0); // the real one's glow is the only tell (a little stronger than the fakes'); the full aura is only for the one in plain sight
 }
 // ================================================================
 // The actor
 // ================================================================
 function pfMake(x,y,z,dec){
-  const a={kind:'kperfect',faction:'kathana',zid:'void',name:dec?'Afterimage':'Kathana, Perfect Form',alive:true,hp:dec?1e9:PF_HP,maxHp:dec?1e9:PF_HP,pos:new V3(x,y,z),vel:new V3(),yaw:0,heroYaw:0,flash:0,stun:0,slow:0,slowT:0,burn:0,burnDps:0,held:false,thrown:null,cy:1.45,radius:1.25,ys:1,lastHit:-99,grudge:null,grudgeT:-99,bigBoss:true,
+  const a={kind:'kperfect',faction:'kathana',zid:'void',name:dec?'Afterimage':'Kathana, Perfect Form',alive:true,hp:dec?1e9:PF_HP,maxHp:dec?1e9:PF_HP,pos:new V3(x,y,z),vel:new V3(),yaw:0,heroYaw:0,flash:0,stun:0,slow:0,slowT:0,burn:0,burnDps:0,held:false,thrown:null,cy:1.45*PFZ,radius:1.25*PFZ,ys:1,lastHit:-99,grudge:null,grudgeT:-99,bigBoss:true,
     dec:!!dec,real:!dec,al:0,alT:1,sc:1,vis:true,lean:0,ph:rr(0,TAU),st:'orbit',t:0,cd:dec?rr(2,3.5):1.2,ang:rr(0,TAU),mv:null,last:'',pose:'guard',hand:1,glow:0,stag:0,life:dec?rr(30,45):26,popping:false,rad:rr(9,27),hy:rr(-2,9),dsp:(Math.random()<0.5?-1:1)*rr(0.35,0.6),
     hd:[[-0.3,1.15,0.38],[0.3,1.1,0.42]],ht:[[-0.3,1.15,0.38],[0.3,1.1,0.42]],ft:[[-0.12,0.18,0.06],[0.12,0.22,-0.06]],hw:[[0,0,0],[0,0,0]],sgCap:{dark:0.25,blast:0.7}};
   a.onHit=(src,amt)=>pfHit(a,amt);a.onDefeat=()=>{if(a.dec)pfPop(a);else pfDefeated();};
@@ -8883,6 +8925,7 @@ function pfThink(a,dt){
     case 'combo':pfCombo(a,dt);break;
     case 'shards':pfShardsMove(a,dt);break;
     case 'still':pfStillMove(a,dt);break;
+    case 'orbs':pfOrbsMove(a,dt);break;
     case 'evade':pfEvade(a,dt);break;
     case 'split':pfSplitTick(a,dt);break;
     default:pfDone(a);
@@ -8892,7 +8935,7 @@ function pfThink(a,dt){
 function pfOrbit(a,dt){
   const ph2=pfPh2(),dec=a.dec;a.pose='guard';
   a.ang+=dec?a.dsp*dt:PF.od*dt*0.5; // the fakes circle at their own radius, height and speed, in both directions
-  const want=dec?a.rad:ph2?9.5:11,tx=P.pos.x+Math.cos(a.ang)*want,tz=P.pos.z+Math.sin(a.ang)*want,ty=clamp(P.pos.y-0.2+(dec?a.hy+Math.sin(time*0.9+a.ph)*1.5:0),0,150);
+  const want=dec?a.rad:(ph2?9.5:11)*PFZ*0.7,tx=P.pos.x+Math.cos(a.ang)*want,tz=P.pos.z+Math.sin(a.ang)*want,ty=clamp(P.pos.y-0.2+(dec?a.hy+Math.sin(time*0.9+a.ph)*1.5:0),0,150);
   pfSteer(a,tx,ty,tz,ph2?22:17,dt);pfFace(a,dt,10);a.leanT=0.08;
   a.cd-=dt;
   if(dec){if(a.cd<=0){if(PF.decAtk<3&&PF.decGate<=0){PF.decGate=rr(0.7,1.5);PF.decAtk++;pfPick(a);}else a.cd=rr(0.3,0.9);}return;} // at most 3 fakes attack at once, one new one at a time
@@ -8900,49 +8943,49 @@ function pfOrbit(a,dt){
   if(a.cd<=0)pfPick(a);
 }
 function pfPick(a){
-  const d=Math.hypot(P.pos.x-a.pos.x,P.pos.z-a.pos.z),pool=a.dec?[['combo',45],['shards',40]]:[['combo',d<12?55:24],['blink',28],['shards',d>8?30:12],['still',PF.stillCd<=0?20:0]];
+  const d=Math.hypot(P.pos.x-a.pos.x,P.pos.z-a.pos.z),pool=a.dec?[['combo',45],['shards',40]]:[['combo',d<12?55:24],['blink',28],['shards',d>8?30:12],['still',PF.stillCd<=0?20:0],['orbs',PF.orbs.length<3?(pfPh2()?26:20):0]];
   const l=pool.filter(p=>p[1]>0&&p[0]!==a.last);let tot=0;for(const p of l)tot+=p[1];let r=Math.random()*tot,type=l[0][0];for(const p of l){r-=p[1];if(r<=0){type=p[0];break;}}
   a.last=type;a.st=type;a.mv={t:0,ph:0};
   if(type==='still')PF.stillCd=16;
 }
 function pfEvade(a,dt){
   const M=a.mv;M.t+=dt;a.pose='cross';
-  if(M.ph===0){if(M.t===dt)pfFx(a);a.alT=0;if(M.t>=0.14){const an=Math.atan2(a.pos.z-P.pos.z,a.pos.x-P.pos.x)+rr(1.6,2.6)*(Math.random()<0.5?-1:1),r=rr(13,19);
+  if(M.ph===0){if(M.t===dt)pfFx(a);a.alT=0;if(M.t>=0.14){const an=Math.atan2(a.pos.z-P.pos.z,a.pos.x-P.pos.x)+rr(1.6,2.6)*(Math.random()<0.5?-1:1),r=rr(13,19)*PFZ*0.8;
     a.pos.set(P.pos.x+Math.cos(an)*r,clamp(P.pos.y-0.2,0,150),P.pos.z+Math.sin(an)*r);pfClampPos(a);a.alT=1;a.al=Math.max(a.al,0.2);pfFx(a);SFX.tone('sine',900,300,0.2,0.07);M.ph=1;M.t=0;}}
   else if(M.t>=0.25){pfDone(a);a.cd=0.5;}
 }
 function pfBlink(a,dt){
   const M=a.mv;M.t+=dt;
   if(M.ph===0){a.pose='cross';pfFace(a,dt,12);a.glow=M.t/0.7;a.leanT=-0.05;
-    if(M.t<0.45){const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);M.dx=P.pos.x-fx*3.6+clamp(P.vel.x*0.3,-6,6);M.dz=P.pos.z-fz*3.6+clamp(P.vel.z*0.3,-6,6);M.dy=clamp(P.pos.y-0.2,0,150);}
+    if(M.t<0.45){const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);M.dx=P.pos.x-fx*3.6*PFZ+clamp(P.vel.x*0.3,-6,6);M.dz=P.pos.z-fz*3.6*PFZ+clamp(P.vel.z*0.3,-6,6);M.dy=clamp(P.pos.y-0.2,0,150);}
     if(M.t>=0.7){M.ph=1;M.t=0;a.alT=0;pfFx(a);SFX.tone('sine',1200,200,0.22,0.08);}}
   else if(M.ph===1){if(M.t>=0.18){a.pos.set(M.dx,M.dy,M.dz);pfClampPos(a);a.yaw=Math.atan2(P.pos.x-a.pos.x,P.pos.z-a.pos.z);a.alT=1;a.al=Math.max(a.al,0.35);pfFx(a);SFX.tone('sine',300,1300,0.2,0.07);M.ph=2;M.t=0;}}
   else if(M.ph===2){a.pose='wind';a.hand=1;pfFace(a,dt,16);a.glow=M.t/0.5;a.leanT=0.1+M.t*0.5;
-    if(M.t>=0.5){pfStrike(a,0.09,16,2.4);M.ph=3;M.t=0;}}
+    if(M.t>=0.5){pfStrike(a,0.09,16,2.4*PFZ);M.ph=3;M.t=0;}}
   else{a.pose=M.t<0.22?'hit':'guard';if(M.t>=0.65)pfDone(a);}
 }
 function pfStrike(a,f,kn,lunge){ // step in, then hit whoever is still close
-  const dx=P.pos.x-a.pos.x,dz=P.pos.z-a.pos.z,d=Math.hypot(dx,dz)||1;if(d>2.6){const m=Math.min(d-2.2,lunge);a.pos.x+=dx/d*m;a.pos.z+=dz/d*m;}
+  const dx=P.pos.x-a.pos.x,dz=P.pos.z-a.pos.z,d=Math.hypot(dx,dz)||1;if(d>2.6*PFZ){const m=Math.min(d-2.2*PFZ,lunge);a.pos.x+=dx/d*m;a.pos.z+=dz/d*m;}
   const c=center(P),q=center(a),dd=Math.hypot(c.x-q.x,c.y-q.y,c.z-q.z);
-  if(dd<4.7)pfHurt(a,f,kn);
+  if(dd<4.7*PFZ)pfHurt(a,f,kn);
   const w=a.hw[a.hand||0];ringFx(w[0],w[1],w[2],0.4,5.5,0.25,[1,.9,.5]);burst(w[0],w[1],w[2],10,10,0.3,[[1,.9,.5],[1,1,1]],1,0,2);SFX.punch(0.9*SFX.vol(a.pos.x,a.pos.y,a.pos.z));addShake(0.12);a.pose='hit';
 }
 function pfCombo(a,dt){
   const M=a.mv;M.t+=dt;pfFace(a,dt,14);
   if(M.ph===0){a.pose='crouch';a.leanT=0.45;
-    if(M.t<0.35){const dx=P.pos.x-a.pos.x,dz=P.pos.z-a.pos.z,d=Math.hypot(dx,dz)||1,k=Math.max(0,d-2.8)/d;M.tx=a.pos.x+dx*k;M.tz=a.pos.z+dz*k;M.ty=clamp(P.pos.y-0.2,0,150);}
+    if(M.t<0.35){const dx=P.pos.x-a.pos.x,dz=P.pos.z-a.pos.z,d=Math.hypot(dx,dz)||1,k=Math.max(0,d-2.8*PFZ)/d;M.tx=a.pos.x+dx*k;M.tz=a.pos.z+dz*k;M.ty=clamp(P.pos.y-0.2,0,150);}
     if(M.t>=0.5){M.ph=1;M.t=0;M.x0=a.pos.x;M.y0=a.pos.y;M.z0=a.pos.z;SFX.tone('sawtooth',300,1000,0.2,0.08);}}
   else if(M.ph===1){const k=Math.min(1,M.t/0.18),e=k*k*(3-2*k);a.pos.set(lerp(M.x0,M.tx,e),lerp(M.y0,M.ty,e),lerp(M.z0,M.tz,e));a.leanT=0.4;
     {const c=center(a);emit(c.x,c.y,c.z,0,0,0,0.3,[1,.9,.6],2.4,0,0);}
     if(k>=1){M.ph=2;M.t=0;M.n=0;M.hand=0;}}
   else if(M.ph===2){a.pose='wind';a.hand=M.hand;a.glow=M.t/0.3;a.leanT=0.2;
-    const dx=P.pos.x-a.pos.x,dz=P.pos.z-a.pos.z,d=Math.hypot(dx,dz)||1;if(d>2.4){const m=Math.min(5*dt,d-2.4);a.pos.x+=dx/d*m;a.pos.z+=dz/d*m;}
-    if(M.t>=0.3){const last=M.n===2;pfStrike(a,last?0.08:0.045,last?22:8,2.5);M.n++;M.hand=1-M.hand;M.t=0;M.ph=M.n>=3?3:4;}}
+    const dx=P.pos.x-a.pos.x,dz=P.pos.z-a.pos.z,d=Math.hypot(dx,dz)||1;if(d>2.4*PFZ){const m=Math.min(5*dt,d-2.4*PFZ);a.pos.x+=dx/d*m;a.pos.z+=dz/d*m;}
+    if(M.t>=0.3){const last=M.n===2;pfStrike(a,last?0.08:0.045,last?22:8,2.5*PFZ);M.n++;M.hand=1-M.hand;M.t=0;M.ph=M.n>=3?3:4;}}
   else if(M.ph===4){a.pose='hit';if(M.t>=0.16){M.ph=2;M.t=0;}}
   else{a.pose=M.t<0.2?'hit':'guard';a.leanT=0;if(M.t>=0.6)pfDone(a);}
 }
 // mirror shards: a fan of slivers that circle it, then fly at you and curve a little
-function pfShardPos(a,i,n){const ang=(i-(n-1)/2)*0.4,s=Math.sin(a.yaw),c=Math.cos(a.yaw),lx=Math.sin(ang)*2.6,ly=3.6+Math.cos(ang)*0.9,lz=-1.0;return [a.pos.x+lx*c+lz*s,a.pos.y+ly,a.pos.z-lx*s+lz*c];}
+function pfShardPos(a,i,n){const ang=(i-(n-1)/2)*0.4,s=Math.sin(a.yaw),c=Math.cos(a.yaw),lx=Math.sin(ang)*2.6*PFZ,ly=(3.6+Math.cos(ang)*0.9)*PFZ,lz=-1.0*PFZ;return [a.pos.x+lx*c+lz*s,a.pos.y+ly,a.pos.z-lx*s+lz*c];}
 function pfShardsMove(a,dt){
   const M=a.mv;M.t+=dt;pfFace(a,dt,12);const n=a.dec?3:pfPh2()?7:5,vols=(pfPh2()&&!a.dec)?2:1;M.n=n;
   if(M.ph===0){a.pose='raise';a.leanT=-0.12;if(M.t>=0.95){M.ph=1;M.t=0;M.vol=0;}}
@@ -8964,6 +9007,57 @@ function pfShardTick(dt){
     if(gone){PF.shards.splice(i,1);}
   }
 }
+// ================================================================
+// Void Orbs: huge, slow purple orbs. Each forms far off (a purple warning round it and a lane to you), then drifts at you in a straight line. They are actors, so the
+// Solar Lance and punches hit them: break one before it arrives, or it bursts on you.
+// ================================================================
+const PO_HP=420,PO_R=5.2,PO_SP=9,PO_FORM=1.5;
+function pfOrbSpawn(a){
+  if(PF.orbs.length>=6)return;
+  const ang=rr(0,TAU),dist=rr(50,64);let x=P.pos.x+Math.cos(ang)*dist,z=P.pos.z+Math.sin(ang)*dist;const ox=x-KAR.x,oz=z-KAR.z,rd=Math.hypot(ox,oz);if(rd>450){x=KAR.x+ox/rd*450;z=KAR.z+oz/rd*450;}
+  const o={kind:'pforb',faction:'kathana',zid:'void',name:'Void Orb',alive:true,hp:PO_HP,maxHp:PO_HP,pos:new V3(x,clamp(P.pos.y+rr(-2,7),5,150),z),vel:new V3(),yaw:0,heroYaw:0,flash:0,stun:0,slow:0,slowT:0,burn:0,burnDps:0,held:false,thrown:null,cy:0,radius:PO_R,ys:1,lastHit:-99,grudge:null,grudgeT:-99,
+    age:0,life:22,grow:0,go:false,dx:0,dy:0,dz:1,deadT:0,ph:rr(0,TAU),sgCap:{dark:0.25,blast:0.7}};
+  o.onDefeat=()=>pfOrbBreak(o);actors.push(o);PF.orbs.push(o);
+  ringFx(x,o.pos.y,z,2,30,0.8,[.6,.2,1]);SFX.tone('sine',160,520,0.9,0.1*SFX.vol(x,o.pos.y,z));
+  if(!PF.orbHint){PF.orbHint=true;toast('Void Orbs','Slow, but huge. Break them with the Solar Lance (or a punch) before they reach you','purple');}
+}
+function pfOrbBreak(o){
+  const x=o.pos.x,y=o.pos.y,z=o.pos.z;
+  for(let k=0;k<18;k++){const s=rr(0.8,2.2);spawnPiece(x+rr(-3,3),y+rr(-3,3),z+rr(-3,3),MESH.box,s,s*0.8,s*1.2,[.5+rr(0,.2),.12,.85],rr(-22,22),rr(2,22),rr(-22,22),5);}
+  ringFx(x,y,z,2,40,0.6,[.65,.25,1]);burst(x,y,z,40,26,0.9,[[.6,.2,1],[.85,.6,1],[1,1,1]],2,0,1.2);SFX.boom(0.7*SFX.vol(x,y,z),1.6);addShake(0.25);
+}
+function pfOrbsClear(){for(const o of PF.orbs)removeActor(o);PF.orbs.length=0;PF.orbHint=false;}
+function pfOrbsTick(dt){
+  for(let i=PF.orbs.length-1;i>=0;i--){const o=PF.orbs[i];if(!o)continue;
+    if(!o.alive){o.deadT+=dt;if(o.deadT>0.05){removeActor(o);PF.orbs.splice(i,1);}continue;}
+    o.age+=dt;o.life-=dt;const c=center(P);
+    if(o.age<PO_FORM){o.grow=sm01(o.age/PO_FORM);o.vel.set(0,0,0);const dx=c.x-o.pos.x,dy=c.y-o.pos.y,dz=c.z-o.pos.z,l=Math.hypot(dx,dy,dz)||1;o.dx=dx/l;o.dy=dy/l;o.dz=dz/l;} // forming: it still turns to follow you, then the line is fixed
+    else{o.grow=1;if(!o.go){o.go=true;SFX.tone('sawtooth',90,60,0.8,0.12*SFX.vol(o.pos.x,o.pos.y,o.pos.z));}
+      o.vel.set(o.dx*PO_SP,o.dy*PO_SP,o.dz*PO_SP);o.pos.addS(o.vel,dt); // set every frame, so a hit can't push it off its line
+      if(!P.dead){const d=Math.hypot(c.x-o.pos.x,c.y-o.pos.y,c.z-o.pos.z);
+        if(d<PO_R+1.6){o.alive=false;o.hp=0;pfOrbBreak(o);Damage.apply(o,P,kDmg(0.13),'blast',{knock:26});continue;}}}
+    if(o.age>PO_FORM&&Math.random()<dt*40)emit(o.pos.x+rr(-1,1)*PO_R,o.pos.y+rr(-1,1)*PO_R,o.pos.z+rr(-1,1)*PO_R,rr(-3,3),rr(-3,3),rr(-3,3),0.9,[.6,.2,1],rr(2,4),0,0.5);
+    if(o.life<=0){o.alive=false;o.hp=0;ringFx(o.pos.x,o.pos.y,o.pos.z,2,20,0.5,[.6,.2,1]);}
+  }
+}
+function pfOrbsDraw(t){
+  for(const o of PF.orbs){if(!o.alive)continue;const x=o.pos.x,y=o.pos.y,z=o.pos.z,g=o.grow,r=PO_R*(0.15+0.85*g),f=0.5+0.5*Math.sin(t*(o.go?6:22)+o.ph);
+    queue(MESH.sphere,at(x,y,z,0,0,0,r*0.62,r*0.62,r*0.62),[.2,.03,.4,1],0); // a dark core to read against the white
+    queue(MESH.glowSphere,at(x,y,z,0,0,0,r,r,r),[.55,.14,.95,0.5+0.1*f],F_BL);queue(MESH.glowSphere,at(x,y,z,0,0,0,r*1.45,r*1.45,r*1.45),[.7,.3,1,0.15],F_BL);
+    pfBand(x,y,z,Math.sin(t*1.3+o.ph),1,Math.cos(t*1.1+o.ph),r*1.3,PF_PUR,0.75);pfBand(x,y,z,Math.cos(t*0.9+o.ph),0.35,Math.sin(t*1.7),r*1.6,PF_PUR,0.5);
+    if(!o.go)pfZone(x,y,z,r*1.9,f,PF_PUR);
+    pfLane(x,y,z,x+o.dx*90,y+o.dy*90,z+o.dz*90,1.1,f,PF_PUR); // the line it will take
+    if(o.flash>0.02)queue(MESH.glowSphere,at(x,y,z,0,0,0,r*1.1,r*1.1,r*1.1),[1,1,1,Math.min(0.6,o.flash)],F_BL);
+  }
+}
+function pfOrbsMove(a,dt){
+  const M=a.mv;M.t+=dt;pfFace(a,dt,10);
+  if(M.ph===0){a.pose='raise';a.leanT=-0.1;if(M.t>=1.0){M.ph=1;M.t=0;M.vol=0;}}
+  else if(M.ph===1){a.pose='raise';const vols=pfPh2()?3:2;
+    if(M.vol<vols&&(M.vol===0||M.t>=0.9)){M.vol++;M.t=0;pfOrbSpawn(a);}
+    if(M.vol>=vols&&M.t>=0.7){M.ph=2;M.t=0;}}
+  else{a.pose='guard';if(M.t>=0.5){pfDone(a);a.cd=rr(2,3);}}
+}
 // Perfect Stillness: a pale field slows you (the screen goes blue-grey) while it dashes through the place you were
 function pfStillMove(a,dt){
   const M=a.mv;M.t+=dt;
@@ -8972,11 +9066,11 @@ function pfStillMove(a,dt){
   else if(M.ph===1){a.pose='crouch';pfFace(a,dt,18);
     if(M.sub===0){ // aim: the line follows you, then freezes
       if(M.t<0.32){M.tx=P.pos.x;M.tz=P.pos.z;M.ty=clamp(P.pos.y,0,150);}
-      if(M.t>=0.55){M.sub=1;M.t=0;M.x0=a.pos.x;M.y0=a.pos.y;M.z0=a.pos.z;const dx=M.tx-M.x0,dz=M.tz-M.z0,l=Math.hypot(dx,dz)||1;M.ex=M.tx+dx/l*7;M.ez=M.tz+dz/l*7;M.hit=false;a.alT=0.5;SFX.tone('sawtooth',250,1400,0.18,0.09);}}
+      if(M.t>=0.55){M.sub=1;M.t=0;M.x0=a.pos.x;M.y0=a.pos.y;M.z0=a.pos.z;const dx=M.tx-M.x0,dz=M.tz-M.z0,l=Math.hypot(dx,dz)||1;M.ex=M.tx+dx/l*7*PFZ;M.ez=M.tz+dz/l*7*PFZ;M.hit=false;a.alT=0.5;SFX.tone('sawtooth',250,1400,0.18,0.09);}}
     else if(M.sub===1){const k=Math.min(1,M.t/0.15);a.pos.set(lerp(M.x0,M.ex,k),lerp(M.y0,M.ty,k),lerp(M.z0,M.ez,k));a.leanT=0.4;
       if(!M.hit&&!P.dead){const c=center(P),ax=M.x0,az=M.z0,bx=M.ex-ax,bz=M.ez-az,L2=bx*bx+bz*bz||1,u=clamp(((a.pos.x-ax)*bx+(a.pos.z-az)*bz)/L2,0,1);
         // the dash passes the player when it is near its own position along the line
-        if(Math.hypot(c.x-a.pos.x,(c.y-a.pos.y-1.4)*0.5,c.z-a.pos.z)<2.9){M.hit=true;pfHurt(a,0.07,18);burst(c.x,c.y,c.z,14,10,0.3,[[.6,.8,1],[1,1,1]],1.2,0,2);}}
+        if(Math.hypot(c.x-a.pos.x,(c.y-a.pos.y-1.4*PFZ)*0.5,c.z-a.pos.z)<2.9*PFZ){M.hit=true;pfHurt(a,0.07,18);burst(c.x,c.y,c.z,14,10,0.3,[[.6,.8,1],[1,1,1]],1.2,0,2);}}
       {const c=center(a);emit(c.x,c.y,c.z,0,0,0,0.4,[.6,.8,1],3,0,0);}
       if(k>=1){M.sub=2;M.t=0;a.alT=1;}}
     else{a.pose='guard';if(M.t>=0.28){M.n++;if(M.n>=3)M.ph=2;else{M.sub=0;M.t=0;}}}}
@@ -9005,16 +9099,17 @@ function pfUpdate(dt){
   qteTick(dt);PF.decGate-=dt;
   const L=PF.tmp;L.length=0;let n=0;for(const a of PF.list){L.push(a);if(a.dec&&a.st!=='orbit'&&!a.popping)n++;}PF.decAtk=n; // a copy: pfThink removes the fakes that have faded out
   for(let i=0;i<L.length;i++)pfThink(L[i],dt);
-  pfShardTick(dt);
+  pfShardTick(dt);pfOrbsTick(dt);
+  {const r0=PF.real;if(r0&&r0.alive&&r0.vis&&r0.al>0.5&&!(PF.split>0&&r0.al>0.97&&r0.st==='orbit')&&Math.random()<dt*40){const k=PFH,x=r0.pos.x+rr(-1,1)*k,y=r0.pos.y+rr(0,1.8)*k,z=r0.pos.z+rr(-1,1)*k;emit(x,y,z,rr(-1,1),rr(3,8),rr(-1,1),rr(0.9,1.5),[1,.55,.1],rr(1.4,2.8),0,0.3);}} // sparks rising off it (not while it hides among the fakes)
   const r=PF.real;
   if(r&&r.alive&&PF.fight&&!PF.won&&r.st==='orbit'&&!KQ.on){const f=r.hp/PF_HP;if(f<=0.5&&PF.split===0)pfSplit(r);else if(f<=0.2&&PF.split===1)pfSplit(r);}
   if(PF.still){PF.still.t+=dt;P.slow=0.55;const e=$('kstill');if(e&&e.style.opacity!=='1')e.style.opacity='1';if(PF.still.t>=PF.still.dur||P.dead||!PF.fight)pfStillEnd();}
 }
 function pfClear(){
-  for(const a of PF.list)removeActor(a);PF.list.length=0;PF.shards.length=0;PF.decAtk=0;PF.decGate=0;PF.real=null;PF.on=false;PF.fight=false;PF.show=false;PF.bar=0;PF.won=false;PF.split=0;PF.stillCd=6;PF.dmgW=0;PF.evCd=0;
+  for(const a of PF.list)removeActor(a);PF.list.length=0;PF.shards.length=0;pfOrbsClear();PF.decAtk=0;PF.decGate=0;PF.real=null;PF.on=false;PF.fight=false;PF.show=false;PF.bar=0;PF.won=false;PF.split=0;PF.stillCd=6;PF.dmgW=0;PF.evCd=0;
   if(PF.still)pfStillEnd();KQ.on=false;KQ.phase='';KQ.fails=0;qteHide();if(lockT&&lockT.kind==='kperfect')lockT=null;
 }
-function pfStop(){PF.fight=false;KQ.on=false;qteHide();PF.shards.length=0;if(PF.still)pfStillEnd();}
+function pfStop(){PF.fight=false;KQ.on=false;qteHide();PF.shards.length=0;pfOrbsClear();if(PF.still)pfStillEnd();}
 function pfBar(){
   if(!(PF.on&&PF.show&&PF.real&&KA.on&&inVoid()))return false;
   PF.bar=Math.min(1,PF.bar+0.012);hud.bossbar.hidden=false;setText(hud.bossname,'bn','KATHANA, PERFECT FORM');setW(hud.bossb,'boss',PF.bar*Math.max(0,PF.real.hp)/PF_HP);return true;
@@ -9023,21 +9118,45 @@ function pfPickLock(cur){
   const l=PF.list.filter(a=>a.alive&&!a.popping&&a.al>0.4).sort((p,q)=>Math.hypot(p.pos.x-P.pos.x,p.pos.z-P.pos.z)-Math.hypot(q.pos.x-P.pos.x,q.pos.z-P.pos.z));
   if(!cur)return l[0]||null;const i=l.indexOf(cur);return i>=0&&i+1<l.length?l[i+1]:null;
 }
+// ================================================================
+// Telegraphs. The arena is white, so a pale warning vanishes: they are saturated red / blue / purple, alpha-blended (not additive), and big. Each one sits at the height of
+// the thing it warns about (you fly here), with a shadow and a pillar down to the floor, and throbs faster as the hit gets close.
+// ================================================================
+const PF_RED=[0.95,0.1,0.08],PF_BLUE=[0.1,0.35,1],PF_PUR=[0.55,0.12,0.95];
+const pfBand=(x,y,z,nx,ny,nz,r,c,al)=>queue(MESH.ring,M4.alignY(tmpM(),x,y,z,nx,ny,nz,r),[c[0],c[1],c[2],al],F_BL);
+function pfZone(x,y,z,r,f,c){ // a danger sphere: a veil, three bands round it, a floor ring under it and a pillar down to it
+  const a=0.45+0.4*f;
+  queue(MESH.glowSphere,at(x,y,z,0,0,0,r,r,r),[c[0],c[1],c[2],0.1+0.1*f],F_BL);
+  pfBand(x,y,z,0,1,0,r,c,a);pfBand(x,y,z,1,0,0,r,c,a*0.75);pfBand(x,y,z,0,0,1,r,c,a*0.75);
+  if(y>1.5){queue(MESH.disc,at(x,0.14,z,0,0,0,r,1,r),[c[0],c[1],c[2],0.2+0.1*f],F_BL);pfBand(x,0.16,z,0,1,0,r,c,0.7);queue(MESH.glowCyl,at(x,y/2,z,0,0,0,r*0.14,y,r*0.14),[c[0],c[1],c[2],0.2+0.12*f],F_BL);}
+}
+function pfLane(ax,ay,az,bx,by,bz,w,f,c){queue(MESH.glowBox,M4.beam(tmpM(),ax,ay,az,bx,by,bz,w),[c[0],c[1],c[2],0.14+0.14*f],F_BL);queue(MESH.glowBox,M4.beam(tmpM(),ax,ay,az,bx,by,bz,w*0.3),[c[0],c[1],c[2],0.45+0.35*f],F_BL);} // a warning lane
+function pfTelegraphs(t){
+  for(const a of PF.list){const M=a.mv;if(!M||a.popping)continue;const cy=a.cy;
+    if(a.st==='blink'&&M.ph<3&&M.dx!==undefined){ // where it will land, and the reach of its strike: the sphere is exactly the hit range
+      const prog=M.ph===0?M.t/0.7*0.5:M.ph===1?0.5:0.5+M.t,f=0.5+0.5*Math.sin(t*(16+prog*40));pfZone(M.dx,M.dy+cy,M.dz,4.7*PFZ,f,PF_RED);}
+    if(a.st==='combo'&&(M.ph<2||M.ph===2&&M.t<0.3)){const c=center(a);
+      if(M.ph<2&&M.tx!==undefined){const f=0.5+0.5*Math.sin(t*30);pfLane(c.x,c.y,c.z,M.tx,M.ty+cy,M.tz,1.6*PFZ,f,PF_RED);pfZone(M.tx,M.ty+cy,M.tz,4.7*PFZ,f,PF_RED);}
+      else{const f=0.5+0.5*Math.sin(t*34);pfZone(c.x,c.y,c.z,4.7*PFZ,f,PF_RED);}} // each swing of the chain: its reach round it, throbbing until it lands
+    if(a.st==='still'){
+      if(M.ph===0){const r=lerp(3,34,M.field||0),c=center(a);pfZone(c.x,c.y,c.z,r,0.5+0.5*Math.sin(t*12),PF_BLUE);}
+      else if(M.ph===1&&M.sub===0&&M.tx!==undefined){const c=center(a),f=0.5+0.5*Math.sin(t*34);pfLane(c.x,c.y,c.z,M.tx+(M.tx-c.x)*0.3,M.ty+cy,M.tz+(M.tz-c.z)*0.3,2.9*PFZ,f,PF_BLUE);pfZone(M.tx,M.ty+cy,M.tz,2.9*PFZ,f,PF_BLUE);}}
+    if(a.st==='shards'&&M.ph===0&&M.n){const f=0.5+0.5*Math.sin(t*28),pc=center(P);
+      for(let i=0;i<M.n;i++){const p=pfShardPos(a,i,M.n),g=sm01(M.t/0.5);pfEll(PFD,p[0],p[1],p[2],Math.sin(t*3+i),1,Math.cos(t*2+i),0.4*g,2.2*g,0.4*g,[.7,.06,.2,1],0);
+        queue(MESH.glowSphere,at(p[0],p[1],p[2],0,0,0,1.5*g,1.5*g,1.5*g),[1,.2,.15,0.2+0.15*f],F_BL);
+        if(!a.dec)pfLane(p[0],p[1],p[2],pc.x,pc.y,pc.z,0.45,f,PF_RED);}} // the slivers aim at you: a thin line from each
+    if(a.st==='orbs'&&M.ph===0){const c=center(a),f=0.5+0.5*Math.sin(t*20),g=sm01(M.t/1);pfZone(c.x,c.y+4*PFZ,c.z,(2+3*g)*PFZ,f,PF_PUR);}
+  }
+}
 function pfDraw(t){
   if(!PF.on&&!KQ.on)return;
   const sh=(x,z,r,al)=>queue(MESH.disc,at(x,0.12,z,0,0,0,r,1,r),[0.05,0.05,0.12,al],F_BL);
   for(const a of PF.list){if(a.st==='orbit'&&(a.dec||(a.real&&PF.split>0&&a.al>0.97&&!(a.stag>0)))){pfFigureLite(a,t);continue;}pfFigure(a,t);if(a.al>0.3&&KA.flood>0.4){const h=Math.max(0,a.pos.y);sh(a.pos.x,a.pos.z,2.2+h*0.05,Math.max(0.08,0.3-h*0.004)*a.al);}}
-  // telegraphs
-  for(const a of PF.list){const M=a.mv;if(!M||a.popping)continue;
-    if(a.st==='blink'&&M.ph===0&&M.dx!==undefined){const f=0.5+0.5*Math.sin(t*26),r=3.2;queue(MESH.ring,at(M.dx,0.22,M.dz,0,0,0,r,1,r),[1,.75,.2,0.55+0.4*f],F_BL);queue(MESH.disc,at(M.dx,0.2,M.dz,0,0,0,r,1,r),[1,.8,.3,0.15+0.12*f],F_BL);queue(MESH.glowCyl,at(M.dx,M.dy+2.5,M.dz,0,0,0,r*0.7,5,r*0.7),[1,.85,.4,0.1+0.1*f],F_BL);}
-    if(a.st==='combo'&&M.ph===0&&M.tx!==undefined){const dx=M.tx-a.pos.x,dz=M.tz-a.pos.z,l=Math.hypot(dx,dz)||1,f=0.5+0.5*Math.sin(t*30);queue(MESH.box,at((M.tx+a.pos.x)/2,0.22,(M.tz+a.pos.z)/2,0,Math.atan2(dx,dz),0,2.2,0.05,l),[1,.75,.25,0.2+0.3*f],F_BL);queue(MESH.ring,at(M.tx,0.22,M.tz,0,0,0,2.4,1,2.4),[1,.8,.3,0.5+0.3*f],F_BL);}
-    if(a.st==='still'){if(M.ph===0){const r=lerp(2,34,M.field||0),c=center(a);queue(MESH.ring,at(c.x,Math.max(0.3,a.pos.y),c.z,0,0,0,r,1,r),[.5,.7,1,0.6],F_BL);queue(MESH.glowSphere,at(c.x,c.y,c.z,0,0,0,r*0.5,r*0.5,r*0.5),[.55,.7,1,0.12],F_BL);}
-      else if(M.ph===1&&M.sub===0&&M.tx!==undefined){const dx=M.tx-a.pos.x,dz=M.tz-a.pos.z,l=Math.hypot(dx,dz)||1,mx=(M.tx+a.pos.x)/2,mz=(M.tz+a.pos.z)/2,f=0.5+0.5*Math.sin(t*34);
-        queue(MESH.box,at(mx,0.24,mz,0,Math.atan2(dx,dz),0,3.2,0.05,l+14),[.5,.7,1,0.25+0.35*f],F_BL);queue(MESH.ring,at(M.tx,0.24,M.tz,0,0,0,2.8,1,2.8),[.6,.8,1,0.6],F_BL);}}
-    if(a.st==='shards'&&M.ph===0&&M.n){for(let i=0;i<M.n;i++){const p=pfShardPos(a,i,M.n),g=sm01(M.t/0.5);pfEll(PFD,p[0],p[1],p[2],Math.sin(t*3+i),1,Math.cos(t*2+i),0.2*g,1.0*g,0.2*g,[1,1,1,1],0);}}
-  }
+  // telegraphs: see pfTelegraphs
+  pfTelegraphs(t);
+  pfOrbsDraw(t);
   // flying shards
-  for(const s of PF.shards)pfEll(PFD,s.x,s.y,s.z,s.vx,s.vy,s.vz,0.2,1.1,0.2,[1,1,1,1],0),queue(MESH.glowSphere,at(s.x,s.y,s.z,0,0,0,0.45,0.45,0.45),[1,.9,.6,0.35],F_BL);
+  for(const s of PF.shards)pfEll(PFD,s.x,s.y,s.z,s.vx,s.vy,s.vz,0.4,2.2,0.4,[.7,.06,.2,1],0),queue(MESH.glowSphere,at(s.x,s.y,s.z,0,0,0,0.95,0.95,0.95),[1,.2,.15,0.4],F_BL),queue(MESH.glowSphere,at(s.x,s.y,s.z,0,0,0,1.7,1.7,1.7),[1,.3,.2,0.14],F_BL);
   // the gold-white grip on you
   if(KQ.on&&PF.real){const c=center(P),w=PF.real.hw[1],f=0.5+0.5*Math.sin(t*20);
     queue(MESH.glowBox,M4.beam(tmpM(),w[0],w[1],w[2],c.x,c.y,c.z,0.35+0.12*f),[1,.85,.4,0.7],F_BL);queue(MESH.glowBox,M4.beam(tmpM(),w[0],w[1],w[2],c.x,c.y,c.z,1.1),[1,.8,.3,0.22],F_BL);
@@ -9116,7 +9235,7 @@ function kSplitDraw(t){
 }
 function pfStand(){const dx=KA.bx-P.pos.x,dz=KA.bz-P.pos.z,l=Math.hypot(dx,dz)||1;let x=P.pos.x+dx/l*16,z=P.pos.z+dz/l*16;const ox=x-KAR.x,oz=z-KAR.z,r=Math.hypot(ox,oz);if(r>440){x=KAR.x+ox/r*440;z=KAR.z+oz/r*440;}return {x,y:clamp(P.pos.y-0.3,0,45),z};}
 function pfCam(st){ // the camera in front of the Perfect Form (toward you), a little to the side and low
-  const dx=P.pos.x-st.x,dz=P.pos.z-st.z,l=Math.hypot(dx,dz)||1,fx=dx/l,fz=dz/l;return {x:st.x+fx*4.4+fz*1.7,y:st.y+1.9,z:st.z+fz*4.4-fx*1.7};
+  const dx=P.pos.x-st.x,dz=P.pos.z-st.z,l=Math.hypot(dx,dz)||1,fx=dx/l,fz=dz/l;return {x:st.x+(fx*4.4+fz*1.7)*PFZ,y:st.y+1.9*PFZ,z:st.z+(fz*4.4-fx*1.7)*PFZ};
 }
 function kSplitStart(){
   if(!inKS())return;
@@ -9124,7 +9243,7 @@ function kSplitStart(){
   for(const h of KA.hands)h.busy=false;
   const kw=(x,y,z)=>{const s=Math.sin(b.yaw),c=Math.cos(b.yaw);return {x:b.x+x*c+z*s,y,z:b.z-x*s+z*c};},c0=kw(95,48,330),c1=kw(55,95,175),c2=pfCam(st);
   const camf=k=>{const t=k*8;if(t<4.2){const e=sm01(t/4.2);return {x:lerp(c0.x,c1.x,e),y:lerp(c0.y,c1.y,e),z:lerp(c0.z,c1.z,e)};}const e=sm01((t-4.2)/3.8);return {x:lerp(c1.x,c2.x,e),y:lerp(c1.y,c2.y,e),z:lerp(c1.z,c2.z,e)};};
-  const look=k=>{const t=k*8,r=PF.real,h=r?{x:r.pos.x,y:r.pos.y+2.6,z:r.pos.z}:{x:core[0],y:core[1],z:core[2]},e=sm01((t-3.6)/2.2);return {x:lerp(core[0],h.x,e),y:lerp(core[1],h.y,e),z:lerp(core[2],h.z,e)};};
+  const look=k=>{const t=k*8,r=PF.real,h=r?{x:r.pos.x,y:r.pos.y+2.6*PFZ,z:r.pos.z}:{x:core[0],y:core[1],z:core[2]},e=sm01((t-3.6)/2.2);return {x:lerp(core[0],h.x,e),y:lerp(core[1],h.y,e),z:lerp(core[2],h.z,e)};};
   cutscene({dur:8,control:false,letterbox:true,skippable:false,fov:64,text:'',from:camf,to:camf,look,onTick:(k,dt,C)=>kSplitTick(k,dt,C,st,core),onEnd:()=>kSplitEnd(st)});
 }
 function kSplitTick(k,dt,C,st,core){
@@ -9135,12 +9254,12 @@ function kSplitTick(k,dt,C,st,core){
   if(!C.b2&&t>=2.2){C.b2=true;SFX.boom(0.8,2);addShake(0.9);}
   if(t>=3.0){KA.sink=sm01((t-3.0)/2.4);if(KA.sink>=0.99)KA.vis=false;}
   if(t>=3.0&&t<4.4&&Math.random()<dt*30)smoke(KA.bx+rr(-70,70),2,KA.bz+rr(-50,50),1,8,16,4,0.7);
-  if(!C.pf&&t>=2.3){C.pf=true;const a=pfMake(core[0],core[1]-2.2,core[2],false);a.al=0;a.yaw=KA.yaw+Math.PI;a.fadeIn=1;
+  if(!C.pf&&t>=2.3){C.pf=true;const a=pfMake(core[0],core[1]-2.2*PFZ,core[2],false);a.al=0;a.yaw=KA.yaw+Math.PI;a.fadeIn=1;
     flashWhite=1;SFX.chime();SFX.tone('sine',200,2000,1.4,0.14);ringFx(core[0],core[1],core[2],1,34,0.8,[1,1,1]);burst(core[0],core[1],core[2],90,30,1.2,[[1,.9,.6],[1,1,1]],2,0,1.5);KA.fx.push({x:core[0],y:core[1],z:core[2],t:0,dur:1,r0:4,r1:70,col:[1,.9,.55]});}
   const a=PF.real;
   if(a&&C.pf){
-    if(t<4.2){a.pos.set(core[0],core[1]-2.2+Math.sin(t*2)*0.5,core[2]);a.yaw+=dt*0.9;a.pose='raise';}
-    else{const e=sm01((t-4.2)/2.2);a.pos.set(lerp(core[0],st.x,e),lerp(core[1]-2.2,st.y,e),lerp(core[2],st.z,e));a.yaw=angLerp(a.yaw,Math.atan2(P.pos.x-st.x,P.pos.z-st.z),damp(5,dt));a.pose=e<0.9?'raise':'guard';}
+    if(t<4.2){a.pos.set(core[0],core[1]-2.2*PFZ+Math.sin(t*2)*0.5,core[2]);a.yaw+=dt*0.9;a.pose='raise';}
+    else{const e=sm01((t-4.2)/2.2);a.pos.set(lerp(core[0],st.x,e),lerp(core[1]-2.2*PFZ,st.y,e),lerp(core[2],st.z,e));a.yaw=angLerp(a.yaw,Math.atan2(P.pos.x-st.x,P.pos.z-st.z),damp(5,dt));a.pose=e<0.9?'raise':'guard';}
     a.keep=true;a.al+=(1-a.al)*Math.min(1,dt*2);
   }
   if(!C.cap&&t>=4.4){C.cap=true;C.text='KATHANA, PERFECT FORM';$('cut-cap').textContent=C.text;PF.show=true;SFX.tone('sine',440,880,0.8,0.1);}
@@ -9156,7 +9275,7 @@ function pfRetryStart(){
   KA.gone=true;KA.vis=false;KA.stage=2;KA.dead=4;KA.rise=1;KA.open=1;KA.phase='retry';KA.fight=false;
   const st=pfStand(),a=pfMake(st.x,st.y+60,st.z,false);a.al=0;a.fadeIn=1;a.pose='raise';a.keep=true;a.yaw=Math.atan2(P.pos.x-st.x,P.pos.z-st.z);PF.show=true;
   const cam=pfCam(st);
-  cutscene({dur:4.6,control:false,letterbox:true,skippable:false,fov:60,text:'KATHANA, PERFECT FORM',from:cam,to:cam,look:()=>({x:a.pos.x,y:a.pos.y+2.6,z:a.pos.z}),
+  cutscene({dur:4.6,control:false,letterbox:true,skippable:false,fov:60,text:'KATHANA, PERFECT FORM',from:cam,to:cam,look:()=>({x:a.pos.x,y:a.pos.y+2.6*PFZ,z:a.pos.z}),
     onTick:(k,dt,C)=>{const e=sm01((C.t-0.4)/2.4);a.pos.set(st.x,lerp(st.y+60,st.y,e),st.z);a.pose=e<0.9?'raise':'guard';a.keep=true;a.al+=(1-a.al)*Math.min(1,dt*2);
       if(!C.f&&C.t>0.4){C.f=true;flashWhite=0.8;SFX.chime();SFX.tone('sine',200,1800,1.2,0.12);}},
     onEnd:()=>{if(!inKS())return;a.keep=false;a.pos.set(st.x,st.y,st.z);a.al=1;pfQteStart();}});
@@ -9177,6 +9296,7 @@ function pfPress(){
   if(!KQ.on||KQ.phase!=='mash')return;KQ.meter=Math.min(1,KQ.meter+0.085);KQ.n++;
   SFX.tone('square',420+KQ.meter*800,520+KQ.meter*900,0.06,0.05);
   const e=qteEl();e.classList.remove('hit');void e.offsetWidth;e.classList.add('hit');
+  if(KQ.meter>=1){$('q-f').style.width='100%';pfQteWin();} // win on the press: qteTick decays the meter first, so it would sit at 99%
 }
 addEventListener('keydown',e=>{if(KQ.on&&KQ.phase==='mash'&&e.code==='Space'){e.preventDefault();if(!e.repeat)pfPress();}},true);
 addEventListener('pointerdown',e=>{if(KQ.on&&KQ.phase==='mash')pfPress();},true);
@@ -9602,6 +9722,7 @@ function invSwPress(){
   const W=INV.sw;if(!W||W.ph!=='mash')return;
   W.meter=Math.min(1,W.meter+0.055);W.cb+=0.02;W.pulse=1;W.n++;SFX.tone('square',420+W.meter*800,520+W.meter*900,0.06,0.05);
   const e=qteEl();e.classList.remove('hit');void e.offsetWidth;e.classList.add('hit');
+  if(W.meter>=1)invSwBurst(); // burst on the press itself, before the per-frame decay can drop it under 1
 }
 addEventListener('keydown',e=>{if(INV.sw&&INV.sw.ph==='mash'&&e.code==='Space'){e.preventDefault();if(!e.repeat)invSwPress();}},true);
 addEventListener('pointerdown',e=>{if(INV.sw&&INV.sw.ph==='mash')invSwPress();},true);
@@ -9850,14 +9971,14 @@ function lsDraw(){
 // ("A world beyond ours"), the title card CONQUER THE WORLD, then the objective: fly to the Apex Spire's entrance. save.story.cyber: 0 not there, 1 arrived (go to the
 // entrance), 2 went in (towerEnter() in 66j_spire.js hops into the Apex Spire: story.tower 1 = inside, 2 = the Sovereign is beaten and the real sky is back, see cyReal / cyberEnding there). With cyber 1 or 2 and tower < 2 a loaded game starts here (cyberTick):
 // the solar system is "gone" until the tower's boss falls (next phase restores it). Dying here puts you back on the pad (cyberRespawn).
-// ZONES.cyber sits at local origin CYO (z=120000), 3000 x 3000 m (x, z in +-1500), floor y=0, x1.3 player speed (zone.speed, 80_player.js). Layout (cyBuild): a grid of
+// ZONES.cyber sits at local origin CYO (z=15000), 3000 x 3000 m (x, z in +-1500), floor y=0, x1.3 player speed (zone.speed, 80_player.js). Layout (cyBuild): a grid of
 // 150 m cells, avenues 30 m wide and boulevards (every second line) 40 m, a 330 m plaza in the middle with the Apex Spire (120 m podium, 600 m needle), towers 36-420 m taller
 // towards the centre, parks, landing pads, low-rises and sky bridges (over the odd avenues only: the flying cars use the boulevards). ~25k boxes, baked into 36 regions
 // (only those in front of the camera and inside the fog are drawn: zoneDrawRegions) with ~6k colliders in the zone's lookup grid (66c_zones.js: zkey, zoneCols and zoneRay
 // only ever look at the cells near a point or a ray). Towers use shader material 9 (white shell, glowing blue glass bands), the shield material 10 (00_engine.js).
 // The sky (cyberSky in the sky shader): gradient, grid lines, a synthetic sun (disc, rings, hex cells) and a faceted moon. The shield: a blue wall at +-1500 and a ceiling at
 // y=900 that stops you (bounds + a soft push in cyShield), with a hex shimmer within 60 m.
-const CYO={x:0,y:0,z:120000},CYH=1500,CYG=150,CYB=1490,CYTOP=900;
+const CYO={x:0,y:0,z:15000},CYH=1500,CYG=150,CYB=1490,CYTOP=900;
 const CYAT={x:75,y:150.6,z:-1425,yaw:Math.atan2(75,-1425)}; // the arrival pad (a 150 m tower in the south), facing the Spire
 const CYARCH={z0:-60,z1:-34,w:10,h:20.2}; // the entrance: an arch cut into the south face of the Spire's podium, opening x +-10, 20 m tall, 24 m deep to the light gate
 const CYFRONT={x:0,y:0,z:-112,yaw:Math.PI}; // in front of the arch, facing it
@@ -10151,7 +10272,7 @@ function cyberStats(){return {boxes:CY.stats.boxes,cols:CY.stats.cols,buildMs:CY
 // ================================================================
 // The Apex Spire: three floors of cyber-enhanced fighters, the Sovereign, and the ending that gives the sky back
 // ================================================================
-// Flow: the entrance arch in the cyber world (66i_cyber.js) calls towerEnter(): story.tower=1, zoneHop to ZONES.spire (parked at z=160000). Floors stack 28 m apart (SPFY),
+// Flow: the entrance arch in the cyber world (66i_cyber.js) calls towerEnter(): story.tower=1, zoneHop to ZONES.spire (parked at z=12000). Floors stack 28 m apart (SPFY),
 // 120 x 120 m, 22 m clear height, glass outer walls (solid, never smashable) with a stylised skyline outside, partitions inside (smash:true: fast flight bursts through them).
 // Floor 1 Security Lobby (Gunner, Blade Dasher, Drone Handler), floor 2 Augment Labs (Phase Walker, Gravity Bender, Mirror Shield), floor 3 Throne Hall (a Speed-augmented and a
 // Titan-augmented champion, then the boss). Floors 1-2 run 3 waves each (never more than SPCAP alive; a handler's drones come on top). Clearing a floor saves story.tf (0..3) and
@@ -10164,7 +10285,7 @@ function cyberStats(){return {boxes:CY.stats.boxes,cols:CY.stats.cols,buildMs:CY
 // synthetic sun and moon dissolve, the real sky returns with the Moon, Earth and the planets as bodies in it, and the shield's ceiling is gone. travelTick (every frame, both
 // worlds): at full flight speed held 2 s high up (cyber y>600 / Earth in space) a wormhole (wormholeTo, 66h_invasion.js lsStart) carries you to the other world.
 // spireTick(dt) runs once per frame from storyTick with the REAL dt (the boss keeps moving while time is stopped); the AI uses dt*worldTimeK().
-const SPO={x:0,y:0,z:160000},SPW=60,SPH=22,SPFY=[0,28,56],SPLIFT=[{x:0,z:48},{x:0,z:-48}],SPCAP=10;
+const SPO={x:0,y:0,z:12000},SPW=60,SPH=22,SPFY=[0,28,56],SPLIFT=[{x:0,z:48},{x:0,z:-48}],SPCAP=10;
 const SPST=[{x:0,z:-52,yaw:Math.PI},{x:0,z:46,yaw:0},{x:0,z:-46,yaw:Math.PI}]; // where each floor starts (yaw PI faces +z)
 const SPWAVES=[[{gunner:2,dasher:1},{gunner:2,dasher:2,handler:1},{gunner:3,dasher:2,handler:1}],[{phase:2,bender:1,mirror:1},{phase:2,bender:1,mirror:2},{phase:2,bender:2,mirror:2}]];
 const SP={list:[],floor:1,wave:0,nw:1,pend:[],live:false,breath:0,spawnT:0,cleared:[false,false,false],open:false,fx:[],seen:{},objT:0,elite:0,bossT:-1,walls:[],cars:[],ride:false};
@@ -10953,8 +11074,17 @@ function sovereignWin(){ // test hook: skip to the ending
 // and shrinks to fit (folding "Getting started" down to its next step if it has to), so it never needs scrolling.
 // The leaderboard sits under the icons on the left (the full board opens from it, the main menu or the pause menu).
 // The CrazyGames build has no leaderboard at all: the shared board lives on claude.ai, and pointing players there is cross-promotion.
+// fullscreen (phones): the Fullscreen API where the page may use it (not in an iframe without allow=fullscreen, not on iPhone Safari)
+const fsOk=()=>!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+const fsOn=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+function fsToggle(){
+  try{if(fsOn()){const x=document.exitFullscreen||document.webkitExitFullscreen;x&&x.call(document);}
+    else{const d=document.documentElement,r=d.requestFullscreen||d.webkitRequestFullscreen;r&&Promise.resolve(r.call(d)).catch(()=>{});}}catch(e){}
+}
+let hudFold=false; // the icon row folded away (the arrow next to it); kept for the session
 const rewardsLater=()=>{const st=save.stats||{};return BASIC_LAUNCH||!(st.crimesStopped||st.crimesCommitted||save.level>1);};
 const HUDBAR=[
+  {id:'fs',glyph:'expand',key:'',code:'',tip:()=>fsOn()?'Leave fullscreen':'Fullscreen',act:()=>fsToggle(),on:()=>fsOn(),hide:()=>!fsOk()||!touchOn(),touch:true},
   {id:'moves',glyph:'moves',key:'H',code:'KeyH',tip:'Move list',act:()=>toggleMoves(),on:()=>movesShown(),touch:false},
   {id:'skills',glyph:'skills',key:'K',code:'KeyK',tip:'Skills and upgrades',act:()=>sheetToggle('skills'),on:()=>sheetOpen==='skills',dot:()=>save.sp>0},
   {id:'powers',glyph:'swap',key:'J',code:'KeyJ',tip:()=>'Change powers'+(save.rechoiceAt?'':' · free the first time'),act:()=>{if(sheetOpen)closeSheet();tryRechoose();},pulse:()=>!!save.guide.done&&!save.guide.swap},
@@ -10974,7 +11104,7 @@ const HUDBAR=[
   {id:'trials',glyph:'unlock',key:',',code:'Comma',portal:true,tip:'Try locked powers',act:()=>sheetToggle('trials'),hide:()=>rewardsLater(),off:()=>!Portal.ads(),on:()=>sheetOpen==='trials'},
   {id:'cos',glyph:'sparkle',key:'.',code:'Period',portal:true,tip:'Cosmetics',act:()=>sheetToggle('cos'),hide:()=>rewardsLater(),off:()=>!Portal.ads(),on:()=>sheetOpen==='cos'},
 ];
-const HUDBAR_KEYS={};for(const b of HUDBAR)if(!b.portal||PBAL)HUDBAR_KEYS[b.code]=b;
+const HUDBAR_KEYS={};for(const b of HUDBAR)if(b.code&&(!b.portal||PBAL))HUDBAR_KEYS[b.code]=b;
 const hbVal=(v)=>typeof v==='function'?v():v;
 function sheetToggle(name){if(sheetOpen===name)closeSheet();else openSheet(name);}
 let hudbarT=0;
@@ -10984,13 +11114,17 @@ function buildHudbar(){
     const btn=el('button',{class:'hbtn',type:'button',id:'hb-'+b.id,onclick:e=>{e.stopPropagation();if(state==='play')b.act();}});
     btn.appendChild(glyph(b.glyph));btn.appendChild(el('kbd',{text:b.key}));btn.appendChild(el('i',{class:'dot'}));
     if(b.touch===false)btn.classList.add('kbm');bar.appendChild(btn);b.el=btn;}
+  const fold=el('button',{class:'hbtn',type:'button',id:'hb-fold',onclick:e=>{e.stopPropagation();hudFold=!hudFold;updateHudbar(true);}});
+  fold.appendChild(glyph('chev'));fold.appendChild(el('i',{class:'dot'}));bar.appendChild(fold);
   updateHudbar(true);
 }
 function updateHudbar(force){
   if(!force&&time-hudbarT<0.25)return;hudbarT=time;
   for(const b of HUDBAR){const e=b.el;if(!e)continue;const tip=hbVal(b.tip)||'';
     if(e.dataset.tip!==tip){e.dataset.tip=tip;e.setAttribute('aria-label',tip+' ('+b.key+')');}
-    e.hidden=!!(b.hide&&b.hide());e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));e.classList.toggle('pulse',!!(b.pulse&&b.pulse()));}
+    e.hidden=!!(b.hide&&b.hide());if(b.id==='fs'){const g=e.querySelector('svg');g.innerHTML=GLYPHS[fsOn()?'shrink':'expand'];}e.classList.toggle('on',!!(b.on&&b.on()));e.disabled=!!(b.off&&b.off());e.classList.toggle('badge',!!(b.dot&&b.dot()));e.classList.toggle('pulse',!!(b.pulse&&b.pulse()));}
+  const fb=$('hb-fold');if(fb){$('hudbar').classList.toggle('folded',hudFold);fb.setAttribute('aria-label',hudFold?'Show the menu buttons':'Hide the menu buttons');fb.dataset.tip=fb.getAttribute('aria-label');
+    fb.classList.toggle('badge',hudFold&&HUDBAR.some(b=>b.el&&!b.el.hidden&&b.el.classList.contains('badge')));}
   // sit just under the name panel, whatever its height
   const tl=document.querySelector('.hud-tl'),bar=$('hudbar');if(tl&&bar&&!touchOn()){const top=(tl.offsetTop+tl.offsetHeight+8)+'px';if(bar.style.top!==top)bar.style.top=top;}
   updateLBMini();
@@ -11581,7 +11715,7 @@ function openDial(kind='alien',keepPage){
   const two=kind==='construct',nIn=two?DIAL_INNER:list.length; // constructs: an inner ring (mechs, flyers, rides, weapons) and an outer ring (everything newer)
   list.forEach((a,i)=>{const inner=i<nIn,k=inner?i:i-nIn,n=inner?nIn:list.length-nIn,ang=k/n*TAU-Math.PI/2,rad=two?(inner?25:43):38;
     const b=el('button',{type:'button',class:'dslot'+(two?' mini':'')+(a.on?'':' locked'),'data-i':String(i),style:`left:${(50+Math.cos(ang)*rad).toFixed(1)}%;top:${(50+Math.sin(ang)*rad).toFixed(1)}%`,
-      onclick:()=>{if(a.on){closeDial();a.pick();}else dialTrial(a);},onmouseenter:()=>setDialSel(i)},two?null:el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:two?(a.on?a.cost+' charge':a.lock):a.on?a.blurb:a.lock}));
+      onclick:()=>{if(performance.now()-dialAt<450)return;if(a.on){closeDial();a.pick();}else dialTrial(a);},onmouseenter:()=>setDialSel(i)},two?null:el('kbd',{text:String(i+1)}),el('b',{text:a.name}),el('small',{text:two?(a.on?a.cost+' charge':a.lock):a.on?a.blurb:a.lock}));
     b.style.setProperty('--g',a.glow);ring.appendChild(b);});
   if(kind==='construct')ring.appendChild(el('div',{class:'dpage'},'All '+list.length+' constructs'));
   $('dial-info').textContent=kind==='trav'?'Pick how you get around · '+(presetOf(save.character)||{name:'your hero'}).name:kind==='armor'?'Pick a suit form · battery '+Math.round(meterFrac(METERS.armorFlight)*100)+'%':kind==='construct'?'Pick a construct · '+Math.round(save.ring)+'% ring charge'+(touchOn()?'':' · move toward the centre for the inner ring'):'Pick an alien · '+Math.round(pstat('morphBand','duration'))+' s transformation';
@@ -11812,6 +11946,7 @@ function playerBodies(prevY,prevX,prevZ,dt){
     const d=Math.hypot(dx,dz)||0.01,min=P.radius+0.45;if(d>=min)continue;
     if((sp>16||big&&sp>4)&&!P.speeding&&time-(h.bumpT||-9)>0.6){h.bumpT=time;Damage.apply(P,h,sp*0.5,'bump',{knock:Math.max(10,sp*0.8)});}
     else{const push=min-d;h.pos.x+=dx/d*push*0.8;h.pos.z+=dz/d*push*0.8;P.pos.x-=dx/d*push*0.2;P.pos.z-=dz/d*push*0.2;}}
+  ufoBlock(); // the saucer in the sky (66d_ufo.js)
   vehicleBlock(P.pos,P.vel,P.radius,P.height,prevY,false,big,dt,prevX,prevZ); // cars, trucks, helicopters, boats, hover cars: solid (50_npcs.js)
   if(VB.land)P.grounded=true;
   if(VB.hit){const v=VB.hit; // a hard hit hurts the vehicle (a giant's touch always does)
@@ -11977,6 +12112,9 @@ function updatePlayer(dt){
 //                     sit in a construct, and so on.
 // Settings has the button size and a left-handed layout (everything mirrored). In portrait a "turn your phone" screen
 // covers the game.
+// no page zoom: pinch (iOS gesture events) and ctrl+wheel; the viewport meta and touch-action in the CSS cover the rest
+for(const g of ['gesturestart','gesturechange','gestureend'])addEventListener(g,e=>e.preventDefault());
+addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault();},{passive:false});
 const tl=$('tlayer'),stick=$('stick'),knob=$('knob'),tbtns=$('tbtns');let stickId=null,lookId=null,sx0=0,sy0=0,lx=0,ly=0;
 const tHand=()=>save.settings.tHand==='l'?'l':'r',tSizeMul=()=>({s:0.86,m:1,l:1.16})[save.settings.tSize]||1;
 // the phone's notch and rounded corners (CrazyGames app, iOS): read from a probe padded by env(safe-area-inset-*)
@@ -12089,7 +12227,7 @@ function layoutTouch(force){
 }
 // the left column (name, meters, minimap, Getting started or the grow tip) stacks itself, so a taller panel (a wanted
 // badge, a bounty) pushes the rest down instead of covering it
-const LEFT_COL=['.hud-tl','.hud-bc','#map','#growtut','#guide'];let leftT=-9;
+const LEFT_COL=['.hud-tl','#guide','#growtut','#goal','#map'];let leftT=-9;
 function stackLeft(on){if(!on){for(const q of LEFT_COL){const e=document.querySelector(q);if(e)e.style.top='';}return;}
   if(time-leftT<0.25)return;leftT=time;let y=safeIn('t')+10;
   for(const q of LEFT_COL){const e=document.querySelector(q);if(!e||e.hidden||getComputedStyle(e).display==='none')continue;const t=Math.round(y)+'px';if(e.style.top!==t)e.style.top=t;y+=e.offsetHeight+8;}}
