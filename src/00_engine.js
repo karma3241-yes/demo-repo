@@ -118,18 +118,21 @@ let W=1,H=1,DPR=1;
 function resize(){DPR=Math.min(window.devicePixelRatio||1,gfx().dpr);W=Math.max(1,Math.floor(innerWidth*DPR));H=Math.max(1,Math.floor(innerHeight*DPR));canvas.width=W;canvas.height=H;}
 addEventListener('resize',resize);resize();
 
-function program(vs,fs){
-  const p=gl.createProgram();
-  for(const [type,src] of [[gl.VERTEX_SHADER,vs],[gl.FRAGMENT_SHADER,fs]]){
-    const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
-    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));
-    gl.attachShader(p,s);
-  }
+const KPSC=gl.getExtension('KHR_parallel_shader_compile');
+function program(vs,fs){ // compile + link only: status queries are deferred to progFinish so the driver can compile in the background
+  const p=gl.createProgram(),pr={p,done:false,sh:[]};
+  for(const [type,src] of [[gl.VERTEX_SHADER,vs],[gl.FRAGMENT_SHADER,fs]]){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);gl.attachShader(p,s);pr.sh.push(s);}
   gl.linkProgram(p);
+  Object.defineProperty(pr,'u',{configurable:true,get(){progFinish(pr);return pr.u;}});
+  return pr;
+}
+function progFinish(pr){ // checks status (blocks until compiled) and builds the uniform map; idempotent
+  if(pr.done)return pr;const p=pr.p;
+  for(const s of pr.sh)if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));
   if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));
   const u={};const n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);
   for(let i=0;i<n;i++){const info=gl.getActiveUniform(p,i);u[info.name.replace('[0]','')]=gl.getUniformLocation(p,info.name);}
-  return {p,u};
+  Object.defineProperty(pr,'u',{value:u,writable:true});pr.sh=null;pr.done=true;return pr;
 }
 
 const GLSL_COMMON=`
@@ -149,7 +152,10 @@ void main(){vec4 w=uM*vec4(aPos,1.0);vW=w.xyz;vN=mat3(uM)*aNor;vC=aCol;vD=aDat;v
 const MAIN_FS=`#version 300 es
 precision highp float;precision highp sampler2DShadow;
 in vec3 vW;in vec3 vN;in vec3 vC;in vec2 vD;in vec4 vL;
-uniform vec4 uTint;uniform float uUnlit;uniform float uEmis;uniform vec4 uClip;
+uniform vec4 uTint;uniform float uUnlit;uniform float uEmis;
+#ifdef STORY
+uniform vec4 uClip;
+#endif
 uniform vec3 uLDir;uniform vec3 uLCol;uniform vec3 uSky;uniform vec3 uGnd;uniform vec3 uFogC;uniform vec2 uFog;
 uniform vec3 uCam;uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uShTexel;uniform float uNoFog;
 uniform sampler2DShadow uShadow;uniform float uShOn;
@@ -161,11 +167,16 @@ float shadowF(){if(uShOn<0.5)return 1.0;vec3 p=vL.xyz/vL.w*0.5+0.5;
   float s=0.0;for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)s+=texture(uShadow,vec3(p.xy+vec2(float(x),float(y))*uShTexel,p.z-0.0004));
   return s/9.0;}
 vec3 outc(vec3 c){return pow(aces(c*uExpo),vec3(1.0/2.2));}
+#ifdef STORY
 float hexE(vec2 p,out vec2 id){vec2 r=vec2(1.0,1.7320508);vec2 h=r*0.5;vec2 a=mod(p,r)-h;vec2 b=mod(p-h,r)-h;vec2 g=dot(a,a)<dot(b,b)?a:b;id=p-g;vec2 q=abs(g);return 0.5-max(dot(q,vec2(0.5,0.8660254)),q.x);}
+#endif
 void main(){
+#ifdef STORY
   if(dot(vec4(vW,1.0),uClip)<0.0)discard; // a clip plane (Kathana's body splitting in two, 66g_kperfect.js); all zeros = off
+#endif
   vec3 n=normalize(vN);float mat=vD.x;vec3 base=vC*uTint.rgb;vec3 emis=vec3(0.0);float spec=0.2;float shin=40.0;
   if(mat>5.5&&mat<6.5){o=vec4(outc(vC*uTint.rgb*1.6),uTint.a);return;}
+#ifdef STORY
   if(mat>8.5&&mat<9.5){ // cyber tower (66i_cyber.js): a pale shell with glowing blue glass bands
     float side=1.0-step(0.5,abs(n.y));float u=abs(n.x)>0.5?vW.z:vW.x;float v=vW.y;
     float f=fract(v/4.2),fi=floor(v/4.2),cu=u/3.6,cf=fract(cu),ci=floor(cu);
@@ -195,6 +206,7 @@ void main(){
     c2+=vec3(1.0,0.95,0.85)*band*0.6*(0.3+fr);
     float fg2=smoothstep(uFog.x,uFog.y,length(uCam-vW))*(1.0-uNoFog);
     o=vec4(outc(mix(c2,uFogC,fg2*0.6)),uTint.a);return;}
+#endif
   if(mat>0.5&&mat<1.5){
     if(abs(n.y)<0.5){
       float st=floor(vD.y/1000.0),sd=mod(vD.y,1000.0);
@@ -259,8 +271,12 @@ out vec2 vP;void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&
 const SKY_FS=`#version 300 es
 precision highp float;in vec2 vP;out vec4 o;
 uniform vec3 uFwd;uniform vec3 uRight;uniform vec3 uUp;uniform vec2 uTan;uniform vec3 uSunDir;uniform vec3 uZen;uniform vec3 uHor;uniform vec3 uSunCol;
-uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uSpace;uniform float uCy;uniform float uCDis;uniform vec3 uCSun;uniform vec3 uCMoon;
+uniform float uNight;uniform float uTime;uniform float uExpo;uniform float uSpace;uniform vec3 uCMoon;
+#ifdef STORY
+uniform float uCy;uniform float uCDis;uniform vec3 uCSun;
+#endif
 ${GLSL_COMMON}
+#ifdef STORY
 // the cyber world's sky (66i_cyber.js): a blue gradient with faint grid lines, a synthetic sun (disc, rings, hex cells) and a faceted moon with glowing seams
 float hexS(vec2 p,out vec2 id){vec2 r=vec2(1.0,1.7320508);vec2 h=r*0.5;vec2 a=mod(p,r)-h;vec2 b=mod(p-h,r)-h;vec2 g=dot(a,a)<dot(b,b)?a:b;id=p-g;vec2 q=abs(g);return 0.5-max(dot(q,vec2(0.5,0.8660254)),q.x);}
 const vec3 FN[20]=vec3[20](vec3(.57735,.57735,.57735),vec3(-.57735,.57735,.57735),vec3(.57735,-.57735,.57735),vec3(-.57735,-.57735,.57735),vec3(.57735,.57735,-.57735),vec3(-.57735,.57735,-.57735),vec3(.57735,-.57735,-.57735),vec3(-.57735,-.57735,-.57735),
@@ -307,10 +323,13 @@ vec3 cyberSky(vec3 d){
   }
   return col;
 }
+#endif
 float fbm(vec2 p){float s=0.0,a=0.5;for(int i=0;i<5;i++){s+=a*vnoise(p);p=p*2.03+vec2(1.7,9.2);a*=0.5;}return s;}
 void main(){
   vec3 d=normalize(uFwd+vP.x*uTan.x*uRight+vP.y*uTan.y*uUp);
+#ifdef STORY
   if(uCy>0.5){o=vec4(pow(aces(cyberSky(d)*uExpo),vec3(1.0/2.2)),1.0);return;}
+#endif
   float h=d.y;
   vec3 col=mix(uHor,uZen,pow(clamp(h,0.0,1.0),0.5));
   if(h<0.0)col=mix(uHor,uHor*0.55,clamp(-h*5.0,0.0,1.0));
@@ -342,9 +361,15 @@ const PART_FS=`#version 300 es
 precision mediump float;in vec4 vC;out vec4 o;uniform float uAdd;uniform float uLight;
 void main(){float d=length(gl_PointCoord-0.5)*2.0;float a=clamp(1.0-d,0.0,1.0);a*=a;if(uAdd>0.5)o=vec4(vC.rgb*a*vC.a,1.0);else o=vec4(vC.rgb*uLight,a*vC.a);}`;
 
-const MAIN=program(MAIN_VS,MAIN_FS);
+let MAIN=program(MAIN_VS,MAIN_FS),SKY=program(SKY_VS,SKY_FS);const MAIN_B=MAIN,SKY_B=SKY;let MAIN_S=null,SKY_S=null,storyT=0; // base programs at load; the STORY variants (cutscene zones only) compile in the background
+const storyVariant=fs=>fs.replace('#version 300 es\n','#version 300 es\n#define STORY\n');
+function storyProgs(sync){if(!MAIN_S){MAIN_S=program(MAIN_VS,storyVariant(MAIN_FS));SKY_S=program(SKY_VS,storyVariant(SKY_FS));storyT=performance.now();}
+  if(sync){progFinish(MAIN_S);progFinish(SKY_S);}}
+function storyReady(){return !!MAIN_S&&MAIN_S.done&&SKY_S.done;}
+function storyPoll(){if(storyReady())return;const t=performance.now();
+  if(!MAIN_S){if(t>5000)storyProgs();return;}
+  if(KPSC?(gl.getProgramParameter(MAIN_S.p,KPSC.COMPLETION_STATUS_KHR)&&gl.getProgramParameter(SKY_S.p,KPSC.COMPLETION_STATUS_KHR)):t-storyT>3000)storyProgs(true);}
 const DEPTH=program(DEPTH_VS,DEPTH_FS);
-const SKY=program(SKY_VS,SKY_FS);
 const PART=program(PART_VS,PART_FS);
 const skyVao=gl.createVertexArray();
 

@@ -481,6 +481,7 @@ function drawItem(mesh,M,tint,unlit,emis,nofog){
   gl.bindVertexArray(mesh.vao);gl.drawElements(gl.TRIANGLES,mesh.n,mesh.type,0);
 }
 function render(){
+  const st=!!zone;storyPoll();if(st&&!storyReady())storyProgs(true);MAIN=st?MAIN_S:MAIN_B;SKY=st?SKY_S:SKY_B; // story zones draw with the STORY shader variants (cutscene: a blocking compile here is fine)
   if(gfx().shadows&&!zone){
     gl.bindFramebuffer(gl.FRAMEBUFFER,shFbo);gl.viewport(0,0,SHADOW,SHADOW);
     gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -497,7 +498,7 @@ function render(){
   gl.uniform3f(s.uFwd,camF.x,camF.y,camF.z);gl.uniform3f(s.uRight,camR.x,camR.y,camR.z);gl.uniform3f(s.uUp,camU.x,camU.y,camU.z);
   gl.uniform2f(s.uTan,th*W/H,th);gl.uniform3fv(s.uSunDir,env.sun);gl.uniform3fv(s.uZen,env.zen);gl.uniform3fv(s.uHor,env.hor);gl.uniform3fv(s.uSunCol,env.suncol);
   gl.uniform1f(s.uNight,env.night);gl.uniform1f(s.uTime,time);gl.uniform1f(s.uExpo,1.0);gl.uniform1f(s.uSpace,spaceK(camPos.y));
-  gl.uniform1f(s.uCy,0);
+  if(s.uCy)gl.uniform1f(s.uCy,0);
   if(zone){gl.uniform1f(s.uNight,1);gl.uniform1f(s.uSpace,1);if(zone.skyU)zone.skyU(s);} // inside a zone the sky pass is only a field of stars (and only if the zone has windows); a zone with skyU paints its own sky (the cyber world)
   if(!zone||zone.stars){gl.bindVertexArray(skyVao);gl.drawArrays(gl.TRIANGLES,0,3);}
   gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
