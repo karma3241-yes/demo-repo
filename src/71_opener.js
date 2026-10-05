@@ -178,8 +178,8 @@ function twinDraw(a){
     const hp=child(b,s*0.1,-0.08,0,0.25,0,0);queue(MESH.box,child(hp,0,-0.24,0,0,0,0,0.1,0.48,0.11),pal.suit2,0,fl);const kn=child(hp,0,-0.48,0,0.5,0,0);
     queue(MESH.box,child(kn,0,-0.22,0,0,0,0,0.09,0.44,0.1),pal.skin,0,fl);queue(MESH.box,child(kn,0,-0.3,0.02,0,0,0,0.11,0.12,0.12),pal.armor,F_SH,fl);}
   if(a.alive){queue(MESH.glowCyl,at(a.pos.x,a.pos.y+0.12,a.pos.z,0,0,0,1.1,0.08,1.1),pal.glow.concat([0.45+0.2*Math.sin(t*9)]),F_ADD);queue(MESH.glowSphere,at(a.pos.x,a.pos.y+0.1,a.pos.z,0,0,0,2,0.4,2),pal.glow.concat([0.22]),F_ADD);}
-  const C=a.cast;if(C&&C.kind==='nova'){const k=C.t/C.dur,r=1.2+k*3;queue(MESH.glowSphere,at(a.pos.x,a.pos.y+a.cy,a.pos.z,0,0,0,r,r,r),pal.glow.concat([0.25+0.4*k]),F_ADD);queue(MESH.ring,at(a.pos.x,a.pos.y+a.cy,a.pos.z,0,t*3,0,r*1.4,1,r*1.4),pal.glow.concat([0.9]),F_ADD);}
-  if(C&&C.kind==='lance'){const r=0.5+C.t/C.dur*0.6;queue(MESH.glowSphere,at(a.pos.x,a.pos.y+a.cy+0.3,a.pos.z,0,0,0,r,r,r),pal.glow.concat([0.8]),F_ADD);}
+  const C=a.cast;if(C&&C.kind==='nova'){const k=C.t/C.dur,r=1.2+k*3;queue(MESH.glowSphere,at(a.pos.x,a.pos.y+a.cy,a.pos.z,0,0,0,r,r,r),pal.glow.concat([0.08+0.2*k]),F_ADD);queue(MESH.ring,at(a.pos.x,a.pos.y+a.cy,a.pos.z,0,t*3,0,r*1.4,1,r*1.4),pal.glow.concat([0.9]),F_ADD);}
+  if(C&&C.kind==='lance'){const r=0.5+C.t/C.dur*0.6;queue(MESH.glowSphere,at(a.pos.x,a.pos.y+a.cy+0.3,a.pos.z,0,0,0,r,r,r),pal.glow.concat([0.5]),F_ADD);}
 }
 function openerDraw(){
   if(!OPN.on)return;
@@ -224,7 +224,7 @@ function openerTick(dt){
   const now=performance.now(),rdt=clamp((now-OPN.last)/1000,0,0.05);OPN.last=now;OPN.t+=rdt;
   // nobody dies in the opener
   {const f=maxHp()*0.2;if(P.hp<f)P.hp=f;if(P.dead){P.dead=false;$('dead').hidden=true;P.hp=maxHp();}}
-  for(const a of OPN.twins.slice())twinUpdate(a,dt);
+  {const wdt=dt*worldTimeK();for(const a of OPN.twins.slice())twinUpdate(a,wdt);} // Time Stop and the like freeze the twins with the rest of the world
   if(OPN.say&&OPN.t>OPN.sayT)opnSayHide();
   if(OPN.flashHold>0){OPN.flashHold-=rdt;flashWhite=Math.max(flashWhite,1);}
   OPN.freeze=!!(CUT&&!CUT.control);
