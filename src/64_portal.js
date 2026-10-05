@@ -36,7 +36,7 @@ const Portal={sdk:null,pending:false,inAd:false,adAt:0,playing:false,stopAt:-999
   },
   // tell the portal whether the player is actually playing (not in menus, paused, knocked out or watching an ad)
   tick(){
-    if(this.crimeAt&&time>=this.crimeAt&&state==='play'&&!paused&&!P.dead){this.crimeAt=0;if(ROOM.crimes&&!MP.online())nearCrime();}
+    if(this.crimeAt&&time>=this.crimeAt&&state==='play'&&!paused&&!P.dead&&!OPN.on){this.crimeAt=0;if(ROOM.crimes&&!MP.online())nearCrime();}
     if(!this.sdk)return;const now=state==='play'&&!paused&&!sheetOpen&&!creating&&!P.dead&&!this.inAd;
     if(now===this.playing)return;
     const t=performance.now();if(now&&t-this.stopAt<1100)return; // the SDK rejects a start within 1 s of a stop; this runs every frame, so it just waits

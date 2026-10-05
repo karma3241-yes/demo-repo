@@ -12,13 +12,13 @@ const bldActive=new Set();
 for(const b of bldgs)b.maxHp=b.hp=Math.min(BLD.maxHp,b.maxHp);
 function bldOf(c){return c&&c.bld?c.bld:null;}
 function damageBuilding(b,amount,x,y,z,dx=0,dz=0){
-  if(!b||b.state!=='up'||!(amount>0))return false;
+  if(!b||b.state!=='up'||b.landmark||!(amount>0))return false;
   b.hp-=amount;b.lastHit=time;
   if(b.hp>0)return false;
   collapseBuilding(b,dx,dz,true);return true;
 }
 function collapseBuilding(b,dx,dz,broadcast){
-  if(b.state!=='up')return;
+  if(b.state!=='up'||b.landmark)return;
   const l=Math.hypot(dx,dz);b.tx=l>0.01?dx/l:rr(-1,1);b.tz=l>0.01?dz/l:rr(-1,1);
   b.state='fall';b.t=0;b.hp=0;b.regrowAt=time+rr(BLD.regrow[0],BLD.regrow[1]);for(const c of b.cols)c.dead=true;bldActive.add(b);
   const inside=(o)=>o.x>b.x0-1&&o.x<b.x1+1&&o.z>b.z0-1&&o.z<b.z1+1;

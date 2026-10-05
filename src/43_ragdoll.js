@@ -14,7 +14,7 @@ function ragPose(a){
   return [P3(-0.14,0.95,0),P3(0.14,0.95,0),P3(-0.26,1.55,0),P3(0.26,1.55,0),P3(0,1.9,0.02),P3(-0.34,1.2,0),P3(-0.36,0.88,0.05),P3(0.34,1.2,0),P3(0.36,0.88,0.05),P3(-0.14,0.5,0.04),P3(-0.14,0.05,0),P3(0.14,0.5,0.04),P3(0.14,0.05,0)];
 }
 function startRagdoll(a,vx=0,vy=0,vz=0){
-  if(!a||a.hidden)return;if(a.rag){a.rag.t=0;a.rag.land=0;return;}
+  if(!a||a.hidden||a.noRag)return;if(a.rag){a.rag.t=0;a.rag.land=0;return;}
   if(ragdolls.length>=24){const o=ragdolls.shift();if(o.a)o.a.rag=null;}
   const pts=ragPose(a).map(p=>({x:p[0],y:p[1],z:p[2],px:p[0],py:p[1],pz:p[2]}));
   const dt=1/60,spin=Math.hypot(vx,vz)*0.02+1;

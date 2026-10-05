@@ -324,7 +324,7 @@ for(let i=0;i<GX;i++)for(let j=0;j<GZ;j++){
   for(let k=0;k<2;k++){const side=Math.floor(srand()*4),t=sr(-20,20);
     if(side===0)curbSpots.push({x:cx+t,z:cz-32.2,axis:1});else if(side===1)curbSpots.push({x:cx+t,z:cz+32.2,axis:1});
     else if(side===2)curbSpots.push({x:cx-32.2,z:cz+t,axis:0});else curbSpots.push({x:cx+32.2,z:cz+t,axis:0});}
-  if(special(i,j,cx,cz,list,bi))continue;
+  bStart();if(special(i,j,cx,cz,list,bi)){bEnd(cx-30,cz-30,cx+30,cz+30,'landmark');bldgs[bldgs.length-1].landmark=true;continue;} // the landmarks join the building list only so the opener's blast can sink them (b.landmark: nothing else knocks them down)
   if((dist==='uptown'||dist==='residential'||dist==='oldtown')&&srand()<0.06){parkBlock(i,j,cx,cz,list,bi,false);continue;}
   if(dist==='residential'){
     for(const [side,face] of [[0,3],[1,0],[2,2],[3,1]]){

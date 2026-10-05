@@ -236,7 +236,7 @@ function updateRing(dt){
       // pull down the buildings around it, one at a time, leaning into the hole
       H.next-=dt;if(H.t>0.8&&H.t<H.dur-1&&H.next<=0&&(!PBAL||H.sg||powerLevel('blackHole')>=5)){ // CrazyGames: tearing down buildings needs Black Hole LV5
         H.next=H.sg?0.8:0.5;let best=null,bd=R*0.9;
-        for(const b of bldgs){if(b.state!=='up')continue;const d=Math.hypot(Math.max(b.x0-H.x,0,H.x-b.x1),Math.max(b.z0-H.z,0,H.z-b.z1));if(d<bd){bd=d;best=b;}}
+        for(const b of bldgs){if(b.state!=='up'||b.landmark)continue;const d=Math.hypot(Math.max(b.x0-H.x,0,H.x-b.x1),Math.max(b.z0-H.z,0,H.z-b.z1));if(d<bd){bd=d;best=b;}}
         if(best){const cx=(best.x0+best.x1)/2,cz=(best.z0+best.z1)/2;collapseBuilding(best,H.x-cx,H.z-cz,true);H.bl=(H.bl||[]).concat([best]);}}}
     // chunks from falling and fallen buildings stream into the hole
     for(const b of H.bl||bldActive){if(!b.rubble&&b.state!=='fall')continue;const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;if(Math.hypot(cx-H.x,cz-H.z)>R)continue;

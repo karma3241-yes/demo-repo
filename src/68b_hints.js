@@ -23,6 +23,7 @@ function updateHints(){
   if(live&&lk&&!touch)txt='Release';
   else if(live&&!lk&&foeNear){txt=touch?'Tap Lock':'Lock on';
     if(!save.guide.lockNear){save.guide.lockNear=true;if(!save.guide.lock)toast(touch?'Tap Lock to lock on':'Press Z to lock on','','gold');}}
+  if(OPN.on)txt=''; // the opener has its own prompts (71_opener.js)
   lo.hidden=!txt;
   if(txt){setText($('lockon-t'),'lot',txt);$('lockon-k').hidden=touch;lo.classList.toggle('sm',lk||!!save.guide.lock);}
   if(TB.lock)TB.lock.b.classList.toggle('hint',touch&&live&&!lk&&foeNear);
@@ -34,7 +35,7 @@ function flyHint(live,touch){
   const ok=canFlyKey();if(ok!==flyOkSeen){const first=flyOkSeen===null;flyOkSeen=ok;if(!first)buildHotbar();} // the move list and hotbar follow when flying turns on (the invasion) or off
   const dt=clamp(time-flyLastT,0,0.25);flyLastT=time;
   if(P.flying)flyEver=true;
-  const able=live&&hasPower('flight')&&!P.alien&&!P.car&&P.grounded&&!P.flying&&!zone&&!flyEver&&!sheetOpen&&!creating&&!dialOpen;
+  const able=live&&hasPower('flight')&&!P.alien&&!P.car&&P.grounded&&!P.flying&&!zone&&!flyEver&&!sheetOpen&&!creating&&!dialOpen&&!OPN.on;
   flyG=able?flyG+dt:0;const show=able&&flyG>5&&flyShown<14;if(show)flyShown+=dt;
   if(fh.hidden===show)fh.hidden=!show;
   if(show){$('flyhint-k').hidden=touch;setText($('flyhint-t'),'fht',touch?'Tap Fly':'to fly');}

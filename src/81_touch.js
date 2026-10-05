@@ -153,7 +153,7 @@ function touchAct(a,down){
   else if(a==='oath'){if(oathHoldMode()){if(down)holdOathStart('touch');else holdOathStop();}else if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
-  else if(a==='rebuild'){if(down)ringRebuild();}
+  else if(a==='rebuild'){if(openerY(down))return;if(down)ringRebuild();}
   else if(a==='grow'||a==='shrink'){if(down)growStep(a==='grow'?1:-1);}
   else if(a==='jump'){keys.Space=down;if(down)pressJump();else releaseJump();}
   else if(a==='speed')keys.ShiftLeft=down;

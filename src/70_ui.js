@@ -369,11 +369,11 @@ function finishCreator(){
   }
   newHero(c);
 }
-// new players start straight away as the Ring Bearer; the first change of powers (J, or the swap icon) is free
-function startAsRingBearer(){
-  const c=validCharacter({name:Portal.username||'Guardian '+Math.floor(rr(100,1000)),suit:2,cape:4,accent:4,capeOn:true,movement:['powerRing'],abilities:[]});
-  if(!c){openCreator();return;}newHero(c,true);
-  feed('You are the Ring Bearer','Follow Getting started to learn the basics'); // the J hint comes after the guide (guideDone)
+// new players start straight away as The Strongest, in the opener (71_opener.js); the first change of powers (J, or the swap icon) is free
+function startAsStrongest(){
+  const c=validCharacter({name:Portal.username||'Guardian '+Math.floor(rr(100,1000)),suit:1,cape:0,accent:1,capeOn:true,movement:['strongFlight'],abilities:[]});
+  if(!c){openCreator();return;}OPN.arm=!window.__NO_OPENER__;newHero(c,true);
+  if(!OPN.on)feed('You are The Strongest','Follow Getting started to learn the basics'); // the J hint comes after the guide (guideDone)
 }
 // the menu's second button, for players who want to pick their powers before they start
 function menuButtons(){let q=$('choose');if(!q){q=el('button',{class:'ghost',id:'choose',type:'button',text:'Choose your powers',onclick:()=>{SFX.init();openCreator();}});$('start').after(q);}q.hidden=!!save.character;
@@ -452,8 +452,8 @@ const wheelWhat=()=>isRing()?'pick a construct':armorForms()?'pick a suit form':
 const GUIDE=[['move','Move around','WASD to move, mouse to look',()=>'Drag the '+(save.settings.tHand==='l'?'right':'left')+' side to move'],
   ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>'Tap the '+(vAction()||{name:'wheel'}).name.toUpperCase()+' button to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
   ['ability','Use a power','Press 1 to 4','Tap a power button'],['skills','Open your skills','Press K','Tap the star icon'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
-function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');later(4,()=>{if(!save.guide.swap&&state==='play')toast('Try another hero',touchOn()?'Tap the swap icon (top) to pick from 11 heroes':'Press J to pick from 11 heroes','gold');});}persist();renderGuide();}
-function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
+function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');later(4,()=>{if(!save.guide.swap&&state==='play')toast('Try another hero',touchOn()?'Tap the swap icon (top) to pick from 12 heroes':'Press J to pick from 12 heroes','gold');});}persist();renderGuide();}
+function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'||OPN.on){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
   for(const [k,t,kb,tc] of guideList()){const s=touchOn()?tc:kb;list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:typeof s==='function'?s():s})));}fitMoves();}
 // the grow tutorial: whenever a construct is out and you have never grown one, a card tells you how (scroll up, ] or GROW)
 // and stays until you do; bigger rides are faster, so it's worth knowing

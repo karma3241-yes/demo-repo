@@ -35,7 +35,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else if(P.construct)vHoldStart(e.timeStamp);else openDial('construct');}else if(hasTrav('solarFlight')&&!hasPower('morphBand')&&!P.alien)sunGodKey();else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else if(hasTravWheel()&&!hasPower('morphBand'))openDial('trav');else bandPress();return;}
   if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
   if(e.code==='KeyO'&&isRing()){if(oathHoldMode())holdOathStart('key');else if(ringLocked())closeOath();else openOath();return;}
-  if(e.code==='KeyY'&&(isRing()||isStrongest())){if(!e.repeat)ringRebuild();return;}
+  if(e.code==='KeyY'&&(isRing()||isStrongest())){if(!e.repeat&&!openerY(true))ringRebuild();return;}
   if(e.code==='KeyB'&&(isRing()||armorForms())&&!P.car){summonConstruct();return;}
   if(P.car)return;
   if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&P.web){swingBoost();return;}
@@ -57,7 +57,7 @@ function vHoldEnd(ts){
   if(!opened){if(vHoldOk()&&!dialOpen)openDial('construct');return;}
   if(dialOpen&&dialSel>=0)dialConfirm();
 }
-addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyV')vHoldEnd(e.timeStamp);if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
+addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyV')vHoldEnd(e.timeStamp);if(e.code==='KeyY')openerY(false);if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
 addEventListener('blur',()=>{clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<4;i++)abilityUp(i,true);webRelease();P.charging=false;});
 canvas.addEventListener('mousedown',e=>{
   if(state!=='play'||touchOn())return;

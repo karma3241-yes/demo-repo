@@ -120,7 +120,7 @@ function zoneBreak(Z,b){
 }
 // ---- drawing and lighting ----
 function drawStory(){
-  ufoDraw();prismDraw();invDraw();
+  ufoDraw();prismDraw();invDraw();openerDraw();
   const Z=zone;if(!Z)return;
   if(Z.dirty&&Z.rebuild&&time-Z.rebuildT>0.2){Z.dirty=false;Z.rebuildT=time;Z.rebuild();}
   if(Z.mesh&&!Z.hide)queue(Z.mesh,ID,Z.tint||WHITE,0);if(Z.mesh2)queue(Z.mesh2,ID,WHITE,0);

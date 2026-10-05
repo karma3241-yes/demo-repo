@@ -498,6 +498,34 @@ body.cutfull #hud,body.cutfull #touch{opacity:0;transition:opacity .4s}
 #ask .go{font-size:17px;padding:12px 20px}#ask .ghost{padding:12px 18px}
 #ask kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-right:8px;border-radius:5px;border:1px solid currentColor;font:700 11px var(--hud);vertical-align:middle}
 body.touch #ask kbd{display:none}
+
+/* the opener (66k_opener.js): slow-motion key prompts, the attack hint, speech and the Skip button */
+#opn-dim{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(circle at 50% 60%,rgba(3,5,12,.25),rgba(3,5,12,.72) 80%)}
+@media (hover:hover){#opn-dim{backdrop-filter:blur(3px) brightness(.75)}}
+#opn-card{position:fixed;left:50%;bottom:max(150px,20vh);transform:translateX(-50%);z-index:5;display:grid;justify-items:center;gap:6px;pointer-events:none}
+#opn-card .opn-t{font:400 clamp(20px,3vw,30px) var(--display);letter-spacing:.08em;color:#fff;text-shadow:0 2px 14px #000;text-align:center;white-space:nowrap}
+#opn-card .opn-arrow{font-size:38px;line-height:1;color:var(--gold);text-shadow:0 0 16px rgba(255,201,60,.8);animation:opnBob .8s ease-in-out infinite}
+.opn-key{--p:0%;position:relative;display:grid;place-items:center;width:88px;height:88px;border-radius:18px;font:700 44px var(--hud);color:#fff;background:linear-gradient(#27324f,#121a2e);border:2px solid rgba(255,255,255,.55);border-bottom-width:7px;box-shadow:0 0 26px rgba(255,201,60,.55);animation:opnKey 1s ease-in-out infinite}
+.opn-key::after{content:"";position:absolute;left:0;bottom:-7px;height:5px;width:var(--p);background:var(--gold);border-radius:3px}
+.opn-key.held{transform:translateY(4px);border-bottom-width:3px}
+#opn-card.touch{transform:translateX(-50%);bottom:auto}#opn-card.touch .opn-t{font-size:16px}#opn-card.touch .opn-arrow{font-size:30px}
+@keyframes opnBob{0%,100%{transform:translateY(-6px)}50%{transform:translateY(8px)}}
+@keyframes opnKey{0%,100%{box-shadow:0 0 14px rgba(255,201,60,.35)}50%{box-shadow:0 0 34px rgba(255,201,60,.9)}}
+@keyframes opnPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,201,60,.9),0 0 14px 3px rgba(255,201,60,.6)}50%{box-shadow:0 0 0 9px rgba(255,201,60,0),0 0 26px 8px rgba(255,201,60,.9)}}
+.tb.opn-pulse{animation:opnPulse .9s ease-in-out infinite;border-color:var(--gold);border-width:3px;z-index:2}
+#opn-hint{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:3;display:flex;gap:18px;padding:9px 18px;border-radius:999px;background:rgba(7,11,24,.72);border:1px solid var(--edge);opacity:0;transition:opacity .6s;pointer-events:none}
+#opn-hint.on{opacity:1}#opn-hint .oh{display:flex;align-items:center;gap:8px;transition:opacity .5s}#opn-hint .oh.used{opacity:.35}
+#opn-hint kbd{font-size:13px;padding:2px 9px;animation:opnKey 1.2s ease-in-out infinite}#opn-hint b{font:700 13px var(--hud);letter-spacing:.12em;text-transform:uppercase;color:#fff}
+#opn-hint.touch{bottom:calc(10px + var(--safe-b));left:calc(50% - 40px);padding:5px 12px;gap:10px}#opn-hint.touch b{font-size:11px}
+#opn-say{position:fixed;left:50%;top:74px;transform:translateX(-50%);z-index:7;width:min(560px,calc(100% - 40px));text-align:center;pointer-events:none;padding:10px 18px;border-radius:12px;background:rgba(5,8,18,.74);border:1px solid var(--edge)}
+#opn-say i{display:block;font:700 12px var(--hud);letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-style:normal;margin-bottom:2px}#opn-say i[hidden]{display:none}
+#opn-say p{margin:0;font:400 clamp(17px,2.4vw,24px) var(--display);letter-spacing:.04em;color:#fff;text-shadow:0 2px 10px #000}
+#opn-say[data-who="Nala"] i{color:#ff6a8c}#opn-say[data-who="Nuku"] i{color:#6ac4ff}
+body.touch #opn-say{top:calc(98px + var(--safe-t));width:min(440px,calc(100% - 300px));padding:6px 12px}body.touch #opn-say p{font-size:15px}
+#opn-skip{position:fixed;right:calc(14px + var(--safe-r,0px));bottom:calc(14px + var(--safe-b,0px));z-index:9;padding:7px 14px;font:700 12px var(--hud);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);background:rgba(7,11,24,.7);border:1px solid var(--edge);border-radius:999px;cursor:pointer;opacity:.75}
+body.touch #opn-skip{right:auto;left:50%;transform:translateX(-50%);bottom:auto;top:calc(56px + var(--safe-t,0px));padding:5px 12px;font-size:11px}
+#opn-skip:hover{opacity:1}#opn-skip[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){#opn-card .opn-arrow,.opn-key,.tb.opn-pulse,#opn-hint kbd{animation:none}}
 </style>
 </head>
 <body>
