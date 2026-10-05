@@ -34,6 +34,7 @@ const POWERS={
   powerRing:{name:'Ring Bearer',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A ring of pure willpower. Fly, and build anything you can imagine out of hard light. Its charge only comes back when you recite the oath.',speed:[35,110]},
   stormFlight:{name:'Tempest',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Ride a thunderclap into the sky. Lightning answers when you call.',speed:[40,95]},
   armorFlight:{name:'Armored Inventor',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A flying suit of armor with palm blasters and a chest beam.',speed:[45,100]},
+  strongFlight:{name:'The Strongest',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Power armor that flies, with the best powers of other heroes: laser eyes, a giant hammer, a black hole and Time Stop.',speed:[45,100]},
   solarFlight:{name:'Sun Titan',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Powered by the sun: flight, laser eyes, an ice cloud and a thunderclap.',speed:[50,120]},
   ironFlight:{name:'Ironclad',cat:'movement',type:'toggle',key:'F',preset:true,desc:'Fly with a body of living steel. Turn to metal, shove cars aside and shake the street.',speed:[38,95]},
   bladeFlight:{name:'Nightblade',cat:'movement',type:'toggle',key:'F',preset:true,desc:'A silent hunter who flies by night. Claws that heal you, a blink through the dark and a cloak to vanish in.',speed:[45,105]},
@@ -101,6 +102,7 @@ const PRESETS={
   bladeFlight:{name:'Nightblade',body:'bladeClaws',abilities:['bladeLeap','plasmaWhip','blink','invisibility'],blurb:'A silent hunter. Claws that heal you, a blink through the dark and a cloak to vanish in.'},
   elasticFlight:{name:'Slingshot',body:'elasticBody',abilities:['stretchStrike','vineSnare','telekinesis','healingPulse'],blurb:'Stretch like rubber, snare people in vines, lift things with your mind and heal the street.'},
   titanFlight:{name:'Goliath',body:'titanGrowth',abilities:['giantForm','meteorStrike','gravityWell','sonicScream'],blurb:'Grow as tall as a tower. Call down meteors, open a black hole and scream the windows out.'},
+  strongFlight:{name:'The Strongest',body:'armorSuit',abilities:['laserVision','hammerSmash','blackHole','timeStop'],blurb:'Power armor with the best of everyone: laser eyes, a giant hammer, a black hole and Time Stop. Rebuilds the city with Y.'},
   bandFlight:{name:'Shifter',body:'bandCore',abilities:['fireball','chainLightning','spiritWave','energyBlast'],blurb:'Fire, lightning and a Morph Band on V that turns you into aliens.'},
 };
 const presetOf=c=>c&&PRESETS[c.movement[0]]||null;
@@ -154,7 +156,7 @@ function storyFresh(){return {act:0,ufo:0,item:'',destroy:false,kathana:0,kp:0,i
 function freshSave(){return {version:SAVE_VERSION,character:null,level:1,xp:0,sp:CONFIG.progression.startSP,powerLevels:{},passives:freshPassives(),reputation:0,rechoiceAt:0,guide:{},gfxAuto:'',goal:0,daily:{last:'',streak:0},mastery:{},ring:100,battery:100,bolt:100,cal:100,bounty:0,
   settings:Object.assign({},DEFAULT_SETTINGS),stats:{defeated:0,crimesStopped:0,crimesCommitted:0},story:storyFresh()};}
 // what each flier gets from plain flight (and the Shifter's Morph Band, which lives on V and takes no key). Defined here because loadSave needs it.
-const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'],armorFlight:['flight'],solarFlight:['flight'],
+const IMPLIED={webSwing:['wallClimb'],powerRing:['flight'],stormFlight:['flight'],armorFlight:['flight'],strongFlight:['flight'],solarFlight:['flight'],
   ironFlight:['flight'],bladeFlight:['flight'],elasticFlight:['flight'],titanFlight:['flight'],bandFlight:['flight','morphBand']};
 const LEVEL_OF=id=>POWERS[id]&&POWERS[id].of||id; // signature moves share their body mod's level
 // every power whose skill level belongs to this build (a hero's V power, like the Morph Band, counts although it has no key)
@@ -231,7 +233,7 @@ const pv=k=>save.passives[k]|0;
 // 'hp' all heroes x1.2; 'dmg' (by power id) the Tempest's hammer x1.6 and the Armored Inventor's blasts x1.5; 'dmgAll' Ironclad/Nightblade/Slingshot/Goliath x1.5 on every hit;
 // 'speed' flight x1.3 (those four) or swing cap x1.25 (Web Runner); 'cost' x0.5 and 'cd' x0.7 for those four.
 const ufoBoost=()=>!!save.story&&(save.story.ufo===2||save.story.ufo===3); // 4 = the UFO was skipped (Kathana's fall replaced it): no boosts
-const BOOST_ALL=['ironFlight','bladeFlight','elasticFlight','titanFlight'],BOOST_ARC=['repulsors','energyBlast','coreBeam'];
+const BOOST_ALL=['ironFlight','bladeFlight','elasticFlight','titanFlight','strongFlight'],BOOST_ARC=['repulsors','energyBlast','coreBeam'];
 function boostMul(kind,id){
   if(!ufoBoost()||!save.character)return 1;const h=save.character.movement[0],all=BOOST_ALL.includes(h);
   switch(kind){case 'hp':return 1.2;case 'dmgAll':return all?1.5:1;case 'speed':return all?1.3:h==='webSwing'?1.25:1;case 'cost':return all?0.5:1;case 'cd':return all?0.7:1;
@@ -273,7 +275,7 @@ function addMastery(id,n){if(!save.character||!(n>0))return;const before=Math.fl
 const MASTERY_NOTES={webSwing:{3:'Backflips and twists unlocked',5:'Web wings glide further',7:'Corner boosts and slingshot launches hit harder',9:'Faster swings than ever'},
   superSpeed:{3:'Speed dial reaches higher',6:'Phasing lasts longer',9:'Near light speed'},powerRing:{3:'Mech construct unlocked',5:'Huge mech unlocked',7:'Dragon unlocked',9:'Bigger constructs than ever'},
   flight:{5:'Supersonic flight',9:'Mach speed'},stormFlight:{5:'Supersonic flight',9:'Mach speed'},armorFlight:{5:'Supersonic flight',9:'Mach speed'},solarFlight:{5:'Supersonic flight',9:'Faster than sound'},jump:{5:'Super jumps go much higher'}};
-for(const id of ['ironFlight','bladeFlight','elasticFlight','titanFlight','bandFlight'])MASTERY_NOTES[id]=MASTERY_NOTES.flight; // the new fliers grow like plain flight
+for(const id of ['ironFlight','bladeFlight','elasticFlight','titanFlight','bandFlight','strongFlight'])MASTERY_NOTES[id]=MASTERY_NOTES.flight; // the new fliers grow like plain flight
 // traversal stats grow with mastery (use), never below the level they were upgraded to before
 const statLevel=id=>POWERS[id].cat==='movement'?Math.min(CONFIG.powerMax,Math.max(powerLevel(id),masteryLevel(id))):powerLevel(id); // pstat lerps 1..10, so mastery above 10 is clamped here
 const lvlK=id=>(powerLevel(id)-1)/(CONFIG.powerMax-1); // 0 at level 1, 1 at max: drives how strong a power looks

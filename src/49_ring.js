@@ -52,9 +52,10 @@ const conSizeK=()=>{const c=conDef();return c&&!c.weapon?Math.max(1,P.construct.
 const conSpeedMul=()=>{const c=conDef();return c?c.speed*conSizeK():1;};
 const conCam=()=>{const c=conDef();if(!c)return 1;const b=c.cam?c.cam:P.construct.id==='dragon'?1.8:P.construct.id==='jet'?1.35:P.construct.id==='bubble'?1.2:1;return c.scale?b:b*conGrow(P.construct.id);};
 // constructs run on ring charge, or on the suit battery for the Armored Inventor's suit forms (4 ring points = 1 battery point)
-const armorForms=()=>hasTrav('armorFlight')&&!P.alien;
-const conFuel=()=>armorForms()?save.battery*4:save.ring;
-function conBurn(n){if(ringInf()&&!armorForms())return;if(armorForms())save.battery=Math.max(0,save.battery-n*0.25);else save.ring=Math.max(0,save.ring-n);}
+const isStrongest=()=>hasTrav('strongFlight');
+const armorForms=()=>(hasTrav('armorFlight')||isStrongest())&&!P.alien;
+const conFuel=()=>isStrongest()?1e9:armorForms()?save.battery*4:save.ring; // The Strongest's suit forms cost nothing (it has no battery)
+function conBurn(n){if(isStrongest())return;if(ringInf()&&!armorForms())return;if(armorForms())save.battery=Math.max(0,save.battery-n*0.25);else save.ring=Math.max(0,save.ring-n);}
 const conOwner=id=>CONSTRUCTS[id]&&CONSTRUCTS[id].armor?'armorFlight':'powerRing';
 function ringOut(){if(armorForms()){meterOut(METERS.armorFlight);return;}feed('Ring charge is empty',oathHoldMode()?(touchOn()?'Hold OATH to recite the oath':'Hold O to recite the oath'):'Press O to recite the oath');SFX.tone('square',220,140,0.15,0.06);}
 function summonConstruct(id){

@@ -89,7 +89,7 @@ function tbWanted(){
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
   if(vAction())on.add('wheel');
-  if(isRing()&&!con){on.add('oath');on.add('rebuild');}
+  if(isRing()&&!con){on.add('oath');on.add('rebuild');}else if(isStrongest()&&!con)on.add('rebuild');
   if(isSpeed()){on.add('fast');on.add('phase');on.add('dial');}
   if(!con)on.add('suit');
   if(rewindOn())on.add('rewind');

@@ -15,7 +15,7 @@ const UFO_ITEMS={
   webSwing:{name:'Graviton Web Gland',desc:'Webs that reel you in',col:[.9,.9,1]},solarFlight:{name:'Star Seed',desc:'A sun of your own',col:[1,.8,.3]},
   armorFlight:{name:'Arc Reactor Prime',desc:'Power without end',col:[.4,.8,1]},ironFlight:{name:'Living Alloy',desc:'Armor that mends itself',col:[.8,.85,.95]},
   bladeFlight:{name:'Void Edge',desc:'A blade that cuts anything',col:[.7,.4,1]},elasticFlight:{name:'Quantum Polymer',desc:'Stretch without limits',col:[1,.5,.8]},
-  titanFlight:{name:'Titan Heart',desc:'The strength of a giant',col:[1,.5,.25]},
+  titanFlight:{name:'Titan Heart',desc:'The strength of a giant',col:[1,.5,.25]},strongFlight:{name:'Apex Core',desc:'Strength beyond any hero',col:[1,.85,.4]},
 };
 const ufoHero=()=>save.character?save.character.movement[0]:'ironFlight';
 const ufoItem=()=>UFO_ITEMS[ufoHero()]||UFO_ITEMS.ironFlight;

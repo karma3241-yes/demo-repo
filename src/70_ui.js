@@ -339,7 +339,7 @@ function openCreator(mode='new'){
   applyLook();creator.hidden=false;$('menu').hidden=true;$('pause').hidden=true;$('create-title').textContent=mode==='rechoose'?'Change your powers':'Create your hero';renderCreator();
 }
 // what V does for a hero ('' when it has no V power)
-const heroV=id=>id==='powerRing'?'Constructs':id==='armorFlight'?'Suit forms':id==='bandFlight'?'Morph Band':id==='solarFlight'?'Sun God':TRAV_STYLES[id]?'Style wheel':'';
+const heroV=id=>id==='powerRing'?'Constructs':(id==='armorFlight'||id==='strongFlight')?'Suit forms':id==='bandFlight'?'Morph Band':id==='solarFlight'?'Sun God':TRAV_STYLES[id]?'Style wheel':'';
 function heroCard(id,on,onclick){const h=PRESETS[id],v=heroV(id);
   return el('button',{type:'button',class:'pick'+(on?' on':''),'aria-pressed':String(on),'data-hero':id,onclick},powerIcon(id),el('b',{text:h.name}),
     el('span',{class:'cat',text:'Hero'}),el('span',{text:h.blurb}),

@@ -70,13 +70,13 @@ function updateBuildings(dt){
 // the Ring Bearer rebuilds every broken building at once (Y): 10 ring charge
 const RING_BUILD={ghost:0.9,fill:0.8,cost:10};
 function ringRebuild(){
-  if(!isRing()||!canAct())return false;if(ringLocked()){oathBusy();return true;}const list=bldgs.filter(b=>b.state!=='up'&&b.state!=='ring');
+  const st=isStrongest();if(!(isRing()||st)||!canAct())return false;if(!st&&ringLocked()){oathBusy();return true;}const list=bldgs.filter(b=>b.state!=='up'&&b.state!=='ring');
   if(!list.length){feed('Nothing to rebuild','Every building in the city is standing');return true;}
-  if(save.ring<RING_BUILD.cost){ringOut();return true;}save.ring-=RING_BUILD.cost;
+  if(!st){if(save.ring<RING_BUILD.cost){ringOut();return true;}save.ring-=RING_BUILD.cost;}
   for(const b of list){const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;b.state='ring';b.t=0;b.tilt=0;b.ringDelay=Math.min(1.5,Math.hypot(cx-P.pos.x,cz-P.pos.z)/900);
     b.off=b.off||-(b.h+30);if(b.off>-(b.h+2))b.off=-(b.h+30);b.ringOff=b.off;writeBldVerts(b);bldActive.add(b);}
   ringCast();const c=center(P);ringFx(c.x,c.y,c.z,1,60,0.8,RING_C);burst(c.x,c.y,c.z,80,20,1,[RING_C,[1,1,1]],1.6,0,2);flashWhite=Math.max(flashWhite,0.25);SFX.transform();
-  toast('The city rebuilt','Your ring puts back '+list.length+' building'+(list.length>1?'s':''),'cyan');addMastery('powerRing',10);return true;
+  toast('The city rebuilt',(st?'Your power':'Your ring')+' puts back '+list.length+' building'+(list.length>1?'s':''),'cyan');addMastery(st?'armorFlight':'powerRing',10);return true;
 }
 function drawRubble(){
   for(const b of bldActive){if(b.state==='ring'){const t=b.t-b.ringDelay;if(t<0)continue;const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;if(inView(cx,cz,1200,80)<0)continue;

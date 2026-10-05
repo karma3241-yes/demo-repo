@@ -87,7 +87,7 @@ const GLYPHS={
 };
 // which glyph each power uses (anything missing falls back to a burst)
 const POWER_GLYPH={flight:'wing',superSpeed:'run',wallClimb:'climb',webSwing:'web',fireball:'flame',iceCloud:'snow',lightning:'bolt',energyBlast:'burst',
-  laserVision:'eye',telekinesis:'orbit',shockwave:'wave',metalSkin:'metal',energyShield:'shield',powerRing:'ring',stormFlight:'storm',armorFlight:'helmet',
+  laserVision:'eye',telekinesis:'orbit',shockwave:'wave',metalSkin:'metal',energyShield:'shield',powerRing:'ring',stormFlight:'storm',armorFlight:'helmet',strongFlight:'helmet',
   solarFlight:'sun',stormBody:'storm',armorSuit:'helmet',solarBody:'sun',spiderPowers:'spider',ringCore:'ring',surgeSuit:'run',webStrike:'web',webBomb:'bomb',
   webWhip:'whip',lightningThrow:'bolt',phaseStrike:'phase',speedTornado:'tornado',slowTime:'clock',timeStop:'clockStop',ringBlast:'burst',hammerSmash:'hammer',
   chainLasso:'chain',ringShield:'shield',blackHole:'spiral',morphBand:'band',stormHammer:'hammer',repulsors:'burst',coreBeam:'beam',ricochetShield:'roundShield',
