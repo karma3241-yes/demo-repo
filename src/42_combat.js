@@ -6,7 +6,7 @@
 // (while airborne). Launched targets crater walls, the ground, cars and street props.
 const COMBAT={chain:1.0,gap:0.26,endlag:0.65,reach:3.6,lunge:9,stun:0.75,finStun:1.3,finMul:2.3,launch:40,upper:34,spike:48,
   lockGap:0.5,lockEndlag:1.1,airHangs:3, // locked on, the chain has a slower rhythm; in the air only the first few hits hold you up
-  dashSpeed:40,dashTime:0.24,dashCd:1.1,iframe:0.3,lockRange:110,slamMin:15};
+  dashSpeed:40,dashTime:0.24,dashCd:1.1,iframe:0.3,lockRange:110,lockRangeGod:260,slamMin:15};
 let lockT=null,comboN=0,comboT=-9,dashCd=0,airDash=true;
 const lockMark=(()=>{const e=document.createElement('div');e.id='lockmark';e.hidden=true;return e;})();
 const comboEl=(()=>{const e=document.createElement('div');e.id='combo';e.hidden=true;return e;})();
@@ -20,7 +20,7 @@ function lockValid(a){return lockable(a);} // a manual lock has no range limit
 const hostileTo=a=>a.kind==='alien'||a.kind==='invader'||a.kind==='cyborg'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='pforb'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||(a.kind==='drone'&&(a.role!=='cyberpol'||!!a.target))||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
 // after you beat your target, the lock jumps to the nearest enemy within the normal lock range
 function nextLock(prev){
-  let best=null,bd=COMBAT.lockRange;
+  let best=null,bd=(SG.on||PR.on)?COMBAT.lockRangeGod:COMBAT.lockRange; // Sun God / Prism fight from far away (the Lance reaches 220 m), so the next target is found out there too
   for(const a of actors){if(a===prev||!lockable(a)||a.hidden||!hostileTo(a))continue;const c=center(a),d=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);if(d<bd){bd=d;best=a;}}
   return best;
 }

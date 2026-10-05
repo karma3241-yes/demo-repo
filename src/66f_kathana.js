@@ -237,7 +237,7 @@ function korbBreak(i){
   SFX.boom(1,2.4);SFX.chime();addShake(1.1);toast(KA.dead+'/4 orbs shattered',KA.dead<4?'Kathana grows desperate':'','gold');
   for(const s of KA.shots)if(s.orb===i)kShotKill(s);
   objective(KA.dead<4?'Shatter Kathana\'s four orbs · '+(4-KA.dead)+' left':null);
-  if(lockT===a)lockT=null;
+  if(lockT===a){lockT=null;if(KA.dead<4)lockT=kathanaPickAny();if(lockT)SFX.tone('sine',500,900,0.08,0.05);} // the lock moves on to the nearest orb left
   if(KA.dead>=4){KA.fight=false;KA.atk=null;KA.beam=null;kClearShots();later(1.8,()=>{if(KA.on&&inVoid()&&!KA.lost)kathanaStage2();});}
 }
 // kathanaStage2() (the scream, the split, the Perfect Form) is in 66g_kperfect.js
