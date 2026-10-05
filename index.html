@@ -122,6 +122,13 @@ kbd:empty{display:none}
 /* Sun God: the pill under the meters, the Eclipse darkening and the gold-white tint inside the Sun */
 #sgbar{display:flex;align-items:center;gap:8px;padding:3px 12px;border-radius:999px;background:rgba(40,24,0,.74);border:1px solid rgba(255,210,100,.75);color:#ffe9a8;font:700 11px var(--hud);letter-spacing:.14em;text-transform:uppercase;box-shadow:0 0 14px rgba(255,190,60,.45)}
 #sgbar[hidden]{display:none}#sgbar i{display:block;width:90px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden}#sgbar b{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff9a1a,#fff1b8)}
+#prbar{display:flex;align-items:center;gap:8px;padding:3px 12px;border-radius:999px;background:rgba(14,10,30,.8);border:1px solid #fff;color:#fff;font:700 11px var(--hud);letter-spacing:.14em;text-transform:uppercase;box-shadow:0 0 14px rgba(190,120,255,.55);animation:prismhue 3.2s linear infinite}
+#prbar[hidden]{display:none}#prbar i.e{display:block;width:150px;height:7px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden}#prbar i.e b{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff3d6e,#ffd23c,#3dff9c,#46a0ff,#b46bff);transition:width .08s linear}
+#prbar em{font-style:normal;color:#ffe9a8;min-width:56px;text-align:right}#prbar.ts{box-shadow:0 0 18px rgba(255,255,255,.8)}#prbar.low i.e{box-shadow:0 0 8px #ff3d6e}
+body.touch #prbar{justify-self:start}
+.slot.prx{border-color:#fff;background:linear-gradient(120deg,rgba(255,60,120,.2),rgba(255,210,60,.18),rgba(60,255,160,.18),rgba(70,140,255,.22));pointer-events:auto;cursor:pointer}.slot.prx small{color:#fff}.slot.prx.dim{opacity:.45}.slot.prx.on{box-shadow:0 0 14px rgba(255,255,255,.8) inset}
+#asc{position:absolute;left:216px;bottom:22px;width:62px;height:62px;border-radius:50%;border:1.5px solid #fff;background:linear-gradient(120deg,rgba(255,60,120,.5),rgba(255,210,60,.5),rgba(60,255,160,.5),rgba(70,140,255,.5));color:#fff;font:700 9px var(--hud);letter-spacing:.1em;display:grid;place-items:center;align-content:center;gap:1px;pointer-events:auto;cursor:pointer;padding:0;overflow:hidden;animation:prismhue 3.2s linear infinite,dzglow 1.6s ease-in-out infinite;touch-action:none}
+#asc[hidden]{display:none}#asc kbd{font:700 17px var(--hud);border:0;background:none;padding:0}#asc .ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(transparent var(--p,0%),rgba(0,0,0,.62) 0);opacity:0}#asc.hold .ring{opacity:1}#asc.hold{box-shadow:0 0 18px 4px rgba(255,255,255,.8)}
 #sgbar.dark{background:rgba(14,4,28,.82);border-color:rgba(190,120,255,.8);color:#e7d2ff;box-shadow:0 0 14px rgba(150,70,255,.5)}#sgbar.dark b{background:linear-gradient(90deg,#6a2cc4,#ffd36b)}
 body.touch #sgbar{justify-self:start}
 #sgdark{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;background:radial-gradient(ellipse at center,rgba(10,0,24,.42) 0%,rgba(0,0,6,.86) 100%)}
@@ -390,6 +397,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
  #gl.slowmo{filter:saturate(.55) contrast(1.08) hue-rotate(-8deg)}
   #gl.rewind{filter:grayscale(.55) sepia(.6) hue-rotate(172deg) saturate(1.7) brightness(1.05) contrast(1.05)}
  #gl.tstop{filter:saturate(.12) contrast(1.15) brightness(1.04) sepia(.18)}
+ #gl.tstop.prts{filter:saturate(.32) contrast(1.05) brightness(.97)} /* Prism's Time Stop: the rainbow still shows */
 #lockmark{position:absolute;left:0;top:0;width:46px;height:46px;border:2px solid #ff5a3d;border-radius:8px;box-shadow:0 0 10px rgba(255,90,61,.7);clip-path:polygon(0 0,35% 0,35% 12%,12% 12%,12% 35%,0 35%,0 65%,12% 65%,12% 88%,35% 88%,35% 100%,65% 100%,65% 88%,88% 88%,88% 65%,100% 65%,100% 35%,88% 35%,88% 12%,65% 12%,65% 0,100% 0,100% 100%,0 100%);pointer-events:none}
 #combo{position:absolute;left:50%;top:calc(50% - 64px);transform:translateX(-50%);font-family:var(--display);font-size:22px;color:#fff1b8;text-shadow:0 2px 0 #7a3a00,0 0 12px rgba(255,160,40,.7);pointer-events:none}
 #combo.pop{animation:comboPop .18s ease-out}@keyframes comboPop{from{transform:translateX(-50%) scale(1.35)}to{transform:translateX(-50%) scale(1)}}
@@ -513,10 +521,10 @@ body.touch #ask kbd{display:none}
 @keyframes opnKey{0%,100%{box-shadow:0 0 14px rgba(255,201,60,.35)}50%{box-shadow:0 0 34px rgba(255,201,60,.9)}}
 @keyframes opnPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,201,60,.9),0 0 14px 3px rgba(255,201,60,.6)}50%{box-shadow:0 0 0 9px rgba(255,201,60,0),0 0 26px 8px rgba(255,201,60,.9)}}
 .tb.opn-pulse{animation:opnPulse .9s ease-in-out infinite;border-color:var(--gold);border-width:3px;z-index:2}
-#opn-hint{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:3;display:flex;gap:18px;padding:9px 18px;border-radius:999px;background:rgba(7,11,24,.72);border:1px solid var(--edge);opacity:0;transition:opacity .6s;pointer-events:none}
-#opn-hint.on{opacity:1}#opn-hint .oh{display:flex;align-items:center;gap:8px;transition:opacity .5s}#opn-hint .oh.used{opacity:.35}
-#opn-hint kbd{font-size:13px;padding:2px 9px;animation:opnKey 1.2s ease-in-out infinite}#opn-hint b{font:700 13px var(--hud);letter-spacing:.12em;text-transform:uppercase;color:#fff}
-#opn-hint.touch{bottom:calc(58px + var(--safe-b));left:calc(50% - 40px);padding:5px 12px;gap:10px}#opn-hint.touch b{font-size:11px}
+#opn-hint,#opn-phint{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:3;display:flex;gap:18px;padding:9px 18px;border-radius:999px;background:rgba(7,11,24,.72);border:1px solid var(--edge);opacity:0;transition:opacity .6s;pointer-events:none}
+#opn-hint.on,#opn-phint.on{opacity:1}#opn-hint .oh,#opn-phint .oh{display:flex;align-items:center;gap:8px;transition:opacity .5s}#opn-hint .oh.used,#opn-phint .oh.used{opacity:.25}
+#opn-hint kbd,#opn-phint kbd{font-size:13px;padding:2px 9px;animation:opnKey 1.2s ease-in-out infinite}#opn-hint b,#opn-phint b{font:700 13px var(--hud);letter-spacing:.12em;text-transform:uppercase;color:#fff}
+#opn-hint.touch,#opn-phint.touch{bottom:calc(58px + var(--safe-b));left:calc(50% - 40px);padding:5px 12px;gap:10px}#opn-phint .oh{white-space:nowrap}#opn-phint.touch{bottom:calc(84px + var(--safe-b));left:calc(50% - 60px);gap:8px;padding:4px 10px}#opn-hint.touch b,#opn-phint.touch b{font-size:11px}
 #opn-say{position:fixed;left:50%;top:74px;transform:translateX(-50%);z-index:7;width:min(560px,calc(100% - 40px));text-align:center;pointer-events:none;padding:10px 18px;border-radius:12px;background:rgba(5,8,18,.74);border:1px solid var(--edge)}
 #opn-say i{display:block;font:700 12px var(--hud);letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-style:normal;margin-bottom:2px}#opn-say i[hidden]{display:none}
 #opn-say p{margin:0;font:400 clamp(17px,2.4vw,24px) var(--display);letter-spacing:.04em;color:#fff;text-shadow:0 2px 10px #000}
@@ -526,7 +534,7 @@ body.touch #opn-say{top:calc(112px + var(--safe-t));left:44%;width:min(380px,cal
 body.touch #opn-skip{right:auto;left:calc(10px + var(--safe-l,0px));transform:none;bottom:auto;top:calc(108px + var(--safe-t,0px));padding:5px 12px;font-size:11px}
 #opn-skip kbd{margin-left:8px;font-size:10px}body.touch #opn-skip kbd{display:none}
 #opn-skip:hover{opacity:1}#opn-skip[hidden]{display:none}
-@media (prefers-reduced-motion:reduce){#opn-card .opn-arrow,.opn-key,.tb.opn-pulse,#opn-hint kbd{animation:none}}
+@media (prefers-reduced-motion:reduce){#opn-card .opn-arrow,.opn-key,.tb.opn-pulse,#opn-hint kbd,#opn-phint kbd{animation:none}}
 </style>
 </head>
 <body>
@@ -2057,7 +2065,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   f.goal=typeof s.goal==='number'?Math.floor(num(s.goal,0,-1,99)):-1; // -1: a save from before goals
   if(s.daily&&typeof s.daily==='object'){const d=s.daily;if(typeof d.last==='string'&&/^\d{4}-\d\d-\d\d$/.test(d.last))f.daily.last=d.last;if(Number.isInteger(d.streak)&&d.streak>=0&&d.streak<=7)f.daily.streak=d.streak;} // last claim (local date) and the streak
   if(s.story&&typeof s.story==='object'){const t=s.story,st=f.story;st.act=num(t.act,0,0,1e9);for(const k of ['ufo','kathana','kp','invasion','cyber','tower','tf'])st[k]=Math.floor(num(t[k],0,0,30));st.item=isHero(t.item)?t.item:'';st.destroy=t.destroy===true;} // the story: only known fields, ints are stages
-  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks','swap','lockNear','sgV','sgSun','opener','openerP'])if(s.guide[k]===true)f.guide[k]=true;
+  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks','swap','lockNear','sgV','sgSun','opener','openerP','prismSeen','fledNala'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
 const save=loadSave();GFX_SAVE=save;
@@ -2181,7 +2189,7 @@ const Damage={
       if(P.metal)amount*=1-pstat('metalSkin','dr');amount*=bodyDamageMul(type);
       if(P.alien&&P.alien.armor>0)amount*=0.4;if(P.car)amount*=0.5;
       if(amount<=0)return 0;
-      P.hp-=amount;if(OPN.on){const f=maxHp()*0.2;if(P.hp<f)P.hp=f;} // the opener (71_opener.js): you take damage but never go down
+      P.hp-=amount;if(OPN.on){const f=maxHp()*0.02;if(P.hp<f)P.hp=f;} // the opener (71_opener.js): you take damage but never go down
       P.lastHit=time;hurtFlash=Math.min(1,hurtFlash+0.2+amount/40);
       if(time-lastHurtSfx>0.15){lastHurtSfx=time;SFX.hit();}
       if(opt.kv){P.vel.set(opt.kv[0]*0.85,opt.kv[1]*0.85,opt.kv[2]*0.85);P.grounded=false;P.web=null;P.wall=null;P.wallRun=null;if(Math.hypot(...opt.kv)>20){P.flying=false;P.flungT=time;if(!P.alien)startRagdoll(P,P.vel.x,P.vel.y,P.vel.z);}}
@@ -2530,7 +2538,7 @@ function faceAim(){P.heroYaw=Math.atan2(camF.x,camF.z);castT=time;}
 function handPoint(){const s=Math.sin(P.heroYaw),c=Math.cos(P.heroYaw);return {x:P.pos.x+s*0.8+c*0.45,y:P.pos.y+1.95,z:P.pos.z+c*0.8-s*0.45};}
 function dirTo(from,x,y,z){const dx=x-from.x,dy=y-from.y,dz=z-from.z,l=Math.hypot(dx,dy,dz)||1;return [dx/l,dy/l,dz/l];}
 function abilityDown(slot){
-  if(PR.on){if(slot===0&&canAct())destroyStart(true);return;} // the Prism form: slot 1 is Destroy
+  if(PR.on){prismAbilityDown(slot);return;} // the Prism form: 1 Time Stop, 2 Barrage, 3 Erase, 4 Destroy
   if(SG.on){sgAbilityDown(slot);return;}
   if(P.alien){alienAbilityDown(slot);return;}
   const id=save.character&&save.character.abilities[slot];if(!id||!canAct())return;
@@ -2554,7 +2562,7 @@ function castPrimed(id){
   s.cd=(pstat(id,'cooldown')||0)*cdMul();withCast(id,POWER_FN[id]);
 }
 function abilityUp(slot,cancel){
-  if(PR.on)return;
+  if(PR.on){prismAbilityUp(slot);return;}
   if(SG.on){sgAbilityUp(slot);return;}
   if(P.alien){alienAbilityUp(slot);return;}
   if(ringLocked())return; // opening the voice oath already let go of everything held
@@ -2825,7 +2833,7 @@ function updatePowers(dt){
 // (while airborne). Launched targets crater walls, the ground, cars and street props.
 const COMBAT={chain:1.0,gap:0.26,endlag:0.65,reach:3.6,lunge:9,stun:0.75,finStun:1.3,finMul:2.3,launch:40,upper:34,spike:48,
   lockGap:0.5,lockEndlag:1.1,airHangs:3, // locked on, the chain has a slower rhythm; in the air only the first few hits hold you up
-  dashSpeed:40,dashTime:0.24,dashCd:1.1,iframe:0.3,lockRange:110,slamMin:15};
+  dashSpeed:40,dashTime:0.24,dashCd:1.1,iframe:0.3,lockRange:110,lockRangeGod:260,slamMin:15};
 let lockT=null,comboN=0,comboT=-9,dashCd=0,airDash=true;
 const lockMark=(()=>{const e=document.createElement('div');e.id='lockmark';e.hidden=true;return e;})();
 const comboEl=(()=>{const e=document.createElement('div');e.id='combo';e.hidden=true;return e;})();
@@ -2839,7 +2847,7 @@ function lockValid(a){return lockable(a);} // a manual lock has no range limit
 const hostileTo=a=>a.kind==='alien'||a.kind==='invader'||a.kind==='cyborg'||a.kind==='korb'||a.kind==='kperfect'||a.kind==='pforb'||a.kind==='heli'||a.kind==='boss'||a.kind==='rival'||(a.kind==='drone'&&(a.role!=='cyberpol'||!!a.target))||(a.kind==='remote'&&MP.canFight(a))||(a.kind==='human'&&(a.role==='thug'||a.role==='boss'||a.target===P));
 // after you beat your target, the lock jumps to the nearest enemy within the normal lock range
 function nextLock(prev){
-  let best=null,bd=COMBAT.lockRange;
+  let best=null,bd=(SG.on||PR.on)?COMBAT.lockRangeGod:COMBAT.lockRange; // Sun God / Prism fight from far away (the Lance reaches 220 m), so the next target is found out there too
   for(const a of actors){if(a===prev||!lockable(a)||a.hidden||!hostileTo(a))continue;const c=center(a),d=Math.hypot(c.x-P.pos.x,c.z-P.pos.z);if(d<bd){bd=d;best=a;}}
   return best;
 }
@@ -4550,11 +4558,11 @@ function endTimeStop(){
   if(q.length){SFX.boom(0.8,0.8);addShake(0.5);feed(q.length+' hits landed at once','');}flashWhite=0.3;
 }
 // the world clock: 0 while time is stopped, slowed by Slow Time (single player) and Time Dilation
-function worldTimeK(){if(timeStopT>0||frozenT>0)return 0;if(MP.online())return 1;if(P.slowOn&&isSpeed())return slowK;if(timeDil>0)return 0.25;return 1;}
+function worldTimeK(){if(timeStopT>0||frozenT>0||PR.ts)return 0;if(MP.online())return 1;if(P.slowOn&&isSpeed())return slowK;if(timeDil>0)return 0.25;return 1;}
 function updateTimeStop(dt){
   if(timeStopT>0){timeStopT-=dt;const L=tsPath[tsPath.length-1];if(Math.hypot(P.pos.x-L[0],P.pos.z-L[2])>2&&tsPath.length<400)tsPath.push([P.pos.x,P.pos.y+1.2,P.pos.z]);if(timeStopT<=0)endTimeStop();}
   if(frozenT>0){frozenT-=dt;if(frozenT<=0&&tsBy){const r=tsBy;if(r.tsPos)streak(r.tsPos.x,r.tsPos.y+1.2,r.tsPos.z,r.pos.x,r.pos.y+1.2,r.pos.z);tsBy=null;}}
-  canvas.classList.toggle('tstop',timeStopT>0||frozenT>0);canvas.classList.toggle('slowmo',!(timeStopT>0||frozenT>0)&&((P.slowOn&&isSpeed())||timeDil>0));
+  canvas.classList.toggle('tstop',timeStopT>0||frozenT>0||PR.ts);canvas.classList.toggle('prts',PR.ts&&!(timeStopT>0||frozenT>0));canvas.classList.toggle('slowmo',!(timeStopT>0||frozenT>0||PR.ts)&&((P.slowOn&&isSpeed())||timeDil>0));
 }
 // lightning streak between two points
 function streak(ax,ay,az,bx,by,bz){const n=Math.max(2,Math.min(12,Math.round(Math.hypot(bx-ax,by-ay,bz-az)/4)));let px=ax,py=ay,pz=az;
@@ -5312,7 +5320,8 @@ function sunGodStart(src,force){
   if(PR.on&&src!=='arena')return false; // the Prism form has only Destroy
   if(src==='v'&&SG.cd>0){feed('Sun God is recharging',Math.ceil(SG.cd)+' s left');SFX.tone('square',300,200,0.12,0.06);return false;}
   if(P.alien)revertAlien(true);stopAllPowers();
-  SG.on=true;SG.src=src==='sun'?'sun':src==='arena'?'arena':'v';SG.t=SG.max=src==='sun'?120:src==='arena'?9999:sgVDur(); // 'arena': Kathana's fight, every hero, no timer, you can be hurtSG.cds=[0,0,0,0];SG.lance=false;SG.lanceM=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
+  SG.on=true;SG.src=src==='sun'?'sun':src==='arena'?'arena':'v';SG.t=SG.max=src==='sun'?120:src==='arena'?9999:sgVDur();
+  SG.cds=[0,0,0,0];SG.lance=false;SG.lanceM=false;SG.waves.length=0;SG.ecl=null;SG.fx=0; // ('arena': Kathana's fight, every hero, no timer, you can be hurt)
   P.hp=maxHp();P.en=maxEn();P.flying=true;P.grounded=false;P.vel.y=Math.max(P.vel.y,6);P.stun=0;
   const c=center(P),cx=c.x,cy=c.y,cz=c.z;ringFx(cx,cy,cz,1,24,0.7,[1,.85,.35]);ringFx(cx,cy,cz,1,14,0.45,[1,1,.9]);burst(cx,cy,cz,120,30,1.2,[[1,.85,.3],[1,.6,.15],[1,1,.85]],2,0,1.6);
   flashWhite=0.7;SFX.transform();SFX.boom(1,1.4);addShake(0.5);
@@ -7487,8 +7496,8 @@ function storyTick(dt){
     if(solo&&state==='play'&&!P.dead){
       if(storyActiveNow())save.story.act+=dt;
       openerTick(dt);ufoTick(dt);kathanaTick(dt);invTick(dt);cyberTick(dt);spireTick(dt);
-      if(zone&&zone.update)zone.update(dt*worldTimeK());
-    }else if(PR.on&&(P.dead||!solo))prismEnd('lost');
+      if(zone&&zone.update)zone.update(dt*(inVoid()?prBossK('kathana'):worldTimeK()));
+    }
     objRefresh();hushSync();
   }catch(e){logErr(e);}
 }
@@ -7883,10 +7892,10 @@ function ufoArrive(quick){
   const tx=cx+(UFO.x-cx)*0.22,tz=cz+(UFO.z-cz)*0.22,up=Math.max(ufoCamY(cx,cz,0),ufoCamY(tx,tz,0),ufoCamY((cx+tx)/2,(cz+tz)/2,0)); // one clear height for the whole glide
   const from={x:cx,y:Math.max(P.pos.y+3,up),z:cz},to={x:tx,y:Math.max(P.pos.y+14,up+9),z:tz};
   UFO.y=1100;UFO.leaving=false;
-  cutscene({dur:8,text:save.guide.opener===true?'Nuku is back, and he brought his entire base':'Something huge just arrived over Nova Bay',from,to,look:()=>({x:UFO.x,y:UFO.y,z:UFO.z}),fov:62,
+  cutscene({dur:8,text:save.guide.opener===true?(save.guide.fledNala?'Nala is back, and she brought her entire base':'Nuku is back, and he brought his entire base'):'Something huge just arrived over Nova Bay',from,to,look:()=>({x:UFO.x,y:UFO.y,z:UFO.z}),fov:62,
     onTick:(k,dt)=>{const e=1-Math.pow(1-k,3);UFO.y=lerp(1100,UFO_Y,e);addShake(0.05*(1-k)+0.02);if(k>0.02&&k<0.04)SFX.tone('sawtooth',50,35,6,0.12);},
     onEnd:()=>{UFO.y=UFO_Y;UFO.waitT=0;flashWhite=Math.max(flashWhite,0.25);SFX.boom(0.6,1.2);addShake(0.4);objective('Fly up into the UFO');objectiveMark(UFO.x,UFO.y-26,UFO.z,'UFO');
-      if(save.guide.opener===true)toast('Nuku','"I said I would be back with my entire base!"','gold');}});
+      if(save.guide.opener===true)toast(save.guide.fledNala?'Nala':'Nuku','"I said I would be back with my entire base!"','gold');}});
 }
 function ufoAsk(){
   if(ASK||CUT||ZF.phase)return;
@@ -8320,7 +8329,7 @@ function boostTick(dt){
 // Knocked out: back to the city (save.story.kathana stays/sets 1). All four orbs gone: kathanaStage2() (a stub for the next phase).
 // For the next phase: the body is drawn from KA (position KA.bx/KA.bz, yaw, KA.by height offset, KA.vis hides her whole body, KA.split 0..1 opens the torso along a
 // vertical seam with a glow inside at kCore()), the hands are KA.hands[i] (local x,y,z, dead) and orbs KA.orbs[i] ({a: the actor, dead, col}).
-const PR={on:false,t:0,max:120};
+const PR={on:false,e:100,ts:false,free:false,enc:'',encT:0,rumble:false,bar:false,dry:false,kills:0,hold:0,holdSrc:'',fireAcc:0,sound:0,beams:[],bi:0,fx:[],used:{ts:false,bar:false,er:false},nudged:false,sun:false}; // the Prism form: see 66k_prismform.js
 const KAR={x:0,y:0,z:9000};
 const KORB_COL=[[1,.04,.1],[.04,.32,1],[.04,.85,.2],[.62,.08,1]],KO_HP=12000,KA_REACH=148,KA_L1=72,KA_L2=82;
 const KS=[[-40,132,0],[40,132,0],[-30,98,6],[30,98,6]],KR=[[-108,122,92],[108,122,92],[-64,74,112],[64,74,112]]; // shoulders and resting hands (local: x right, y up, z toward the player)
@@ -8336,64 +8345,15 @@ const inVoid=()=>!!(zone&&zone.id==='void');
 function hue(h,s,v){h=(((h%1)+1)%1)*6;const i=Math.floor(h),f=h-i,p=v*(1-s),q=v*(1-s*f),t=v*(1-s*(1-f));switch(i){case 0:return [v,t,p];case 1:return [q,v,p];case 2:return [p,v,t];case 3:return [p,q,v];case 4:return [t,p,v];default:return [v,p,q];}}
 function prismLook(m){const h=time*0.3,c=(o)=>{const r=hue(h+o,0.95,0.55);r.push(1);return r;};
   return Object.assign(SGL,m,{suit:c(0),suit2:c(0.33),cape:c(0.66),acc:[.8,.8,.8,1],metal:false,armor:false,capeOn:true});}
-// ================================================================
-// Prism form
-// ================================================================
-function prismStart(){
-  if(PR.on||state!=='play'||P.dead||zone||KA.on||!storySolo())return false;
-  if(SG.on)sunGodEnd(true,true); // (stay: don't push the hero out of the Sun)
-  stopAllPowers();PR.on=true;PR.t=PR.max;P.flying=true;P.grounded=false;P.hp=maxHp();P.en=maxEn();P.alien&&revertAlien(true);
-  const c=center(P);ringFx(c.x,c.y,c.z,1,30,0.8,[1,.5,.9]);ringFx(c.x,c.y,c.z,1,20,0.6,[.5,1,.9]);burst(c.x,c.y,c.z,140,36,1.3,[[1,.3,.5],[1,.9,.3],[.3,1,.6],[.4,.6,1],[.8,.4,1]],2.2,0,1.5);
-  flashWhite=0.9;SFX.transform();SFX.chime();addShake(0.5);
-  cutscene({dur:4,control:true,letterbox:true,text:'You are something else now'});
-  buildHotbar();buildTouchButtons();return true;
-}
-function prismEnd(why){
-  if(!PR.on)return;PR.on=false;
-  if(why==='time'||why==='lost'){toast('The rainbow fades','Fly into the Sun again to return to it','purple');
-    if(SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
-      if(d<SUN_B.r+900){const k=(SUN_B.r+1100)/(d||1),nx=d>1e-3?dx*k:0,ny=d>1e-3?dy*k:SUN_B.r+1100,nz=d>1e-3?dz*k:0;P.pos.set(SUN_B.x+nx,SUN_B.y+ny,SUN_B.z+nz);P.vel.set(0,0,0);P.sunT=time+3;}}}
-  P.flash=0;sgTint(0,0);buildHotbar();buildTouchButtons();
-}
-function prismTick(dt){
-  if(PR.on){
-    PR.t-=dt;
-    if(P.dead){prismEnd('lost');return;}
-    if(!KA.on||KA.phase!=='dark'){P.hp=maxHp();P.en=maxEn();P.lastSpend=time;}
-    P.flash=0.16+0.06*Math.sin(time*6);
-    const c=center(P);for(let i=0;i<3;i++){const h=hue(time*0.4+rr(0,1),1,1);emit(c.x+rr(-1,1),c.y+rr(-1.3,1.3),c.z+rr(-1,1),rr(-2,2),rr(1,5),rr(-2,2),rr(0.5,1),h,rr(0.7,1.5),-1,0.6);}
-    let tint=0;if(SUN_B&&P.pos.y>CEIL){const d=Math.hypot(P.pos.x-SUN_B.x,P.pos.y-SUN_B.y,P.pos.z-SUN_B.z);tint=clamp((SUN_B.r+2500-d)/(2500+SUN_B.r*0.2),0,1)*0.6;}
-    sgTint(0,tint);
-    if(PR.t<=0&&!KA.on)prismEnd('time');
-    return;
-  }
-  // a Sun God from V that flies into the Sun becomes the Prism Being
-  if(SG.on&&SG.src==='v'&&hasTrav('solarFlight')&&SUN_B&&P.pos.y>CEIL&&!zone&&!KA.on){
-    if(Math.hypot(P.pos.x-SUN_B.x,P.pos.y-SUN_B.y,P.pos.z-SUN_B.z)<SUN_B.r)prismStart();}
-}
 // the ring of rainbow light around the Prism Being (additive, so it is only for the dark phase and the city/space)
 const KGS=primMesh(primSphere(24,16),6),KTORP=primMesh(primTorus(1,0.03,56,6),6);
-function prismDraw(){
-  if(!PR.on||P.dead||(state!=='play'&&state!=='menu'))return;
-  const x=P.pos.x,y=P.pos.y+1.35,z=P.pos.z,t=time;
-  queue(KGS,at(x,y,z,0,0,0,2.3,2.5,2.3),[...hue(t*0.3,0.8,1),0.07],F_ADD);
-  for(let i=0;i<5;i++){const a=t*(0.9+i*0.17)*(i%2?1:-1),r=1.75+0.22*i,h=hue(t*0.25+i/5,1,1);
-    queue(KTORP,at(x,y+Math.sin(t*1.7+i)*0.25,z,Math.sin(a)*0.9,a*0.7+i,Math.cos(a*0.9)*0.9,r,r,r),[h[0],h[1],h[2],0.7],F_ADD);}
-  for(let i=0;i<10;i++){const a=t*1.6+i*TAU/10,h=hue(t*0.4+i/10,1,1),r=1.9;queue(KGS,at(x+Math.cos(a)*r,y+Math.sin(a*2+t)*0.5,z+Math.sin(a)*r,0,0,0,0.12,0.12,0.12),[h[0],h[1],h[2],0.95],F_ADD);}
-}
 // once per frame from storyTick (solo, playing, alive)
 function kathanaTick(dt){
-  prismTick(dt);superTick(dt);
+  superTick(dt);
   const a=destroyAvail(),sig=a+(kathanaDone()?'d':''); // the Prism skill goes with kathana>=2 too, so rebuild on that flip as well
   if(sig!==KA.availSeen){const first=KA.availSeen===null;KA.availSeen=sig;if(!SG.on&&(!PR.on||!first)){buildHotbar();buildTouchButtons();}if(a&&!first)feed('Destroy unlocked',touchOn()?'The DESTROY button':'Press Enter');}
 }
 // ---- the hotbar and touch button of the Prism form, and the Destroy slot ----
-function prBuildHotbar(){
-  if(kathanaDone())return; // the form stays, its DESTROY skill is gone
-  const s=el('div',{class:'slot prism'},el('kbd',{text:touchOn()?'':'1'}),el('span',{class:'nm',text:'DESTROY'}),el('small',{text:'Prism'}));s.addEventListener('click',()=>{if(canAct())destroyStart(true);});
-  hud.hotbar.appendChild(s);slotEls.push({pr:true,s});
-}
-function prTouchButtons(){if(kathanaDone())return;const b=tbMake('p0','a0','burst','DESTROY','B','ab prismb');b.prepend(el('i',{class:'cd',hidden:true}));}
 function prDestroySlot(){
   const s=el('div',{class:'slot dz'},el('kbd',{text:touchOn()?'':'Enter'}),el('span',{class:'nm',text:'DESTROY'}),el('small',{text:'Kathana'}));s.addEventListener('click',()=>destroyKey());
   hud.hotbar.appendChild(s);slotEls.push({pr:true,s});
@@ -8405,7 +8365,7 @@ function prDestroySlot(){
 function destroyKey(){
   if(kathanaDone())return false;
   if(state!=='play'||paused||P.dead||ASK||dialOpen||cutLocked()||zone||KA.on||!storySolo())return false;
-  if(PR.on){destroyStart(true);return true;}
+  if(PR.on){if(!prDestroyOk())return false;destroyStart(true);return true;}
   if(!destroyAvail())return false;
   destroyStart(false);return true;
 }
@@ -8421,6 +8381,7 @@ function kathanaBegin(){
   KA.on=true;KA.phase='enter';KA.lost=false;KA.stage=1;
   KA.ret=P.pos.y>CEIL?{x:-80,y:44,z:0,yaw:Math.PI/2,fly:true}:null; // from space (the Prism form's Sun) the way back is above the city
   if(!enterZone('void',{x:0,y:0,z:70,yaw:0},kathanaDark)){KA.on=false;KA.phase='';return false;}
+  if(PR.ts)prismTsEnd(true); // the Prism form's Time Stop does not carry into the dark
   return true;
 }
 // the dark: only the hero is lit, a low rumble, then the light floods in (4.6 s, no control)
@@ -8475,7 +8436,6 @@ function kathanaLeave(){
   pfClear();KA.cracks=[];KA.gone=false;KA.sink=0;KA.split=0;KA.scream=0;KA.jit=0;
   for(const o of KA.orbs)if(o.a)removeActor(o.a);KA.orbs.length=0;kClearShots();
   if(SG.on&&SG.src==='arena')sunGodEnd(true);
-  if(PR.on)prismEnd('lost');
   arenaHp=1;P.hp=Math.min(P.hp,maxHp());lockT=null;
   KA.on=false;KA.fight=false;KA.phase='';KA.atk=null;KA.beam=null;objective(null);objectiveMark(null);
   const f=$('fade');if(f&&!ZF.phase)f.style.opacity='0';
@@ -8546,7 +8506,7 @@ function korbBreak(i){
   SFX.boom(1,2.4);SFX.chime();addShake(1.1);toast(KA.dead+'/4 orbs shattered',KA.dead<4?'Kathana grows desperate':'','gold');
   for(const s of KA.shots)if(s.orb===i)kShotKill(s);
   objective(KA.dead<4?'Shatter Kathana\'s four orbs · '+(4-KA.dead)+' left':null);
-  if(lockT===a)lockT=null;
+  if(lockT===a){lockT=null;if(KA.dead<4)lockT=kathanaPickAny();if(lockT)SFX.tone('sine',500,900,0.08,0.05);} // the lock moves on to the nearest orb left
   if(KA.dead>=4){KA.fight=false;KA.atk=null;KA.beam=null;kClearShots();later(1.8,()=>{if(KA.on&&inVoid()&&!KA.lost)kathanaStage2();});}
 }
 // kathanaStage2() (the scream, the split, the Perfect Form) is in 66g_kperfect.js
@@ -10737,7 +10697,7 @@ function sovTick(dt){
   SOV.rage+=((SOV.ph===2?1:0)-SOV.rage)*Math.min(1,dt*2);
   if(SOV.sayT>0){SOV.sayT-=dt;if(SOV.sayT<=0){const e=$('sovsay');if(e)e.classList.remove('on');}}
   if(!a.alive)return;
-  const dtw=dt*worldTimeK();
+  const dtw=dt*prBossK('sov'); // Prism's Time Stop holds the Sovereign for 6 s, then he breaks out
   sovFxTick(dtw);
   if(!SOV.fight||SOV.won||P.dead||state!=='play')return;
   if(SOV.ts){sovTsTick(dt);return;}
@@ -10763,7 +10723,7 @@ function sovTransition(){
 }
 // ---- time stop ----
 function sovTsStart(){
-  const a=SOV.a;if(timeStopT>0||frozenT>0||CUT||ASK||!a)return false;
+  const a=SOV.a;if(timeStopT>0||frozenT>0||PR.ts||PR.on||CUT||ASK||!a)return false;
   SOV.ts={ph:'warn',t:0,tk:0,k:0,alt:false};const w=$('tswarn');if(w)w.classList.add('on');SFX.tone('sine',110,70,1.0,0.12);return true;
 }
 function sovTsTick(dt){
@@ -11096,6 +11056,284 @@ function sovereignHalf(){const a=SOV.a;if(!a)return false;a.hp=Math.min(a.hp,a.m
 function sovereignWin(){ // test hook: skip to the ending
   if(!inSpire())return false;if(SP.floor!==3)spJump(3);if(!SOV.a){SP.elite=1;SP.bossT=-1;sovIntro(true);}
   const a=SOV.a;SOV.ph=2;SOV.fight=true;SOV.trans=false;a.iframe=0;Damage.apply(P,a,a.maxHp*2,'test');return true;
+}
+// ================================================================
+// Prism Ascension: the rainbow form every hero can enter, anywhere
+// ================================================================
+// Hold T (or the ASCEND button, on touch too) for 3 s; letting go early cancels. No cooldown. In the form you cannot be hurt (godSafe in 30_systems.js, the Kathana arena included),
+// you fly, and the hotbar is 1 Time Stop, 2 Barrage, 3 Erase (4 Destroy while the story allows it). A rainbow energy bar (PR.e, 0..100) pays for them:
+//   Time Stop: a toggle, 3.5/s. Everything but you stands still until you press it again. A boss breaks out after a while: Kathana 10 s, the Sovereign 6 s, the twins 20 s.
+//   Barrage:   hold, 40 shots a second, 12/s. Hitscan, own pooled beams (the world's effects stand still during Time Stop). Bosses take capped damage per shot.
+//   Erase:     40 energy, needs a locked target. It dissolves in rainbow light and counts as a kill; on a boss it is one big capped hit and the form ends.
+// The form ends when a boss is defeated, when Erase hits a boss, after 100 simple kills, or (the opener) when a twin falls. Nothing else ends it.
+// Time Stop does not work in multiplayer rooms (it would freeze the host's shared world); Barrage and Erase never touch real players there.
+const PR_HOLD=3,PR_KILLS=100,PR_TS_DRAIN=3.5,PR_BAR_DRAIN=12,PR_REGEN=9,PR_ERASE=40,PR_SHOTS=40,PR_BREAK={kathana:10,sov:6,twins:20},PR_NAMES={kathana:'Kathana',sov:'The Sovereign',twins:'The twins'};
+const PR_KEY='T',prKeyHint=()=>touchOn()?'the ASCEND button':'T';
+const prDestroyOk=()=>PR.on&&!kathanaDone()&&(destroyAvail()||PR.sun); // the story's Destroy, or the Sun route's (which never needed the story)
+const prHoldOk=()=>state==='play'&&!paused&&!P.dead&&!cutLocked()&&!(frozenT>0)&&!voidbornLocked()&&!dialOpen&&!ASK&&!oathOpen;
+function prEnc(){ // which boss fight Time Stop is holding back right now
+  if(KA.on&&inVoid())return 'kathana';
+  if(typeof SOV!=='undefined'&&SOV.fight&&SOV.a&&SOV.a.alive)return 'sov';
+  if(OPN.on&&OPN.twins.some(a=>a.alive))return 'twins';
+  return '';
+}
+function prEncPos(enc){
+  if(enc==='sov'&&SOV.a)return {x:SOV.a.pos.x,y:SOV.a.pos.y+3,z:SOV.a.pos.z};
+  if(enc==='twins'){const a=OPN.twins.find(t=>t.alive);if(a)return {x:a.pos.x,y:a.pos.y+a.cy,z:a.pos.z};}
+  if(enc==='kathana'){let n=0,x=0,y=0,z=0;for(const o of KA.orbs)if(!o.dead&&o.a.alive){n++;x+=o.a.pos.x;y+=o.a.pos.y;z+=o.a.pos.z;}if(n)return {x:x/n,y:y/n,z:z/n};return {x:KA.bx,y:70,z:KA.bz};}
+  return {x:P.pos.x,y:P.pos.y+1.5,z:P.pos.z};
+}
+// 1 when this boss has broken out of Time Stop, else the world clock (the boss fights call this where they used worldTimeK)
+const prBossK=id=>PR.ts&&PR.free&&PR.enc===id&&!(timeStopT>0)&&!(frozenT>0)?1:worldTimeK();
+// the clock for projectiles and effects: they stand still with the world, but a boss that broke out gets its attacks and sparks back
+const prFreeDt=dt=>PR.on&&PR.ts&&PR.free&&!(timeStopT>0)&&!(frozenT>0)?dt:0;
+// ---- the effects Time Stop must not freeze: Barrage beams, Erase rings and shards (aged by real time) ----
+function prFx(o){if(PR.fx.length>=60)PR.fx.shift();PR.fx.push(o);}
+function prRing(x,y,z,r1,life,h,tilt){prFx({k:'ring',x,y,z,r0:0.5,r1,t:0,life,h,tilt:tilt||0});}
+function prShards(x,y,z,n,spd,life,size){for(let i=0;i<n;i++){const a=rr(0,TAU),u=rr(-1,1),r=Math.sqrt(1-u*u),s=spd*rr(0.3,1);prFx({k:'orb',x,y,z,vx:Math.cos(a)*r*s,vy:u*s,vz:Math.sin(a)*r*s,t:0,life:life*rr(0.6,1),s:size*rr(0.6,1.3),h:Math.random()});}}
+// ---- the hold: T (or the button) fills a ring in 3 s ----
+function prismHoldStart(src){
+  if(PR.on||PR.hold>0||!prHoldOk()||!save.character)return false;
+  PR.hold=0.0001;PR.holdSrc=src;SFX.tone('sine',200,700,PR_HOLD,0.05);return true;
+}
+function prismHoldEnd(){if(PR.hold>0&&!PR.on){PR.hold=0;SFX.tone('sine',500,200,0.12,0.05);}PR.hold=0;}
+function prismHoldTick(real){
+  if(PR.on){PR.hold=0;return;}
+  if(!(PR.hold>0))return;
+  if(!prHoldOk()){PR.hold=0;return;}
+  PR.hold+=real;
+  if(Math.random()<0.8){const c=center(P),a=rr(0,TAU),r=rr(2,4),h=hue(Math.random(),1,1);emit(c.x+Math.cos(a)*r,c.y+rr(-1.2,1.2),c.z+Math.sin(a)*r,-Math.cos(a)*r*2.2,rr(-1,1),-Math.sin(a)*r*2.2,0.45,h,rr(0.5,1),0,0);}
+  P.flash=Math.max(P.flash,0.1+0.25*(PR.hold/PR_HOLD));
+  if(PR.hold>=PR_HOLD){PR.hold=0;prismStart('hold');}
+}
+// ---- going in and coming out ----
+function prismStart(src){
+  if(PR.on||state!=='play'||P.dead||!save.character)return false;
+  const arena=SG.on&&SG.src==='arena';
+  if(SG.on)sunGodEnd(true,true); // (stay: don't push the hero out of the Sun)
+  if(timeStopT>0){timeStopT=0;endTimeStop();}
+  stopAllPowers();if(P.car)exitCar(true);if(P.alien)revertAlien(true);
+  PR.on=true;PR.sun=src==='sun';PR.e=100;PR.ts=false;PR.free=false;PR.enc='';PR.encT=0;PR.rumble=false;PR.bar=false;PR.dry=false;PR.kills=0;PR.fireAcc=0;PR.hold=0;PR.beams.length=0;PR.bi=0;PR.used={ts:false,bar:false,er:false};PR.sound=0;
+  P.flying=true;P.grounded=false;P.hp=maxHp();P.en=maxEn();P.stun=0;
+  const c=center(P);ringFx(c.x,c.y,c.z,1,30,0.8,[1,.5,.9]);ringFx(c.x,c.y,c.z,1,20,0.6,[.5,1,.9]);burst(c.x,c.y,c.z,140,36,1.3,[[1,.3,.5],[1,.9,.3],[.3,1,.6],[.4,.6,1],[.8,.4,1]],2.2,0,1.5);
+  flashWhite=0.9;SFX.transform();SFX.chime();addShake(0.5);
+  toast('PRISM ASCENSION',touchOn()?'Time Stop · Barrage (hold) · Erase':'1 Time Stop · 2 Barrage (hold) · 3 Erase','purple');
+  if(!save.guide.prismSeen){save.guide.prismSeen=true;persist();}
+  buildHotbar();buildTouchButtons();prHud(true);Bus.emit('prismStart',{arena});return true;
+}
+function prismEnd(why){
+  if(!PR.on)return;
+  if(PR.ts)prismTsEnd(true);
+  PR.on=false;PR.bar=false;PR.hold=0;SFX.setLaser(false);
+  const c=center(P);ringFx(c.x,c.y,c.z,1,26,0.7,[1,.5,.9]);burst(c.x,c.y,c.z,100,26,1.1,[[1,.3,.5],[1,.9,.3],[.3,1,.6],[.4,.6,1],[.8,.4,1]],2,0,1.5);flashWhite=Math.max(flashWhite,0.6);SFX.tone('sine',1400,200,0.6,0.1);
+  if(SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
+    if(d<SUN_B.r+900){const k=(SUN_B.r+1100)/(d||1),nx=d>1e-3?dx*k:0,ny=d>1e-3?dy*k:SUN_B.r+1100,nz=d>1e-3?dz*k:0;P.pos.set(SUN_B.x+nx,SUN_B.y+ny,SUN_B.z+nz);P.vel.set(0,0,0);P.sunT=time+3;}}
+  P.flash=0;sgTint(0,0);
+  if(why!=='destroy'&&why!=='lost'&&KA.on&&inVoid()&&(KA.fight||PF.fight)&&!KA.lost&&!SG.on)sunGodStart('arena',true); // Kathana's arena: back to the Sun God you fight as there
+  buildHotbar();buildTouchButtons();prHud(false);
+  if(why!=='destroy'&&why!=='lost')toast('The rainbow fades',why==='kills'?'100 down · '+(touchOn()?'hold ASCEND':'hold T')+' to ascend again':'Hold '+prKeyHint()+' to ascend again','purple');
+  Bus.emit('prismEnd',{why});
+}
+// ---- 1 Time Stop ----
+function prismTsStart(){
+  if(MP.online()){feed('Time Stop','It does not work in a shared room');SFX.tone('square',300,200,0.1,0.06);return;}
+  if(PR.e<8){prNoEnergy();return;}
+  PR.ts=true;PR.free=false;PR.encT=0;PR.rumble=false;PR.enc=prEnc();PR.used.ts=true;
+  flashWhite=Math.max(flashWhite,0.45);SFX.tone('sine',1200,80,0.8,0.15);SFX.boom(0.5,0.3);addShake(0.2);
+  prRing(P.pos.x,P.pos.y+1.3,P.pos.z,60,0.9,0.1,0);prRing(P.pos.x,P.pos.y+1.3,P.pos.z,40,0.7,0.5,0.6);
+  feed('Time stopped',touchOn()?'Tap Time Stop again to resume':'Press 1 again to resume');
+}
+function prismTsEnd(silent){
+  if(!PR.ts)return;PR.ts=false;PR.free=false;PR.rumble=false;
+  if(!silent){flashWhite=Math.max(flashWhite,0.35);SFX.tone('sine',200,1200,0.5,0.1);feed('Time resumes','');}
+}
+function prNoEnergy(){hud.en.classList.add('warn');setTimeout(()=>hud.en.classList.remove('warn'),300);SFX.tone('square',220,150,0.1,0.06);feed('Out of energy','It comes back while you rest');}
+// ---- 2 Barrage: 40 shots a second, held ----
+function prismBarrageDown(){if(!PR.on)return;if(PR.e<4){prNoEnergy();return;}PR.bar=true;PR.used.bar=true;}
+function prismBarrageUp(){PR.bar=false;}
+let prCand=[];
+function prHostile(a){return a.alive&&!a.held&&a!==P&&a.kind!=='remote'&&a.kind!=='prop'&&a.kind!=='vehicle'&&lockable(a)&&hostileTo(a);}
+function prShots(real){
+  PR.fireAcc+=real*PR_SHOTS;const n=Math.min(6,PR.fireAcc|0);PR.fireAcc-=n;if(!n)return;
+  const e=P.eye,h=handPoint();faceAim();
+  let dx=camF.x,dy=camF.y,dz=camF.z;
+  const lk=lockT&&prHostile(lockT)?lockT:null;
+  if(lk){const c=center(lk);dx=c.x-e.x;dy=c.y-e.y;dz=c.z-e.z;}else if(aim.hitAny){dx=aim.x-e.x;dy=aim.y-e.y;dz=aim.z-e.z;}
+  const l0=Math.hypot(dx,dy,dz)||1;dx/=l0;dy/=l0;dz/=l0;
+  // one target for the whole frame's shots: the lock, else the first hostile on the line (walls stop an unlocked shot)
+  let L=220,tgt=lk,tt=lk?Math.hypot(center(lk).x-e.x,center(lk).y-e.y,center(lk).z-e.z):0;
+  if(!lk){
+    const w=rayCity(e.x,e.y,e.z,dx,dy,dz,L);if(w<L-0.3)L=w;if(dy<-0.001){const tg=-e.y/dy;if(tg>0&&tg<L)L=tg;}
+    tt=L+2;for(const a of actors){if(!prHostile(a))continue;const c=center(a),vx=c.x-e.x,vy=c.y-e.y,vz=c.z-e.z,t=vx*dx+vy*dy+vz*dz;if(t<0||t>=tt)continue;
+      const px=vx-dx*t,py=vy-dy*t,pz=vz-dz*t,rad=(a.radius||1)+0.9;if(px*px+py*py+pz*pz<=rad*rad){tgt=a;tt=t;}}
+    if(!tgt)tt=L;
+  }
+  for(let i=0;i<n;i++){
+    const sp=0.014,len=tgt?tt:L,hx=e.x+(dx+rr(-sp,sp))*len,hy=e.y+(dy+rr(-sp,sp))*len,hz=e.z+(dz+rr(-sp,sp))*len;
+    const b=PR.beams[PR.bi=(PR.bi+1)%28]||(PR.beams[PR.bi]={});b.ax=h.x;b.ay=h.y;b.az=h.z;b.bx=hx;b.by=hy;b.bz=hz;b.t=0;b.life=0.1;b.h=(time*0.9+PR.bi/28)%1;b.hit=!!tgt;
+    if(tgt&&tgt.alive)prShotHit(tgt);
+  }
+  if(PR.sound<=0){PR.sound=0.07;SFX.tone('square',1100+rr(-100,100),600,0.06,0.025);}
+  SFX.setLaser(true);
+}
+function prShotHit(a){
+  const big=sgBig(a),cap=a.sgCap&&a.sgCap.prism;
+  Damage.apply(P,a,big?14*(cap||1):30+save.level*0.5,'prism',{stun:big?0:0.2});
+}
+// ---- 3 Erase ----
+function prismErase(){
+  if(!PR.on||!canAct())return;
+  const a=lockT;
+  if(!a||!a.alive||a.kind==='remote'||!lockable(a)){feed('Erase needs a locked target',touchOn()?'Tap LOCK first':'Press Z first');SFX.tone('square',300,200,0.1,0.06);return;}
+  if(PR.e<PR_ERASE){prNoEnergy();return;}
+  PR.e-=PR_ERASE;PR.used.er=true;faceAim();
+  const c=center(a),x=c.x,y=c.y,z=c.z,big=sgBig(a)||a.kind==='kperfect',boss=big||a.kind==='korb';
+  const h0=Math.random();
+  prRing(x,y,z,boss?46:14,0.8,h0,0);prRing(x,y,z,boss?36:10,0.65,h0+0.3,0.9);prRing(x,y,z,boss?26:7,0.5,h0+0.6,-0.9);
+  prShards(x,y,z,boss?40:22,boss?30:14,0.9,boss?2.4:1.2);
+  const hp=handPoint();prFx({k:'beam',x:hp.x,y:hp.y,z:hp.z,bx:x,by:y,bz:z,t:0,life:0.3,h:h0});
+  flashWhite=Math.max(flashWhite,boss?0.8:0.4);SFX.boom(boss?1:0.6,boss?1.6:0.9);SFX.chime();addShake(boss?0.9:0.35);
+  if(a.dec){pfPop(a);return;}
+  if(boss){
+    if(a.kind==='korb')Damage.apply(P,a,1e9,'prism',{});else Damage.apply(P,a,Math.min(a.maxHp*0.18,7000)*(a.sgCap&&a.sgCap.prism||1),'prism',{stun:1});
+    feed('ERASED',boss&&a.kind!=='korb'?'A reality-breaking hit':'Gone from existence');prismEnd('erase');return;
+  }
+  Damage.apply(P,a,(a.hp||50)*2+100,'prism',{});prVanish(a);
+}
+// the target leaves no body: out of the world and out of the list that kept it
+function prVanish(a){
+  if(a.alive)return;
+  a.erased=true;
+  if(a.kind==='invader')invRemove(a);
+  else if(a.kind==='cyborg'&&typeof cbRemove==='function')cbRemove(a);
+  else if(a.twin){openerRemoveTwin(a);removeFrom(OPN.twins,a);}
+  else{removeActor(a);if(typeof ualiens!=='undefined')removeFrom(ualiens,a);}
+  if(lockT===a){lockT=null;const n=nextLock(a);if(n)lockT=n;}
+}
+function prismAbilityDown(slot){
+  if(!PR.on)return;
+  if(slot===3){if(prDestroyOk()&&canAct())destroyStart(true);return;}
+  if(!canAct())return;
+  if(slot===0){if(PR.ts)prismTsEnd(false);else prismTsStart();}
+  else if(slot===1)prismBarrageDown();
+  else if(slot===2)prismErase();
+}
+function prismAbilityUp(slot){if(slot===1)prismBarrageUp();}
+// ---- the end conditions ----
+function prKillCount(){
+  if(!PR.on)return;PR.kills++;
+  if(PR.kills>=PR_KILLS)prismEnd('kills');
+  else if(PR.kills===PR_KILLS-10)feed('10 to go','The rainbow is running out');
+}
+Bus.on('defeated',({target,killer})=>{
+  if(!PR.on||killer!==P||!target)return;
+  const boss=(sgBig(target)||target.kind==='kperfect')&&!target.dec&&target.kind!=='korb'&&target.kind!=='pforb';
+  if(target.twin){if(OPN.on)prismEnd('twin');return;} // the opener (71_opener.js): the first twin down ends the form
+  if(boss)prismEnd('boss');
+  else if(hostileTo(target)&&!target.dec)prKillCount();
+});
+// ---- per frame (frameBody in 99_main.js, real time) ----
+let prDiscT=0;
+function prismFrame(real,dt){
+  prismHoldTick(real);
+  if(!PR.on){
+    // the old way in: a Sun God from V that flies into the Sun
+    if(SG.on&&SG.src==='v'&&hasTrav('solarFlight')&&SUN_B&&P.pos.y>CEIL&&!zone&&!KA.on&&Math.hypot(P.pos.x-SUN_B.x,P.pos.y-SUN_B.y,P.pos.z-SUN_B.z)<SUN_B.r)prismStart('sun');
+    // a gentle nudge once, a minute into a session that has never ascended
+    if(!save.guide.prismSeen&&!PR.nudged&&save.character&&state==='play'&&!paused&&!P.dead&&!cutLocked()&&!OPN.on&&!KA.on&&(prDiscT+=real)>=60){PR.nudged=true;save.guide.prismSeen=true;persist();toast('Hold '+prKeyHint()+' to ascend',touchOn()?'The ASCEND button: three seconds, every hero':'Three seconds, every hero · it never runs out of time','gold');}
+    prHud(false);return;
+  }
+  if(P.dead){prismEnd('lost');return;}
+  if(frozenT>0){frozenT=0;tsBy=null;}
+  if(PR.ts&&MP.online())prismTsEnd(false); // (joined a room with Time Stop on)
+  P.hp=maxHp();P.en=maxEn();P.lastSpend=time;P.stun=0;
+  PR.sound-=real;
+  // energy: Time Stop and Barrage drain it, resting fills it
+  let firing=false;
+  if(PR.bar&&!PR.dry&&canAct())firing=true;
+  if(PR.dry&&!PR.bar)PR.dry=false;
+  if(PR.ts)PR.e-=PR_TS_DRAIN*real;
+  if(firing){PR.e-=PR_BAR_DRAIN*real;prShots(real);if(!PR.on)return;}else{PR.fireAcc=0;if(!PR.bar||PR.dry)SFX.setLaser(false);}
+  if(!PR.ts&&!firing)PR.e=Math.min(100,PR.e+PR_REGEN*real);
+  if(PR.e<=0){PR.e=0;if(PR.ts){prismTsEnd(true);feed('Time resumes','Out of energy');SFX.tone('sine',200,900,0.4,0.1);}if(firing){PR.dry=true;SFX.setLaser(false);feed('Barrage','Out of energy');}}
+  if(PR.dry&&PR.e>=15&&!PR.bar)PR.dry=false;
+  // bosses break out of Time Stop
+  if(PR.ts){
+    const enc=prEnc();if(enc!==PR.enc){PR.enc=enc;PR.encT=0;PR.free=false;PR.rumble=false;}
+    if(enc&&!PR.free){
+      PR.encT+=real;const lim=PR_BREAK[enc],p=prEncPos(enc);
+      if(PR.encT>=lim-2.5&&!PR.rumble){PR.rumble=true;toast(PR_NAMES[enc]+' strains against the stop','Time is cracking',enc==='sov'?'purple':'red');SFX.tone('sawtooth',50,30,2.6,0.2);}
+      if(PR.rumble&&PR.encT<lim){addShake(0.1+0.4*(PR.encT-(lim-2.5))/2.5);PR.rumbleT=(PR.rumbleT||0)-real;if(PR.rumbleT<=0){PR.rumbleT=0.3;SFX.boom(0.25,2.4);prRing(p.x,p.y,p.z,10+rr(0,10),0.5,Math.random(),rr(-1,1));prShards(p.x,p.y,p.z,6,8,0.5,0.8);}}
+      if(PR.encT>=lim){PR.free=true;flashWhite=Math.max(flashWhite,0.7);addShake(1);SFX.boom(1,2);SFX.tone('sawtooth',300,40,1,0.15);prRing(p.x,p.y,p.z,70,1,0.1,0);prRing(p.x,p.y,p.z,50,0.8,0.5,0.7);prShards(p.x,p.y,p.z,36,40,1.1,2.2);toast(PR_NAMES[enc]+' breaks free','Everything else is still frozen','gold');}
+    }
+  }
+  // the beams and rings age on real time
+  for(const b of PR.beams)if(b)b.t+=real;
+  for(let i=PR.fx.length-1;i>=0;i--){const f=PR.fx[i];f.t+=real;if(f.t>=f.life){PR.fx.splice(i,1);continue;}if(f.k==='orb'){f.x+=f.vx*real;f.y+=f.vy*real;f.z+=f.vz*real;f.vx*=0.96;f.vy*=0.96;f.vz*=0.96;}}
+  // the glow and the colours
+  P.flash=0.16+0.06*Math.sin(time*6);
+  if(!PR.ts){const c=center(P);for(let i=0;i<3;i++){const h=hue(time*0.4+rr(0,1),1,1);emit(c.x+rr(-1,1),c.y+rr(-1.3,1.3),c.z+rr(-1,1),rr(-2,2),rr(1,5),rr(-2,2),rr(0.5,1),h,rr(0.7,1.5),-1,0.6);}}
+  let tint=0;if(SUN_B&&P.pos.y>CEIL){const d=Math.hypot(P.pos.x-SUN_B.x,P.pos.y-SUN_B.y,P.pos.z-SUN_B.z);tint=clamp((SUN_B.r+2500-d)/(2500+SUN_B.r*0.2),0,1)*0.6;}
+  sgTint(0,tint);
+  prHud(true);
+}
+// ---- the HUD: the energy pill, the hotbar slots and the ASCEND button ----
+let prBar=null,prAsc=null; // built on first use (the HUD helpers load after this file)
+function prInit(){
+  if(prBar)return;
+  prBar=el('div',{id:'prbar',hidden:true},el('span',{id:'prbar-t'},'PRISM'),el('i',{class:'e'},el('b',{id:'prbar-e'})),el('em',{id:'prbar-k'},'0/100'));
+  prAsc=el('button',{id:'asc',type:'button',hidden:true,'aria-label':'Hold to ascend (T)'},el('i',{class:'ring'}),el('kbd',{text:'T'}),el('span',{text:'ASCEND'}));
+  const hb=$('sgbar');if(hb)hb.after(prBar);const h=$('hud');if(h)h.appendChild(prAsc);
+  const dn=e=>{e.preventDefault();e.stopPropagation();try{prAsc.setPointerCapture(e.pointerId);}catch(err){}prismHoldStart('btn');},up=()=>prismHoldEnd();
+  prAsc.addEventListener('pointerdown',dn);prAsc.addEventListener('pointerup',up);prAsc.addEventListener('pointercancel',up);prAsc.addEventListener('contextmenu',e=>e.preventDefault());
+}
+let prHudSig='';
+function prHud(on){
+  prInit();
+  const vis=state==='play'&&(on||PR.on);
+  prBar.hidden=!(vis&&PR.on);
+  // the side button: desktop only (touch has its own ASCEND button in the ring of buttons); it shows whenever the form can be entered
+  const showAsc=state==='play'&&!PR.on&&!!save.character&&!touchOn()&&!cutLocked();
+  if(prAsc.hidden===showAsc)prAsc.hidden=!showAsc;
+  const hp=PR.hold>0?clamp(PR.hold/PR_HOLD,0,1):0;
+  prAsc.style.setProperty('--p',(hp*100).toFixed(1)+'%');prAsc.classList.toggle('hold',hp>0);
+  if(touchOn()){const t=TB.asc;if(t&&t.b){const ring=t.b.querySelector('.cd');if(ring){ring.hidden=!(hp>0);if(hp>0)ring.style.background='conic-gradient(transparent '+(hp*100).toFixed(1)+'%,rgba(0,0,0,.62) 0)';}t.b.classList.toggle('on',hp>0);}}
+  if(!PR.on)return;
+  const sig=Math.round(PR.e)+'|'+PR.kills+'|'+(PR.ts?1:0)+'|'+(PR.rumble?1:0)+'|'+(PR.dry?1:0)+'|'+(PR.free?1:0);
+  if(sig!==prHudSig){prHudSig=sig;$('prbar-e').style.width=clamp(PR.e,0,100).toFixed(1)+'%';$('prbar-k').textContent=PR.kills+' / '+PR_KILLS;
+    $('prbar-t').textContent=PR.ts?(PR.free?'TIME STOP · BROKEN':'TIME STOP'):'PRISM';prBar.classList.toggle('ts',PR.ts);prBar.classList.toggle('low',PR.e<20);}
+  for(const s of slotEls){if(s.prx===undefined)continue;const i=s.prx;
+    s.s.classList.toggle('on',i===0?PR.ts:i===1?PR.bar&&!PR.dry&&PR.e>0:false);
+    const cant=i===2?PR.e<PR_ERASE:i===1?PR.dry:false;s.s.classList.toggle('dim',cant);}
+}
+// ---- the hotbar and the touch buttons ----
+function prBuildHotbar(){
+  const defs=[['Time Stop','toggle · 3.5/s'],['Barrage','hold · 12/s'],['Erase','40 energy · lock on']];
+  defs.forEach((d,i)=>{const s=el('div',{class:'slot prx'},el('kbd',{text:touchOn()?'':String(i+1)}),el('span',{class:'nm',text:d[0]}),el('small',{text:d[1]}));
+    s.addEventListener('pointerdown',e=>{if(touchOn())return;e.preventDefault();prismAbilityDown(i);});s.addEventListener('pointerup',()=>prismAbilityUp(i));hud.hotbar.appendChild(s);slotEls.push({pr:true,prx:i,s});});
+  if(prDestroyOk()){const s=el('div',{class:'slot prism'},el('kbd',{text:touchOn()?'':'4'}),el('span',{class:'nm',text:'DESTROY'}),el('small',{text:'Prism'}));s.addEventListener('click',()=>{if(canAct())destroyStart(true);});hud.hotbar.appendChild(s);slotEls.push({pr:true,s});}
+}
+function prTouchButtons(){
+  tbMake('p0','a0','clockStop','Time Stop','B','ab prismb').prepend(el('i',{class:'cd',hidden:true}));
+  tbMake('p1','a1','beam','Barrage','B','ab prismb').prepend(el('i',{class:'cd',hidden:true}));
+  tbMake('p2','a2','eyeOff','Erase','B','ab prismb').prepend(el('i',{class:'cd',hidden:true}));
+  if(prDestroyOk())tbMake('p3','a3','burst','DESTROY','B','ab prismb').prepend(el('i',{class:'cd',hidden:true}));
+}
+// ---- drawing: the ring of rainbow light, the Barrage beams and the Erase effects ----
+function prismDraw(){
+  if(!PR.on||P.dead||(state!=='play'&&state!=='menu'))return;
+  const x=P.pos.x,y=P.pos.y+1.35,z=P.pos.z,t=time;
+  queue(KGS,at(x,y,z,0,0,0,2.3,2.5,2.3),[...hue(t*0.3,0.8,1),0.07],F_ADD);
+  for(let i=0;i<5;i++){const a=t*(0.9+i*0.17)*(i%2?1:-1),r=1.75+0.22*i,h=hue(t*0.25+i/5,1,1);
+    queue(KTORP,at(x,y+Math.sin(t*1.7+i)*0.25,z,Math.sin(a)*0.9,a*0.7+i,Math.cos(a*0.9)*0.9,r,r,r),[h[0],h[1],h[2],0.7],F_ADD);}
+  for(let i=0;i<10;i++){const a=t*1.6+i*TAU/10,h=hue(t*0.4+i/10,1,1),r=1.9;queue(KGS,at(x+Math.cos(a)*r,y+Math.sin(a*2+t)*0.5,z+Math.sin(a)*r,0,0,0,0.12,0.12,0.12),[h[0],h[1],h[2],0.95],F_ADD);}
+  for(const b of PR.beams){if(!b||b.t>=b.life)continue;const k=1-b.t/b.life,c=hue(b.h,1,1);
+    queue(MESH.glowBox,M4.beam(tmpM(),b.ax,b.ay,b.az,b.bx,b.by,b.bz,0.07),[1,1,1,k],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),b.ax,b.ay,b.az,b.bx,b.by,b.bz,0.26),[c[0],c[1],c[2],0.5*k],F_ADD);
+    if(b.hit){const q=0.5+0.7*k;queue(MESH.glowSphere,at(b.bx,b.by,b.bz,0,0,0,q,q,q),[c[0],c[1],c[2],0.7*k],F_ADD);}}
+  for(const f of PR.fx){const k=f.t/f.life,c=hue(f.h+t*0.2,1,1);
+    if(f.k==='ring'){const r=lerp(f.r0,f.r1,1-(1-k)*(1-k));queue(MESH.ring,M4.alignY(tmpM(),f.x,f.y,f.z,Math.sin(f.tilt*3)*0.8,1,Math.cos(f.tilt*3)*0.8,r),[c[0],c[1],c[2],0.9*(1-k)],F_ADD);}
+    else if(f.k==='orb'){const s=f.s*(1-k*0.7);queue(MESH.glowSphere,at(f.x,f.y,f.z,0,0,0,s,s,s),[c[0],c[1],c[2],0.9*(1-k)],F_ADD);}
+    else if(f.k==='beam'){const w=1.4*(1-k);queue(MESH.glowBox,M4.beam(tmpM(),f.x,f.y,f.z,f.bx,f.by,f.bz,w*0.4),[1,1,1,1-k],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),f.x,f.y,f.z,f.bx,f.by,f.bz,w),[c[0],c[1],c[2],0.5*(1-k)],F_ADD);}}
 }
 // ================================================================
 // HUD icon bar and the move list
@@ -11787,14 +12025,16 @@ Bus.on('damaged',e=>{if(e.source===P&&e.type==='punch')guideDone('punch');});
 // ================================================================
 // A fresh profile skips the menu and drops into the intact city as The Strongest (startAsStrongest in 70_ui.js). The twin aliens Nala and Nuku attack at once and the game teaches
 // fly (F), lock-on (Z), attack and powers in the fight; at half health Nala blasts the whole town flat (one buffer write behind a white flash, never building by building),
-// the player wins in the ruins, Nuku flees ("I'll be back with my entire base!") and Y rebuilds the city in a bird's-eye sweep. save.guide.openerP is true while it runs
+// the twins overpower the player (and the player is meant to lose): at zero health, in slow motion, the game asks to HOLD T (the ASCEND button), which is Prism Ascension (66k_prismform.js, every hero
+// has it); the first twin the player brings down ends the form and the other flees ("I'll be back with my entire base!"), then Y rebuilds the city in a bird's-eye sweep. save.guide.openerP is true while it runs
 // (a player who leaves midway gets it again on Continue), save.guide.opener once it is over (guide keys are whitelisted booleans in loadSave). Returning players and cloud saves have a hero, so they never get it; rooms skip it (solo only).
-// Steps: cold, fly, flying, lock, fight1, blast, fight2, escape, say, rebuild, sweep, handoff. The Skip button jumps to the hand-off with the city intact.
-// Slow-motion prompts scale the game's dt (frameBody in 99_main.js), so the opener's own clock (OPN.t) runs on real time. Nuku can't be beaten (hp floor 35%), Nala can't die
-// before the blast, and the player never drops below 20% health (Damage.apply in 30_systems.js).
+// Steps: cold, fly, flying, lock, fight1, blast, fight2, ascend, prism, escape, say, rebuild, sweep, handoff. The Skip button jumps to the hand-off with the city intact.
+// Slow-motion prompts scale the game's dt (frameBody in 99_main.js), so the opener's own clock (OPN.t) runs on real time. The twins can't be beaten until the player has ascended (hp floors), and the player never drops below 2% health (Damage.apply in 30_systems.js).
+// The fled twin is remembered in save.guide.fledNala (the UFO arc's cameo names it).
 const OPN={on:false,arm:false,step:'',t:0,t0:0,last:0,slow:false,twins:[],nala:null,nuku:null,say:null,sayT:0,zTry:false,act:0,used:{atk:false,pow:false},hintOn:false,
   hold:0,down:false,ruined:false,charge:null,prompt:null,flashHold:0,bar:null,spawned:false,fired:0};
 const OPN_SLOW=0.04; // the world's speed while a prompt waits for a key
+const OPN_DMG=2.4; // the twins hit this much harder than they used to: the player is meant to lose the first part
 const TWIN_PAL={
   nala:{skin:c4('#b98ed6'),hov:c4('#a77ac7'),suit:[.1,.05,.12,1],suit2:[.18,.08,.2,1],armor:c4('#d4244a'),trim:c4('#ffc93c'),glow:[1,.35,.6],eye:[.01,.005,.02,1]},
   nuku:{skin:c4('#7fd6d0'),hov:c4('#6ac4c0'),suit:[.04,.08,.14,1],suit2:[.07,.13,.22,1],armor:c4('#1f6fd0'),trim:c4('#bfe8ff'),glow:[.4,.8,1],eye:[.005,.01,.02,1]},
@@ -11807,9 +12047,10 @@ const opnTitle=el('div',{id:'opn-title',hidden:true});
 const opnCard=el('div',{id:'opn-card',hidden:true},el('div',{class:'opn-arrow',text:'▼'}),opnKeyEl);
 const opnHint=el('div',{id:'opn-hint',hidden:true},el('div',{class:'oh a'},el('kbd',{text:'Click'}),el('b',{text:'Attack'})),el('div',{class:'oh p'},el('kbd',{text:'1'}),el('b',{text:'Power'})));
 const opnSay=el('div',{id:'opn-say',hidden:true},el('i'),el('p'));
+const opnPHint=el('div',{id:'opn-phint',hidden:true},...[['1','Time Stop'],['2','Hold: Barrage'],['3','Erase (lock on)']].map(d=>el('div',{class:'oh'},el('kbd',{text:d[0]}),el('b',{text:d[1]}))));
 const opnSkip=el('button',{id:'opn-skip',type:'button',hidden:true,onclick:()=>openerSkip()},'Skip intro',el('kbd',{text:'Backspace'})); // the mouse is locked while you play, so Backspace skips too
-document.body.append(opnDim,opnTitle,opnCard,opnHint,opnSay,opnSkip);
-const opnTbSel=['fly','lock','punch','p0','rebuild'];
+document.body.append(opnDim,opnTitle,opnCard,opnHint,opnPHint,opnSay,opnSkip);
+const opnTbSel=['fly','lock','punch','p0','p1','p2','rebuild','asc'];
 function opnPulse(id){for(const k of opnTbSel){const t=TB[k];if(t&&t.b)t.b.classList.toggle('opn-pulse',k===id);}}
 // keycap prompt: key = the keyboard label, tb = the touch button to point at
 function opnShow(title,key,tb){
@@ -11841,7 +12082,7 @@ function openerBegin(){
 }
 function openerFinish(skipped){
   if(!OPN.on)return;
-  OPN.on=false;OPN.slow=false;OPN.step='';opnHidePrompt();opnSayHide();opnHint.hidden=true;opnSkip.hidden=true;opnDim.hidden=true;hud.bossbar.hidden=true;
+  OPN.on=false;OPN.slow=false;OPN.step='';opnHidePrompt();opnSayHide();opnHint.hidden=true;opnPHint.hidden=true;opnSkip.hidden=true;opnDim.hidden=true;hud.bossbar.hidden=true;
   save.guide.opener=true;save.guide.openerP=false;save.guide.move=save.guide.punch=true;if(OPN.used.pow||!skipped)save.guide.ability=true;
   save.story.act=0; // the UFO arc comes a few minutes after the opener, not during it
   persist();renderGuide();buildHotbar();buildTouchButtons();claimDaily();
@@ -11852,6 +12093,7 @@ function openerFinish(skipped){
 function openerSkip(){
   if(!OPN.on)return;
   if(CUT)cutEnd(false);
+  if(PR.on)prismEnd('skip');PR.hold=0;
   for(const a of OPN.twins.slice())openerRemoveTwin(a);OPN.twins.length=0;
   for(let i=projs.length-1;i>=0;i--)if(projs[i].owner&&projs[i].owner.twin)projs.splice(i,1);
   if(OPN.ruined)openerRuins(false);
@@ -11903,7 +12145,7 @@ function twinUpdate(a,dt){
   if(!a.alive){ // falls out of the sky
     a.deadT+=dt;a.vel.y-=30*dt;a.vel.x*=Math.pow(0.4,dt);a.vel.z*=Math.pow(0.4,dt);a.pos.addS(a.vel,dt);a.rx=lerp(a.rx,Math.PI/2,damp(3,dt));
     const g=groundY(a.pos.x,a.pos.z,a.pos.y+2);if(a.pos.y<g){a.pos.y=g;a.vel.y=0;}
-    if(a.deadT>4&&a.twin==='nala'&&!a.gone){a.gone=true;burst(a.pos.x,a.pos.y+1,a.pos.z,50,12,0.9,[a.pal.glow,[1,1,1]],1.6,-2,1.5);openerRemoveTwin(a);removeFrom(OPN.twins,a);}
+    if(a.deadT>4&&!a.gone){a.gone=true;burst(a.pos.x,a.pos.y+1,a.pos.z,50,12,0.9,[a.pal.glow,[1,1,1]],1.6,-2,1.5);openerRemoveTwin(a);removeFrom(OPN.twins,a);}
     return;}
   if(a.mode==='flee'){a.vel.x+=a.fx*40*dt;a.vel.z+=a.fz*40*dt;a.vel.y+=34*dt;a.pos.addS(a.vel,dt);a.heroYaw=angLerp(a.heroYaw,Math.atan2(a.fx,a.fz),damp(8,dt));
     emit(a.pos.x,a.pos.y+a.cy,a.pos.z,rr(-2,2),rr(-2,2),rr(-2,2),0.6,a.pal.glow,2.2,0,1);return;}
@@ -11929,12 +12171,12 @@ function twinUpdate(a,dt){
   if(a.cast){const C=a.cast;C.t+=dt;a.castT=time;
     if(C.kind==='lance'&&C.t<C.dur){const o={x:a.pos.x,y:a.pos.y+a.cy+0.3,z:a.pos.z};tracer(o.x,o.y,o.z,C.tx,C.ty,C.tz,[.4,.8,1],0.07,0.05);}
     if(C.t>=C.dur){a.cast=null;
-      if(C.kind==='nova'){const n=14,o={x:a.pos.x,y:a.pos.y+a.cy,z:a.pos.z};for(let i=0;i<n;i++){const an=i/n*TAU+rr(0,0.2);fireProj({kind:'plasma',owner:a,x:o.x,y:o.y,z:o.z,vx:Math.cos(an)*24,vy:rr(-1.5,0.5),vz:Math.sin(an)*24,dmg:8,r:0.7,life:3.2,knock:8,pc:a.pal.glow});}
+      if(C.kind==='nova'){const n=14,o={x:a.pos.x,y:a.pos.y+a.cy,z:a.pos.z};for(let i=0;i<n;i++){const an=i/n*TAU+rr(0,0.2);fireProj({kind:'plasma',owner:a,x:o.x,y:o.y,z:o.z,vx:Math.cos(an)*24,vy:rr(-1.5,0.5),vz:Math.sin(an)*24,dmg:8*OPN_DMG,r:0.7,life:3.2,knock:8,pc:a.pal.glow});}
         ringFx(o.x,o.y,o.z,1,12,0.6,a.pal.glow);SFX.boom(0.5*SFX.vol(o.x,o.y,o.z),0.6);addShake(0.2);}
-      else{const o={x:a.pos.x,y:a.pos.y+a.cy+0.3,z:a.pos.z},v=dirTo(o,C.tx,C.ty,C.tz);fireProj({kind:'bolt',owner:a,x:o.x,y:o.y,z:o.z,vx:v[0]*95,vy:v[1]*95,vz:v[2]*95,dmg:14,r:0.7,life:2,knock:12});SFX.tone('sawtooth',1400,100,0.25,0.1*SFX.vol(o.x,o.y,o.z));}}
+      else{const o={x:a.pos.x,y:a.pos.y+a.cy+0.3,z:a.pos.z},v=dirTo(o,C.tx,C.ty,C.tz);fireProj({kind:'bolt',owner:a,x:o.x,y:o.y,z:o.z,vx:v[0]*95,vy:v[1]*95,vz:v[2]*95,dmg:14*OPN_DMG,r:0.7,life:2,knock:12});SFX.tone('sawtooth',1400,100,0.25,0.1*SFX.vol(o.x,o.y,o.z));}}
     return;}
   a.fireT-=dt;if(a.fireT<=0){a.fireT=rr(1.3,2.1)*rate;a.burstN=a.twin==='nala'?3:1;a.burstT=0;}
-  if(a.burstN>0){a.burstT-=dt;if(a.burstT<=0){a.burstT=0.2;a.burstN--;twinShot(a,40,7,a.pal.glow,1.2);OPN.fired++;}}
+  if(a.burstN>0){a.burstT-=dt;if(a.burstT<=0){a.burstT=0.2;a.burstN--;twinShot(a,40,7*OPN_DMG,a.pal.glow,1.2);OPN.fired++;}}
   a.specT-=dt;if(a.specT<=0&&a.burstN<=0){a.specT=(a.twin==='nala'?9:7)*rate;
     if(a.twin==='nala')a.cast={kind:'nova',t:0,dur:1.3};else a.cast={kind:'lance',t:0,dur:1.0,tx:P.pos.x+P.vel.x*0.5,ty:P.pos.y+1.3+P.vel.y*0.3,tz:P.pos.z+P.vel.z*0.5};
     SFX.tone('sine',200,900,a.cast.dur,0.08*SFX.vol(a.pos.x,a.pos.y,a.pos.z));}
@@ -12007,8 +12249,9 @@ function openerTick(dt){
   if(!OPN.on)return;
   const now=performance.now(),rdt=clamp((now-OPN.last)/1000,0,0.05);OPN.last=now;OPN.t+=rdt;
   // nobody dies in the opener
-  {const f=maxHp()*0.2;if(P.hp<f)P.hp=f;if(P.dead){P.dead=false;$('dead').hidden=true;P.hp=maxHp();}}
-  {const wdt=dt*worldTimeK();for(const a of OPN.twins.slice())twinUpdate(a,wdt);} // Time Stop and the like freeze the twins with the rest of the world
+  {const f=maxHp()*0.02;if(P.hp<f)P.hp=f;if(P.dead){P.dead=false;$('dead').hidden=true;P.hp=maxHp();}
+    if((OPN.step==='fight1'||OPN.step==='fight2')&&!OPN.slow&&!CUT&&!PR.on)P.hp=Math.max(f,P.hp-maxHp()*0.005*rdt);} // the twins wear you down even if you fight well
+  {const wdt=dt*prBossK('twins');for(const a of OPN.twins.slice())twinUpdate(a,wdt);} // Time Stop and the like freeze the twins with the rest of the world (Prism's: they break out after 20 s)
   if(OPN.say&&OPN.t>OPN.sayT)opnSayHide();
   if(OPN.flashHold>0){OPN.flashHold-=rdt;flashWhite=Math.max(flashWhite,1);}
   OPN.freeze=!!(CUT&&!CUT.control);
@@ -12038,20 +12281,39 @@ function openerTick(dt){
       break;
     case 'fight1':
       openerHintTick();
-      if(nala&&nala.alive&&nala.hp<=nala.maxHp*0.5+0.5)openerBlast();
+      if(PR.on){openerGo('prism');break;} // ascended early: straight to the rainbow
+      if(nala&&nala.alive&&(nala.hp<=nala.maxHp*0.5+0.5||P.hp<=maxHp()*0.03))openerBlast(); // half health, or you ran out first: the city goes down either way
       break;
     case 'blast':break;
     case 'fight2':
       openerHintTick();
-      if(nala&&!nala.alive)openerGo('escape');
+      if(PR.on){openerGo('prism');break;}
+      if(P.hp<=maxHp()*0.03&&T>1.5)openerGo('ascend'); // out of health: you do not die, you ascend
+      else if(OPN.twins.some(a=>!a.alive))openerGo('escape'); // (a twin fell anyway)
+      break;
+    case 'ascend':{
+      const hp=PR.hold>0?clamp(PR.hold/PR_HOLD,0,1):0;opnKeyEl.style.setProperty('--p',(hp*100).toFixed(0)+'%');opnKeyEl.classList.toggle('held',hp>0);
+      if(PR.on){OPN.slow=false;opnHidePrompt();openerGo('prism');}
+      break;}
+    case 'prism':
+      openerPrismTick();
+      if(!PR.on){ // the form ended: the first twin down ends it (and the other runs), anything else sends you back to the fight
+        if(OPN.twins.some(a=>!a.alive)||(OPN.nala&&!OPN.nala.alive)||(OPN.nuku&&!OPN.nuku.alive))openerGo('escape');
+        else{P.hp=Math.max(P.hp,maxHp()*0.3);for(const a of OPN.twins)a.hpFloor=a.maxHp*0.35;openerGo('fight2');}}
       break;
     case 'escape':
-      if(T>1.2&&nuku&&nuku.mode!=='flee'){nuku.mode='flee';nuku.zid='gone';nuku.hpFloor=nuku.hp;const dx=nuku.pos.x-P.pos.x,dz=nuku.pos.z-P.pos.z,l=Math.hypot(dx,dz)||1;nuku.fx=dx/l;nuku.fz=dz/l;nuku.vel.set(0,6,0);
-        nuku.cast=null;if(lockT===nuku)lockT=null;opnSaySet('Nuku','I\'ll be back with my entire base!',3.6);SFX.tone('sawtooth',300,900,1.4,0.1);}
-      if(nuku&&nuku.mode==='flee'&&(T>4.2||nuku.pos.y>P.pos.y+260)){openerRemoveTwin(nuku);removeFrom(OPN.twins,nuku);openerGo('say');}
+      { // whichever twin is left panics and flees
+        const sv=OPN.twins.find(a=>a.alive);
+        if(!sv){openerGo('say');break;}
+        if(T>1.2&&sv.mode!=='flee'){sv.mode='flee';sv.zid='gone';sv.hpFloor=sv.hp;const dx=sv.pos.x-P.pos.x,dz=sv.pos.z-P.pos.z,l=Math.hypot(dx,dz)||1;sv.fx=dx/l;sv.fz=dz/l;sv.vel.set(0,6,0);
+          sv.cast=null;if(lockT===sv)lockT=null;opnSaySet(sv.name,'I\'ll be back with my entire base!',3.6);SFX.tone('sawtooth',300,900,1.4,0.1);
+          if(!!save.guide.fledNala!==(sv.twin==='nala')){save.guide.fledNala=sv.twin==='nala';persist();}}
+        if(sv.mode==='flee'&&(T>4.2||sv.pos.y>P.pos.y+260)){openerRemoveTwin(sv);removeFrom(OPN.twins,sv);openerGo('say');}
+      }
       break;
     case 'say':
       if(T>0.3&&!OPN.s1){OPN.s1=true;opnSaySet('','You should get stronger.',2.8);}
+      if(T>3.3&&!OPN.s2&&!OPN.ruined){OPN.s2=true;openerFinish(false);break;} // (ascended before the blast: nothing to rebuild)
       if(T>3.3&&!OPN.s2){OPN.s2=true;opnSaySet('',touchOn()?'For now, hold REBUILD to rebuild the city with your power.':'For now, press Y to rebuild the city with your power.',60);openerGo('rebuild',true);}
       break;
     case 'rebuild':{
@@ -12076,6 +12338,8 @@ function openerGo(step,keepSay){
     opnShow(touch?'Tap LOCK to lock on to Nala':'Lock on to Nala','Z','lock');}
   else if(step==='fight1'){OPN.hintOn=true;OPN.act=OPN.t;opnSaySet('Nuku','Get her, Nala!',2.4);}
   else if(step==='fight2'){OPN.hintOn=true;OPN.act=OPN.t;}
+  else if(step==='ascend'){OPN.slow=true;opnDim.hidden=false;OPN.hintOn=false;opnHint.hidden=true;opnShow('HOLD to ascend','T','asc');opnKeyEl.style.setProperty('--p','0%');}
+  else if(step==='prism'){OPN.hintOn=false;opnHint.hidden=true;OPN.slow=false;opnHidePrompt();opnSayHide();for(const a of OPN.twins){a.hpFloor=0;a.mode='fight';a.enraged=true;}}
   else if(step==='rebuild'){OPN.hold=0;OPN.started=false;OPN.down=false;opnShow(touch?'Hold REBUILD':'Hold to rebuild','Y','rebuild');}
 }
 // the attack hint: bottom of the screen, no slowdown. It fades once the player has attacked and used a power, and comes back after about 5 s without either.
@@ -12089,6 +12353,14 @@ function openerHintTick(){
   a.classList.toggle('used',OPN.used.atk);p.classList.toggle('used',OPN.used.pow);
   a.firstChild.textContent=touch?'PUNCH':'Click';a.lastChild.textContent='Attack';p.firstChild.textContent=touch?'POWER':'1';p.lastChild.textContent=pn;
   if(touch&&want)opnPulse(!OPN.used.atk?'punch':!OPN.used.pow?'p0':null);else if(touch)opnPulse(null);
+}
+// the three Prism skills, one hint each; every hint fades once its skill has been used (non-blocking, no slow motion)
+function openerPrismTick(){
+  const used=[PR.used.ts,PR.used.bar,PR.used.er],all=used.every(Boolean);
+  opnPHint.hidden=all;if(all){opnPulse(null);return;}
+  const touch=touchOn();opnPHint.classList.toggle('touch',touch);opnPHint.classList.add('on');
+  [...opnPHint.children].forEach((d,i)=>{d.classList.toggle('used',!!used[i]);d.firstChild.hidden=touch;d.firstChild.textContent=String(i+1);});
+  if(touch){const n=used.findIndex(u=>!u);opnPulse(n<0?null:'p'+n);}
 }
 // ---- the half-health cutscene: Nala flies up and blasts the whole town ----
 function openerBlast(){
@@ -12111,9 +12383,9 @@ function openerBlast(){
         for(let i=0;i<14;i++){const an=rr(0,TAU),r=rr(15,160);smoke(P.pos.x+Math.cos(an)*r,rr(2,30),P.pos.z+Math.sin(an)*r,3,8,rr(10,24),rr(3,6),0.3);}}
       if(blasted&&k<0.9)addShake(0.12*(1-k));},
     onEnd:()=>{
-      if(!OPN.on)return;OPN.charge=null;nala.scripted=false;nala.hpFloor=0;nala.enraged=true;nala.fireT=0.8;nala.specT=3;nala.mode='fight';
+      if(!OPN.on)return;OPN.charge=null;nala.scripted=false;nala.hpFloor=nala.maxHp*0.35;nala.enraged=true;nala.fireT=0.8;nala.specT=3;nala.mode='fight';
       nala.pos.set(P.pos.x-Math.sin(P.yaw)*22,P.pos.y+14,P.pos.z-Math.cos(P.yaw)*22);nala.vel.set(0,0,0);if(OPN.nuku){OPN.nuku.mode='fight';}
-      flashWhite=Math.max(flashWhite,0.4);openerGo('fight2');opnSaySet('Nala','Enough games! Now you fight me for real!',3);lockT=nala;}});
+      flashWhite=Math.max(flashWhite,0.4);if(P.hp<maxHp()*0.35)P.hp=maxHp()*0.35;openerGo('fight2');opnSaySet('Nala','Enough games! Now you fight me for real!',3);lockT=nala;}});
 }
 // ---- the rebuild: the power takes over, the camera rises over the whole city and everything stands back up in one sweep ----
 function openerSweep(){
@@ -12171,8 +12443,9 @@ addEventListener('keydown',e=>{
   if(P.swim&&e.code==='KeyC')return; // C dives while swimming
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
-  if(e.code==='KeyU'&&!arenaSG()){suitToggle();return;}
-  if(arenaSG()&&(e.code==='KeyV'||e.code==='KeyB'||e.code==='KeyU'||e.code==='KeyN'))return; // in Kathana's arena you fight as the Sun God: no forms
+  if(e.code==='KeyT'&&!e.shiftKey){prismHoldStart('key');return;} // hold T for 3 s: Prism Ascension (Shift+T is the fast clock)
+  if(e.code==='KeyU'&&!arenaSG()&&!PR.on){suitToggle();return;}
+  if((arenaSG()||PR.on)&&(e.code==='KeyV'||e.code==='KeyB'||e.code==='KeyU'||e.code==='KeyN'||e.code==='KeyO'))return; // in Kathana's arena you fight as the Sun God, in the Prism form as the rainbow: no forms
   if(e.code==='Enter'||e.code==='NumpadEnter'){if(!e.repeat&&destroyKey())e.preventDefault();return;}
   if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else if(P.construct)vHoldStart(e.timeStamp);else openDial('construct');}else if(hasTrav('solarFlight')&&!hasPower('morphBand')&&!P.alien)sunGodKey();else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else if(hasTravWheel()&&!hasPower('morphBand'))openDial('trav');else bandPress();return;}
   if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}
@@ -12199,8 +12472,8 @@ function vHoldEnd(ts){
   if(!opened){if(vHoldOk()&&!dialOpen)openDial('construct');return;}
   if(dialOpen&&dialSel>=0)dialConfirm();
 }
-addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyV')vHoldEnd(e.timeStamp);if(e.code==='KeyY')openerY(false);if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
-addEventListener('blur',()=>{clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<4;i++)abilityUp(i,true);webRelease();P.charging=false;});
+addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyV')vHoldEnd(e.timeStamp);if(e.code==='KeyT')prismHoldEnd();if(e.code==='KeyY')openerY(false);if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
+addEventListener('blur',()=>{prismHoldEnd();clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<4;i++)abilityUp(i,true);webRelease();P.charging=false;});
 canvas.addEventListener('mousedown',e=>{
   if(state!=='play'||touchOn())return;
   if(paused){if(!sheetOpen&&!creating)resume();return;}
@@ -12565,6 +12838,7 @@ function buildTouchButtons(){
   tbMake('oath','oath','oath','Oath','C');tbMake('rebuild','rebuild','rebuild','Rebuild','C');
   tbMake('fast','fast','run','Fast','C');tbMake('phase','phase','phase','Walls','C');tbMake('dial','dialcycle','dialUp','Dial','C');
   tbMake('suit','suit','shirt','Suit','C');tbMake('rewind','rewind','rewind','Rewind','C');tbMake('destroy','destroy','burst','Destroy','C','dz','#ff8aa8');
+  {const b=tbMake('asc','asc','sparkle','Ascend','C','prismb');b.prepend(el('i',{class:'cd',hidden:true}));}
   layoutTouch(true);
 }
 // which buttons fit what you're doing right now
@@ -12578,7 +12852,7 @@ function tbWanted(){
     if(!P.swim&&!P.alien&&invFlyOk()&&!hasPower('flight')&&(m==='webSwing'||m==='superSpeed'))on.add('flyx');} // web and run heroes already use the traversal slot, so their invasion Fly goes to ring C
   for(let i=0;i<4;i++)if(TB['p'+i])on.add('p'+i);
   if(nearestInteract())on.add('use');
-  if(P.alien||SG.on||PR.on){if(!PR.on&&!arenaSG())on.add('wheel');return on;}
+  if(P.alien||SG.on||PR.on){if(!PR.on&&!arenaSG())on.add('wheel');if(!PR.on)on.add('asc');return on;} // (Ascend: always there, in a Sun God or an alien form too)
   if(heldSlot>=0||con){on.add('grow');on.add('shrink');}
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
@@ -12588,9 +12862,10 @@ function tbWanted(){
   if(!con)on.add('suit');
   if(rewindOn())on.add('rewind');
   if(destroyAvail())on.add('destroy');
+  on.add('asc');
   return on;
 }
-const TB_ORDER_C=['wheel','lock','use','flyx','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit','rewind','destroy'];
+const TB_ORDER_C=['wheel','lock','use','flyx','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit','rewind','destroy','asc'];
 function layoutTouch(force){
   if(!touchOn()||state!=='play')return;
   if(!force&&time-tbT<0.15)return;tbT=time;
@@ -12608,7 +12883,7 @@ function layoutTouch(force){
   for(const id in TB){const t=TB[id];if(!on.has(id)||!ringA[t.ring])continue;const [d,sz]=ringA[t.ring];const [x,y]=at(A,d);put(t,x,y,sz);}
   // the powers share ring B, evenly from straight up to straight left
   const ps=[0,1,2,3,4].map(i=>'p'+i).filter(id=>on.has(id)),B=184*k,bs=58*k;
-  ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,PR.on?bs*1.5:bs);}); // the Prism form's one skill (Destroy) is big
+  ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,bs);});
   // ring C packs the rest from the top down, spilling into ring D
   let r=252*k,d=-1;const cs=48*k,step=r=>2*Math.asin(Math.min(1,(cs+8*k)/(2*r)))*180/Math.PI;
   for(const id of TB_ORDER_C){if(!on.has(id)||TB[id].ring!=='C')continue;
@@ -12644,6 +12919,7 @@ function touchAct(a,down){
   else if(a==='con'){if(down)summonConstruct();}
   else if(a==='vkey'){if(down)vPress();}
   else if(a==='destroy'){if(down)destroyKey();}
+  else if(a==='asc'){if(down)prismHoldStart('touch');else prismHoldEnd();}
   else if(a==='oath'){if(oathHoldMode()){if(down)holdOathStart('touch');else holdOathStop();}else if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}
@@ -13291,11 +13567,12 @@ function frameBody(now){
   mpi=0;
   const live=(!paused||(state==='play'&&MP.online()))&&!Portal.inAd; // in a room the world never stops (except while a portal ad plays)
   if(live){
-    time+=dt;timeFast=!!keys.KeyT&&state==='play';updateEnv(dt);
+    time+=dt;timeFast=!!keys.KeyT&&!!(keys.ShiftLeft||keys.ShiftRight)&&state==='play';updateEnv(dt);
     if(state==='play'&&!(frozenT>0)){if(mouseL)punch();zonePlayerPre();updatePlayer(dt);zonePlayerPost();}
     updateTimeStop(dt);const wdt=dt*worldTimeK();
-    updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);
-    storyTick(dt);
+    const pdt=wdt||prFreeDt(dt); // projectiles and effects: Prism's Time Stop holds them, but a boss that broke out gets its own back
+    updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(pdt);updateOrbs(dt);updateFx(pdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(pdt);SMOKE.update(pdt);
+    storyTick(dt);prismFrame(real,dt);
     if(state==='play'){saveT+=dt;if(saveT>CONFIG.autosave){saveT=0;persist();syncPlayerDoc();}}
   }
   updateCamera(live?dt:0);
@@ -13329,8 +13606,8 @@ if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},a
   get dialOpen(){return dialOpen;},band,ALIENS,aliensUnlocked,blockProps,propsNear,breakProp,hitProps,windows,debris,breakWindowAt,MP,tryRechoose,openCreator,closeCreator,spentPoints,
   tlights,lightFor,P2P,WS,ROOM,hostSet,kickPeer,rebuildCity,get tod(){return tod;},addWanted,get feedLog(){return document.getElementById("feed")?document.getElementById("feed").textContent:"";},PS,projs,thrown,wells,get bigBeam(){return bigBeam;},get timeDil(){return timeDil;},helis,spawnHeli,bldgs,damageBuilding,collapseBuilding,chargeStart,chargeRelease,ragdolls,startRagdoll,lockToggle,dashPress,webZip,swingJump,findAnchor,COMBAT,get lockT(){return lockT;},set lockT(v){lockT=v;},get comboN(){return comboN;},scorches,tryWallRun,get camPos(){return camPos;},get dlN(){return dlN;},stats:()=>({city:cityMesh.n/3,props:propMeshes.reduce((a,m)=>a+(m?m.n/3:0),0)}),buildDrawList,render,setPaused,get paused(){return paused;},updateCamera,camF,explode,spawnHuman,spawnDrone,makeVehicle,Damage,renderGuide,blockProps,gatherLights,tryRechoose,tkGrabMore,tkSlam,turnDial,togglePhase,toggleFastMode,startTimeStop,get timeStopT(){return timeStopT;},get frozenT(){return frozenT;},get tsQueue(){return tsQueue;},worldTimeK,onIsland,zEdge,xEdge,cellAt,roadIndexOf,nodeAhead,get bank(){return bank;},PLANETS,SPACE,inSpace,spaceSpeedMul,nearestBody,spawnHunter,hunts,get myStreak(){return myStreak;},set myStreak(v){myStreak=v;},updateHunters,tetherShielded,constructPrimaryUp,dialPageTurn,dialItems,conDrive,heroMeter,payEn,standby,hungry,atInventorTower,get invTower(){return invTower;},callStorm,eatAt,nearestShopToEat,shops,roofTops,dialMax,summonConstruct,titanGrow,conGrowStep,skillGrowStep,voiceMatch,get voiceBlocked(){return voiceBlocked;},ringRebuild,get heldSlot(){return heldSlot;},dialItems,openDial,skillSize,conMaxGrow,conBase,CON_GROW,CON_PAGES,get camDist(){return camDist;},dismissConstruct,constructPrimary,constructPrimaryUp,constructAlt,constructX,holes,ringFxList,openOath,closeOath,CONSTRUCTS,conUnlocked,get oathOpen(){return oathOpen;},get oathFree(){return oathFree;},ringLocked,oathLoud,MIC,micOn,micOff,get voicePeak(){return voicePeak;},RING_MAX,pressJump,releaseJump,spiderAirTrick,swingBoost,updrafts,POWER_FN,mk,masteryLevel,addMastery,pstat,hasPower,get time(){return time;},
   Portal,SFX,applyLook,rings,makeRemote,applyPresence,FLAG,updateTags,spawnMech,fireProj,mechPoint,get parks(){return typeof parks!=="undefined"?parks:null;},travStyle,setTravStyle,hasTravWheel,masteryLevel,PRESETS,get growTutOn(){return growTutOn;},respawn,resume,startTrial,refill,slotLocked,flySpeed,dialMax,conMaxGrow,skillGrowMax,playerDown,spaceSpeedMul,flyBoost,summonConstruct,voidbornAnswer,voidbornStage,XQS,XQ,cityVisible,vHoldStart,vHoldEnd,planes,boats,flocks,pigeonGroups,fountainSpots,lakes,rechargeGoal,toggleMoves,movesShown,fitMoves,updateMarkers,inLake,get locked(){return locked;},blimp,get camPos(){return camPos;},get comboN(){return comboN;},
-  sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play'){zonePlayerPre();updatePlayer(dt);zonePlayerPost();}updateTimeStop(dt);const wdt=dt*worldTimeK();updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(wdt);updateOrbs(dt);updateFx(wdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(wdt);SMOKE.update(wdt);storyTick(dt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
-if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({growStep,ufoReward,rewind,boostMul,ufoBoost,REW,boostPanel,shiftMaster,stormAxe,ringInf,meterInf,sgVDur,sgVCd,ufoWebReel,skyAnchor,findAnchor,story:()=>save.story,OPN,openerBegin,openerSkip,openerGo,openerRuins,openerBlast,openerSweep,twinSpawn,openerTick,storyAddActive:s=>{save.story.act+=+s||0;},ufoArrive:q=>ufoArrive(q===undefined?true:q),loadSave,enterZone,leaveZone,zone:()=>zone,askYesNo,askInfo,cutscene,objective,objectiveMark,ufoTakeItem,UFO,UF,ualiens,ZONES,ZF,OBJ,get CUT(){return CUT;},get ASK(){return ASK;},storyTick,ufoLeave,ufoBeamUp,storyActiveNow,sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto,prismStart,destroyStart,destroyKey,destroyAvail,PR,get kathana(){return KA;},get korbs(){return KA.orbs;},kathanaWinStage1,kathanaStage2,kathanaLose,kathanaWin,qteWin,KQ,PF,get kperfect(){return PF.real;},worldUpgrade,humanSuper,superTick,invasionStart:q=>invBegin(q===undefined?true:q),invasionWave:n=>invWaveJump(n),invasionWin:q=>invWin(!!q),invasionClear:()=>{INV.pend.length=0;clearInvaders();},lightSpeed:lsStart,INV,get invaders(){return INV.list;},cyberArrive,invText,INV_WAVES,masteryInv,invMastery,invSpawn,cyberGoArch,cyberStats,towerEnter,CY,CYZ,cyberTick,cyberRespawn,spireEnter,spireFloor,spireClearFloor,get sovereign(){return SOV;},sovereignHalf,sovereignWin,wormholeTo,SP,SPR,SOV,spStartAt,cyReal,zoneHop,spRespawn,spSpawn,CB,sovIntro,spRide,SPO,SPFY,sovereignAtk,makeVehicle,vehicleBlock,VB,cyCarPose,CYP,setVehiclePos}));
+  sim(sec){const dt=1/30;for(let t=0;t<sec;t+=dt){time+=dt;updateEnv(dt);if(state==='play'){zonePlayerPre();updatePlayer(dt);zonePlayerPost();}updateTimeStop(dt);const wdt=dt*worldTimeK(),pdt=wdt||prFreeDt(dt);updateWorld(wdt);separateHumans();updateRemotes(dt);updateProjs(pdt);updateOrbs(dt);updateFx(pdt);updateRagdolls(wdt);updateBuildings(wdt);FX.update(pdt);SMOKE.update(pdt);storyTick(dt);prismFrame(dt,dt);if(state==='play')MP.flush(dt);WS.update(dt);if(state==='play'&&!paused){updateCamera(dt);computeAim(150);updatePowers(dt);}}}};
+if(window.__SKYLINE_TEST__)Object.defineProperties(window.__skyline,Object.getOwnPropertyDescriptors({growStep,ufoReward,rewind,boostMul,ufoBoost,REW,boostPanel,shiftMaster,stormAxe,ringInf,meterInf,sgVDur,sgVCd,ufoWebReel,skyAnchor,findAnchor,story:()=>save.story,OPN,openerBegin,openerSkip,openerGo,openerRuins,openerBlast,openerSweep,twinSpawn,openerTick,storyAddActive:s=>{save.story.act+=+s||0;},ufoArrive:q=>ufoArrive(q===undefined?true:q),loadSave,enterZone,leaveZone,zone:()=>zone,prismHoldStart,prismHoldEnd,prismAbilityDown,prismAbilityUp,prismFrame,prismEnd,prEnc,prismErase,prVanish,prDestroyOk,PR_BREAK,askYesNo,askInfo,cutscene,objective,objectiveMark,ufoTakeItem,UFO,UF,ualiens,ZONES,ZF,OBJ,get CUT(){return CUT;},get ASK(){return ASK;},storyTick,ufoLeave,ufoBeamUp,storyActiveNow,sunGodStart,sunGodEnd,sunGodOn,SG,validCharacter,newHero,buildTouchButtons,layoutTouch,tbWanted,get TB(){return TB;},applyTouchUI,checkOrient,openOath,closeOath,suitToggle,transformInto,prismStart,destroyStart,destroyKey,destroyAvail,PR,get kathana(){return KA;},get korbs(){return KA.orbs;},kathanaWinStage1,kathanaStage2,kathanaLose,kathanaWin,qteWin,KQ,PF,get kperfect(){return PF.real;},worldUpgrade,humanSuper,superTick,invasionStart:q=>invBegin(q===undefined?true:q),invasionWave:n=>invWaveJump(n),invasionWin:q=>invWin(!!q),invasionClear:()=>{INV.pend.length=0;clearInvaders();},lightSpeed:lsStart,INV,get invaders(){return INV.list;},cyberArrive,invText,INV_WAVES,masteryInv,invMastery,invSpawn,cyberGoArch,cyberStats,towerEnter,CY,CYZ,cyberTick,cyberRespawn,spireEnter,spireFloor,spireClearFloor,get sovereign(){return SOV;},sovereignHalf,sovereignWin,wormholeTo,SP,SPR,SOV,spStartAt,cyReal,zoneHop,spRespawn,spSpawn,CB,sovIntro,spRide,SPO,SPFY,sovereignAtk,makeVehicle,vehicleBlock,VB,cyCarPose,CYP,setVehiclePos}));
 if(window.__SKYLINE_TEST__)window.__skyline.pfProf=n=>{const d0=dlN,m0=mpi;let t0=performance.now();for(let i=0;i<n;i++)pfUpdate(1e-4);const u=(performance.now()-t0)/n;t0=performance.now();for(let i=0;i<n;i++){dlN=d0;mpi=m0;pfDraw(time);}const d=(performance.now()-t0)/n,nq=dlN-d0;dlN=d0;mpi=m0;return {u,d,nq};}; // JS cost of the Perfect Form (think + draw) per frame, and how many draw calls it queues
 })();
 </script>
