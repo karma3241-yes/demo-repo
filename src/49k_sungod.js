@@ -24,7 +24,8 @@ function sunGodStart(src,force){
   if(PR.on&&src!=='arena')return false; // the Prism form has only Destroy
   if(src==='v'&&SG.cd>0){feed('Sun God is recharging',Math.ceil(SG.cd)+' s left');SFX.tone('square',300,200,0.12,0.06);return false;}
   if(P.alien)revertAlien(true);stopAllPowers();
-  SG.on=true;SG.src=src==='sun'?'sun':src==='arena'?'arena':'v';SG.t=SG.max=src==='sun'?120:src==='arena'?9999:sgVDur(); // 'arena': Kathana's fight, every hero, no timer, you can be hurtSG.cds=[0,0,0,0];SG.lance=false;SG.lanceM=false;SG.waves.length=0;SG.ecl=null;SG.fx=0;
+  SG.on=true;SG.src=src==='sun'?'sun':src==='arena'?'arena':'v';SG.t=SG.max=src==='sun'?120:src==='arena'?9999:sgVDur();
+  SG.cds=[0,0,0,0];SG.lance=false;SG.lanceM=false;SG.waves.length=0;SG.ecl=null;SG.fx=0; // ('arena': Kathana's fight, every hero, no timer, you can be hurt)
   P.hp=maxHp();P.en=maxEn();P.flying=true;P.grounded=false;P.vel.y=Math.max(P.vel.y,6);P.stun=0;
   const c=center(P),cx=c.x,cy=c.y,cz=c.z;ringFx(cx,cy,cz,1,24,0.7,[1,.85,.35]);ringFx(cx,cy,cz,1,14,0.45,[1,1,.9]);burst(cx,cy,cz,120,30,1.2,[[1,.85,.3],[1,.6,.15],[1,1,.85]],2,0,1.6);
   flashWhite=0.7;SFX.transform();SFX.boom(1,1.4);addShake(0.5);

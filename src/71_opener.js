@@ -337,7 +337,7 @@ function openerPrismTick(){
   const used=[PR.used.ts,PR.used.bar,PR.used.er],all=used.every(Boolean);
   opnPHint.hidden=all;if(all){opnPulse(null);return;}
   const touch=touchOn();opnPHint.classList.toggle('touch',touch);opnPHint.classList.add('on');
-  [...opnPHint.children].forEach((d,i)=>{d.classList.toggle('used',!!used[i]);d.firstChild.textContent=touch?['TIME','HOLD','ERASE'][i]:String(i+1);});
+  [...opnPHint.children].forEach((d,i)=>{d.classList.toggle('used',!!used[i]);d.firstChild.hidden=touch;d.firstChild.textContent=String(i+1);});
   if(touch){const n=used.findIndex(u=>!u);opnPulse(n<0?null:'p'+n);}
 }
 // ---- the half-health cutscene: Nala flies up and blasts the whole town ----
