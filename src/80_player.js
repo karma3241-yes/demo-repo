@@ -30,8 +30,8 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
   if(e.code==='KeyT'&&!e.shiftKey){prismHoldStart('key');return;} // hold T for 3 s: Prism Ascension (Shift+T is the fast clock)
-  if(e.code==='KeyU'&&!arenaSG()){suitToggle();return;}
-  if(arenaSG()&&(e.code==='KeyV'||e.code==='KeyB'||e.code==='KeyU'||e.code==='KeyN'))return; // in Kathana's arena you fight as the Sun God: no forms
+  if(e.code==='KeyU'&&!arenaSG()&&!PR.on){suitToggle();return;}
+  if((arenaSG()||PR.on)&&(e.code==='KeyV'||e.code==='KeyB'||e.code==='KeyU'||e.code==='KeyN'||e.code==='KeyO'))return; // in Kathana's arena you fight as the Sun God, in the Prism form as the rainbow: no forms
   if(e.code==='Enter'||e.code==='NumpadEnter'){if(!e.repeat&&destroyKey())e.preventDefault();return;}
   if(e.code==='KeyV'){if(isRing()){if(ringLocked())oathBusy();else if(P.construct)vHoldStart(e.timeStamp);else openDial('construct');}else if(hasTrav('solarFlight')&&!hasPower('morphBand')&&!P.alien)sunGodKey();else if(armorForms()&&!hasPower('morphBand'))openDial('armor');else if(hasTravWheel()&&!hasPower('morphBand'))openDial('trav');else bandPress();return;}
   if(e.code==='KeyN'&&armorForms()){openDial('armor');return;}

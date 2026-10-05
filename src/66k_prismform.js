@@ -186,6 +186,7 @@ function prismFrame(real,dt){
   }
   if(P.dead){prismEnd('lost');return;}
   if(frozenT>0){frozenT=0;tsBy=null;}
+  if(PR.ts&&MP.online())prismTsEnd(false); // (joined a room with Time Stop on)
   P.hp=maxHp();P.en=maxEn();P.lastSpend=time;P.stun=0;
   PR.sound-=real;
   // energy: Time Stop and Barrage drain it, resting fills it
