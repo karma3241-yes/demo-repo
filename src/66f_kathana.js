@@ -11,7 +11,7 @@
 // Knocked out: back to the city (save.story.kathana stays/sets 1). All four orbs gone: kathanaStage2() (a stub for the next phase).
 // For the next phase: the body is drawn from KA (position KA.bx/KA.bz, yaw, KA.by height offset, KA.vis hides her whole body, KA.split 0..1 opens the torso along a
 // vertical seam with a glow inside at kCore()), the hands are KA.hands[i] (local x,y,z, dead) and orbs KA.orbs[i] ({a: the actor, dead, col}).
-const PR={on:false,t:0,max:120};
+const PR={on:false,e:100,ts:false,free:false,enc:'',encT:0,rumble:false,bar:false,dry:false,kills:0,hold:0,holdSrc:'',fireAcc:0,sound:0,beams:[],bi:0,fx:[],used:{ts:false,bar:false,er:false},nudged:false,sun:false}; // the Prism form: see 66k_prismform.js
 const KAR={x:0,y:0,z:9000};
 const KORB_COL=[[1,.04,.1],[.04,.32,1],[.04,.85,.2],[.62,.08,1]],KO_HP=12000,KA_REACH=148,KA_L1=72,KA_L2=82;
 const KS=[[-40,132,0],[40,132,0],[-30,98,6],[30,98,6]],KR=[[-108,122,92],[108,122,92],[-64,74,112],[64,74,112]]; // shoulders and resting hands (local: x right, y up, z toward the player)
@@ -27,64 +27,15 @@ const inVoid=()=>!!(zone&&zone.id==='void');
 function hue(h,s,v){h=(((h%1)+1)%1)*6;const i=Math.floor(h),f=h-i,p=v*(1-s),q=v*(1-s*f),t=v*(1-s*(1-f));switch(i){case 0:return [v,t,p];case 1:return [q,v,p];case 2:return [p,v,t];case 3:return [p,q,v];case 4:return [t,p,v];default:return [v,p,q];}}
 function prismLook(m){const h=time*0.3,c=(o)=>{const r=hue(h+o,0.95,0.55);r.push(1);return r;};
   return Object.assign(SGL,m,{suit:c(0),suit2:c(0.33),cape:c(0.66),acc:[.8,.8,.8,1],metal:false,armor:false,capeOn:true});}
-// ================================================================
-// Prism form
-// ================================================================
-function prismStart(){
-  if(PR.on||state!=='play'||P.dead||zone||KA.on||!storySolo())return false;
-  if(SG.on)sunGodEnd(true,true); // (stay: don't push the hero out of the Sun)
-  stopAllPowers();PR.on=true;PR.t=PR.max;P.flying=true;P.grounded=false;P.hp=maxHp();P.en=maxEn();P.alien&&revertAlien(true);
-  const c=center(P);ringFx(c.x,c.y,c.z,1,30,0.8,[1,.5,.9]);ringFx(c.x,c.y,c.z,1,20,0.6,[.5,1,.9]);burst(c.x,c.y,c.z,140,36,1.3,[[1,.3,.5],[1,.9,.3],[.3,1,.6],[.4,.6,1],[.8,.4,1]],2.2,0,1.5);
-  flashWhite=0.9;SFX.transform();SFX.chime();addShake(0.5);
-  cutscene({dur:4,control:true,letterbox:true,text:'You are something else now'});
-  buildHotbar();buildTouchButtons();return true;
-}
-function prismEnd(why){
-  if(!PR.on)return;PR.on=false;
-  if(why==='time'||why==='lost'){toast('The rainbow fades','Fly into the Sun again to return to it','purple');
-    if(SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
-      if(d<SUN_B.r+900){const k=(SUN_B.r+1100)/(d||1),nx=d>1e-3?dx*k:0,ny=d>1e-3?dy*k:SUN_B.r+1100,nz=d>1e-3?dz*k:0;P.pos.set(SUN_B.x+nx,SUN_B.y+ny,SUN_B.z+nz);P.vel.set(0,0,0);P.sunT=time+3;}}}
-  P.flash=0;sgTint(0,0);buildHotbar();buildTouchButtons();
-}
-function prismTick(dt){
-  if(PR.on){
-    PR.t-=dt;
-    if(P.dead){prismEnd('lost');return;}
-    if(!KA.on||KA.phase!=='dark'){P.hp=maxHp();P.en=maxEn();P.lastSpend=time;}
-    P.flash=0.16+0.06*Math.sin(time*6);
-    const c=center(P);for(let i=0;i<3;i++){const h=hue(time*0.4+rr(0,1),1,1);emit(c.x+rr(-1,1),c.y+rr(-1.3,1.3),c.z+rr(-1,1),rr(-2,2),rr(1,5),rr(-2,2),rr(0.5,1),h,rr(0.7,1.5),-1,0.6);}
-    let tint=0;if(SUN_B&&P.pos.y>CEIL){const d=Math.hypot(P.pos.x-SUN_B.x,P.pos.y-SUN_B.y,P.pos.z-SUN_B.z);tint=clamp((SUN_B.r+2500-d)/(2500+SUN_B.r*0.2),0,1)*0.6;}
-    sgTint(0,tint);
-    if(PR.t<=0&&!KA.on)prismEnd('time');
-    return;
-  }
-  // a Sun God from V that flies into the Sun becomes the Prism Being
-  if(SG.on&&SG.src==='v'&&hasTrav('solarFlight')&&SUN_B&&P.pos.y>CEIL&&!zone&&!KA.on){
-    if(Math.hypot(P.pos.x-SUN_B.x,P.pos.y-SUN_B.y,P.pos.z-SUN_B.z)<SUN_B.r)prismStart();}
-}
 // the ring of rainbow light around the Prism Being (additive, so it is only for the dark phase and the city/space)
 const KGS=primMesh(primSphere(24,16),6),KTORP=primMesh(primTorus(1,0.03,56,6),6);
-function prismDraw(){
-  if(!PR.on||P.dead||(state!=='play'&&state!=='menu'))return;
-  const x=P.pos.x,y=P.pos.y+1.35,z=P.pos.z,t=time;
-  queue(KGS,at(x,y,z,0,0,0,2.3,2.5,2.3),[...hue(t*0.3,0.8,1),0.07],F_ADD);
-  for(let i=0;i<5;i++){const a=t*(0.9+i*0.17)*(i%2?1:-1),r=1.75+0.22*i,h=hue(t*0.25+i/5,1,1);
-    queue(KTORP,at(x,y+Math.sin(t*1.7+i)*0.25,z,Math.sin(a)*0.9,a*0.7+i,Math.cos(a*0.9)*0.9,r,r,r),[h[0],h[1],h[2],0.7],F_ADD);}
-  for(let i=0;i<10;i++){const a=t*1.6+i*TAU/10,h=hue(t*0.4+i/10,1,1),r=1.9;queue(KGS,at(x+Math.cos(a)*r,y+Math.sin(a*2+t)*0.5,z+Math.sin(a)*r,0,0,0,0.12,0.12,0.12),[h[0],h[1],h[2],0.95],F_ADD);}
-}
 // once per frame from storyTick (solo, playing, alive)
 function kathanaTick(dt){
-  prismTick(dt);superTick(dt);
+  superTick(dt);
   const a=destroyAvail(),sig=a+(kathanaDone()?'d':''); // the Prism skill goes with kathana>=2 too, so rebuild on that flip as well
   if(sig!==KA.availSeen){const first=KA.availSeen===null;KA.availSeen=sig;if(!SG.on&&(!PR.on||!first)){buildHotbar();buildTouchButtons();}if(a&&!first)feed('Destroy unlocked',touchOn()?'The DESTROY button':'Press Enter');}
 }
 // ---- the hotbar and touch button of the Prism form, and the Destroy slot ----
-function prBuildHotbar(){
-  if(kathanaDone())return; // the form stays, its DESTROY skill is gone
-  const s=el('div',{class:'slot prism'},el('kbd',{text:touchOn()?'':'1'}),el('span',{class:'nm',text:'DESTROY'}),el('small',{text:'Prism'}));s.addEventListener('click',()=>{if(canAct())destroyStart(true);});
-  hud.hotbar.appendChild(s);slotEls.push({pr:true,s});
-}
-function prTouchButtons(){if(kathanaDone())return;const b=tbMake('p0','a0','burst','DESTROY','B','ab prismb');b.prepend(el('i',{class:'cd',hidden:true}));}
 function prDestroySlot(){
   const s=el('div',{class:'slot dz'},el('kbd',{text:touchOn()?'':'Enter'}),el('span',{class:'nm',text:'DESTROY'}),el('small',{text:'Kathana'}));s.addEventListener('click',()=>destroyKey());
   hud.hotbar.appendChild(s);slotEls.push({pr:true,s});
@@ -96,7 +47,7 @@ function prDestroySlot(){
 function destroyKey(){
   if(kathanaDone())return false;
   if(state!=='play'||paused||P.dead||ASK||dialOpen||cutLocked()||zone||KA.on||!storySolo())return false;
-  if(PR.on){destroyStart(true);return true;}
+  if(PR.on){if(!prDestroyOk())return false;destroyStart(true);return true;}
   if(!destroyAvail())return false;
   destroyStart(false);return true;
 }
@@ -112,6 +63,7 @@ function kathanaBegin(){
   KA.on=true;KA.phase='enter';KA.lost=false;KA.stage=1;
   KA.ret=P.pos.y>CEIL?{x:-80,y:44,z:0,yaw:Math.PI/2,fly:true}:null; // from space (the Prism form's Sun) the way back is above the city
   if(!enterZone('void',{x:0,y:0,z:70,yaw:0},kathanaDark)){KA.on=false;KA.phase='';return false;}
+  if(PR.ts)prismTsEnd(true); // the Prism form's Time Stop does not carry into the dark
   return true;
 }
 // the dark: only the hero is lit, a low rumble, then the light floods in (4.6 s, no control)
@@ -166,7 +118,6 @@ function kathanaLeave(){
   pfClear();KA.cracks=[];KA.gone=false;KA.sink=0;KA.split=0;KA.scream=0;KA.jit=0;
   for(const o of KA.orbs)if(o.a)removeActor(o.a);KA.orbs.length=0;kClearShots();
   if(SG.on&&SG.src==='arena')sunGodEnd(true);
-  if(PR.on)prismEnd('lost');
   arenaHp=1;P.hp=Math.min(P.hp,maxHp());lockT=null;
   KA.on=false;KA.fight=false;KA.phase='';KA.atk=null;KA.beam=null;objective(null);objectiveMark(null);
   const f=$('fade');if(f&&!ZF.phase)f.style.opacity='0';

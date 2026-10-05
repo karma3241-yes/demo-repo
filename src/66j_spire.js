@@ -432,7 +432,7 @@ function sovTick(dt){
   SOV.rage+=((SOV.ph===2?1:0)-SOV.rage)*Math.min(1,dt*2);
   if(SOV.sayT>0){SOV.sayT-=dt;if(SOV.sayT<=0){const e=$('sovsay');if(e)e.classList.remove('on');}}
   if(!a.alive)return;
-  const dtw=dt*worldTimeK();
+  const dtw=dt*prBossK('sov'); // Prism's Time Stop holds the Sovereign for 6 s, then he breaks out
   sovFxTick(dtw);
   if(!SOV.fight||SOV.won||P.dead||state!=='play')return;
   if(SOV.ts){sovTsTick(dt);return;}
@@ -458,7 +458,7 @@ function sovTransition(){
 }
 // ---- time stop ----
 function sovTsStart(){
-  const a=SOV.a;if(timeStopT>0||frozenT>0||CUT||ASK||!a)return false;
+  const a=SOV.a;if(timeStopT>0||frozenT>0||PR.ts||PR.on||CUT||ASK||!a)return false;
   SOV.ts={ph:'warn',t:0,tk:0,k:0,alt:false};const w=$('tswarn');if(w)w.classList.add('on');SFX.tone('sine',110,70,1.0,0.12);return true;
 }
 function sovTsTick(dt){

@@ -224,7 +224,7 @@ function openerTick(dt){
   const now=performance.now(),rdt=clamp((now-OPN.last)/1000,0,0.05);OPN.last=now;OPN.t+=rdt;
   // nobody dies in the opener
   {const f=maxHp()*0.2;if(P.hp<f)P.hp=f;if(P.dead){P.dead=false;$('dead').hidden=true;P.hp=maxHp();}}
-  {const wdt=dt*worldTimeK();for(const a of OPN.twins.slice())twinUpdate(a,wdt);} // Time Stop and the like freeze the twins with the rest of the world
+  {const wdt=dt*prBossK('twins');for(const a of OPN.twins.slice())twinUpdate(a,wdt);} // Time Stop and the like freeze the twins with the rest of the world (Prism's: they break out after 20 s)
   if(OPN.say&&OPN.t>OPN.sayT)opnSayHide();
   if(OPN.flashHold>0){OPN.flashHold-=rdt;flashWhite=Math.max(flashWhite,1);}
   OPN.freeze=!!(CUT&&!CUT.control);

@@ -75,11 +75,11 @@ function endTimeStop(){
   if(q.length){SFX.boom(0.8,0.8);addShake(0.5);feed(q.length+' hits landed at once','');}flashWhite=0.3;
 }
 // the world clock: 0 while time is stopped, slowed by Slow Time (single player) and Time Dilation
-function worldTimeK(){if(timeStopT>0||frozenT>0)return 0;if(MP.online())return 1;if(P.slowOn&&isSpeed())return slowK;if(timeDil>0)return 0.25;return 1;}
+function worldTimeK(){if(timeStopT>0||frozenT>0||PR.ts)return 0;if(MP.online())return 1;if(P.slowOn&&isSpeed())return slowK;if(timeDil>0)return 0.25;return 1;}
 function updateTimeStop(dt){
   if(timeStopT>0){timeStopT-=dt;const L=tsPath[tsPath.length-1];if(Math.hypot(P.pos.x-L[0],P.pos.z-L[2])>2&&tsPath.length<400)tsPath.push([P.pos.x,P.pos.y+1.2,P.pos.z]);if(timeStopT<=0)endTimeStop();}
   if(frozenT>0){frozenT-=dt;if(frozenT<=0&&tsBy){const r=tsBy;if(r.tsPos)streak(r.tsPos.x,r.tsPos.y+1.2,r.tsPos.z,r.pos.x,r.pos.y+1.2,r.pos.z);tsBy=null;}}
-  canvas.classList.toggle('tstop',timeStopT>0||frozenT>0);canvas.classList.toggle('slowmo',!(timeStopT>0||frozenT>0)&&((P.slowOn&&isSpeed())||timeDil>0));
+  canvas.classList.toggle('tstop',timeStopT>0||frozenT>0||PR.ts);canvas.classList.toggle('prts',PR.ts&&!(timeStopT>0||frozenT>0));canvas.classList.toggle('slowmo',!(timeStopT>0||frozenT>0||PR.ts)&&((P.slowOn&&isSpeed())||timeDil>0));
 }
 // lightning streak between two points
 function streak(ax,ay,az,bx,by,bz){const n=Math.max(2,Math.min(12,Math.round(Math.hypot(bx-ax,by-ay,bz-az)/4)));let px=ax,py=ay,pz=az;

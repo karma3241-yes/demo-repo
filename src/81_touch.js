@@ -71,6 +71,7 @@ function buildTouchButtons(){
   tbMake('oath','oath','oath','Oath','C');tbMake('rebuild','rebuild','rebuild','Rebuild','C');
   tbMake('fast','fast','run','Fast','C');tbMake('phase','phase','phase','Walls','C');tbMake('dial','dialcycle','dialUp','Dial','C');
   tbMake('suit','suit','shirt','Suit','C');tbMake('rewind','rewind','rewind','Rewind','C');tbMake('destroy','destroy','burst','Destroy','C','dz','#ff8aa8');
+  {const b=tbMake('asc','asc','sparkle','Ascend','C','prismb');b.prepend(el('i',{class:'cd',hidden:true}));}
   layoutTouch(true);
 }
 // which buttons fit what you're doing right now
@@ -84,7 +85,7 @@ function tbWanted(){
     if(!P.swim&&!P.alien&&invFlyOk()&&!hasPower('flight')&&(m==='webSwing'||m==='superSpeed'))on.add('flyx');} // web and run heroes already use the traversal slot, so their invasion Fly goes to ring C
   for(let i=0;i<4;i++)if(TB['p'+i])on.add('p'+i);
   if(nearestInteract())on.add('use');
-  if(P.alien||SG.on||PR.on){if(!PR.on&&!arenaSG())on.add('wheel');return on;}
+  if(P.alien||SG.on||PR.on){if(!PR.on&&!arenaSG())on.add('wheel');if(!PR.on)on.add('asc');return on;} // (Ascend: always there, in a Sun God or an alien form too)
   if(heldSlot>=0||con){on.add('grow');on.add('shrink');}
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
@@ -94,9 +95,10 @@ function tbWanted(){
   if(!con)on.add('suit');
   if(rewindOn())on.add('rewind');
   if(destroyAvail())on.add('destroy');
+  on.add('asc');
   return on;
 }
-const TB_ORDER_C=['wheel','lock','use','flyx','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit','rewind','destroy'];
+const TB_ORDER_C=['wheel','lock','use','flyx','grow','shrink','alt','cx','tkmore','oath','rebuild','fast','phase','dial','suit','rewind','destroy','asc'];
 function layoutTouch(force){
   if(!touchOn()||state!=='play')return;
   if(!force&&time-tbT<0.15)return;tbT=time;
@@ -114,7 +116,7 @@ function layoutTouch(force){
   for(const id in TB){const t=TB[id];if(!on.has(id)||!ringA[t.ring])continue;const [d,sz]=ringA[t.ring];const [x,y]=at(A,d);put(t,x,y,sz);}
   // the powers share ring B, evenly from straight up to straight left
   const ps=[0,1,2,3,4].map(i=>'p'+i).filter(id=>on.has(id)),B=184*k,bs=58*k;
-  ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,PR.on?bs*1.5:bs);}); // the Prism form's one skill (Destroy) is big
+  ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,PR.on?bs*1.2:bs);}); // the Prism form's skills are a little bigger
   // ring C packs the rest from the top down, spilling into ring D
   let r=252*k,d=-1;const cs=48*k,step=r=>2*Math.asin(Math.min(1,(cs+8*k)/(2*r)))*180/Math.PI;
   for(const id of TB_ORDER_C){if(!on.has(id)||TB[id].ring!=='C')continue;
@@ -150,6 +152,7 @@ function touchAct(a,down){
   else if(a==='con'){if(down)summonConstruct();}
   else if(a==='vkey'){if(down)vPress();}
   else if(a==='destroy'){if(down)destroyKey();}
+  else if(a==='asc'){if(down)prismHoldStart('touch');else prismHoldEnd();}
   else if(a==='oath'){if(oathHoldMode()){if(down)holdOathStart('touch');else holdOathStop();}else if(down){if(ringLocked())closeOath();else openOath();}}
   else if(a==='alt'){constructAlt(down);}
   else if(a==='cx'){if(down)constructX();}

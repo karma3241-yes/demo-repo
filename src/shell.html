@@ -122,6 +122,13 @@ kbd:empty{display:none}
 /* Sun God: the pill under the meters, the Eclipse darkening and the gold-white tint inside the Sun */
 #sgbar{display:flex;align-items:center;gap:8px;padding:3px 12px;border-radius:999px;background:rgba(40,24,0,.74);border:1px solid rgba(255,210,100,.75);color:#ffe9a8;font:700 11px var(--hud);letter-spacing:.14em;text-transform:uppercase;box-shadow:0 0 14px rgba(255,190,60,.45)}
 #sgbar[hidden]{display:none}#sgbar i{display:block;width:90px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden}#sgbar b{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff9a1a,#fff1b8)}
+#prbar{display:flex;align-items:center;gap:8px;padding:3px 12px;border-radius:999px;background:rgba(14,10,30,.8);border:1px solid #fff;color:#fff;font:700 11px var(--hud);letter-spacing:.14em;text-transform:uppercase;box-shadow:0 0 14px rgba(190,120,255,.55);animation:prismhue 3.2s linear infinite}
+#prbar[hidden]{display:none}#prbar i.e{display:block;width:150px;height:7px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden}#prbar i.e b{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff3d6e,#ffd23c,#3dff9c,#46a0ff,#b46bff);transition:width .08s linear}
+#prbar em{font-style:normal;color:#ffe9a8;min-width:56px;text-align:right}#prbar.ts{box-shadow:0 0 18px rgba(255,255,255,.8)}#prbar.low i.e{box-shadow:0 0 8px #ff3d6e}
+body.touch #prbar{justify-self:start}
+.slot.prx{border-color:#fff;background:linear-gradient(120deg,rgba(255,60,120,.2),rgba(255,210,60,.18),rgba(60,255,160,.18),rgba(70,140,255,.22));pointer-events:auto;cursor:pointer}.slot.prx small{color:#fff}.slot.prx.dim{opacity:.45}.slot.prx.on{box-shadow:0 0 14px rgba(255,255,255,.8) inset}
+#asc{position:absolute;left:216px;bottom:22px;width:62px;height:62px;border-radius:50%;border:1.5px solid #fff;background:linear-gradient(120deg,rgba(255,60,120,.5),rgba(255,210,60,.5),rgba(60,255,160,.5),rgba(70,140,255,.5));color:#fff;font:700 9px var(--hud);letter-spacing:.1em;display:grid;place-items:center;align-content:center;gap:1px;pointer-events:auto;cursor:pointer;padding:0;overflow:hidden;animation:prismhue 3.2s linear infinite,dzglow 1.6s ease-in-out infinite;touch-action:none}
+#asc[hidden]{display:none}#asc kbd{font:700 17px var(--hud);border:0;background:none;padding:0}#asc .ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(transparent var(--p,0%),rgba(0,0,0,.62) 0);opacity:0}#asc.hold .ring{opacity:1}#asc.hold{box-shadow:0 0 18px 4px rgba(255,255,255,.8)}
 #sgbar.dark{background:rgba(14,4,28,.82);border-color:rgba(190,120,255,.8);color:#e7d2ff;box-shadow:0 0 14px rgba(150,70,255,.5)}#sgbar.dark b{background:linear-gradient(90deg,#6a2cc4,#ffd36b)}
 body.touch #sgbar{justify-self:start}
 #sgdark{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;background:radial-gradient(ellipse at center,rgba(10,0,24,.42) 0%,rgba(0,0,6,.86) 100%)}
@@ -390,6 +397,7 @@ body.touch #guide{top:auto;bottom:auto;right:auto;left:calc(10px + var(--safe-l)
  #gl.slowmo{filter:saturate(.55) contrast(1.08) hue-rotate(-8deg)}
   #gl.rewind{filter:grayscale(.55) sepia(.6) hue-rotate(172deg) saturate(1.7) brightness(1.05) contrast(1.05)}
  #gl.tstop{filter:saturate(.12) contrast(1.15) brightness(1.04) sepia(.18)}
+ #gl.tstop.prts{filter:saturate(.32) contrast(1.05) brightness(.97)} /* Prism's Time Stop: the rainbow still shows */
 #lockmark{position:absolute;left:0;top:0;width:46px;height:46px;border:2px solid #ff5a3d;border-radius:8px;box-shadow:0 0 10px rgba(255,90,61,.7);clip-path:polygon(0 0,35% 0,35% 12%,12% 12%,12% 35%,0 35%,0 65%,12% 65%,12% 88%,35% 88%,35% 100%,65% 100%,65% 88%,88% 88%,88% 65%,100% 65%,100% 35%,88% 35%,88% 12%,65% 12%,65% 0,100% 0,100% 100%,0 100%);pointer-events:none}
 #combo{position:absolute;left:50%;top:calc(50% - 64px);transform:translateX(-50%);font-family:var(--display);font-size:22px;color:#fff1b8;text-shadow:0 2px 0 #7a3a00,0 0 12px rgba(255,160,40,.7);pointer-events:none}
 #combo.pop{animation:comboPop .18s ease-out}@keyframes comboPop{from{transform:translateX(-50%) scale(1.35)}to{transform:translateX(-50%) scale(1)}}

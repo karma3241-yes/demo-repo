@@ -22,8 +22,8 @@ function storyTick(dt){
     if(solo&&state==='play'&&!P.dead){
       if(storyActiveNow())save.story.act+=dt;
       openerTick(dt);ufoTick(dt);kathanaTick(dt);invTick(dt);cyberTick(dt);spireTick(dt);
-      if(zone&&zone.update)zone.update(dt*worldTimeK());
-    }else if(PR.on&&(P.dead||!solo))prismEnd('lost');
+      if(zone&&zone.update)zone.update(dt*(inVoid()?prBossK('kathana'):worldTimeK()));
+    }
     objRefresh();hushSync();
   }catch(e){logErr(e);}
 }

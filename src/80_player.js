@@ -29,6 +29,7 @@ addEventListener('keydown',e=>{
   if(P.swim&&e.code==='KeyC')return; // C dives while swimming
   if(e.code==='KeyG'){interact();return;}
   if(e.code==='KeyZ'){lockToggle();return;}
+  if(e.code==='KeyT'&&!e.shiftKey){prismHoldStart('key');return;} // hold T for 3 s: Prism Ascension (Shift+T is the fast clock)
   if(e.code==='KeyU'&&!arenaSG()){suitToggle();return;}
   if(arenaSG()&&(e.code==='KeyV'||e.code==='KeyB'||e.code==='KeyU'||e.code==='KeyN'))return; // in Kathana's arena you fight as the Sun God: no forms
   if(e.code==='Enter'||e.code==='NumpadEnter'){if(!e.repeat&&destroyKey())e.preventDefault();return;}
@@ -57,8 +58,8 @@ function vHoldEnd(ts){
   if(!opened){if(vHoldOk()&&!dialOpen)openDial('construct');return;}
   if(dialOpen&&dialSel>=0)dialConfirm();
 }
-addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyV')vHoldEnd(e.timeStamp);if(e.code==='KeyY')openerY(false);if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
-addEventListener('blur',()=>{clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<4;i++)abilityUp(i,true);webRelease();P.charging=false;});
+addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyV')vHoldEnd(e.timeStamp);if(e.code==='KeyT')prismHoldEnd();if(e.code==='KeyY')openerY(false);if(e.code in SLOT_CODES&&heldSlot===SLOT_CODES[e.code])heldSlot=-1;if(state!=='play')return;if(e.code in SLOT_CODES)abilityUp(SLOT_CODES[e.code]);if(e.code==='Space')releaseJump();if(e.code==='KeyF')flyChargeRelease();});
+addEventListener('blur',()=>{prismHoldEnd();clearTimeout(vHoldTimer);vHoldTimer=0;vHoldAt=0;vHeldOpen=false;heldSlot=-1;for(const k in keys)keys[k]=false;mouseL=false;mmbLook=rmbLook=false;for(let i=0;i<4;i++)abilityUp(i,true);webRelease();P.charging=false;});
 canvas.addEventListener('mousedown',e=>{
   if(state!=='play'||touchOn())return;
   if(paused){if(!sheetOpen&&!creating)resume();return;}
