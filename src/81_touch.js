@@ -116,7 +116,7 @@ function layoutTouch(force){
   for(const id in TB){const t=TB[id];if(!on.has(id)||!ringA[t.ring])continue;const [d,sz]=ringA[t.ring];const [x,y]=at(A,d);put(t,x,y,sz);}
   // the powers share ring B, evenly from straight up to straight left
   const ps=[0,1,2,3,4].map(i=>'p'+i).filter(id=>on.has(id)),B=184*k,bs=58*k;
-  ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,PR.on?bs*1.2:bs);}); // the Prism form's skills are a little bigger
+  ps.forEach((id,i)=>{const d=ps.length>1?90+i*90/(ps.length-1):135;const [x,y]=at(B,d);put(TB[id],x,y,bs);});
   // ring C packs the rest from the top down, spilling into ring D
   let r=252*k,d=-1;const cs=48*k,step=r=>2*Math.asin(Math.min(1,(cs+8*k)/(2*r)))*180/Math.PI;
   for(const id of TB_ORDER_C){if(!on.has(id)||TB[id].ring!=='C')continue;
