@@ -121,9 +121,10 @@ function ufoArrive(quick){
   const tx=cx+(UFO.x-cx)*0.22,tz=cz+(UFO.z-cz)*0.22,up=Math.max(ufoCamY(cx,cz,0),ufoCamY(tx,tz,0),ufoCamY((cx+tx)/2,(cz+tz)/2,0)); // one clear height for the whole glide
   const from={x:cx,y:Math.max(P.pos.y+3,up),z:cz},to={x:tx,y:Math.max(P.pos.y+14,up+9),z:tz};
   UFO.y=1100;UFO.leaving=false;
-  cutscene({dur:8,text:save.guide.opener==='done'?'Nuku is back, and he brought his entire base':'Something huge just arrived over Nova Bay',from,to,look:()=>({x:UFO.x,y:UFO.y,z:UFO.z}),fov:62,
+  cutscene({dur:8,text:save.guide.opener===true?'Nuku is back, and he brought his entire base':'Something huge just arrived over Nova Bay',from,to,look:()=>({x:UFO.x,y:UFO.y,z:UFO.z}),fov:62,
     onTick:(k,dt)=>{const e=1-Math.pow(1-k,3);UFO.y=lerp(1100,UFO_Y,e);addShake(0.05*(1-k)+0.02);if(k>0.02&&k<0.04)SFX.tone('sawtooth',50,35,6,0.12);},
-    onEnd:()=>{UFO.y=UFO_Y;UFO.waitT=0;flashWhite=Math.max(flashWhite,0.25);SFX.boom(0.6,1.2);addShake(0.4);objective('Fly up into the UFO');objectiveMark(UFO.x,UFO.y-26,UFO.z,'UFO');}});
+    onEnd:()=>{UFO.y=UFO_Y;UFO.waitT=0;flashWhite=Math.max(flashWhite,0.25);SFX.boom(0.6,1.2);addShake(0.4);objective('Fly up into the UFO');objectiveMark(UFO.x,UFO.y-26,UFO.z,'UFO');
+      if(save.guide.opener===true)toast('Nuku','"I said I would be back with my entire base!"','gold');}});
 }
 function ufoAsk(){
   if(ASK||CUT||ZF.phase)return;

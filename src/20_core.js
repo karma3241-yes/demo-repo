@@ -220,7 +220,7 @@ function loadSave(raw){ // raw: a save as JSON text (the CrazyGames cloud copy);
   f.goal=typeof s.goal==='number'?Math.floor(num(s.goal,0,-1,99)):-1; // -1: a save from before goals
   if(s.daily&&typeof s.daily==='object'){const d=s.daily;if(typeof d.last==='string'&&/^\d{4}-\d\d-\d\d$/.test(d.last))f.daily.last=d.last;if(Number.isInteger(d.streak)&&d.streak>=0&&d.streak<=7)f.daily.streak=d.streak;} // last claim (local date) and the streak
   if(s.story&&typeof s.story==='object'){const t=s.story,st=f.story;st.act=num(t.act,0,0,1e9);for(const k of ['ufo','kathana','kp','invasion','cyber','tower','tf'])st[k]=Math.floor(num(t[k],0,0,30));st.item=isHero(t.item)?t.item:'';st.destroy=t.destroy===true;} // the story: only known fields, ints are stages
-  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks','swap','lockNear','sgV','sgSun'])if(s.guide[k]===true)f.guide[k]=true;
+  if(s.guide&&typeof s.guide==='object')for(const k of ['move','punch','ability','skills','crime','done','lock','wallrun','car','wheel','grow','unlocks','swap','lockNear','sgV','sgSun','opener','openerP'])if(s.guide[k]===true)f.guide[k]=true;
   return f;
 }
 const save=loadSave();GFX_SAVE=save;

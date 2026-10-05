@@ -3,8 +3,8 @@
 // ================================================================
 // A fresh profile skips the menu and drops into the intact city as The Strongest (startAsStrongest in 70_ui.js). The twin aliens Nala and Nuku attack at once and the game teaches
 // fly (F), lock-on (Z), attack and powers in the fight; at half health Nala blasts the whole town flat (one buffer write behind a white flash, never building by building),
-// the player wins in the ruins, Nuku flees ("I'll be back with my entire base!") and Y rebuilds the city in a bird's-eye sweep. save.guide.opener: 'pending' while it runs
-// (a player who leaves midway gets it again on Continue), 'done' afterwards. Returning players and cloud saves have a hero, so they never get it; rooms skip it (solo only).
+// the player wins in the ruins, Nuku flees ("I'll be back with my entire base!") and Y rebuilds the city in a bird's-eye sweep. save.guide.openerP is true while it runs
+// (a player who leaves midway gets it again on Continue), save.guide.opener once it is over (guide keys are whitelisted booleans in loadSave). Returning players and cloud saves have a hero, so they never get it; rooms skip it (solo only).
 // Steps: cold, fly, flying, lock, fight1, blast, fight2, escape, say, rebuild, sweep, handoff. The Skip button jumps to the hand-off with the city intact.
 // Slow-motion prompts scale the game's dt (frameBody in 99_main.js), so the opener's own clock (OPN.t) runs on real time. Nuku can't be beaten (hp floor 35%), Nala can't die
 // before the blast, and the player never drops below 20% health (Damage.apply in 30_systems.js).
@@ -19,24 +19,25 @@ const TWIN_SC=2;
 // ---- UI: the prompt card, the dim, the attack hint, the speech box and the Skip button ----
 const opnDim=el('div',{id:'opn-dim',hidden:true});
 const opnKeyEl=el('div',{class:'opn-key'},el('span'));
-const opnCard=el('div',{id:'opn-card',hidden:true},el('div',{class:'opn-t'}),el('div',{class:'opn-arrow',text:'▼'}),opnKeyEl);
+const opnTitle=el('div',{id:'opn-title',hidden:true});
+const opnCard=el('div',{id:'opn-card',hidden:true},el('div',{class:'opn-arrow',text:'▼'}),opnKeyEl);
 const opnHint=el('div',{id:'opn-hint',hidden:true},el('div',{class:'oh a'},el('kbd',{text:'Click'}),el('b',{text:'Attack'})),el('div',{class:'oh p'},el('kbd',{text:'1'}),el('b',{text:'Power'})));
 const opnSay=el('div',{id:'opn-say',hidden:true},el('i'),el('p'));
-const opnSkip=el('button',{id:'opn-skip',type:'button',hidden:true,text:'Skip intro',onclick:()=>openerSkip()});
-document.body.append(opnDim,opnCard,opnHint,opnSay,opnSkip);
+const opnSkip=el('button',{id:'opn-skip',type:'button',hidden:true,onclick:()=>openerSkip()},'Skip intro',el('kbd',{text:'Backspace'})); // the mouse is locked while you play, so Backspace skips too
+document.body.append(opnDim,opnTitle,opnCard,opnHint,opnSay,opnSkip);
 const opnTbSel=['fly','lock','punch','p0','rebuild'];
 function opnPulse(id){for(const k of opnTbSel){const t=TB[k];if(t&&t.b)t.b.classList.toggle('opn-pulse',k===id);}}
 // keycap prompt: key = the keyboard label, tb = the touch button to point at
 function opnShow(title,key,tb){
-  OPN.prompt={title,key,tb};opnCard.hidden=false;opnCard.querySelector('.opn-t').textContent=title;
+  OPN.prompt={title,key,tb};opnCard.hidden=false;opnTitle.hidden=false;opnTitle.textContent=title;
   const touch=touchOn();opnKeyEl.hidden=touch;opnKeyEl.firstChild.textContent=key;opnCard.classList.toggle('touch',touch);
   opnCard.querySelector('.opn-arrow').style.transform='';
 }
-function opnHidePrompt(){OPN.prompt=null;opnCard.hidden=true;opnDim.hidden=true;opnPulse(null);opnKeyEl.style.setProperty('--p','0%');}
+function opnHidePrompt(){OPN.prompt=null;opnCard.hidden=true;opnTitle.hidden=true;opnDim.hidden=true;opnPulse(null);opnKeyEl.style.setProperty('--p','0%');}
 function opnPromptTick(){
   const p=OPN.prompt;if(!p)return;
   if(touchOn()){const t=TB[p.tb],b=t&&!t.b.hidden?t.b:null;opnPulse(p.tb);
-    if(b){const r=b.getBoundingClientRect(),ar=opnCard.querySelector('.opn-arrow');opnCard.style.left=(r.left+r.width/2)+'px';opnCard.style.top=Math.max(34,r.top-96)+'px';opnCard.style.bottom='auto';ar.style.transform='';}
+    if(b){const r=b.getBoundingClientRect(),ar=opnCard.querySelector('.opn-arrow');opnCard.style.left=(r.left+r.width/2)+'px';opnCard.style.top=Math.max(40,r.top-64)+'px';opnCard.style.bottom='auto';ar.style.transform='';}
   }else{opnCard.style.left='';opnCard.style.top='';opnCard.style.bottom='';}
 }
 function opnSaySet(who,text,dur){
@@ -47,8 +48,9 @@ function opnSayHide(){OPN.say=null;opnSay.hidden=true;}
 // ---- begin / finish / skip ----
 function openerBegin(){
   if(OPN.on||!save.character)return;
-  if(!storySolo()||MP.online()){save.guide.opener='done';persist();return;}
-  save.guide.opener='pending';persist();
+  if(!storySolo()||MP.online()){save.guide.opener=true;persist();return;}
+  save.guide.openerP=true;save.guide.lockNear=true;persist(); // lockNear: the game's own "Press Z to lock on" toast would talk over the opener's prompt
+  
   OPN.on=true;OPN.step='cold';OPN.t=0;OPN.t0=0;OPN.last=performance.now();OPN.slow=false;OPN.twins.length=0;OPN.spawned=false;OPN.fired=0;OPN.s1=OPN.s2=false;OPN.fPress=false;OPN.started=false;OPN.down=false;OPN.hold=0;OPN.nala=OPN.nuku=null;OPN.charge=null;OPN.used={atk:false,pow:false};OPN.hintOn=false;OPN.act=0;OPN.ruined=false;
   const s=SPAWNS[0];P.pos.set(s[0],0,s[1]);P.yaw=s[2];P.pitch=-0.05;P.vel.set(0,0,0);P.flying=false;P.hp=maxHp();P.en=maxEn();lockT=null;
   opnSkip.hidden=false;renderGuide();
@@ -56,7 +58,7 @@ function openerBegin(){
 function openerFinish(skipped){
   if(!OPN.on)return;
   OPN.on=false;OPN.slow=false;OPN.step='';opnHidePrompt();opnSayHide();opnHint.hidden=true;opnSkip.hidden=true;opnDim.hidden=true;hud.bossbar.hidden=true;
-  save.guide.opener='done';save.guide.move=save.guide.punch=true;if(OPN.used.pow||!skipped)save.guide.ability=true;
+  save.guide.opener=true;save.guide.openerP=false;save.guide.move=save.guide.punch=true;if(OPN.used.pow||!skipped)save.guide.ability=true;
   save.story.act=0; // the UFO arc comes a few minutes after the opener, not during it
   persist();renderGuide();buildHotbar();buildTouchButtons();claimDaily();
   if(P.hp<maxHp()*0.5)P.hp=maxHp()*0.5;
@@ -71,7 +73,7 @@ function openerSkip(){
   if(OPN.ruined)openerRuins(false);
   for(const b of bldgs)if(b.state==='ring'){b.state='up';b.off=0;b.hp=b.maxHp;b.rubble=null;for(const c of b.cols)c.dead=false;bldActive.delete(b);}
   openerWriteAll();
-  OPN.charge=null;flashWhite=0;lockT=null;
+  OPN.charge=null;OPN.flashHold=0;flashWhite=0;lockT=null;
   openerFinish(true);
 }
 function openerRemoveTwin(a){removeActor(a);if(lockT===a)lockT=null;}
@@ -196,7 +198,7 @@ function openerBar(){
 // ---- the player's inputs the opener watches ----
 const opnNote=()=>{OPN.act=OPN.t;};
 addEventListener('mousedown',e=>{if(OPN.on&&e.button===0){opnNote();OPN.used.atk=true;}},true);
-addEventListener('keydown',e=>{if(!OPN.on||e.repeat)return;if(e.code==='KeyZ')OPN.zTry=true;
+addEventListener('keydown',e=>{if(!OPN.on||e.repeat)return;if(e.code==='Backspace'&&!ASK&&!/^(INPUT|TEXTAREA)$/.test((e.target&&e.target.tagName)||'')){e.preventDefault();openerSkip();return;}if(e.code==='KeyZ')OPN.zTry=true;
   if(e.code==='Digit1'||e.code==='Digit2'||e.code==='Digit3'||e.code==='Digit4'||e.code==='KeyQ'||e.code==='KeyE'||e.code==='KeyR'){opnNote();OPN.used.pow=true;}},true);
 {const tb=$('tbtns');if(tb)tb.addEventListener('pointerdown',e=>{if(!OPN.on)return;const b=e.target.closest&&e.target.closest('.tb');if(!b)return;const a=b.dataset.act;
   if(a==='lock')OPN.zTry=true;else if(a==='punch'){opnNote();OPN.used.atk=true;}else if(/^a[0-3]$/.test(a)){opnNote();OPN.used.pow=true;}},true);}
@@ -266,7 +268,7 @@ function openerTick(dt){
       break;
     case 'say':
       if(T>0.3&&!OPN.s1){OPN.s1=true;opnSaySet('','You should get stronger.',2.8);}
-      if(T>3.3&&!OPN.s2){OPN.s2=true;opnSaySet('','For now, press Y to rebuild the city with your power.',60);openerGo('rebuild',true);}
+      if(T>3.3&&!OPN.s2){OPN.s2=true;opnSaySet('',touchOn()?'For now, hold REBUILD to rebuild the city with your power.':'For now, press Y to rebuild the city with your power.',60);openerGo('rebuild',true);}
       break;
     case 'rebuild':{
       const hold=OPN.down&&OPN.started;OPN.hold=clamp(OPN.hold+(hold?rdt:-rdt*1.5),0,1.2);
@@ -285,7 +287,7 @@ function openerGo(step,keepSay){
   const touch=touchOn();
   if(step==='fly'){OPN.slow=true;opnDim.hidden=false;opnShow(touch?'Tap FLY':'Press to fly','F','fly');}
   else if(step==='lock'){
-    OPN.slow=true;opnDim.hidden=false;const n=OPN.nala;
+    OPN.zTry=false;OPN.slow=true;opnDim.hidden=false;const n=OPN.nala;
     if(n){const c=center(n),dx=c.x-P.pos.x,dy=c.y-(P.pos.y+1.8),dz=c.z-P.pos.z,h=Math.hypot(dx,dz)||1;P.yaw=Math.atan2(-dx,-dz);P.pitch=clamp(Math.atan2(dy,h)-0.12,-1.1,0.9);}
     opnShow(touch?'Tap LOCK to lock on to Nala':'Lock on to Nala','Z','lock');}
   else if(step==='fight1'){OPN.hintOn=true;OPN.act=OPN.t;opnSaySet('Nuku','Get her, Nala!',2.4);}
