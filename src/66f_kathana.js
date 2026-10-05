@@ -11,7 +11,7 @@
 // Knocked out: back to the city (save.story.kathana stays/sets 1). All four orbs gone: kathanaStage2() (a stub for the next phase).
 // For the next phase: the body is drawn from KA (position KA.bx/KA.bz, yaw, KA.by height offset, KA.vis hides her whole body, KA.split 0..1 opens the torso along a
 // vertical seam with a glow inside at kCore()), the hands are KA.hands[i] (local x,y,z, dead) and orbs KA.orbs[i] ({a: the actor, dead, col}).
-const PR={on:false,e:100,ts:false,free:false,enc:'',encT:0,rumble:false,bar:false,dry:false,kills:0,hold:0,holdSrc:'',fireAcc:0,sound:0,beams:[],bi:0,fx:[],used:{ts:false,bar:false,er:false},nudged:false,sun:false}; // the Prism form: see 66k_prismform.js
+const PR={on:false,e:100,ts:false,free:false,enc:'',encT:0,rumble:false,bar:false,kills:0,hold:0,holdSrc:'',fireAcc:0,sound:0,beams:[],bi:0,fx:[],arrows:[],ai:0,hits:new Map(),streaks:[],used:{ts:false,bar:false,er:false},nudged:false,sun:false}; // the Prism form: see 66k_prismform.js
 const KAR={x:0,y:0,z:9000};
 const KORB_COL=[[1,.04,.1],[.04,.32,1],[.04,.85,.2],[.62,.08,1]],KO_HP=12000,KA_REACH=148,KA_L1=72,KA_L2=82;
 const KS=[[-40,132,0],[40,132,0],[-30,98,6],[30,98,6]],KR=[[-108,122,92],[108,122,92],[-64,74,112],[64,74,112]]; // shoulders and resting hands (local: x right, y up, z toward the player)

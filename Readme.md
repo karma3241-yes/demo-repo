@@ -162,7 +162,7 @@ Upgrading the band unlocks more aliens, makes transformations last longer (45 s 
 | `Space` | Jump. Hold, then release for a super jump. Leap off walls |
 | `F` | Flight on/off. Hold it on the ground to charge, then let go to blast off into the sky |
 | `U` | Suit up / suit down |
-| Hold `T` (3 s) | **Prism Ascension**, every hero, anywhere (on touch: hold the **ASCEND** button): you can't be hurt and fly, and the hotbar becomes `1` Time Stop (toggle, bosses break out of it after a while), `2` Barrage (hold, 40 shots a second) and `3` Erase (locked target, 40% energy), paid for by a rainbow energy bar. It ends when a boss falls, when you Erase a boss, or after 100 kills. `Shift`+`T` is the fast clock |
+| Hold `T` (3 s) | **Prism Ascension**, every hero, anywhere (on touch: hold the **ASCEND** button): you can't be hurt and fly, and the hotbar becomes `1` Time Stop (toggle, bosses break out of it after a while), `2` Barrage (hold, 40 shots a second) and `3` Erase (locked target, 40% energy), paid for by one rainbow energy bar that starts at 100 and never recharges (Barrage 1/s, Time Stop 0.25/s, Erase 40; shots fired during Time Stop hang in the air and all fly home when time resumes). It ends when a boss falls, when you Erase a boss, after 100 kills, when the bar is empty, or when you hold `T` again for 3 s. `Shift`+`T` is the fast clock |
 | `O` | Ring Bearer: hold up the beacon and say (or type) the oath. While you're saying it, `O` or `Esc` puts it away |
 | `G` | Get in or out of a car, or help an injured person up |
 | `V` | Morph Band dial / change back (Ring Bearer: construct wheel; in a construct, tap to step out, hold for the wheel; Armored Inventor: suit forms; Web Runner, Tempest, Speedster: traversal styles) |

@@ -85,7 +85,7 @@ function tbWanted(){
     if(!P.swim&&!P.alien&&invFlyOk()&&!hasPower('flight')&&(m==='webSwing'||m==='superSpeed'))on.add('flyx');} // web and run heroes already use the traversal slot, so their invasion Fly goes to ring C
   for(let i=0;i<4;i++)if(TB['p'+i])on.add('p'+i);
   if(nearestInteract())on.add('use');
-  if(P.alien||SG.on||PR.on){if(!PR.on&&!arenaSG())on.add('wheel');if(!PR.on)on.add('asc');return on;} // (Ascend: always there, in a Sun God or an alien form too)
+  if(P.alien||SG.on||PR.on){if(!PR.on&&!arenaSG())on.add('wheel');on.add('asc');return on;} // (Ascend, or End inside the Prism form: always there, in a Sun God or an alien form too)
   if(heldSlot>=0||con){on.add('grow');on.add('shrink');}
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
