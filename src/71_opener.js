@@ -3,14 +3,16 @@
 // ================================================================
 // A fresh profile skips the menu and drops into the intact city as The Strongest (startAsStrongest in 70_ui.js). The twin aliens Nala and Nuku attack at once and the game teaches
 // fly (F), lock-on (Z), attack and powers in the fight; at half health Nala blasts the whole town flat (one buffer write behind a white flash, never building by building),
-// the player wins in the ruins, Nuku flees ("I'll be back with my entire base!") and Y rebuilds the city in a bird's-eye sweep. save.guide.openerP is true while it runs
+// the twins overpower the player (and the player is meant to lose): at zero health, in slow motion, the game asks to HOLD T (the ASCEND button), which is Prism Ascension (66k_prismform.js, every hero
+// has it); the first twin the player brings down ends the form and the other flees ("I'll be back with my entire base!"), then Y rebuilds the city in a bird's-eye sweep. save.guide.openerP is true while it runs
 // (a player who leaves midway gets it again on Continue), save.guide.opener once it is over (guide keys are whitelisted booleans in loadSave). Returning players and cloud saves have a hero, so they never get it; rooms skip it (solo only).
-// Steps: cold, fly, flying, lock, fight1, blast, fight2, escape, say, rebuild, sweep, handoff. The Skip button jumps to the hand-off with the city intact.
-// Slow-motion prompts scale the game's dt (frameBody in 99_main.js), so the opener's own clock (OPN.t) runs on real time. Nuku can't be beaten (hp floor 35%), Nala can't die
-// before the blast, and the player never drops below 20% health (Damage.apply in 30_systems.js).
+// Steps: cold, fly, flying, lock, fight1, blast, fight2, ascend, prism, escape, say, rebuild, sweep, handoff. The Skip button jumps to the hand-off with the city intact.
+// Slow-motion prompts scale the game's dt (frameBody in 99_main.js), so the opener's own clock (OPN.t) runs on real time. The twins can't be beaten until the player has ascended (hp floors), and the player never drops below 2% health (Damage.apply in 30_systems.js).
+// The fled twin is remembered in save.guide.fledNala (the UFO arc's cameo names it).
 const OPN={on:false,arm:false,step:'',t:0,t0:0,last:0,slow:false,twins:[],nala:null,nuku:null,say:null,sayT:0,zTry:false,act:0,used:{atk:false,pow:false},hintOn:false,
   hold:0,down:false,ruined:false,charge:null,prompt:null,flashHold:0,bar:null,spawned:false,fired:0};
 const OPN_SLOW=0.04; // the world's speed while a prompt waits for a key
+const OPN_DMG=2.4; // the twins hit this much harder than they used to: the player is meant to lose the first part
 const TWIN_PAL={
   nala:{skin:c4('#b98ed6'),hov:c4('#a77ac7'),suit:[.1,.05,.12,1],suit2:[.18,.08,.2,1],armor:c4('#d4244a'),trim:c4('#ffc93c'),glow:[1,.35,.6],eye:[.01,.005,.02,1]},
   nuku:{skin:c4('#7fd6d0'),hov:c4('#6ac4c0'),suit:[.04,.08,.14,1],suit2:[.07,.13,.22,1],armor:c4('#1f6fd0'),trim:c4('#bfe8ff'),glow:[.4,.8,1],eye:[.005,.01,.02,1]},
@@ -23,9 +25,10 @@ const opnTitle=el('div',{id:'opn-title',hidden:true});
 const opnCard=el('div',{id:'opn-card',hidden:true},el('div',{class:'opn-arrow',text:'▼'}),opnKeyEl);
 const opnHint=el('div',{id:'opn-hint',hidden:true},el('div',{class:'oh a'},el('kbd',{text:'Click'}),el('b',{text:'Attack'})),el('div',{class:'oh p'},el('kbd',{text:'1'}),el('b',{text:'Power'})));
 const opnSay=el('div',{id:'opn-say',hidden:true},el('i'),el('p'));
+const opnPHint=el('div',{id:'opn-phint',hidden:true},...[['1','Time Stop'],['2','Hold: Barrage'],['3','Erase (lock on)']].map(d=>el('div',{class:'oh'},el('kbd',{text:d[0]}),el('b',{text:d[1]}))));
 const opnSkip=el('button',{id:'opn-skip',type:'button',hidden:true,onclick:()=>openerSkip()},'Skip intro',el('kbd',{text:'Backspace'})); // the mouse is locked while you play, so Backspace skips too
-document.body.append(opnDim,opnTitle,opnCard,opnHint,opnSay,opnSkip);
-const opnTbSel=['fly','lock','punch','p0','rebuild'];
+document.body.append(opnDim,opnTitle,opnCard,opnHint,opnPHint,opnSay,opnSkip);
+const opnTbSel=['fly','lock','punch','p0','p1','p2','rebuild','asc'];
 function opnPulse(id){for(const k of opnTbSel){const t=TB[k];if(t&&t.b)t.b.classList.toggle('opn-pulse',k===id);}}
 // keycap prompt: key = the keyboard label, tb = the touch button to point at
 function opnShow(title,key,tb){
@@ -57,7 +60,7 @@ function openerBegin(){
 }
 function openerFinish(skipped){
   if(!OPN.on)return;
-  OPN.on=false;OPN.slow=false;OPN.step='';opnHidePrompt();opnSayHide();opnHint.hidden=true;opnSkip.hidden=true;opnDim.hidden=true;hud.bossbar.hidden=true;
+  OPN.on=false;OPN.slow=false;OPN.step='';opnHidePrompt();opnSayHide();opnHint.hidden=true;opnPHint.hidden=true;opnSkip.hidden=true;opnDim.hidden=true;hud.bossbar.hidden=true;
   save.guide.opener=true;save.guide.openerP=false;save.guide.move=save.guide.punch=true;if(OPN.used.pow||!skipped)save.guide.ability=true;
   save.story.act=0; // the UFO arc comes a few minutes after the opener, not during it
   persist();renderGuide();buildHotbar();buildTouchButtons();claimDaily();
@@ -68,6 +71,7 @@ function openerFinish(skipped){
 function openerSkip(){
   if(!OPN.on)return;
   if(CUT)cutEnd(false);
+  if(PR.on)prismEnd('skip');PR.hold=0;
   for(const a of OPN.twins.slice())openerRemoveTwin(a);OPN.twins.length=0;
   for(let i=projs.length-1;i>=0;i--)if(projs[i].owner&&projs[i].owner.twin)projs.splice(i,1);
   if(OPN.ruined)openerRuins(false);
@@ -119,7 +123,7 @@ function twinUpdate(a,dt){
   if(!a.alive){ // falls out of the sky
     a.deadT+=dt;a.vel.y-=30*dt;a.vel.x*=Math.pow(0.4,dt);a.vel.z*=Math.pow(0.4,dt);a.pos.addS(a.vel,dt);a.rx=lerp(a.rx,Math.PI/2,damp(3,dt));
     const g=groundY(a.pos.x,a.pos.z,a.pos.y+2);if(a.pos.y<g){a.pos.y=g;a.vel.y=0;}
-    if(a.deadT>4&&a.twin==='nala'&&!a.gone){a.gone=true;burst(a.pos.x,a.pos.y+1,a.pos.z,50,12,0.9,[a.pal.glow,[1,1,1]],1.6,-2,1.5);openerRemoveTwin(a);removeFrom(OPN.twins,a);}
+    if(a.deadT>4&&!a.gone){a.gone=true;burst(a.pos.x,a.pos.y+1,a.pos.z,50,12,0.9,[a.pal.glow,[1,1,1]],1.6,-2,1.5);openerRemoveTwin(a);removeFrom(OPN.twins,a);}
     return;}
   if(a.mode==='flee'){a.vel.x+=a.fx*40*dt;a.vel.z+=a.fz*40*dt;a.vel.y+=34*dt;a.pos.addS(a.vel,dt);a.heroYaw=angLerp(a.heroYaw,Math.atan2(a.fx,a.fz),damp(8,dt));
     emit(a.pos.x,a.pos.y+a.cy,a.pos.z,rr(-2,2),rr(-2,2),rr(-2,2),0.6,a.pal.glow,2.2,0,1);return;}
@@ -145,12 +149,12 @@ function twinUpdate(a,dt){
   if(a.cast){const C=a.cast;C.t+=dt;a.castT=time;
     if(C.kind==='lance'&&C.t<C.dur){const o={x:a.pos.x,y:a.pos.y+a.cy+0.3,z:a.pos.z};tracer(o.x,o.y,o.z,C.tx,C.ty,C.tz,[.4,.8,1],0.07,0.05);}
     if(C.t>=C.dur){a.cast=null;
-      if(C.kind==='nova'){const n=14,o={x:a.pos.x,y:a.pos.y+a.cy,z:a.pos.z};for(let i=0;i<n;i++){const an=i/n*TAU+rr(0,0.2);fireProj({kind:'plasma',owner:a,x:o.x,y:o.y,z:o.z,vx:Math.cos(an)*24,vy:rr(-1.5,0.5),vz:Math.sin(an)*24,dmg:8,r:0.7,life:3.2,knock:8,pc:a.pal.glow});}
+      if(C.kind==='nova'){const n=14,o={x:a.pos.x,y:a.pos.y+a.cy,z:a.pos.z};for(let i=0;i<n;i++){const an=i/n*TAU+rr(0,0.2);fireProj({kind:'plasma',owner:a,x:o.x,y:o.y,z:o.z,vx:Math.cos(an)*24,vy:rr(-1.5,0.5),vz:Math.sin(an)*24,dmg:8*OPN_DMG,r:0.7,life:3.2,knock:8,pc:a.pal.glow});}
         ringFx(o.x,o.y,o.z,1,12,0.6,a.pal.glow);SFX.boom(0.5*SFX.vol(o.x,o.y,o.z),0.6);addShake(0.2);}
-      else{const o={x:a.pos.x,y:a.pos.y+a.cy+0.3,z:a.pos.z},v=dirTo(o,C.tx,C.ty,C.tz);fireProj({kind:'bolt',owner:a,x:o.x,y:o.y,z:o.z,vx:v[0]*95,vy:v[1]*95,vz:v[2]*95,dmg:14,r:0.7,life:2,knock:12});SFX.tone('sawtooth',1400,100,0.25,0.1*SFX.vol(o.x,o.y,o.z));}}
+      else{const o={x:a.pos.x,y:a.pos.y+a.cy+0.3,z:a.pos.z},v=dirTo(o,C.tx,C.ty,C.tz);fireProj({kind:'bolt',owner:a,x:o.x,y:o.y,z:o.z,vx:v[0]*95,vy:v[1]*95,vz:v[2]*95,dmg:14*OPN_DMG,r:0.7,life:2,knock:12});SFX.tone('sawtooth',1400,100,0.25,0.1*SFX.vol(o.x,o.y,o.z));}}
     return;}
   a.fireT-=dt;if(a.fireT<=0){a.fireT=rr(1.3,2.1)*rate;a.burstN=a.twin==='nala'?3:1;a.burstT=0;}
-  if(a.burstN>0){a.burstT-=dt;if(a.burstT<=0){a.burstT=0.2;a.burstN--;twinShot(a,40,7,a.pal.glow,1.2);OPN.fired++;}}
+  if(a.burstN>0){a.burstT-=dt;if(a.burstT<=0){a.burstT=0.2;a.burstN--;twinShot(a,40,7*OPN_DMG,a.pal.glow,1.2);OPN.fired++;}}
   a.specT-=dt;if(a.specT<=0&&a.burstN<=0){a.specT=(a.twin==='nala'?9:7)*rate;
     if(a.twin==='nala')a.cast={kind:'nova',t:0,dur:1.3};else a.cast={kind:'lance',t:0,dur:1.0,tx:P.pos.x+P.vel.x*0.5,ty:P.pos.y+1.3+P.vel.y*0.3,tz:P.pos.z+P.vel.z*0.5};
     SFX.tone('sine',200,900,a.cast.dur,0.08*SFX.vol(a.pos.x,a.pos.y,a.pos.z));}
@@ -223,7 +227,8 @@ function openerTick(dt){
   if(!OPN.on)return;
   const now=performance.now(),rdt=clamp((now-OPN.last)/1000,0,0.05);OPN.last=now;OPN.t+=rdt;
   // nobody dies in the opener
-  {const f=maxHp()*0.2;if(P.hp<f)P.hp=f;if(P.dead){P.dead=false;$('dead').hidden=true;P.hp=maxHp();}}
+  {const f=maxHp()*0.02;if(P.hp<f)P.hp=f;if(P.dead){P.dead=false;$('dead').hidden=true;P.hp=maxHp();}
+    if((OPN.step==='fight1'||OPN.step==='fight2')&&!OPN.slow&&!CUT&&!PR.on)P.hp=Math.max(f,P.hp-maxHp()*0.005*rdt);} // the twins wear you down even if you fight well
   {const wdt=dt*prBossK('twins');for(const a of OPN.twins.slice())twinUpdate(a,wdt);} // Time Stop and the like freeze the twins with the rest of the world (Prism's: they break out after 20 s)
   if(OPN.say&&OPN.t>OPN.sayT)opnSayHide();
   if(OPN.flashHold>0){OPN.flashHold-=rdt;flashWhite=Math.max(flashWhite,1);}
@@ -254,20 +259,39 @@ function openerTick(dt){
       break;
     case 'fight1':
       openerHintTick();
-      if(nala&&nala.alive&&nala.hp<=nala.maxHp*0.5+0.5)openerBlast();
+      if(PR.on){openerGo('prism');break;} // ascended early: straight to the rainbow
+      if(nala&&nala.alive&&(nala.hp<=nala.maxHp*0.5+0.5||P.hp<=maxHp()*0.03))openerBlast(); // half health, or you ran out first: the city goes down either way
       break;
     case 'blast':break;
     case 'fight2':
       openerHintTick();
-      if(nala&&!nala.alive)openerGo('escape');
+      if(PR.on){openerGo('prism');break;}
+      if(P.hp<=maxHp()*0.03&&T>1.5)openerGo('ascend'); // out of health: you do not die, you ascend
+      else if(OPN.twins.some(a=>!a.alive))openerGo('escape'); // (a twin fell anyway)
+      break;
+    case 'ascend':{
+      const hp=PR.hold>0?clamp(PR.hold/PR_HOLD,0,1):0;opnKeyEl.style.setProperty('--p',(hp*100).toFixed(0)+'%');opnKeyEl.classList.toggle('held',hp>0);
+      if(PR.on){OPN.slow=false;opnHidePrompt();openerGo('prism');}
+      break;}
+    case 'prism':
+      openerPrismTick();
+      if(!PR.on){ // the form ended: the first twin down ends it (and the other runs), anything else sends you back to the fight
+        if(OPN.twins.some(a=>!a.alive)||(OPN.nala&&!OPN.nala.alive)||(OPN.nuku&&!OPN.nuku.alive))openerGo('escape');
+        else{P.hp=Math.max(P.hp,maxHp()*0.3);for(const a of OPN.twins)a.hpFloor=a.maxHp*0.35;openerGo('fight2');}}
       break;
     case 'escape':
-      if(T>1.2&&nuku&&nuku.mode!=='flee'){nuku.mode='flee';nuku.zid='gone';nuku.hpFloor=nuku.hp;const dx=nuku.pos.x-P.pos.x,dz=nuku.pos.z-P.pos.z,l=Math.hypot(dx,dz)||1;nuku.fx=dx/l;nuku.fz=dz/l;nuku.vel.set(0,6,0);
-        nuku.cast=null;if(lockT===nuku)lockT=null;opnSaySet('Nuku','I\'ll be back with my entire base!',3.6);SFX.tone('sawtooth',300,900,1.4,0.1);}
-      if(nuku&&nuku.mode==='flee'&&(T>4.2||nuku.pos.y>P.pos.y+260)){openerRemoveTwin(nuku);removeFrom(OPN.twins,nuku);openerGo('say');}
+      { // whichever twin is left panics and flees
+        const sv=OPN.twins.find(a=>a.alive);
+        if(!sv){openerGo('say');break;}
+        if(T>1.2&&sv.mode!=='flee'){sv.mode='flee';sv.zid='gone';sv.hpFloor=sv.hp;const dx=sv.pos.x-P.pos.x,dz=sv.pos.z-P.pos.z,l=Math.hypot(dx,dz)||1;sv.fx=dx/l;sv.fz=dz/l;sv.vel.set(0,6,0);
+          sv.cast=null;if(lockT===sv)lockT=null;opnSaySet(sv.name,'I\'ll be back with my entire base!',3.6);SFX.tone('sawtooth',300,900,1.4,0.1);
+          if(!!save.guide.fledNala!==(sv.twin==='nala')){save.guide.fledNala=sv.twin==='nala';persist();}}
+        if(sv.mode==='flee'&&(T>4.2||sv.pos.y>P.pos.y+260)){openerRemoveTwin(sv);removeFrom(OPN.twins,sv);openerGo('say');}
+      }
       break;
     case 'say':
       if(T>0.3&&!OPN.s1){OPN.s1=true;opnSaySet('','You should get stronger.',2.8);}
+      if(T>3.3&&!OPN.s2&&!OPN.ruined){OPN.s2=true;openerFinish(false);break;} // (ascended before the blast: nothing to rebuild)
       if(T>3.3&&!OPN.s2){OPN.s2=true;opnSaySet('',touchOn()?'For now, hold REBUILD to rebuild the city with your power.':'For now, press Y to rebuild the city with your power.',60);openerGo('rebuild',true);}
       break;
     case 'rebuild':{
@@ -292,6 +316,8 @@ function openerGo(step,keepSay){
     opnShow(touch?'Tap LOCK to lock on to Nala':'Lock on to Nala','Z','lock');}
   else if(step==='fight1'){OPN.hintOn=true;OPN.act=OPN.t;opnSaySet('Nuku','Get her, Nala!',2.4);}
   else if(step==='fight2'){OPN.hintOn=true;OPN.act=OPN.t;}
+  else if(step==='ascend'){OPN.slow=true;opnDim.hidden=false;OPN.hintOn=false;opnHint.hidden=true;opnShow('HOLD to ascend','T','asc');opnKeyEl.style.setProperty('--p','0%');}
+  else if(step==='prism'){OPN.hintOn=false;opnHint.hidden=true;OPN.slow=false;opnHidePrompt();opnSayHide();for(const a of OPN.twins){a.hpFloor=0;a.mode='fight';a.enraged=true;}}
   else if(step==='rebuild'){OPN.hold=0;OPN.started=false;OPN.down=false;opnShow(touch?'Hold REBUILD':'Hold to rebuild','Y','rebuild');}
 }
 // the attack hint: bottom of the screen, no slowdown. It fades once the player has attacked and used a power, and comes back after about 5 s without either.
@@ -305,6 +331,14 @@ function openerHintTick(){
   a.classList.toggle('used',OPN.used.atk);p.classList.toggle('used',OPN.used.pow);
   a.firstChild.textContent=touch?'PUNCH':'Click';a.lastChild.textContent='Attack';p.firstChild.textContent=touch?'POWER':'1';p.lastChild.textContent=pn;
   if(touch&&want)opnPulse(!OPN.used.atk?'punch':!OPN.used.pow?'p0':null);else if(touch)opnPulse(null);
+}
+// the three Prism skills, one hint each; every hint fades once its skill has been used (non-blocking, no slow motion)
+function openerPrismTick(){
+  const used=[PR.used.ts,PR.used.bar,PR.used.er],all=used.every(Boolean);
+  opnPHint.hidden=all;if(all){opnPulse(null);return;}
+  const touch=touchOn();opnPHint.classList.toggle('touch',touch);opnPHint.classList.add('on');
+  [...opnPHint.children].forEach((d,i)=>{d.classList.toggle('used',!!used[i]);d.firstChild.textContent=touch?['TIME','HOLD','ERASE'][i]:String(i+1);});
+  if(touch){const n=used.findIndex(u=>!u);opnPulse(n<0?null:'p'+n);}
 }
 // ---- the half-health cutscene: Nala flies up and blasts the whole town ----
 function openerBlast(){
@@ -327,9 +361,9 @@ function openerBlast(){
         for(let i=0;i<14;i++){const an=rr(0,TAU),r=rr(15,160);smoke(P.pos.x+Math.cos(an)*r,rr(2,30),P.pos.z+Math.sin(an)*r,3,8,rr(10,24),rr(3,6),0.3);}}
       if(blasted&&k<0.9)addShake(0.12*(1-k));},
     onEnd:()=>{
-      if(!OPN.on)return;OPN.charge=null;nala.scripted=false;nala.hpFloor=0;nala.enraged=true;nala.fireT=0.8;nala.specT=3;nala.mode='fight';
+      if(!OPN.on)return;OPN.charge=null;nala.scripted=false;nala.hpFloor=nala.maxHp*0.35;nala.enraged=true;nala.fireT=0.8;nala.specT=3;nala.mode='fight';
       nala.pos.set(P.pos.x-Math.sin(P.yaw)*22,P.pos.y+14,P.pos.z-Math.cos(P.yaw)*22);nala.vel.set(0,0,0);if(OPN.nuku){OPN.nuku.mode='fight';}
-      flashWhite=Math.max(flashWhite,0.4);openerGo('fight2');opnSaySet('Nala','Enough games! Now you fight me for real!',3);lockT=nala;}});
+      flashWhite=Math.max(flashWhite,0.4);if(P.hp<maxHp()*0.35)P.hp=maxHp()*0.35;openerGo('fight2');opnSaySet('Nala','Enough games! Now you fight me for real!',3);lockT=nala;}});
 }
 // ---- the rebuild: the power takes over, the camera rises over the whole city and everything stands back up in one sweep ----
 function openerSweep(){

@@ -49,7 +49,7 @@ const Damage={
       if(P.metal)amount*=1-pstat('metalSkin','dr');amount*=bodyDamageMul(type);
       if(P.alien&&P.alien.armor>0)amount*=0.4;if(P.car)amount*=0.5;
       if(amount<=0)return 0;
-      P.hp-=amount;if(OPN.on){const f=maxHp()*0.2;if(P.hp<f)P.hp=f;} // the opener (71_opener.js): you take damage but never go down
+      P.hp-=amount;if(OPN.on){const f=maxHp()*0.02;if(P.hp<f)P.hp=f;} // the opener (71_opener.js): you take damage but never go down
       P.lastHit=time;hurtFlash=Math.min(1,hurtFlash+0.2+amount/40);
       if(time-lastHurtSfx>0.15){lastHurtSfx=time;SFX.hit();}
       if(opt.kv){P.vel.set(opt.kv[0]*0.85,opt.kv[1]*0.85,opt.kv[2]*0.85);P.grounded=false;P.web=null;P.wall=null;P.wallRun=null;if(Math.hypot(...opt.kv)>20){P.flying=false;P.flungT=time;if(!P.alien)startRagdoll(P,P.vel.x,P.vel.y,P.vel.z);}}

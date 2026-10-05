@@ -147,7 +147,7 @@ function prVanish(a){
   a.erased=true;
   if(a.kind==='invader')invRemove(a);
   else if(a.kind==='cyborg'&&typeof cbRemove==='function')cbRemove(a);
-  else if(a.twin)openerRemoveTwin(a);
+  else if(a.twin){openerRemoveTwin(a);removeFrom(OPN.twins,a);}
   else{removeActor(a);if(typeof ualiens!=='undefined')removeFrom(ualiens,a);}
   if(lockT===a){lockT=null;const n=nextLock(a);if(n)lockT=n;}
 }
@@ -169,7 +169,7 @@ function prKillCount(){
 Bus.on('defeated',({target,killer})=>{
   if(!PR.on||killer!==P||!target)return;
   const boss=(sgBig(target)||target.kind==='kperfect')&&!target.dec&&target.kind!=='korb'&&target.kind!=='pforb';
-  if(target.twin){OPN.twinDown=target;return;} // the opener (71_opener.js) ends the form on the first twin
+  if(target.twin){if(OPN.on)prismEnd('twin');return;} // the opener (71_opener.js): the first twin down ends the form
   if(boss)prismEnd('boss');
   else if(hostileTo(target)&&!target.dec)prKillCount();
 });
@@ -233,7 +233,7 @@ function prHud(on){
   const vis=state==='play'&&(on||PR.on);
   prBar.hidden=!(vis&&PR.on);
   // the side button: desktop only (touch has its own ASCEND button in the ring of buttons); it shows whenever the form can be entered
-  const showAsc=state==='play'&&!PR.on&&!!save.character&&!touchOn()&&!OPN.on&&!KA.on&&!cutLocked();
+  const showAsc=state==='play'&&!PR.on&&!!save.character&&!touchOn()&&!cutLocked();
   if(prAsc.hidden===showAsc)prAsc.hidden=!showAsc;
   const hp=PR.hold>0?clamp(PR.hold/PR_HOLD,0,1):0;
   prAsc.style.setProperty('--p',(hp*100).toFixed(1)+'%');prAsc.classList.toggle('hold',hp>0);
