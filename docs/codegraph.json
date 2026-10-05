@@ -1033,24 +1033,24 @@
    }
   },
   "66k_prismform.js": {
-   "kb": 20.7,
-   "lines": 279,
+   "kb": 23,
+   "lines": 296,
    "purpose": "Prism Ascension: the rainbow form every hero can enter, anywhere",
    "uses": {
-    "66f_kathana.js": 17,
+    "66f_kathana.js": 19,
     "50_npcs.js": 27,
+    "30_systems.js": 65,
     "20_core.js": 31,
-    "30_systems.js": 56,
     "66b_story.js": 4,
     "49b_speed.js": 13,
     "45b_voidborn.js": 1,
-    "70_ui.js": 25,
+    "70_ui.js": 23,
     "49_ring.js": 1,
     "66j_spire.js": 10,
     "71_opener.js": 7,
-    "00_engine.js": 69,
-    "49k_sungod.js": 28,
-    "40_powers.js": 24,
+    "00_engine.js": 79,
+    "49k_sungod.js": 29,
+    "40_powers.js": 26,
     "80_player.js": 3,
     "45_aliens.js": 1,
     "81_touch.js": 6,
@@ -1488,7 +1488,7 @@
     "66h_invasion.js": 9,
     "66i_cyber.js": 7,
     "66j_spire.js": 27,
-    "66k_prismform.js": 1,
+    "66k_prismform.js": 4,
     "71_opener.js": 16,
     "80_player.js": 14,
     "90_render.js": 15
@@ -2163,7 +2163,7 @@
     "66h_invasion.js": 43,
     "66i_cyber.js": 27,
     "66j_spire.js": 100,
-    "66k_prismform.js": 7,
+    "66k_prismform.js": 9,
     "71_opener.js": 30,
     "90_render.js": 183
    }
@@ -2227,7 +2227,7 @@
     "66h_invasion.js": 27,
     "66i_cyber.js": 17,
     "66j_spire.js": 72,
-    "66k_prismform.js": 10,
+    "66k_prismform.js": 12,
     "71_opener.js": 9,
     "90_render.js": 49
    }
@@ -2309,7 +2309,7 @@
     "66h_invasion.js": 8,
     "66i_cyber.js": 2,
     "66j_spire.js": 12,
-    "66k_prismform.js": 5,
+    "66k_prismform.js": 7,
     "90_render.js": 21
    }
   },
@@ -2345,7 +2345,7 @@
     "66h_invasion.js": 52,
     "66i_cyber.js": 28,
     "66j_spire.js": 110,
-    "66k_prismform.js": 10,
+    "66k_prismform.js": 12,
     "71_opener.js": 30,
     "90_render.js": 136
    }
@@ -2657,7 +2657,7 @@
     "66h_invasion.js": 56,
     "66i_cyber.js": 1,
     "66j_spire.js": 67,
-    "66k_prismform.js": 23,
+    "66k_prismform.js": 22,
     "70_ui.js": 8,
     "71_opener.js": 21,
     "80_player.js": 17,
@@ -4522,7 +4522,7 @@
     "66h_invasion.js": 24,
     "66i_cyber.js": 11,
     "66j_spire.js": 17,
-    "66k_prismform.js": 9,
+    "66k_prismform.js": 10,
     "67_hudbar.js": 10,
     "68_markers.js": 2,
     "68b_hints.js": 6,
@@ -4589,7 +4589,7 @@
     "66f_kathana.js": 4,
     "66g_kperfect.js": 2,
     "66h_invasion.js": 1,
-    "66k_prismform.js": 11,
+    "66k_prismform.js": 10,
     "67_hudbar.js": 3,
     "68_markers.js": 8,
     "68b_hints.js": 1,
@@ -5229,7 +5229,7 @@
     "66h_invasion.js": 25,
     "66i_cyber.js": 10,
     "66j_spire.js": 21,
-    "66k_prismform.js": 10,
+    "66k_prismform.js": 14,
     "67_hudbar.js": 8,
     "68_markers.js": 4,
     "68b_hints.js": 7,
@@ -5308,7 +5308,7 @@
     "66h_invasion.js": 13,
     "66i_cyber.js": 3,
     "66j_spire.js": 25,
-    "66k_prismform.js": 11,
+    "66k_prismform.js": 13,
     "71_opener.js": 13,
     "99_main.js": 1
    }
@@ -5431,7 +5431,7 @@
     "66g_kperfect.js": 22,
     "66h_invasion.js": 1,
     "66j_spire.js": 4,
-    "66k_prismform.js": 10,
+    "66k_prismform.js": 11,
     "68b_hints.js": 1,
     "70_ui.js": 1,
     "71_opener.js": 1,
@@ -5485,7 +5485,7 @@
     "66h_invasion.js": 8,
     "66i_cyber.js": 1,
     "66j_spire.js": 12,
-    "66k_prismform.js": 5,
+    "66k_prismform.js": 6,
     "71_opener.js": 5,
     "80_player.js": 5
    }
@@ -5561,7 +5561,7 @@
     "66g_kperfect.js": 2,
     "66h_invasion.js": 2,
     "66j_spire.js": 5,
-    "66k_prismform.js": 4,
+    "66k_prismform.js": 5,
     "70_ui.js": 3,
     "71_opener.js": 2,
     "80_player.js": 10,
@@ -6243,7 +6243,7 @@
     "66h_invasion.js": 10,
     "66i_cyber.js": 2,
     "66j_spire.js": 10,
-    "66k_prismform.js": 7,
+    "66k_prismform.js": 9,
     "80_player.js": 2,
     "90_render.js": 42
    }
@@ -10870,7 +10870,7 @@
    "usedBy": {
     "49_ring.js": 1,
     "49k_sungod.js": 2,
-    "66k_prismform.js": 3
+    "66k_prismform.js": 4
    }
   },
   "sgHit": {
@@ -14922,7 +14922,7 @@
     "66c_zones.js": 1,
     "66f_kathana.js": 1,
     "66h_invasion.js": 1,
-    "66k_prismform.js": 7
+    "66k_prismform.js": 9
    }
   },
   "prismLook": {
@@ -18130,7 +18130,7 @@
   },
   "PR_HOLD": {
    "file": "66k_prismform.js",
-   "line": 11,
+   "line": 13,
    "kind": "const",
    "usedBy": {
     "66k_prismform.js": 4,
@@ -18139,7 +18139,7 @@
   },
   "PR_KILLS": {
    "file": "66k_prismform.js",
-   "line": 11,
+   "line": 13,
    "kind": "const",
    "usedBy": {
     "66k_prismform.js": 3
@@ -18147,7 +18147,7 @@
   },
   "PR_TS_DRAIN": {
    "file": "66k_prismform.js",
-   "line": 11,
+   "line": 13,
    "kind": "const",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18155,15 +18155,7 @@
   },
   "PR_BAR_DRAIN": {
    "file": "66k_prismform.js",
-   "line": 11,
-   "kind": "const",
-   "usedBy": {
-    "66k_prismform.js": 1
-   }
-  },
-  "PR_REGEN": {
-   "file": "66k_prismform.js",
-   "line": 11,
+   "line": 13,
    "kind": "const",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18171,15 +18163,23 @@
   },
   "PR_ERASE": {
    "file": "66k_prismform.js",
-   "line": 11,
+   "line": 13,
    "kind": "const",
    "usedBy": {
-    "66k_prismform.js": 3
+    "66k_prismform.js": 4
+   }
+  },
+  "PR_ARROWS": {
+   "file": "66k_prismform.js",
+   "line": 13,
+   "kind": "const",
+   "usedBy": {
+    "66k_prismform.js": 4
    }
   },
   "PR_SHOTS": {
    "file": "66k_prismform.js",
-   "line": 11,
+   "line": 13,
    "kind": "const",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18187,7 +18187,7 @@
   },
   "PR_BREAK": {
    "file": "66k_prismform.js",
-   "line": 11,
+   "line": 13,
    "kind": "const",
    "usedBy": {
     "66k_prismform.js": 1,
@@ -18196,7 +18196,7 @@
   },
   "PR_NAMES": {
    "file": "66k_prismform.js",
-   "line": 11,
+   "line": 13,
    "kind": "const",
    "usedBy": {
     "66k_prismform.js": 2
@@ -18204,21 +18204,21 @@
   },
   "PR_KEY": {
    "file": "66k_prismform.js",
-   "line": 12,
+   "line": 14,
    "kind": "fn",
    "usedBy": {}
   },
   "prKeyHint": {
    "file": "66k_prismform.js",
-   "line": 12,
+   "line": 14,
    "kind": "fn",
    "usedBy": {
-    "66k_prismform.js": 2
+    "66k_prismform.js": 3
    }
   },
   "prDestroyOk": {
    "file": "66k_prismform.js",
-   "line": 13,
+   "line": 15,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1,
@@ -18228,7 +18228,7 @@
   },
   "prHoldOk": {
    "file": "66k_prismform.js",
-   "line": 14,
+   "line": 16,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 2
@@ -18236,7 +18236,7 @@
   },
   "prEnc": {
    "file": "66k_prismform.js",
-   "line": 15,
+   "line": 17,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 2,
@@ -18245,7 +18245,7 @@
   },
   "prEncPos": {
    "file": "66k_prismform.js",
-   "line": 21,
+   "line": 23,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18253,7 +18253,7 @@
   },
   "prBossK": {
    "file": "66k_prismform.js",
-   "line": 28,
+   "line": 30,
    "kind": "fn",
    "usedBy": {
     "66b_story.js": 1,
@@ -18263,7 +18263,7 @@
   },
   "prFreeDt": {
    "file": "66k_prismform.js",
-   "line": 30,
+   "line": 32,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 2
@@ -18271,7 +18271,7 @@
   },
   "prFx": {
    "file": "66k_prismform.js",
-   "line": 32,
+   "line": 34,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 3
@@ -18279,7 +18279,7 @@
   },
   "prRing": {
    "file": "66k_prismform.js",
-   "line": 33,
+   "line": 35,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 8
@@ -18287,15 +18287,15 @@
   },
   "prShards": {
    "file": "66k_prismform.js",
-   "line": 34,
+   "line": 36,
    "kind": "fn",
    "usedBy": {
-    "66k_prismform.js": 3
+    "66k_prismform.js": 4
    }
   },
   "prismHoldStart": {
    "file": "66k_prismform.js",
-   "line": 36,
+   "line": 38,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1,
@@ -18306,7 +18306,7 @@
   },
   "prismHoldEnd": {
    "file": "66k_prismform.js",
-   "line": 40,
+   "line": 42,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1,
@@ -18317,7 +18317,7 @@
   },
   "prismHoldTick": {
    "file": "66k_prismform.js",
-   "line": 41,
+   "line": 43,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18325,7 +18325,7 @@
   },
   "prismStart": {
    "file": "66k_prismform.js",
-   "line": 51,
+   "line": 52,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 3,
@@ -18334,18 +18334,18 @@
   },
   "prismEnd": {
    "file": "66k_prismform.js",
-   "line": 65,
+   "line": 66,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1,
-    "66k_prismform.js": 6,
+    "66k_prismform.js": 9,
     "71_opener.js": 1,
     "99_main.js": 1
    }
   },
   "prismTsStart": {
    "file": "66k_prismform.js",
-   "line": 79,
+   "line": 81,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18353,16 +18353,24 @@
   },
   "prismTsEnd": {
    "file": "66k_prismform.js",
-   "line": 87,
+   "line": 89,
    "kind": "fn",
    "usedBy": {
     "66f_kathana.js": 1,
-    "66k_prismform.js": 4
+    "66k_prismform.js": 3
+   }
+  },
+  "prRelease": {
+   "file": "66k_prismform.js",
+   "line": 95,
+   "kind": "fn",
+   "usedBy": {
+    "66k_prismform.js": 1
    }
   },
   "prNoEnergy": {
    "file": "66k_prismform.js",
-   "line": 91,
+   "line": 103,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 3
@@ -18370,7 +18378,7 @@
   },
   "prismBarrageDown": {
    "file": "66k_prismform.js",
-   "line": 93,
+   "line": 105,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18378,7 +18386,7 @@
   },
   "prismBarrageUp": {
    "file": "66k_prismform.js",
-   "line": 94,
+   "line": 106,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18386,13 +18394,13 @@
   },
   "prCand": {
    "file": "66k_prismform.js",
-   "line": 95,
+   "line": 107,
    "kind": "const",
    "usedBy": {}
   },
   "prHostile": {
    "file": "66k_prismform.js",
-   "line": 96,
+   "line": 108,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 2
@@ -18400,7 +18408,7 @@
   },
   "prShots": {
    "file": "66k_prismform.js",
-   "line": 97,
+   "line": 109,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18408,7 +18416,7 @@
   },
   "prShotHit": {
    "file": "66k_prismform.js",
-   "line": 120,
+   "line": 136,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18416,7 +18424,7 @@
   },
   "prismErase": {
    "file": "66k_prismform.js",
-   "line": 125,
+   "line": 141,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1,
@@ -18425,7 +18433,7 @@
   },
   "prVanish": {
    "file": "66k_prismform.js",
-   "line": 145,
+   "line": 162,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1,
@@ -18434,7 +18442,7 @@
   },
   "prismAbilityDown": {
    "file": "66k_prismform.js",
-   "line": 154,
+   "line": 171,
    "kind": "fn",
    "usedBy": {
     "40_powers.js": 1,
@@ -18444,7 +18452,7 @@
   },
   "prismAbilityUp": {
    "file": "66k_prismform.js",
-   "line": 162,
+   "line": 179,
    "kind": "fn",
    "usedBy": {
     "40_powers.js": 1,
@@ -18454,7 +18462,7 @@
   },
   "prKillCount": {
    "file": "66k_prismform.js",
-   "line": 164,
+   "line": 181,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18462,7 +18470,7 @@
   },
   "prDiscT": {
    "file": "66k_prismform.js",
-   "line": 177,
+   "line": 194,
    "kind": "const",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18470,7 +18478,7 @@
   },
   "prismFrame": {
    "file": "66k_prismform.js",
-   "line": 178,
+   "line": 195,
    "kind": "fn",
    "usedBy": {
     "99_main.js": 3
@@ -18478,7 +18486,7 @@
   },
   "prBar": {
    "file": "66k_prismform.js",
-   "line": 222,
+   "line": 236,
    "kind": "const",
    "usedBy": {
     "66k_prismform.js": 6
@@ -18486,15 +18494,15 @@
   },
   "prAsc": {
    "file": "66k_prismform.js",
-   "line": 222,
+   "line": 236,
    "kind": "const",
    "usedBy": {
-    "66k_prismform.js": 11
+    "66k_prismform.js": 15
    }
   },
   "prInit": {
    "file": "66k_prismform.js",
-   "line": 223,
+   "line": 237,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 1
@@ -18502,7 +18510,7 @@
   },
   "prHudSig": {
    "file": "66k_prismform.js",
-   "line": 231,
+   "line": 245,
    "kind": "const",
    "usedBy": {
     "66k_prismform.js": 2
@@ -18510,7 +18518,7 @@
   },
   "prHud": {
    "file": "66k_prismform.js",
-   "line": 232,
+   "line": 246,
    "kind": "fn",
    "usedBy": {
     "66k_prismform.js": 4
@@ -18518,7 +18526,7 @@
   },
   "prBuildHotbar": {
    "file": "66k_prismform.js",
-   "line": 251,
+   "line": 266,
    "kind": "fn",
    "usedBy": {
     "70_ui.js": 1
@@ -18526,7 +18534,7 @@
   },
   "prTouchButtons": {
    "file": "66k_prismform.js",
-   "line": 257,
+   "line": 272,
    "kind": "fn",
    "usedBy": {
     "81_touch.js": 1
@@ -18534,7 +18542,7 @@
   },
   "prismDraw": {
    "file": "66k_prismform.js",
-   "line": 264,
+   "line": 279,
    "kind": "fn",
    "usedBy": {
     "66c_zones.js": 1,
@@ -19044,7 +19052,7 @@
     "66g_kperfect.js": 1,
     "66h_invasion.js": 2,
     "66j_spire.js": 2,
-    "66k_prismform.js": 9,
+    "66k_prismform.js": 7,
     "70_ui.js": 8,
     "80_player.js": 3,
     "81_touch.js": 1,

@@ -8329,7 +8329,7 @@ function boostTick(dt){
 // Knocked out: back to the city (save.story.kathana stays/sets 1). All four orbs gone: kathanaStage2() (a stub for the next phase).
 // For the next phase: the body is drawn from KA (position KA.bx/KA.bz, yaw, KA.by height offset, KA.vis hides her whole body, KA.split 0..1 opens the torso along a
 // vertical seam with a glow inside at kCore()), the hands are KA.hands[i] (local x,y,z, dead) and orbs KA.orbs[i] ({a: the actor, dead, col}).
-const PR={on:false,e:100,ts:false,free:false,enc:'',encT:0,rumble:false,bar:false,dry:false,kills:0,hold:0,holdSrc:'',fireAcc:0,sound:0,beams:[],bi:0,fx:[],used:{ts:false,bar:false,er:false},nudged:false,sun:false}; // the Prism form: see 66k_prismform.js
+const PR={on:false,e:100,ts:false,free:false,enc:'',encT:0,rumble:false,bar:false,kills:0,hold:0,holdSrc:'',fireAcc:0,sound:0,beams:[],bi:0,fx:[],arrows:[],ai:0,hits:new Map(),streaks:[],used:{ts:false,bar:false,er:false},nudged:false,sun:false}; // the Prism form: see 66k_prismform.js
 const KAR={x:0,y:0,z:9000};
 const KORB_COL=[[1,.04,.1],[.04,.32,1],[.04,.85,.2],[.62,.08,1]],KO_HP=12000,KA_REACH=148,KA_L1=72,KA_L2=82;
 const KS=[[-40,132,0],[40,132,0],[-30,98,6],[30,98,6]],KR=[[-108,122,92],[108,122,92],[-64,74,112],[64,74,112]]; // shoulders and resting hands (local: x right, y up, z toward the player)
@@ -11061,13 +11061,15 @@ function sovereignWin(){ // test hook: skip to the ending
 // Prism Ascension: the rainbow form every hero can enter, anywhere
 // ================================================================
 // Hold T (or the ASCEND button, on touch too) for 3 s; letting go early cancels. No cooldown. In the form you cannot be hurt (godSafe in 30_systems.js, the Kathana arena included),
-// you fly, and the hotbar is 1 Time Stop, 2 Barrage, 3 Erase (4 Destroy while the story allows it). A rainbow energy bar (PR.e, 0..100) pays for them:
-//   Time Stop: a toggle, 3.5/s. Everything but you stands still until you press it again. A boss breaks out after a while: Kathana 10 s, the Sovereign 6 s, the twins 20 s.
-//   Barrage:   hold, 40 shots a second, 12/s. Hitscan, own pooled beams (the world's effects stand still during Time Stop). Bosses take capped damage per shot.
+// you fly, and the hotbar is 1 Time Stop, 2 Barrage, 3 Erase (4 Destroy while the story allows it). One rainbow energy bar (PR.e, starts at 100, NEVER recharges) pays for them:
+//   Time Stop: a toggle, 0.25/s. Everything but you stands still until you press it again. A boss breaks out after a while: Kathana 10 s, the Sovereign 6 s, the twins 20 s.
+//   Barrage:   hold, 40 shots a second, 1/s. Hitscan, own pooled beams (the world's effects stand still during Time Stop). Bosses take capped damage per shot.
+//              During Time Stop the shots hang in the air as arrows (PR.arrows) and all fly into their targets at once when time starts again.
 //   Erase:     40 energy, needs a locked target. It dissolves in rainbow light and counts as a kill; on a boss it is one big capped hit and the form ends.
-// The form ends when a boss is defeated, when Erase hits a boss, after 100 simple kills, or (the opener) when a twin falls. Nothing else ends it.
+// The form ends when a boss is defeated, when Erase hits a boss, after 100 simple kills, when the bar runs dry, when you hold T again for 3 s, or (the opener) when a twin falls.
+// Going back in has no cooldown (a fresh bar every time).
 // Time Stop does not work in multiplayer rooms (it would freeze the host's shared world); Barrage and Erase never touch real players there.
-const PR_HOLD=3,PR_KILLS=100,PR_TS_DRAIN=3.5,PR_BAR_DRAIN=12,PR_REGEN=9,PR_ERASE=40,PR_SHOTS=40,PR_BREAK={kathana:10,sov:6,twins:20},PR_NAMES={kathana:'Kathana',sov:'The Sovereign',twins:'The twins'};
+const PR_HOLD=3,PR_KILLS=100,PR_TS_DRAIN=0.25,PR_BAR_DRAIN=1,PR_ERASE=40,PR_ARROWS=90,PR_SHOTS=40,PR_BREAK={kathana:10,sov:6,twins:20},PR_NAMES={kathana:'Kathana',sov:'The Sovereign',twins:'The twins'};
 const PR_KEY='T',prKeyHint=()=>touchOn()?'the ASCEND button':'T';
 const prDestroyOk=()=>PR.on&&!kathanaDone()&&(destroyAvail()||PR.sun); // the story's Destroy, or the Sun route's (which never needed the story)
 const prHoldOk=()=>state==='play'&&!paused&&!P.dead&&!cutLocked()&&!(frozenT>0)&&!voidbornLocked()&&!dialOpen&&!ASK&&!oathOpen;
@@ -11093,18 +11095,17 @@ function prRing(x,y,z,r1,life,h,tilt){prFx({k:'ring',x,y,z,r0:0.5,r1,t:0,life,h,
 function prShards(x,y,z,n,spd,life,size){for(let i=0;i<n;i++){const a=rr(0,TAU),u=rr(-1,1),r=Math.sqrt(1-u*u),s=spd*rr(0.3,1);prFx({k:'orb',x,y,z,vx:Math.cos(a)*r*s,vy:u*s,vz:Math.sin(a)*r*s,t:0,life:life*rr(0.6,1),s:size*rr(0.6,1.3),h:Math.random()});}}
 // ---- the hold: T (or the button) fills a ring in 3 s ----
 function prismHoldStart(src){
-  if(PR.on||PR.hold>0||!prHoldOk()||!save.character)return false;
+  if(PR.hold>0||!prHoldOk()||!save.character)return false;
   PR.hold=0.0001;PR.holdSrc=src;SFX.tone('sine',200,700,PR_HOLD,0.05);return true;
 }
-function prismHoldEnd(){if(PR.hold>0&&!PR.on){PR.hold=0;SFX.tone('sine',500,200,0.12,0.05);}PR.hold=0;}
-function prismHoldTick(real){
-  if(PR.on){PR.hold=0;return;}
+function prismHoldEnd(){if(PR.hold>0){PR.hold=0;SFX.tone('sine',500,200,0.12,0.05);}PR.hold=0;}
+function prismHoldTick(real){ // (the same 3 s hold goes in, and, while the form is on, comes out)
   if(!(PR.hold>0))return;
   if(!prHoldOk()){PR.hold=0;return;}
   PR.hold+=real;
   if(Math.random()<0.8){const c=center(P),a=rr(0,TAU),r=rr(2,4),h=hue(Math.random(),1,1);emit(c.x+Math.cos(a)*r,c.y+rr(-1.2,1.2),c.z+Math.sin(a)*r,-Math.cos(a)*r*2.2,rr(-1,1),-Math.sin(a)*r*2.2,0.45,h,rr(0.5,1),0,0);}
   P.flash=Math.max(P.flash,0.1+0.25*(PR.hold/PR_HOLD));
-  if(PR.hold>=PR_HOLD){PR.hold=0;prismStart('hold');}
+  if(PR.hold>=PR_HOLD){PR.hold=0;if(PR.on)prismEnd('manual');else prismStart('hold');}
 }
 // ---- going in and coming out ----
 function prismStart(src){
@@ -11113,7 +11114,7 @@ function prismStart(src){
   if(SG.on)sunGodEnd(true,true); // (stay: don't push the hero out of the Sun)
   if(timeStopT>0){timeStopT=0;endTimeStop();}
   stopAllPowers();if(P.car)exitCar(true);if(P.alien)revertAlien(true);
-  PR.on=true;PR.sun=src==='sun';PR.e=100;PR.ts=false;PR.free=false;PR.enc='';PR.encT=0;PR.rumble=false;PR.bar=false;PR.dry=false;PR.kills=0;PR.fireAcc=0;PR.hold=0;PR.beams.length=0;PR.bi=0;PR.used={ts:false,bar:false,er:false};PR.sound=0;
+  PR.on=true;PR.sun=src==='sun';PR.e=100;PR.ts=false;PR.free=false;PR.enc='';PR.encT=0;PR.rumble=false;PR.bar=false;PR.kills=0;PR.arrows.length=0;PR.hits.clear();PR.streaks.length=0;PR.fireAcc=0;PR.hold=0;PR.beams.length=0;PR.bi=0;PR.used={ts:false,bar:false,er:false};PR.sound=0;
   P.flying=true;P.grounded=false;P.hp=maxHp();P.en=maxEn();P.stun=0;
   const c=center(P);ringFx(c.x,c.y,c.z,1,30,0.8,[1,.5,.9]);ringFx(c.x,c.y,c.z,1,20,0.6,[.5,1,.9]);burst(c.x,c.y,c.z,140,36,1.3,[[1,.3,.5],[1,.9,.3],[.3,1,.6],[.4,.6,1],[.8,.4,1]],2.2,0,1.5);
   flashWhite=0.9;SFX.transform();SFX.chime();addShake(0.5);
@@ -11123,7 +11124,8 @@ function prismStart(src){
 }
 function prismEnd(why){
   if(!PR.on)return;
-  if(PR.ts)prismTsEnd(true);
+  if(PR.ts)prismTsEnd(true); // (the arrows hanging in the air fly now)
+  if(!PR.on)return;
   PR.on=false;PR.bar=false;PR.hold=0;SFX.setLaser(false);
   const c=center(P);ringFx(c.x,c.y,c.z,1,26,0.7,[1,.5,.9]);burst(c.x,c.y,c.z,100,26,1.1,[[1,.3,.5],[1,.9,.3],[.3,1,.6],[.4,.6,1],[.8,.4,1]],2,0,1.5);flashWhite=Math.max(flashWhite,0.6);SFX.tone('sine',1400,200,0.6,0.1);
   if(SUN_B&&P.pos.y>CEIL){const dx=P.pos.x-SUN_B.x,dy=P.pos.y-SUN_B.y,dz=P.pos.z-SUN_B.z,d=Math.hypot(dx,dy,dz);
@@ -11131,7 +11133,7 @@ function prismEnd(why){
   P.flash=0;sgTint(0,0);
   if(why!=='destroy'&&why!=='lost'&&KA.on&&inVoid()&&(KA.fight||PF.fight)&&!KA.lost&&!SG.on)sunGodStart('arena',true); // Kathana's arena: back to the Sun God you fight as there
   buildHotbar();buildTouchButtons();prHud(false);
-  if(why!=='destroy'&&why!=='lost')toast('The rainbow fades',why==='kills'?'100 down · '+(touchOn()?'hold ASCEND':'hold T')+' to ascend again':'Hold '+prKeyHint()+' to ascend again','purple');
+  if(why!=='destroy'&&why!=='lost')toast(why==='energy'?'The rainbow burns out':'The rainbow fades',why==='kills'?'100 down · hold '+prKeyHint()+' to ascend again':'Hold '+prKeyHint()+' to ascend again','purple');
   Bus.emit('prismEnd',{why});
 }
 // ---- 1 Time Stop ----
@@ -11146,10 +11148,20 @@ function prismTsStart(){
 function prismTsEnd(silent){
   if(!PR.ts)return;PR.ts=false;PR.free=false;PR.rumble=false;
   if(!silent){flashWhite=Math.max(flashWhite,0.35);SFX.tone('sine',200,1200,0.5,0.1);feed('Time resumes','');}
+  prRelease();
 }
-function prNoEnergy(){hud.en.classList.add('warn');setTimeout(()=>hud.en.classList.remove('warn'),300);SFX.tone('square',220,150,0.1,0.06);feed('Out of energy','It comes back while you rest');}
+// every arrow that hung in the air during Time Stop flies into its target at once
+function prRelease(){
+  if(!PR.arrows.length&&!PR.hits.size)return;
+  for(const a of PR.arrows)if(PR.streaks.length<PR_ARROWS)PR.streaks.push({ax:a.x,ay:a.y,az:a.z,bx:a.ex,by:a.ey,bz:a.ez,t:0,life:0.22,h:a.h});
+  const hits=[...PR.hits],n=PR.arrows.length;PR.arrows.length=0;PR.hits.clear();
+  for(const [t,k] of hits){if(!t.alive)continue;const big=sgBig(t),cap=t.sgCap&&t.sgCap.prism,c=center(t);
+    Damage.apply(P,t,k*(big?14*(cap||1):30+save.level*0.5),'prism',{stun:big?0:0.4});prShards(c.x,c.y,c.z,big?12:5,10,0.5,1);if(!PR.on)break;}
+  if(hits.length){flashWhite=Math.max(flashWhite,0.3);SFX.boom(0.7,1.2);addShake(Math.min(0.6,0.1+n*0.003));}
+}
+function prNoEnergy(need){hud.en.classList.add('warn');setTimeout(()=>hud.en.classList.remove('warn'),300);SFX.tone('square',220,150,0.1,0.06);feed(need?'Erase needs '+need+' energy':'Out of energy','The bar does not recharge');}
 // ---- 2 Barrage: 40 shots a second, held ----
-function prismBarrageDown(){if(!PR.on)return;if(PR.e<4){prNoEnergy();return;}PR.bar=true;PR.used.bar=true;}
+function prismBarrageDown(){if(!PR.on)return;if(PR.e<=0){prNoEnergy();return;}PR.bar=true;PR.used.bar=true;}
 function prismBarrageUp(){PR.bar=false;}
 let prCand=[];
 function prHostile(a){return a.alive&&!a.held&&a!==P&&a.kind!=='remote'&&a.kind!=='prop'&&a.kind!=='vehicle'&&lockable(a)&&hostileTo(a);}
@@ -11170,6 +11182,10 @@ function prShots(real){
   }
   for(let i=0;i<n;i++){
     const sp=0.014,len=tgt?tt:L,hx=e.x+(dx+rr(-sp,sp))*len,hy=e.y+(dy+rr(-sp,sp))*len,hz=e.z+(dz+rr(-sp,sp))*len;
+    if(PR.ts){ // time is stopped: the shot hangs in the air, pointing at its target, until time starts again
+      const f=rr(0.12,0.92),ex=hx,ey=hy,ez=hz,j=0.9,ax=lerp(h.x,ex,f)+rr(-j,j),ay=lerp(h.y,ey,f)+rr(-j,j),az=lerp(h.z,ez,f)+rr(-j,j),l=Math.hypot(ex-ax,ey-ay,ez-az)||1;
+      const A=PR.arrows.length<PR_ARROWS?{}:PR.arrows[PR.ai=(PR.ai+1)%PR_ARROWS];A.x=ax;A.y=ay;A.z=az;A.dx=(ex-ax)/l;A.dy=(ey-ay)/l;A.dz=(ez-az)/l;A.ex=ex;A.ey=ey;A.ez=ez;A.h=Math.random();if(PR.arrows.length<PR_ARROWS)PR.arrows.push(A);
+      if(tgt)PR.hits.set(tgt,(PR.hits.get(tgt)||0)+1);continue;}
     const b=PR.beams[PR.bi=(PR.bi+1)%28]||(PR.beams[PR.bi]={});b.ax=h.x;b.ay=h.y;b.az=h.z;b.bx=hx;b.by=hy;b.bz=hz;b.t=0;b.life=0.1;b.h=(time*0.9+PR.bi/28)%1;b.hit=!!tgt;
     if(tgt&&tgt.alive)prShotHit(tgt);
   }
@@ -11185,7 +11201,7 @@ function prismErase(){
   if(!PR.on||!canAct())return;
   const a=lockT;
   if(!a||!a.alive||a.kind==='remote'||!lockable(a)){feed('Erase needs a locked target',touchOn()?'Tap LOCK first':'Press Z first');SFX.tone('square',300,200,0.1,0.06);return;}
-  if(PR.e<PR_ERASE){prNoEnergy();return;}
+  if(PR.e<PR_ERASE){prNoEnergy(PR_ERASE);return;}
   PR.e-=PR_ERASE;PR.used.er=true;faceAim();
   const c=center(a),x=c.x,y=c.y,z=c.z,big=sgBig(a)||a.kind==='kperfect',boss=big||a.kind==='korb';
   const h0=Math.random();
@@ -11199,6 +11215,7 @@ function prismErase(){
     feed('ERASED',boss&&a.kind!=='korb'?'A reality-breaking hit':'Gone from existence');prismEnd('erase');return;
   }
   Damage.apply(P,a,(a.hp||50)*2+100,'prism',{});prVanish(a);
+  if(PR.on&&PR.e<=0.001)prismEnd('energy'); // the bar is empty
 }
 // the target leaves no body: out of the world and out of the list that kept it
 function prVanish(a){
@@ -11248,15 +11265,11 @@ function prismFrame(real,dt){
   if(PR.ts&&MP.online())prismTsEnd(false); // (joined a room with Time Stop on)
   P.hp=maxHp();P.en=maxEn();P.lastSpend=time;P.stun=0;
   PR.sound-=real;
-  // energy: Time Stop and Barrage drain it, resting fills it
-  let firing=false;
-  if(PR.bar&&!PR.dry&&canAct())firing=true;
-  if(PR.dry&&!PR.bar)PR.dry=false;
+  // energy: one bar, Time Stop and Barrage drain it, nothing fills it; empty ends the form
+  const firing=PR.bar&&canAct();
   if(PR.ts)PR.e-=PR_TS_DRAIN*real;
-  if(firing){PR.e-=PR_BAR_DRAIN*real;prShots(real);if(!PR.on)return;}else{PR.fireAcc=0;if(!PR.bar||PR.dry)SFX.setLaser(false);}
-  if(!PR.ts&&!firing)PR.e=Math.min(100,PR.e+PR_REGEN*real);
-  if(PR.e<=0){PR.e=0;if(PR.ts){prismTsEnd(true);feed('Time resumes','Out of energy');SFX.tone('sine',200,900,0.4,0.1);}if(firing){PR.dry=true;SFX.setLaser(false);feed('Barrage','Out of energy');}}
-  if(PR.dry&&PR.e>=15&&!PR.bar)PR.dry=false;
+  if(firing){PR.e-=PR_BAR_DRAIN*real;prShots(real);if(!PR.on)return;}else{PR.fireAcc=0;if(!PR.bar)SFX.setLaser(false);}
+  if(PR.e<=0){PR.e=0;prismEnd('energy');return;}
   // bosses break out of Time Stop
   if(PR.ts){
     const enc=prEnc();if(enc!==PR.enc){PR.enc=enc;PR.encT=0;PR.free=false;PR.rumble=false;}
@@ -11269,6 +11282,7 @@ function prismFrame(real,dt){
   }
   // the beams and rings age on real time
   for(const b of PR.beams)if(b)b.t+=real;
+  for(let i=PR.streaks.length-1;i>=0;i--){const s=PR.streaks[i];s.t+=real;if(s.t>=s.life)PR.streaks.splice(i,1);}
   for(let i=PR.fx.length-1;i>=0;i--){const f=PR.fx[i];f.t+=real;if(f.t>=f.life){PR.fx.splice(i,1);continue;}if(f.k==='orb'){f.x+=f.vx*real;f.y+=f.vy*real;f.z+=f.vz*real;f.vx*=0.96;f.vy*=0.96;f.vz*=0.96;}}
   // the glow and the colours
   P.flash=0.16+0.06*Math.sin(time*6);
@@ -11293,22 +11307,23 @@ function prHud(on){
   const vis=state==='play'&&(on||PR.on);
   prBar.hidden=!(vis&&PR.on);
   // the side button: desktop only (touch has its own ASCEND button in the ring of buttons); it shows whenever the form can be entered
-  const showAsc=state==='play'&&!PR.on&&!!save.character&&!touchOn()&&!cutLocked();
+  const showAsc=state==='play'&&!!save.character&&!touchOn()&&!cutLocked();
   if(prAsc.hidden===showAsc)prAsc.hidden=!showAsc;
+  {const lab=PR.on?'END':'ASCEND';if(prAsc.dataset.lab!==lab){prAsc.dataset.lab=lab;prAsc.lastChild.textContent=lab;prAsc.setAttribute('aria-label',PR.on?'Hold to end the Prism form (T)':'Hold to ascend (T)');const tb=TB.asc;if(tb&&tb.b){const sm=tb.b.querySelector('small');if(sm)sm.textContent=PR.on?'End':'Ascend';}}}
   const hp=PR.hold>0?clamp(PR.hold/PR_HOLD,0,1):0;
   prAsc.style.setProperty('--p',(hp*100).toFixed(1)+'%');prAsc.classList.toggle('hold',hp>0);
   if(touchOn()){const t=TB.asc;if(t&&t.b){const ring=t.b.querySelector('.cd');if(ring){ring.hidden=!(hp>0);if(hp>0)ring.style.background='conic-gradient(transparent '+(hp*100).toFixed(1)+'%,rgba(0,0,0,.62) 0)';}t.b.classList.toggle('on',hp>0);}}
   if(!PR.on)return;
-  const sig=Math.round(PR.e)+'|'+PR.kills+'|'+(PR.ts?1:0)+'|'+(PR.rumble?1:0)+'|'+(PR.dry?1:0)+'|'+(PR.free?1:0);
-  if(sig!==prHudSig){prHudSig=sig;$('prbar-e').style.width=clamp(PR.e,0,100).toFixed(1)+'%';$('prbar-k').textContent=PR.kills+' / '+PR_KILLS;
+  const sig=Math.ceil(PR.e)+'|'+PR.kills+'|'+(PR.ts?1:0)+'|'+(PR.rumble?1:0)+'|'+(PR.free?1:0)+'|'+PR.arrows.length;
+  if(sig!==prHudSig){prHudSig=sig;$('prbar-e').style.width=clamp(PR.e,0,100).toFixed(1)+'%';$('prbar-k').textContent=Math.ceil(PR.e)+' · '+PR.kills+'/'+PR_KILLS;
     $('prbar-t').textContent=PR.ts?(PR.free?'TIME STOP · BROKEN':'TIME STOP'):'PRISM';prBar.classList.toggle('ts',PR.ts);prBar.classList.toggle('low',PR.e<20);}
   for(const s of slotEls){if(s.prx===undefined)continue;const i=s.prx;
-    s.s.classList.toggle('on',i===0?PR.ts:i===1?PR.bar&&!PR.dry&&PR.e>0:false);
-    const cant=i===2?PR.e<PR_ERASE:i===1?PR.dry:false;s.s.classList.toggle('dim',cant);}
+    s.s.classList.toggle('on',i===0?PR.ts:i===1?PR.bar&&PR.e>0:false);
+    s.s.classList.toggle('dim',i===2&&PR.e<PR_ERASE);}
 }
 // ---- the hotbar and the touch buttons ----
 function prBuildHotbar(){
-  const defs=[['Time Stop','toggle · 3.5/s'],['Barrage','hold · 12/s'],['Erase','40 energy · lock on']];
+  const defs=[['Time Stop','toggle · 0.25/s'],['Barrage','hold · 1/s'],['Erase','40 energy · lock on']];
   defs.forEach((d,i)=>{const s=el('div',{class:'slot prx'},el('kbd',{text:touchOn()?'':String(i+1)}),el('span',{class:'nm',text:d[0]}),el('small',{text:d[1]}));
     s.addEventListener('pointerdown',e=>{if(touchOn())return;e.preventDefault();prismAbilityDown(i);});s.addEventListener('pointerup',()=>prismAbilityUp(i));hud.hotbar.appendChild(s);slotEls.push({pr:true,prx:i,s});});
   if(prDestroyOk()){const s=el('div',{class:'slot prism'},el('kbd',{text:touchOn()?'':'4'}),el('span',{class:'nm',text:'DESTROY'}),el('small',{text:'Prism'}));s.addEventListener('click',()=>{if(canAct())destroyStart(true);});hud.hotbar.appendChild(s);slotEls.push({pr:true,s});}
@@ -11330,6 +11345,8 @@ function prismDraw(){
   for(const b of PR.beams){if(!b||b.t>=b.life)continue;const k=1-b.t/b.life,c=hue(b.h,1,1);
     queue(MESH.glowBox,M4.beam(tmpM(),b.ax,b.ay,b.az,b.bx,b.by,b.bz,0.07),[1,1,1,k],F_ADD);queue(MESH.glowBox,M4.beam(tmpM(),b.ax,b.ay,b.az,b.bx,b.by,b.bz,0.26),[c[0],c[1],c[2],0.5*k],F_ADD);
     if(b.hit){const q=0.5+0.7*k;queue(MESH.glowSphere,at(b.bx,b.by,b.bz,0,0,0,q,q,q),[c[0],c[1],c[2],0.7*k],F_ADD);}}
+  for(const a of PR.arrows){const c=hue(a.h+t*0.15,1,1);queue(MESH.glowBox,M4.beam(tmpM(),a.x-a.dx*2.2,a.y-a.dy*2.2,a.z-a.dz*2.2,a.x+a.dx*2.2,a.y+a.dy*2.2,a.z+a.dz*2.2,0.16),[c[0],c[1],c[2],0.9],F_ADD);}
+  for(const s of PR.streaks){const k=1-s.t/s.life,c=hue(s.h,1,1);queue(MESH.glowBox,M4.beam(tmpM(),s.ax,s.ay,s.az,s.bx,s.by,s.bz,0.16),[c[0],c[1],c[2],0.8*k],F_ADD);}
   for(const f of PR.fx){const k=f.t/f.life,c=hue(f.h+t*0.2,1,1);
     if(f.k==='ring'){const r=lerp(f.r0,f.r1,1-(1-k)*(1-k));queue(MESH.ring,M4.alignY(tmpM(),f.x,f.y,f.z,Math.sin(f.tilt*3)*0.8,1,Math.cos(f.tilt*3)*0.8,r),[c[0],c[1],c[2],0.9*(1-k)],F_ADD);}
     else if(f.k==='orb'){const s=f.s*(1-k*0.7);queue(MESH.glowSphere,at(f.x,f.y,f.z,0,0,0,s,s,s),[c[0],c[1],c[2],0.9*(1-k)],F_ADD);}
@@ -12852,7 +12869,7 @@ function tbWanted(){
     if(!P.swim&&!P.alien&&invFlyOk()&&!hasPower('flight')&&(m==='webSwing'||m==='superSpeed'))on.add('flyx');} // web and run heroes already use the traversal slot, so their invasion Fly goes to ring C
   for(let i=0;i<4;i++)if(TB['p'+i])on.add('p'+i);
   if(nearestInteract())on.add('use');
-  if(P.alien||SG.on||PR.on){if(!PR.on&&!arenaSG())on.add('wheel');if(!PR.on)on.add('asc');return on;} // (Ascend: always there, in a Sun God or an alien form too)
+  if(P.alien||SG.on||PR.on){if(!PR.on&&!arenaSG())on.add('wheel');on.add('asc');return on;} // (Ascend, or End inside the Prism form: always there, in a Sun God or an alien form too)
   if(heldSlot>=0||con){on.add('grow');on.add('shrink');}
   if(con){on.add('alt');on.add('cx');}
   if(P.tk)on.add('tkmore');
