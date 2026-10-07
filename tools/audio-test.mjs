@@ -41,10 +41,10 @@ const fresh = () => {
   const sandbox = {
     save: { settings: { volume: 0.7 } }, P: { pos: { x: 0, y: 0, z: 0 }, yaw: 0 },
     clamp: (v, a, b) => (v < a ? a : v > b ? b : v), rr: (a, b) => a + Math.random() * (b - a),
-    window: {}, console,
+    window: {}, console, performance,
   };
   vm.createContext(sandbox);
-  vm.runInContext(code + '\n;this.SFX=SFX;this.MIX=MIX;this.jit=jit;', sandbox);
+  vm.runInContext(code + '\n;this.SFX=SFX;this.MIX=MIX;this.jit=jit;this.SAMPLES=SAMPLES;', sandbox);
   sandbox.SFX.build(new Ctx());
   return sandbox;
 };
@@ -115,6 +115,31 @@ test('at(): louder and centred when near, panned and duller when far', () => {
   assert.ok(near.v > 0.99 && Math.abs(near.pan) < 0.1);
   assert.ok(right.pan > 0.5 && left.pan < -0.5);
   assert.ok(far.v < near.v && far.lp < near.lp);
+});
+
+// the recordings: pretend every file has loaded (a mock buffer per variant), then every sound must take the recorded path
+const loaded = () => { const t = fresh(); for (const k in t.SAMPLES) t.SFX.buf[k] = Array.from({ length: t.SAMPLES[k][0] }, () => ({ duration: 0.5 })); return t; };
+
+test('with the recordings loaded, every sound and named moment builds a valid graph', () => {
+  const { SFX } = loaded();
+  SFX.boom(1, 1.1); SFX.boom(0.2, 0.2); SFX.boom(1, 2.6); SFX.zap(1); SFX.hit(); SFX.chime(); SFX.levelUp(); SFX.whoosh(); SFX.swish();
+  SFX.glass(1); SFX.crash(1); SFX.transform(); SFX.punch(1); SFX.punch(0.4); SFX.setEngine(true, 0.5); SFX.setEngine(false, 0);
+  for (const e of ['pickup', 'reward', 'heal', 'upgrade', 'confirm', 'waveClear', 'stinger', 'door', 'lockOn', 'deny', 'open', 'close', 'click', 'hover', 'step', 'land']) SFX.play(e);
+  assert.ok(SFX.engS, 'the recorded engine loop took over');
+});
+
+test('every direct tone() shape in the game maps to a recording', () => {
+  const { SFX } = loaded();
+  const src = readFileSync(join(root, 'index.html'), 'utf8'), re = /SFX\.tone\('(\w+)',([\d.]+),([\d.]+),([\d.]+),([\d.]+)/g;
+  let m, k = 0;
+  while ((m = re.exec(src))) { const [, type, f0, f1, dur, v] = m; assert.ok(SFX.toneSample(type, +f0, +f1, +dur, +v, 0), m[0]); k++; }
+  assert.ok(k > 150, 'found the tone() calls (' + k + ')');
+});
+
+test('a missing file falls back to the synth', () => {
+  const { SFX } = fresh();
+  assert.equal(SFX.sample('punch', 1), false);
+  const before = nodes; SFX.punch(1); assert.ok(nodes > before, 'synth punch still plays');
 });
 
 console.log(`\n${n} checks passed`);

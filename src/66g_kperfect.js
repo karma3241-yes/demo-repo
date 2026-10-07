@@ -486,7 +486,7 @@ function kSplitTick(k,dt,C,st,core){
   if(t>=3.0){KA.sink=sm01((t-3.0)/2.4);if(KA.sink>=0.99)KA.vis=false;}
   if(t>=3.0&&t<4.4&&Math.random()<dt*30)smoke(KA.bx+rr(-70,70),2,KA.bz+rr(-50,50),1,8,16,4,0.7);
   if(!C.pf&&t>=2.3){C.pf=true;const a=pfMake(core[0],core[1]-2.2*PFZ,core[2],false);a.al=0;a.yaw=KA.yaw+Math.PI;a.fadeIn=1;
-    flashWhite=1;SFX.chime();SFX.tone('sine',200,2000,1.4,0.14);ringFx(core[0],core[1],core[2],1,34,0.8,[1,1,1]);burst(core[0],core[1],core[2],90,30,1.2,[[1,.9,.6],[1,1,1]],2,0,1.5);KA.fx.push({x:core[0],y:core[1],z:core[2],t:0,dur:1,r0:4,r1:70,col:[1,.9,.55]});}
+    flashWhite=1;SFX.play('stinger');SFX.tone('sine',200,2000,1.4,0.14);ringFx(core[0],core[1],core[2],1,34,0.8,[1,1,1]);burst(core[0],core[1],core[2],90,30,1.2,[[1,.9,.6],[1,1,1]],2,0,1.5);KA.fx.push({x:core[0],y:core[1],z:core[2],t:0,dur:1,r0:4,r1:70,col:[1,.9,.55]});}
   const a=PF.real;
   if(a&&C.pf){
     if(t<4.2){a.pos.set(core[0],core[1]-2.2*PFZ+Math.sin(t*2)*0.5,core[2]);a.yaw+=dt*0.9;a.pose='raise';}
@@ -508,7 +508,7 @@ function pfRetryStart(){
   const cam=pfCam(st);
   cutscene({dur:4.6,control:false,letterbox:true,skippable:false,fov:60,text:'KATHANA, PERFECT FORM',from:cam,to:cam,look:()=>({x:a.pos.x,y:a.pos.y+2.6*PFZ,z:a.pos.z}),
     onTick:(k,dt,C)=>{const e=sm01((C.t-0.4)/2.4);a.pos.set(st.x,lerp(st.y+60,st.y,e),st.z);a.pose=e<0.9?'raise':'guard';a.keep=true;a.al+=(1-a.al)*Math.min(1,dt*2);
-      if(!C.f&&C.t>0.4){C.f=true;flashWhite=0.8;SFX.chime();SFX.tone('sine',200,1800,1.2,0.12);}},
+      if(!C.f&&C.t>0.4){C.f=true;flashWhite=0.8;SFX.play('stinger');SFX.tone('sine',200,1800,1.2,0.12);}},
     onEnd:()=>{if(!inKS())return;a.keep=false;a.pos.set(st.x,st.y,st.z);a.al=1;pfQteStart();}});
 }
 // ================================================================
@@ -547,7 +547,7 @@ function pfQteFail(){
 }
 function pfQteWin(){
   KQ.on=false;KQ.phase='';qteHide();const a=PF.real,c=center(P);
-  flashWhite=1;SFX.boom(1,2.2);SFX.chime();SFX.tone('sine',200,1600,1,0.15);addShake(1.2);
+  flashWhite=1;SFX.boom(1,2.2);SFX.play('stinger');SFX.tone('sine',200,1600,1,0.15);addShake(1.2);
   ringFx(c.x,c.y,c.z,1,60,0.9,[1,.9,.5]);ringFx(c.x,c.y,c.z,1,40,0.6,[1,1,1]);burst(c.x,c.y,c.z,110,36,1.1,[[1,.9,.5],[1,1,1],[1,.7,.2]],2,0,1.5);KA.fx.push({x:c.x,y:c.y,z:c.z,t:0,dur:0.9,r0:2,r1:70,col:[1,.9,.5]});
   if(a){const dx=a.pos.x-P.pos.x,dz=a.pos.z-P.pos.z,l=Math.hypot(dx,dz)||1;a.pos.x+=dx/l*6;a.pos.z+=dz/l*6;pfClampPos(a);a.stag=1.6;a.pose='flung';a.st='orbit';a.cd=1.2;lockT=a;}
   PF.fight=true;KA.phase='fight';objective('Defeat the Perfect Form');kFly(12);
@@ -575,7 +575,7 @@ function pfWinTick(k,dt,C,a){
   if(!C.sh&&t>=1.1){C.sh=true;a.vis=false;const c=center(a);
     for(let i=0;i<90;i++){const s=rr(0.12,0.45);spawnPiece(c.x+rr(-1,1),c.y+rr(-1.5,1.5),c.z+rr(-1,1),PFB,s*0.5,s*1.3,s*0.5,[1,1,1],rr(-26,26),rr(6,28),rr(-26,26),4,[rr(0,3),rr(0,3),0]);}
     burst(c.x,c.y,c.z,150,40,1.6,[[1,.9,.6],[1,1,1],[.7,.85,1]],2.2,-3,1.2);ringFx(c.x,c.y,c.z,1,60,0.9,[1,1,1]);KA.fx.push({x:c.x,y:c.y,z:c.z,t:0,dur:1,r0:2,r1:60,col:[1,.95,.8]});
-    SFX.glass(1);SFX.boom(1,2.4);SFX.chime();addShake(1.5);flashWhite=1;}
+    SFX.glass(1);SFX.boom(1,2.4);SFX.play('stinger');addShake(1.5);flashWhite=1;}
   if(t>=2.0){const f=$('fade');f.style.background='#fff';f.style.opacity=clamp((t-2.0)/1.8,0,1).toFixed(3);}
 }
 function pfReturn(a){
@@ -590,7 +590,7 @@ function pfWorldBack(){
   if(state!=='play')return;
   cutscene({dur:5.4,control:false,letterbox:true,skippable:true,fov:68,text:'The world comes back',
     from:()=>({x:P.pos.x-70,y:P.pos.y+55,z:P.pos.z+70}),to:()=>({x:P.pos.x+34,y:P.pos.y+20,z:P.pos.z-34}),look:()=>({x:P.pos.x,y:P.pos.y+4,z:P.pos.z}),
-    onTick:(k,dt,C)=>{if(!C.f&&C.t>0.1){C.f=true;SFX.chime();SFX.tone('sine',300,900,1.2,0.08);}},onEnd:pfAfterWin});
+    onTick:(k,dt,C)=>{if(!C.f&&C.t>0.1){C.f=true;SFX.play('stinger');SFX.tone('sine',300,900,1.2,0.08);}},onEnd:pfAfterWin});
 }
 function pfAfterWin(){
   const first=KW.first;KW.first=false;

@@ -83,7 +83,7 @@ function kDarkTick(k,dt,C){
   if(!C.rb2&&t>2.0){C.rb2=true;SFX.tone('sawtooth',34,18,1.6,0.22);addShake(0.4);}
   if(!C.fl&&t>=2.6){C.fl=true;
     if(PR.on)prismEnd('destroy'); // the Prism Being's Destroy is used
-    arenaHp=6;sunGodStart('arena',true);kFly(12,true);P.hp=maxHp();SFX.boom(1,2.4);SFX.chime();SFX.tone('sine',200,1400,1.2,0.14);addShake(0.6);}
+    arenaHp=6;sunGodStart('arena',true);kFly(12,true);P.hp=maxHp();SFX.boom(1,2.4);SFX.play('stinger');SFX.tone('sine',200,1400,1.2,0.14);addShake(0.6);}
   KA.flood=clamp((t-2.6)/1.6,0,1);KA.flood=KA.flood*KA.flood*(3-2*KA.flood);kLight();
   if(SG.on)P.flash=Math.max(P.flash,0.3);
 }
@@ -185,7 +185,7 @@ function korbBreak(i){
   const o=KA.orbs[i];if(!o||o.dead)return;o.dead=true;KA.dead++;const a=o.a,x=a.pos.x,y=a.pos.y,z=a.pos.z,c=o.col;
   for(let k=0;k<26;k++){const s=rr(0.9,2.6);spawnPiece(x+rr(-5,5),y+rr(-5,5),z+rr(-5,5),MESH.box,s,s*0.8,s*1.2,[c[0]*0.9+0.1,c[1]*0.9+0.1,c[2]*0.9+0.1],rr(-24,24),rr(4,26),rr(-24,24),9);}
   smoke(x,y,z,10,8,14,3,0.2);KA.fx.push({x,y,z,t:0,dur:1.1,r0:8,r1:90,col:c},{x,y,z,t:0,dur:0.7,r0:4,r1:50,col:[1,1,1]});
-  SFX.boom(1,2.4);SFX.chime();addShake(1.1);toast(KA.dead+'/4 orbs shattered',KA.dead<4?'Kathana grows desperate':'','gold');
+  SFX.boom(1,2.4);SFX.play('stinger');addShake(1.1);toast(KA.dead+'/4 orbs shattered',KA.dead<4?'Kathana grows desperate':'','gold');
   for(const s of KA.shots)if(s.orb===i)kShotKill(s);
   objective(KA.dead<4?'Shatter Kathana\'s four orbs · '+(4-KA.dead)+' left':null);
   if(lockT===a){lockT=null;if(KA.dead<4)lockT=kathanaPickAny();if(lockT)SFX.tone('sine',500,900,0.08,0.05);} // the lock moves on to the nearest orb left

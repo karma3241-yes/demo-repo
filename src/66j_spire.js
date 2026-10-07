@@ -300,13 +300,13 @@ function spWaveTick(dt){
   const alive=spAlive(),last=SP.floor===3?1:3;
   if(SP.pend.length&&alive<SPCAP){SP.spawnT-=dt;if(SP.spawnT<=0){SP.spawnT=rr(0.3,0.6);spSpawn(SP.pend.pop());}}
   if(!SP.pend.length&&alive===0){
-    if(SP.wave>=last){if(SP.floor<3)spFloorClear();else{SP.live=false;SP.elite=1;SP.bossT=3;toast('The champions have fallen','Something is coming...','gold');SFX.chime();}}
-    else{SP.live=false;toast('Wave cleared','Wave '+SP.nw+' in 3 s','gold');SFX.chime();SP.breath=3;}
+    if(SP.wave>=last){if(SP.floor<3)spFloorClear();else{SP.live=false;SP.elite=1;SP.bossT=3;toast('The champions have fallen','Something is coming...','gold');SFX.play('waveClear');}}
+    else{SP.live=false;toast('Wave cleared','Wave '+SP.nw+' in 3 s','gold');SFX.play('waveClear');SP.breath=3;}
   }
 }
 function spFloorClear(){
   const S=save.story,f=SP.floor;SP.cleared[f-1]=true;SP.open=true;S.tf=Math.max(S.tf,f);persist();
-  toast('Floor '+f+' cleared','Take the lift','cyan');SFX.chime();SFX.levelUp();flashWhite=Math.max(flashWhite,0.25);
+  toast('Floor '+f+' cleared','Take the lift','cyan');SFX.play('waveClear');SFX.levelUp();flashWhite=Math.max(flashWhite,0.25);
   const L=SPLIFT[f-1];objectiveMark(SPO.x+L.x,SPFY[f-1]+4,SPO.z+L.z,'Lift');spObj(true);
 }
 function spObj(force){
@@ -716,7 +716,7 @@ function cyberEnding(){
     onTick:(k,dt,Cu)=>{const t=Cu.t;
       SPR.dis=1-smooth(0.5,3.2,t);
       if(t<3.4&&Math.random()<0.5){const s=CY.sun,an=rr(0,TAU);burst(P.pos.x+s[0]*60+Math.cos(an)*8,P.pos.y+s[1]*60,P.pos.z+s[2]*60+Math.sin(an)*8,2,6,0.8,[[.4,.9,1]],1.4,0,1);}
-      if(t>=3.4&&!SPR.real){SPR.real=true;if(env.night>0.5)tod=0.42;flashWhite=1;SFX.chime();SFX.levelUp();SFX.tone('sine',400,1800,1.6,0.1);}
+      if(t>=3.4&&!SPR.real){SPR.real=true;if(env.night>0.5)tod=0.42;flashWhite=1;SFX.play('stinger');SFX.levelUp();SFX.tone('sine',400,1800,1.6,0.1);}
       SPR.pk=smooth(3.8,9.5,t);},
     onEnd:()=>{SPR.ending=false;SPR.real=true;SPR.dis=0;SPR.pk=1;CYZ.bounds.y1=0;save.story.tower=2;persist();cyberInfo();}});
 }
@@ -774,7 +774,7 @@ function earthArrive(){ // the wormhole's far end on Earth: high above Nova Bay
 function towerEnter(){ // the light gate at the end of the Spire's entrance (66i_cyber.js cyUpdate)
   const S=save.story;if(!inCyber()||ZF.phase||S.tower>=2)return;CY.enterT=time;
   S.cyber=Math.max(2,S.cyber);S.tower=Math.max(1,S.tower);persist();
-  toast('The doors open...','Three floors to the top. Climb.','cyan');SFX.chime();flashWhite=Math.max(flashWhite,0.55);
+  toast('The doors open...','Three floors to the top. Climb.','cyan');SFX.play('door');flashWhite=Math.max(flashWhite,0.55);
   zoneHop('spire',spStartAt(Math.min(3,S.tf+1)));
 }
 function spireBar(){const a=SOV.a;if(!a||!a.alive||!inSpire())return false;hud.bossbar.hidden=false;setText(hud.bossname,'bn','THE SOVEREIGN');setW(hud.bossb,'boss',a.hp/a.maxHp);return true;}

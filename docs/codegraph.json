@@ -18,18 +18,19 @@
    }
   },
   "00b_audio.js": {
-   "kb": 13.9,
-   "lines": 136,
-   "purpose": "Audio (all synthesized). Layered voices on a bus graph with a soft clipper and one shared reverb.",
+   "kb": 24.3,
+   "lines": 240,
+   "purpose": "Audio. Recorded CC0 sounds (audio/sfx, see audio/CREDITS.md) and music loops (audio/music) on a bus graph with",
    "uses": {
     "66e_boost.js": 1,
+    "42_combat.js": 5,
+    "30_systems.js": 9,
     "99_main.js": 4,
-    "30_systems.js": 2,
     "80_player.js": 2,
+    "50_npcs.js": 6,
+    "70_ui.js": 2,
     "20_core.js": 1,
-    "00_engine.js": 6,
-    "50_npcs.js": 4,
-    "42_combat.js": 2
+    "00_engine.js": 7
    }
   },
   "10_world.js": {
@@ -970,7 +971,7 @@
    }
   },
   "66g_kperfect.js": {
-   "kb": 53.4,
+   "kb": 53.5,
    "lines": 634,
    "purpose": "Kathana, stage 2: the scream, the split, the Perfect Form, the break-free QTE and the duel; then the super-pow",
    "uses": {
@@ -1177,7 +1178,7 @@
    }
   },
   "70_ui.js": {
-   "kb": 49.2,
+   "kb": 49.3,
    "lines": 467,
    "purpose": "HUD",
    "uses": {
@@ -1201,10 +1202,10 @@
     "50_npcs.js": 37,
     "66b_story.js": 1,
     "42_combat.js": 7,
+    "00b_audio.js": 10,
     "65c_daily.js": 4,
     "66_icons.js": 7,
     "49_ring.js": 24,
-    "00b_audio.js": 8,
     "60_multiplayer.js": 16,
     "64_portal.js": 5,
     "63_host.js": 6,
@@ -1247,18 +1248,18 @@
    }
   },
   "80_player.js": {
-   "kb": 35.7,
-   "lines": 354,
+   "kb": 36,
+   "lines": 356,
    "purpose": "Input: keyboard, mouse, pointer lock, touch",
    "uses": {
     "20_core.js": 60,
-    "00_engine.js": 82,
+    "00_engine.js": 83,
     "30_systems.js": 121,
     "70_ui.js": 67,
     "49_ring.js": 37,
     "67_hudbar.js": 2,
     "64_portal.js": 2,
-    "00b_audio.js": 17,
+    "00b_audio.js": 19,
     "45b_voidborn.js": 6,
     "66b_story.js": 4,
     "42_combat.js": 17,
@@ -1393,7 +1394,7 @@
     "68b_hints.js": 1,
     "65c_daily.js": 4,
     "10_world.js": 28,
-    "00b_audio.js": 4,
+    "00b_audio.js": 5,
     "64_portal.js": 7,
     "49j_voice.js": 10,
     "90_render.js": 14,
@@ -1471,7 +1472,7 @@
    "kind": "fn",
    "usedBy": {
     "00_engine.js": 13,
-    "00b_audio.js": 5,
+    "00b_audio.js": 6,
     "10_world.js": 10,
     "20_core.js": 4,
     "30_systems.js": 4,
@@ -1512,7 +1513,7 @@
     "68b_hints.js": 1,
     "70_ui.js": 5,
     "71_opener.js": 6,
-    "80_player.js": 20,
+    "80_player.js": 21,
     "81_touch.js": 2,
     "90_render.js": 10,
     "99_main.js": 4
@@ -2675,7 +2676,7 @@
   },
   "MIX": {
    "file": "00b_audio.js",
-   "line": 8,
+   "line": 9,
    "kind": "const",
    "usedBy": {
     "00b_audio.js": 6
@@ -2683,23 +2684,15 @@
   },
   "jit": {
    "file": "00b_audio.js",
-   "line": 9,
+   "line": 10,
    "kind": "fn",
    "usedBy": {
-    "00b_audio.js": 15,
+    "00b_audio.js": 18,
     "66f_kathana.js": 4,
     "66g_kperfect.js": 4
    }
   },
   "SFX_CLIP": {
-   "file": "00b_audio.js",
-   "line": 12,
-   "kind": "fn",
-   "usedBy": {
-    "00b_audio.js": 1
-   }
-  },
-  "sfxIR": {
    "file": "00b_audio.js",
    "line": 13,
    "kind": "fn",
@@ -2707,12 +2700,44 @@
     "00b_audio.js": 1
    }
   },
-  "SFX": {
+  "SAMPLES": {
    "file": "00b_audio.js",
-   "line": 17,
+   "line": 15,
    "kind": "const",
    "usedBy": {
-    "00b_audio.js": 2,
+    "00b_audio.js": 3
+   }
+  },
+  "SFX_EV": {
+   "file": "00b_audio.js",
+   "line": 26,
+   "kind": "const",
+   "usedBy": {
+    "00b_audio.js": 2
+   }
+  },
+  "MUSIC": {
+   "file": "00b_audio.js",
+   "line": 41,
+   "kind": "const",
+   "usedBy": {
+    "00b_audio.js": 1
+   }
+  },
+  "sfxIR": {
+   "file": "00b_audio.js",
+   "line": 42,
+   "kind": "fn",
+   "usedBy": {
+    "00b_audio.js": 1
+   }
+  },
+  "SFX": {
+   "file": "00b_audio.js",
+   "line": 46,
+   "kind": "const",
+   "usedBy": {
+    "00b_audio.js": 3,
     "30_systems.js": 14,
     "40_powers.js": 21,
     "42_combat.js": 17,
@@ -2756,11 +2781,11 @@
     "66i_cyber.js": 1,
     "66j_spire.js": 67,
     "66k_prismform.js": 22,
-    "70_ui.js": 8,
+    "70_ui.js": 10,
     "71_opener.js": 21,
-    "80_player.js": 17,
+    "80_player.js": 19,
     "81_touch.js": 3,
-    "99_main.js": 4
+    "99_main.js": 5
    }
   },
   "CELL": {
@@ -5203,7 +5228,7 @@
    "line": 4,
    "kind": "const",
    "usedBy": {
-    "00b_audio.js": 1,
+    "00b_audio.js": 2,
     "10_world.js": 1,
     "30_systems.js": 3,
     "40_powers.js": 7,
@@ -5260,6 +5285,7 @@
    "line": 4,
    "kind": "const",
    "usedBy": {
+    "00b_audio.js": 4,
     "40_powers.js": 1,
     "49k_sungod.js": 1,
     "64_portal.js": 3,
@@ -6165,6 +6191,7 @@
    "line": 222,
    "kind": "fn",
    "usedBy": {
+    "00b_audio.js": 2,
     "30_systems.js": 3,
     "47_abilities.js": 1,
     "47b_body.js": 1,
@@ -7224,7 +7251,7 @@
    "line": 67,
    "kind": "fn",
    "usedBy": {
-    "00b_audio.js": 2,
+    "00b_audio.js": 5,
     "20_core.js": 4,
     "42_combat.js": 16,
     "43_ragdoll.js": 1,
@@ -11315,6 +11342,7 @@
    "line": 5,
    "kind": "const",
    "usedBy": {
+    "00b_audio.js": 1,
     "20_core.js": 1,
     "30_systems.js": 4,
     "40_powers.js": 1,
@@ -11348,7 +11376,7 @@
    "line": 6,
    "kind": "fn",
    "usedBy": {
-    "00b_audio.js": 4,
+    "00b_audio.js": 5,
     "20_core.js": 2,
     "44_movement.js": 1,
     "45b_voidborn.js": 1,
@@ -19036,6 +19064,7 @@
    "line": 13,
    "kind": "const",
    "usedBy": {
+    "00b_audio.js": 1,
     "40_powers.js": 2,
     "42_combat.js": 2,
     "49k_sungod.js": 2,
@@ -19342,6 +19371,7 @@
    "line": 132,
    "kind": "const",
    "usedBy": {
+    "00b_audio.js": 1,
     "65c_daily.js": 1,
     "66b_story.js": 1,
     "66e_boost.js": 2,

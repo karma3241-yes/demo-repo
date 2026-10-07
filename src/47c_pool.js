@@ -37,7 +37,7 @@ Object.assign(POWER_FN,{
       from=c;cur=nearestFoe(c.x,c.y,c.z,18,hit);}},
   healingPulse(){const h=pstat('healingPulse','damage');P.hp=Math.min(maxHp(),P.hp+h);let n=0;
     for(const q of humans)if(q.alive&&q.downed>0&&Math.hypot(q.pos.x-P.pos.x,q.pos.z-P.pos.z)<20){q.downed=0;q.hp=Math.max(q.hp,40);q.state='flee';n++;}
-    ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,20,0.6,HEAL_C[0]);burst(P.pos.x,P.pos.y+1.3,P.pos.z,50,8,0.9,HEAL_C,1.4,-4,1.6);SFX.chime();
+    ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,20,0.6,HEAL_C[0]);burst(P.pos.x,P.pos.y+1.3,P.pos.z,50,8,0.9,HEAL_C,1.4,-4,1.6);SFX.play('heal');
     if(n){addXP(10*n);if(playerFaction()!=='villain')addRep(3*n);}feed('+'+Math.round(h)+' health',n?n+' people back on their feet':'');},
   vineSnare(){faceAim();let x=aim.x,y=aim.y,z=aim.z;if(!aim.hitAny){x=P.pos.x+camF.x*25;z=P.pos.z+camF.z*25;y=groundY(x,z,P.pos.y+10);}
     const R=pstat('vineSnare','radius'),stun=pstat('vineSnare','stun'),dmg=pstat('vineSnare','damage')*strengthMul();

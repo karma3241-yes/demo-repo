@@ -36,14 +36,14 @@ function renderDaily(){
   B.append(grid,el('div',{class:'dfoot'},
     el('p',{class:'muted',text:(stamp?'Day '+today+' reward added · ':'')+(today>=7?'Day 7 pays again every day you keep the streak':'Come back tomorrow for Day '+nx+' ('+dailyText(dailyReward(nx))+')')+'. Miss a day and it starts over.'}),
     el('button',{class:'go',type:'button',text:stamp?'Nice':'Close',onclick:()=>closeSheet()})));
-  if(dailyChime){dailyChime=false;setTimeout(()=>{if(sheetOpen==='daily')SFX.chime();},620);}
+  if(dailyChime){dailyChime=false;setTimeout(()=>{if(sheetOpen==='daily')SFX.play('reward');},620);}
 }
 function claimDaily(){ // called by startPlay; the claim lands 3 s later, after the welcome toast (and is skipped if you leave before that)
   if(window.__SKYLINE_TEST__||dailyPend||!save.character)return;dailyPend=true;
   later(3,()=>{dailyPend=false;try{
     const d=save.daily,n=dailyStep(d.last,d.streak,dayStr(new Date()));if(n===null)return;
     const first=!d.last,r=dailyApply(n);
-    if(first||!dailyCanShow()){toast('Day '+n+' reward',dailyText(r),'gold');SFX.chime();}else openDaily(n);
+    if(first||!dailyCanShow()){toast('Day '+n+' reward',dailyText(r),'gold');SFX.play('reward');}else openDaily(n);
     if(sheetOpen==='skills')renderSheet();
   }catch(e){logErr(e);}});
 }

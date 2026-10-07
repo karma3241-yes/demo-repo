@@ -23,7 +23,7 @@ function updateGoal(){
   try{
     if(save.goal<0){let i=0;while(i<GOALS.length&&GOALS[i].done())i++;save.goal=i;persist();}
     let G=GOALS[save.goal];
-    if(G&&G.done()){save.goal++;addXP(G.xp);persist();SFX.chime();toast('Goal done','+'+G.xp+' XP · '+G.text,'gold');G=GOALS[save.goal];}
+    if(G&&G.done()){save.goal++;addXP(G.xp);persist();SFX.play('reward');toast('Goal done','+'+G.xp+' XP · '+G.text,'gold');G=GOALS[save.goal];}
     const t=G?G.text:nextUnlockText();
     if(!t){g.hidden=true;return;}
     g.hidden=false;setText($('goal-t'),'goalt',t);setText($('goal-x'),'goalx',G?'+'+G.xp+' XP':'');placeGoal(g);

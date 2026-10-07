@@ -130,12 +130,12 @@ const dmgPool=[];function dmgEl(i){if(!dmgPool[i]){const e=el('div',{class:'dmg'
 // ================================================================
 let sheetOpen=null,creating=false;
 const sheet=$('sheet'),sheetBody=$('sheet-body'),sheetTitle=$('sheet-title');
-function openSheet(name){if(name==='skills')guideDone('skills');if(name==='unlocks')guideDone('unlocks');
+function openSheet(name){SFX.play('open');if(name==='skills')guideDone('skills');if(name==='unlocks')guideDone('unlocks');
   if(state==='play'&&!paused)setPaused(true);
   sheetOpen=name;sheet.hidden=false;sheet.classList.toggle('side',name==='look');renderSheet();
   const f=sheet.querySelector('button,input');if(f)f.focus({preventScroll:true});
 }
-function closeSheet(){if(!sheetOpen)return;const was=sheetOpen;sheetOpen=null;sheet.hidden=true;persist();if(was==='look'){applyLook();syncPlayerDoc(true);}if(was==='keytrial')keyTrialClosed();if(was==='daily'){dailyShow=0;if(dailyResume){dailyResume=false;resume();}}}
+function closeSheet(){if(!sheetOpen)return;SFX.play('close');const was=sheetOpen;sheetOpen=null;sheet.hidden=true;persist();if(was==='look'){applyLook();syncPlayerDoc(true);}if(was==='keytrial')keyTrialClosed();if(was==='daily'){dailyShow=0;if(dailyResume){dailyResume=false;resume();}}}
 $('sheet-x').addEventListener('click',closeSheet);
 sheet.addEventListener('mousedown',e=>{if(e.target===sheet)closeSheet();});
 function renderSheet(){
@@ -186,7 +186,7 @@ function renderSkills(){
   for(const id of [...new Set([...save.character.abilities.map(LEVEL_OF),save.character.body,...(hasPower('morphBand')?['morphBand']:[]),...(hasTrav('armorFlight')?['suitBattery']:[])])]){
     if(!POWERS[id]||POWERS[id].cat==='body'&&POWERS[id].hidden&&!POWERS[id].sig)continue; // hidden bodies have no level, except the ones whose signature move levels with them
     const lvl=powerLevel(id),max=lvl>=CONFIG.powerMax,cost=CONFIG.powerUpgradeCost(lvl);
-    const btn=el('button',{class:'plus',text:max?'Maxed':'Upgrade · '+cost+' SP',onclick:()=>{if(save.sp<cost||max)return;save.sp-=cost;save.powerLevels[id]=lvl+1;SFX.chime();persist();buildHotbar();renderSheet();syncPlayerDoc();}});
+    const btn=el('button',{class:'plus',text:max?'Maxed':'Upgrade · '+cost+' SP',onclick:()=>{if(save.sp<cost||max)return;save.sp-=cost;save.powerLevels[id]=lvl+1;SFX.play('upgrade');persist();buildHotbar();renderSheet();syncPlayerDoc();}});
     btn.disabled=max||save.sp<cost;if(!btn.disabled)btn.prepend(glyph('up'));
     sheetBody.appendChild(el('div',{class:'upg'},el('b',{text:POWERS[id].name+'  ·  LV '+lvl+'/'+CONFIG.powerMax}),btn,el('p',{text:POWERS[id].desc}),el('p',{class:'stat',text:statLines(id,lvl,max?0:lvl+1)})));
   }
@@ -211,7 +211,7 @@ function respecRow(){
   return el('div',{class:'field'},el('span',{text:'Start over'}),b,el('p',{class:'muted',text:'Refunds every point you spent on powers and passives. Your level, reputation and powers stay.'}));
 }
 function buyPassive(k,n){const lvl=pv(k);n=Math.min(n,CONFIG.passiveMax-lvl,Math.floor(save.sp/CONFIG.passiveCost));if(n<=0)return;save.sp-=n*CONFIG.passiveCost;save.passives[k]=lvl+n;
-  if(k==='vitality')P.hp+=CONFIG.health.perLevel*n;if(k==='energy')P.en+=CONFIG.energy.perLevel*n;SFX.chime();persist();renderSheet();}
+  if(k==='vitality')P.hp+=CONFIG.health.perLevel*n;if(k==='energy')P.en+=CONFIG.energy.perLevel*n;SFX.play('upgrade');persist();renderSheet();}
 // appearance (shared by the creator and the Appearance sheet)
 let draft=null;
 function lookTarget(){return creating?draft:save.character;}
@@ -452,7 +452,7 @@ const wheelWhat=()=>isRing()?'pick a construct':armorForms()?'pick a suit form':
 const GUIDE=[['move','Move around','WASD to move, mouse to look',()=>'Drag the '+(save.settings.tHand==='l'?'right':'left')+' side to move'],
   ['wheel','Open the wheel',()=>'Press V to '+wheelWhat(),()=>'Tap the '+(vAction()||{name:'wheel'}).name.toUpperCase()+' button to '+wheelWhat()],['punch','Throw a punch','Click to punch','Tap PUNCH'],
   ['ability','Use a power','Press 1 to 4','Tap a power button'],['skills','Open your skills','Press K','Tap the star icon'],['unlocks','See what you unlock','Press 8','Tap the unlocks icon'],['crime','Stop a crime','Follow a ! marker (or a minimap icon)','Follow a ! marker (or a minimap icon)']];
-function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.chime();if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');later(4,()=>{if(!save.guide.swap&&state==='play')toast('Try another hero',touchOn()?'Tap the swap icon (top) to pick from 12 heroes':'Press J to pick from 12 heroes','gold');});}persist();renderGuide();}
+function guideDone(k){if(save.guide[k]||save.guide.done)return;save.guide[k]=true;SFX.play('confirm');if(guideList().every(g=>save.guide[g[0]])){save.guide.done=true;toast('You are ready','The city is yours. Heroes stop crimes, villains commit them.','gold');later(4,()=>{if(!save.guide.swap&&state==='play')toast('Try another hero',touchOn()?'Tap the swap icon (top) to pick from 12 heroes':'Press J to pick from 12 heroes','gold');});}persist();renderGuide();}
 function renderGuide(){const g=$('guide');if(!save.character||save.guide.done||state!=='play'||OPN.on){g.hidden=true;return;}g.hidden=false;const list=$('guide-list');list.textContent='';
   for(const [k,t,kb,tc] of guideList()){const s=touchOn()?tc:kb;list.appendChild(el('li',{class:save.guide[k]?'done':''},el('b',{text:t}),el('span',{text:typeof s==='function'?s():s})));}fitMoves();}
 // the grow tutorial: whenever a construct is out and you have never grown one, a card tells you how (scroll up, ] or GROW)
@@ -461,6 +461,6 @@ let growTutOn=false;
 function updateGrowTut(){
   const on=!!P.construct&&!save.guide.grow&&state==='play'&&!paused&&!sheetOpen&&!dialOpen&&!P.dead;if(on===growTutOn)return;growTutOn=on;$('growtut').hidden=!on;
   if(on){const C=CONSTRUCTS[P.construct.id];$('growtut-t').textContent=(touchOn()?'Tap GROW':'Scroll up (or press ])')+' to make your '+C.name.toLowerCase()+' bigger. Bigger rides go faster and hit harder.';}}
-function growTutDone(){if(save.guide.grow)return;save.guide.grow=true;persist();updateGrowTut();SFX.chime();toast('Nice!',(touchOn()?'Tap GROW':'Scroll up')+' to keep growing it, '+(touchOn()?'SHRINK':'down')+' to shrink it back','gold');}
+function growTutDone(){if(save.guide.grow)return;save.guide.grow=true;persist();updateGrowTut();SFX.play('confirm');toast('Nice!',(touchOn()?'Tap GROW':'Scroll up')+' to keep growing it, '+(touchOn()?'SHRINK':'down')+' to shrink it back','gold');}
 const guideList=()=>GUIDE.filter(g=>g[0]!=='wheel'||hasWheel()); // no wheel step for heroes without one
 Bus.on('damaged',e=>{if(e.source===P&&e.type==='punch')guideDone('punch');});

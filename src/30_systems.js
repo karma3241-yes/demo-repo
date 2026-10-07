@@ -153,7 +153,7 @@ function updateOrbs(dt){
     if(Math.abs(o.x-P.pos.x)<R&&Math.abs(o.z-P.pos.z)<R&&Math.hypot(o.x-P.pos.x,o.y-(P.pos.y+1.3),o.z-P.pos.z)<R+0.6){
       o.active=false;o.t=rr(CONFIG.progression.orbRespawn[0],CONFIG.progression.orbRespawn[1]);
       const xp=CONFIG.progression.orbs[o.type];addXP(xp);feed('+'+xp+' XP',o.type[0].toUpperCase()+o.type.slice(1)+' orb');
-      SFX.chime();const c=ORB_COL[o.type];burst(o.x,o.y,o.z,40,14,0.8,[c,[1,1,1]],1.4,-2,1.5);ringFx(o.x,o.y,o.z,0.5,6,0.35,c);
+      SFX.play('pickup');const c=ORB_COL[o.type];burst(o.x,o.y,o.z,40,14,0.8,[c,[1,1,1]],1.4,-2,1.5);ringFx(o.x,o.y,o.z,0.5,6,0.35,c);
     }
   }
 }

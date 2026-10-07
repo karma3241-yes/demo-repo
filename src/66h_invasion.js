@@ -106,7 +106,7 @@ function invPlace(){
   if(P.car)exitCar(true);if(P.alien)revertAlien(true);
   P.pos.set(s.x,s.y,s.z);P.vel.set(0,0,0);P.yaw=s.yaw;P.pitch=s.pitch;P.flying=true;P.grounded=false;P.web=null;P.reel=null;P.wall=null;P.wallRun=null;P.zip=null;P.floatT=0;P.charging=false;P.fCharge=false;
   camDist=8;projs.length=0;debris.length=0;tracers.length=0;lockT=null;comboN=0;P.hp=maxHp();P.en=maxEn();P.dead=false;
-  spaceMsgT=time;wasSpace=true;flashWhite=Math.max(flashWhite,0.5);SFX.boom(0.6,1.4);SFX.chime();
+  spaceMsgT=time;wasSpace=true;flashWhite=Math.max(flashWhite,0.5);SFX.boom(0.6,1.4);SFX.play('stinger');
   INV.breath=3;INV.wave=0;INV.nw=1;INV.live=false;INV.seen={};INV.hitT=time;clearInvaders();
   toast('The fleet is above you','Every hero can fly up here · Z locks on','red');objective('Hold the line');
 }
@@ -171,7 +171,7 @@ function invWaveTick(dt){
   if(INV.pend.length&&alive<INV_CAP){INV.spawnT-=dt;if(INV.spawnT<=0){INV.spawnT=rr(0.25,0.5);invSpawn(INV.pend.pop());}}
   if(!INV.pend.length&&alive===0){
     if(INV.wave>=3){invSwStart();return;}
-    INV.live=false;toast('Wave cleared','Wave '+INV.nw+' in 3 s','gold');SFX.chime();INV.breath=3;
+    INV.live=false;toast('Wave cleared','Wave '+INV.nw+' in 3 s','gold');SFX.play('waveClear');INV.breath=3;
   }
 }
 // not hit an enemy for 10 s while some are alive: pins on the 3 nearest (placeMark in 68_markers.js turns the pin into an edge arrow when it is off screen); a hit hides them
@@ -326,7 +326,7 @@ addEventListener('keydown',e=>{if(INV.sw&&INV.sw.ph==='mash'&&e.code==='Space'){
 addEventListener('pointerdown',e=>{if(INV.sw&&INV.sw.ph==='mash')invSwPress();},true);
 function invSwBurst(){
   const W=INV.sw;if(!W||W.ph==='burst')return;W.ph='burst';W.bt=0;W.R0=W.R;W.meter=1;qteHide();
-  const x=W.cx,y=W.cy,z=W.cz;flashWhite=1;SFX.boom(1,2.4);SFX.boom(0.8,0.9);SFX.chime();SFX.tone('sine',200,2400,1.2,0.16);SFX.tone('sawtooth',900,60,1.1,0.1);addShake(1.2);
+  const x=W.cx,y=W.cy,z=W.cz;flashWhite=1;SFX.boom(1,2.4);SFX.boom(0.8,0.9);SFX.play('stinger');SFX.tone('sine',200,2400,1.2,0.16);SFX.tone('sawtooth',900,60,1.1,0.1);addShake(1.2);
   ringFx(x,y,z,1,150,1.0,[1,.9,.5]);ringFx(x,y,z,1,100,0.75,[1,1,1]);ringFx(x,y,z,1,230,1.4,[1,.6,.2]);ringFx(x,y,z,0.5,60,0.5,[.6,.8,1]);
   burst(x,y,z,160,70,1.4,[[1,.9,.5],[1,1,1],[1,.7,.2]],2.4,0,1.2);
 }
@@ -417,7 +417,7 @@ function invMastery(n){
 }
 function invWinEnd(){
   const [b,a]=invMastery(30);INV.msgT=0;objective('Fly at full speed');
-  save.story.invasion=2;persist();SFX.chime();SFX.levelUp();
+  save.story.invasion=2;persist();SFX.play('reward');SFX.levelUp();
   const txt=['Hold boost at full flight speed in space and you will tear through everything.','Traversal mastery +30 levels ('+b.toFixed(1)+' to '+a.toFixed(1)+'). Faster, bigger, stronger.'];
   const show=n=>{if(askInfo('Ready for light speed traversal',[{b:'Go at full speed (hold boost) to break through.'},...txt],'Go at full speed',null))return;if(n<30)later(1,()=>show(n+1));};
   show(0);toast('Ready for light speed traversal','Go at full speed','gold');

@@ -67,7 +67,7 @@ function voidbornBegin(){
 function voidbornAnswer(k){
   const A=P.alien;if(!A||!A.xq||A.xq.stage!=='quiz')return;const X=A.xq,Q=XQS[X.q];
   if(k>=0&&X.order[k]===Q.c){X.stage='play';
-    const c=center(P);ringFx(c.x,c.y,c.z,1,18,0.7,[1,1,1]);burst(c.x,c.y,c.z,90,20,1,[[1,1,1],[.7,.8,1]],1.6,0,2);flashWhite=0.4;SFX.chime();
+    const c=center(P);ringFx(c.x,c.y,c.z,1,18,0.7,[1,1,1]);burst(c.x,c.y,c.z,90,20,1,[[1,1,1],[.7,.8,1]],1.6,0,2);flashWhite=0.4;SFX.play('stinger');
     toast('The masks agree','You are Voidborn for '+xTime(A.t),'purple');}
   else{X.stage='lock';X.t=VOIDBORN.lock;SFX.tone('sawtooth',220,70,0.6,0.1);
     toast(k<0?'Too slow':'The masks disagree','Frozen for '+VOIDBORN.lock+' s · the answer was '+Q.a[Q.c],'red');}
@@ -120,5 +120,5 @@ Object.assign(ALIEN_FN,{
     areaDamage(x,y,z,30,220*m,P,{knock:42});hitProps(x,y,z,18,P,40);addScorch(x,groundY(x,z,y+2),z,12);SFX.boom(1,0.8);addShake(1.1);},
   rewrite(){P.hp=maxHp();const c=center(P);ringFx(c.x,c.y,c.z,1,60,0.9,[.9,.95,1]);flashWhite=0.35;
     for(const a of actors){if(!a.alive||a.kind==='prop'||a.kind==='remote'||a.kind==='vehicle')continue;if(Math.hypot(a.pos.x-c.x,a.pos.z-c.z)<60)a.stun=Math.max(a.stun||0,4);}
-    toast('Reality rewritten','Healed · everyone around you frozen for 4 s','purple');SFX.chime();},
+    toast('Reality rewritten','Healed · everyone around you frozen for 4 s','purple');SFX.play('stinger');},
 });

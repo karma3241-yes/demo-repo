@@ -421,7 +421,7 @@ for(const s of atms){const p={kind:'prop',role:'atm',ref:s,faction:'object',aliv
   p.onDefeat=src=>robProp(p,src);s.prop=p;props.push(p);actors.push(p);}
 const CASH=[[.3,.9,.4],[1,.85,.3]];
 function robProp(p,src){
-  const c=NPCS[p.role];p.reopen=c.reopen;burst(p.pos.x,p.pos.y+1.5,p.pos.z,50,12,1.4,CASH,1.3,8,1.2);SFX.chime();
+  const c=NPCS[p.role];p.reopen=c.reopen;burst(p.pos.x,p.pos.y+1.5,p.pos.z,50,12,1.4,CASH,1.3,8,1.2);SFX.play('reward');
   if(src===P){addXP(c.xp);addRep(c.rep);addWanted(5,1000);save.stats.crimesCommitted++;
     feed('+'+c.xp+' XP · '+c.rep+' rep',p.role==='shop'?'You robbed the '+p.ref.name:'You cracked an ATM');scare(p.pos.x,p.pos.z,40);}
 }

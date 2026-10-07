@@ -262,12 +262,12 @@ function ufoEnter(Z){
 function ufoLeaveZone(Z){clearAliens();objective(null);objectiveMark(null);}
 function ufoOpenVault(Z){
   UF.doorOpen=true;UF.door.dead=true;Z.dirty=true;
-  const d=UF.door,x=(d.x0+d.x1)/2,z=(d.z0+d.z1)/2;burst(x,10,z,60,22,1.2,[[1,.85,.4],[1,1,1]],1.6,0,2);ringFx(x,8,z,1,16,0.6,[1,.85,.4],[0,0,1]);SFX.boom(0.7,1.1);SFX.chime();addShake(0.5);
+  const d=UF.door,x=(d.x0+d.x1)/2,z=(d.z0+d.z1)/2;burst(x,10,z,60,22,1.2,[[1,.85,.4],[1,1,1]],1.6,0,2);ringFx(x,8,z,1,16,0.6,[1,.85,.4],[0,0,1]);SFX.boom(0.7,1.1);SFX.play('door');addShake(0.5);
   toast('The vault door opens','Something glows inside','gold');const it=ufoItem();objective('Find the '+it.name);objectiveMark(UFZ.x+UF.item.x,UFZ.y+UF.item.y+1,UFZ.z+UF.item.z,it.name);
 }
 function ufoPickItem(){
   if(UF.took)return;UF.took=true;const S=save.story,id=ufoHero(),it=ufoItem();S.item=id;S.ufo=2;persist();
-  ufoReward(id);toast('You found the '+it.name,it.desc,'gold');SFX.chime();SFX.levelUp();flashWhite=Math.max(flashWhite,0.5);
+  ufoReward(id);toast('You found the '+it.name,it.desc,'gold');SFX.play('reward');SFX.levelUp();flashWhite=Math.max(flashWhite,0.5);
   const c=UF.item,x=UFZ.x+c.x,y=UFZ.y+c.y,z=UFZ.z+c.z;burst(x,y,z,90,26,1.4,[it.col,[1,1,1]],1.8,0,2);ringFx(x,y,z,1,24,0.8,it.col);ringFx(x,y,z,1,16,0.6,[1,1,1]);
   objective('Leave the UFO');objectiveMark(UFZ.x+UF.pad.x,UFZ.y+2,UFZ.z+UF.pad.z,'Exit');UF.leaveT=4; // out through the hangar, or the UFO beams you out after 4 s
 }
@@ -282,7 +282,7 @@ function ufoZoneUpdate(Z,dt){
   for(const rm of UF.rooms){
     if(!rm.active&&px>rm.x0-3&&px<rm.x1+3&&pz>rm.z0-3&&pz<rm.z1+3&&Math.abs(P.pos.y-UFZ.y)<10){rm.active=true;rm.pending=rm.n;toast(UFLAB[rm.id],'Aliens!','red');} // the player walks into the room: its aliens come out, a few at a time
     if(rm.active&&rm.pending>0&&ufoAliveCount()<16){rm.spawnT-=dt;if(rm.spawnT<=0){rm.spawnT=0.4;ufoSpawnIn(rm);}}
-    if(rm.active&&!rm.cleared&&rm.pending===0&&rm.alive===0){rm.cleared=true;UF.cleared++;toast(UFLAB[rm.id]+' secured',UF.cleared+' of 4 rooms cleared','cyan');SFX.chime();
+    if(rm.active&&!rm.cleared&&rm.pending===0&&rm.alive===0){rm.cleared=true;UF.cleared++;toast(UFLAB[rm.id]+' secured',UF.cleared+' of 4 rooms cleared','cyan');SFX.play('waveClear');
       if(UF.cleared>=4)ufoOpenVault(Z);else objective('Find the '+ufoItem().name+' · rooms cleared '+UF.cleared+'/4');}
   }
   for(const a of ualiens.slice())ualienUpdate(a,dt);

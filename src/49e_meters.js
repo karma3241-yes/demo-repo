@@ -69,7 +69,7 @@ function nearestShopToEat(){if(!(heroMeter()&&heroMeter().key==='cal')||save.cal
   for(const s of shops){if(s.prop&&!s.prop.alive)continue;const d=Math.hypot(s.x-P.pos.x,s.z-P.pos.z);if(d<bd){bd=d;best=s;}}return best;}
 const MEALS=['a stack of 40 pancakes','twelve burritos','a bucket of noodles','every sandwich they had','a mountain of fries','nine pizzas'];
 function eatAt(s){const before=save.cal;save.cal=100;P.en=maxEn();
-  const c=center(P);burst(c.x,c.y+0.4,c.z,30,6,0.6,[[1,.85,.3],[1,1,1]],1.2,-3,1.5);SFX.chime();
+  const c=center(P);burst(c.x,c.y+0.4,c.z,30,6,0.6,[[1,.85,.3],[1,1,1]],1.2,-3,1.5);SFX.play('heal');
   toast('Refueled · '+s.name,'You wolfed down '+MEALS[Math.floor(Math.random()*MEALS.length)]+(before<=0?' · full speed again':''),'gold');persist();}
 function updateMeters(dt){
   const m=heroMeter();if(!m){P.stormCall=null;return;}
@@ -80,7 +80,7 @@ function updateMeters(dt){
     if(atInventorTower()&&save.battery<cap&&!P.dead){const was=save.battery;save.battery=Math.min(cap,save.battery+cap*0.2*dt);
       if(was<=0||(!P.chgFull&&time-(P.chgMsgT||-9)>8)){P.chgMsgT=time;feed('Charging at Forge Tower',save.battery>=cap?'Fully charged':'');}
       if(Math.random()<dt*14){const T=invTower,c=center(P),sx=c.x+rr(-6,6),sz=c.z+rr(-6,6);tracer(sx,c.y+rr(3,8),sz,c.x,c.y,c.z,[.5,.9,1],0.12,0.15);}
-      if(save.battery>=cap&&was<cap&&!P.chgFull){P.chgFull=true;toast('Battery full','Suit systems online','cyan');SFX.chime();persist();}}
+      if(save.battery>=cap&&was<cap&&!P.chgFull){P.chgFull=true;toast('Battery full','Suit systems online','cyan');SFX.play('confirm');persist();}}
     else if(!atInventorTower())P.chgFull=false; // announce "full" once per visit, not every time flying nibbles it back down
   }else if(m.key==='bolt'){
     const S=P.stormCall;

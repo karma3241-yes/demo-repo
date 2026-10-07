@@ -58,7 +58,7 @@ function prismStart(src){
   PR.on=true;PR.sun=src==='sun';PR.e=100;PR.ts=false;PR.free=false;PR.enc='';PR.encT=0;PR.rumble=false;PR.bar=false;PR.kills=0;PR.arrows.length=0;PR.hits.clear();PR.streaks.length=0;PR.fireAcc=0;PR.hold=0;PR.beams.length=0;PR.bi=0;PR.used={ts:false,bar:false,er:false};PR.sound=0;
   P.flying=true;P.grounded=false;P.hp=maxHp();P.en=maxEn();P.stun=0;
   const c=center(P);ringFx(c.x,c.y,c.z,1,30,0.8,[1,.5,.9]);ringFx(c.x,c.y,c.z,1,20,0.6,[.5,1,.9]);burst(c.x,c.y,c.z,140,36,1.3,[[1,.3,.5],[1,.9,.3],[.3,1,.6],[.4,.6,1],[.8,.4,1]],2.2,0,1.5);
-  flashWhite=0.9;SFX.transform();SFX.chime();addShake(0.5);
+  flashWhite=0.9;SFX.transform();SFX.play('stinger');addShake(0.5);
   toast('PRISM ASCENSION',touchOn()?'Time Stop · Barrage (hold) · Erase':'1 Time Stop · 2 Barrage (hold) · 3 Erase','purple');
   if(!save.guide.prismSeen){save.guide.prismSeen=true;persist();}
   buildHotbar();buildTouchButtons();prHud(true);Bus.emit('prismStart',{arena});return true;
@@ -149,7 +149,7 @@ function prismErase(){
   prRing(x,y,z,boss?46:14,0.8,h0,0);prRing(x,y,z,boss?36:10,0.65,h0+0.3,0.9);prRing(x,y,z,boss?26:7,0.5,h0+0.6,-0.9);
   prShards(x,y,z,boss?40:22,boss?30:14,0.9,boss?2.4:1.2);
   const hp=handPoint();prFx({k:'beam',x:hp.x,y:hp.y,z:hp.z,bx:x,by:y,bz:z,t:0,life:0.3,h:h0});
-  flashWhite=Math.max(flashWhite,boss?0.8:0.4);SFX.boom(boss?1:0.6,boss?1.6:0.9);SFX.chime();addShake(boss?0.9:0.35);
+  flashWhite=Math.max(flashWhite,boss?0.8:0.4);SFX.boom(boss?1:0.6,boss?1.6:0.9);SFX.play('stinger');addShake(boss?0.9:0.35);
   if(a.dec){pfPop(a);return;}
   if(boss){
     if(a.kind==='korb')Damage.apply(P,a,1e9,'prism',{});else Damage.apply(P,a,Math.min(a.maxHp*0.18,7000)*(a.sgCap&&a.sgCap.prism||1),'prism',{stun:1});

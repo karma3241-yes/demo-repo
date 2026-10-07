@@ -125,7 +125,7 @@ function interact(){
   else if(it.kind==='storm')callStorm();
   else if(it.kind==='help'){const h=it.h;if(playerFaction()==='villain'){Damage.apply(P,h,5,'punch');return;}
     h.downed=0;h.hp=Math.max(h.hp,30);h.state='flee';h.fx=h.pos.x+rr(-1,1);h.fz=h.pos.z+rr(-1,1);h.st=3;h.rx=0;
-    burst(h.pos.x,h.pos.y+1,h.pos.z,30,6,1,[[.5,1,.7],[1,1,1]],1.2,-3,1.5);SFX.chime();addXP(15);addRep(5);feed('+15 XP · +5 rep','You helped someone back up');}
+    burst(h.pos.x,h.pos.y+1,h.pos.z,30,6,1,[[.5,1,.7],[1,1,1]],1.2,-3,1.5);SFX.play('reward');addXP(15);addRep(5);feed('+15 XP · +5 rep','You helped someone back up');}
 }
 function enterCar(v){
   if(v.net)WS.take(v);
@@ -300,7 +300,9 @@ function updatePlayer(dt){
     else if(hasPower('elasticBody')&&!P.alien&&impact>40&&!keys.KeyC){P.vel.y=impact*0.5;P.grounded=false;SFX.tone('sine',180,420,0.25,0.1);burst(P.pos.x,P.pos.y+0.2,P.pos.z,14,6,0.4,DUST,1,-2,2);} // rubber body bounces
     else if(impact>58||(AL&&AL.scale>2&&impact>25)||(P.construct&&P.construct.id==='titan'&&impact>18)){ringFx(P.pos.x,P.pos.y+0.3,P.pos.z,1,16,0.45,[1,.9,.7]);burst(P.pos.x,P.pos.y+0.3,P.pos.z,50,26,0.9,DUST,2.6,-3,2.4);SFX.boom(0.55,0.7);addShake(0.45);
       areaDamage(P.pos.x,P.pos.y+0.5,P.pos.z,10,25*strengthMul(),P,{knock:14});crater(P.pos.x,P.pos.y+0.02,P.pos.z,0,1,0,3.5,[.42,.41,.4]);}
+    else if(impact>9)SFX.play('land',Math.min(1,impact/40)); // an ordinary landing: a soft thud, harder the faster you fell
   }
+  if(P.grounded&&!P.flying&&!P.car&&!P.swim){const hs=Math.hypot(P.vel.x,P.vel.z);P.stepD=(P.stepD||0)+hs*dt;if(hs<1)P.stepD=0;else if(P.stepD>(P.speeding?6:2.3)){P.stepD=0;SFX.play('step',P.speeding?0.5:clamp(hs/9,0.5,1));}} // footsteps, one per stride
   if(P.flying&&P.grounded&&keys.KeyC&&!(AL&&AL.flies))P.flying=false;
   if(P.speeding){for(const h of humans){if(!h.alive||h.air||time-(h.bumpT||-9)<0.6)continue;if(Math.abs(h.pos.x-P.pos.x)<1.8&&Math.abs(h.pos.z-P.pos.z)<1.8&&Math.abs(h.pos.y-P.pos.y)<2){h.bumpT=time;Damage.apply(P,h,pstat('superSpeed','hitDmg'),'bump',{knock:20});}}
     if(Math.random()<0.8)emit(P.pos.x,P.pos.y+rr(0.3,2.4),P.pos.z,0,0,0,0.35,[.55,.8,1],1.3,0,0);}

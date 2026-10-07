@@ -123,7 +123,7 @@ applyTouchUI();refreshMenu();updateEnv(0);applyLook();MP.init();
 {const m=/^#room=([A-Za-z0-9]{4,8})$/.exec(location.hash);if(m&&P2P.available())P2P.join(m[1]);}
 requestAnimationFrame(frame);
 if(!Portal.pending){autoReady=true;autoStart();}else setTimeout(()=>{autoReady=true;autoStart();},4000); // the portal SDK never answered: start anyway
-if(window.__SKYLINE_TEST__)window.__skyline={P,save,get state(){return state;},actors,humans,drones,vehicles,rivals,crimes,orbs,keys,
+if(window.__SKYLINE_TEST__)window.__skyline={P,save,SFX,get state(){return state;},actors,humans,drones,vehicles,rivals,crimes,orbs,keys,
   start:()=>$('start').click(),look:(y,p)=>{P.yaw=y;P.pitch=p;},setTod:v=>{tod=v;},abilityDown,abilityUp,punch,toggleFlight,webPress,webRelease,intentDir,get web(){return P.web;},
   startShopRobbery,startAtmHack,startMugging,startCarTheft,startVaultHeist,startTruckHeist,spawnRival,addXP,addRep,get boss(){return boss;},aim,finishCreator:()=>finishCreator(),
   get draft(){return draft;},openSheet,closeSheet,setMouse:v=>{mouseL=v;},get car(){return P.car;},enterCar,exitCar,interact,nearestInteract,transformInto,revertAlien,bandPress,openDial,closeDial,

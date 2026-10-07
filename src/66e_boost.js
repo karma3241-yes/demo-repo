@@ -130,7 +130,7 @@ function rewindRevive(q,hp){
 function rewindEnd(ok){
   const S=REW.snap;REW.on=false;REW.snap=null;REW.buf.length=0;REW.acc=0;canvas.classList.remove('rewind');if(!S||!ok)return;
   const p=S[0].p;P.pos.set(p[0],p[1],p[2]);P.vel.set(p[3],p[4],p[5]);P.yaw=p[6];P.heroYaw=p[8];P.hp=Math.min(maxHp(),Math.max(P.hp,REW.hp0));P.lastHit=-99;
-  const c=center(P);ringFx(c.x,c.y,c.z,1,10,0.5,[.5,.8,1]);burst(c.x,c.y,c.z,50,14,0.8,[[.5,.8,1],[1,1,1]],1.4,0,2);flashWhite=Math.max(flashWhite,0.35);SFX.chime();
+  const c=center(P);ringFx(c.x,c.y,c.z,1,10,0.5,[.5,.8,1]);burst(c.x,c.y,c.z,50,14,0.8,[[.5,.8,1],[1,1,1]],1.4,0,2);flashWhite=Math.max(flashWhite,0.35);SFX.play('stinger');
   feed('Rewound','Back 10 seconds · '+REW_CD+' s to recharge');
 }
 // X (or the touch button): true when the key was taken

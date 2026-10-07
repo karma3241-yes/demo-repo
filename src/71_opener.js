@@ -65,7 +65,7 @@ function openerFinish(skipped){
   save.story.act=0; // the UFO arc comes a few minutes after the opener, not during it
   persist();renderGuide();buildHotbar();buildTouchButtons();claimDaily();
   if(P.hp<maxHp()*0.5)P.hp=maxHp()*0.5;
-  SFX.chime();toast('The city is yours',save.sp>0?'You have '+save.sp+' skill points to spend':'Stop crimes to level up','gold');
+  SFX.play('reward');toast('The city is yours',save.sp>0?'You have '+save.sp+' skill points to spend':'Stop crimes to level up','gold');
   if(save.sp>0){objective(touchOn()?'Tap the star icon to spend your skill points':'Press K to spend your skill points');OPN.objK=true;}
 }
 function openerSkip(){
@@ -388,5 +388,5 @@ function openerSweep(){
 function openerSweepStart(){ // every fallen building rises, staggered by its distance from the player (the ring's ghost-and-fill look), the whole thing taking about five seconds
   const list=bldgs.filter(b=>b.state==='down'),R=Math.max(1,HALF*1.5);
   for(const b of list){const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;b.state='ring';b.t=0;b.tilt=0;b.ringDelay=Math.min(1,Math.hypot(cx-P.pos.x,cz-P.pos.z)/R)*5;b.ringOff=b.off;bldActive.add(b);}
-  SFX.transform();SFX.chime();flashWhite=Math.max(flashWhite,0.4);
+  SFX.transform();SFX.play('stinger');flashWhite=Math.max(flashWhite,0.4);
 }
