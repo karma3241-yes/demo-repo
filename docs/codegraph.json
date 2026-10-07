@@ -1,22 +1,35 @@
 {
  "files": {
   "00_engine.js": {
-   "kb": 42.7,
-   "lines": 607,
+   "kb": 37.4,
+   "lines": 559,
    "purpose": "Math helpers",
    "uses": {
     "40_powers.js": 1,
-    "30_systems.js": 6,
-    "20_core.js": 9,
+    "30_systems.js": 5,
+    "20_core.js": 8,
     "99_main.js": 3,
     "70_ui.js": 3,
     "10_world.js": 2,
     "90_render.js": 5,
     "45_aliens.js": 2,
     "66b_story.js": 1,
-    "66d_ufo.js": 1,
+    "66d_ufo.js": 1
+   }
+  },
+  "00b_audio.js": {
+   "kb": 13.9,
+   "lines": 136,
+   "purpose": "Audio (all synthesized). Layered voices on a bus graph with a soft clipper and one shared reverb.",
+   "uses": {
+    "66e_boost.js": 1,
+    "99_main.js": 4,
+    "30_systems.js": 2,
     "80_player.js": 2,
-    "42_combat.js": 1
+    "20_core.js": 1,
+    "00_engine.js": 6,
+    "50_npcs.js": 4,
+    "42_combat.js": 2
    }
   },
   "10_world.js": {
@@ -80,7 +93,8 @@
     "49_ring.js": 5,
     "47b_body.js": 1,
     "71_opener.js": 1,
-    "00_engine.js": 85,
+    "00b_audio.js": 14,
+    "00_engine.js": 71,
     "40_powers.js": 8,
     "49d_wanted.js": 6,
     "66h_invasion.js": 1,
@@ -104,9 +118,10 @@
     "65_rewards.js": 6,
     "30_systems.js": 74,
     "49_ring.js": 14,
-    "00_engine.js": 70,
+    "00_engine.js": 49,
     "70_ui.js": 11,
     "49e_meters.js": 14,
+    "00b_audio.js": 21,
     "42_combat.js": 6,
     "10_world.js": 13,
     "49b_speed.js": 4,
@@ -139,9 +154,10 @@
     "60_multiplayer.js": 4,
     "40_powers.js": 19,
     "66f_kathana.js": 3,
-    "00_engine.js": 46,
+    "00b_audio.js": 17,
     "20_core.js": 9,
     "70_ui.js": 5,
+    "00_engine.js": 29,
     "49k_sungod.js": 1,
     "80_player.js": 8,
     "45_aliens.js": 4,
@@ -173,11 +189,12 @@
    "uses": {
     "50_npcs.js": 2,
     "20_core.js": 25,
-    "00_engine.js": 25,
+    "00_engine.js": 15,
     "80_player.js": 12,
     "99_main.js": 1,
     "10_world.js": 9,
     "30_systems.js": 25,
+    "00b_audio.js": 10,
     "40_powers.js": 25,
     "66d_ufo.js": 2,
     "42_combat.js": 2,
@@ -199,8 +216,9 @@
     "66d_ufo.js": 1,
     "20_core.js": 13,
     "70_ui.js": 10,
-    "00_engine.js": 44,
+    "00b_audio.js": 21,
     "45b_voidborn.js": 4,
+    "00_engine.js": 23,
     "81_touch.js": 2,
     "10_world.js": 8,
     "42_combat.js": 7,
@@ -214,12 +232,13 @@
    "purpose": "Voidborn: two giant masks decide whether you get to move",
    "uses": {
     "30_systems.js": 24,
-    "00_engine.js": 35,
+    "00_engine.js": 29,
     "20_core.js": 7,
     "99_main.js": 2,
     "50_npcs.js": 1,
     "42_combat.js": 3,
     "70_ui.js": 6,
+    "00b_audio.js": 6,
     "45_aliens.js": 6,
     "80_player.js": 1,
     "40_powers.js": 16,
@@ -234,10 +253,11 @@
     "10_world.js": 12,
     "30_systems.js": 39,
     "20_core.js": 9,
-    "00_engine.js": 29,
+    "00b_audio.js": 7,
     "50_npcs.js": 1,
     "70_ui.js": 3,
     "40_powers.js": 3,
+    "00_engine.js": 22,
     "49_ring.js": 16,
     "90_render.js": 2
    }
@@ -250,8 +270,9 @@
     "40_powers.js": 70,
     "30_systems.js": 59,
     "20_core.js": 29,
-    "00_engine.js": 87,
+    "00b_audio.js": 16,
     "42_combat.js": 9,
+    "00_engine.js": 71,
     "10_world.js": 14,
     "70_ui.js": 1,
     "49e_meters.js": 1,
@@ -271,7 +292,8 @@
     "30_systems.js": 37,
     "20_core.js": 22,
     "40_powers.js": 20,
-    "00_engine.js": 104,
+    "00_engine.js": 95,
+    "00b_audio.js": 9,
     "70_ui.js": 5,
     "42_combat.js": 10,
     "49_ring.js": 2,
@@ -294,7 +316,8 @@
     "47_abilities.js": 4,
     "20_core.js": 31,
     "10_world.js": 9,
-    "00_engine.js": 27,
+    "00b_audio.js": 14,
+    "00_engine.js": 13,
     "42_combat.js": 8,
     "70_ui.js": 5,
     "49e_meters.js": 2
@@ -306,10 +329,11 @@
    "purpose": "Web Runner kit: web wings, updrafts, swing boost, slingshot, dives, air tricks,",
    "uses": {
     "10_world.js": 2,
-    "00_engine.js": 57,
+    "00_engine.js": 45,
     "44_movement.js": 5,
     "20_core.js": 18,
     "70_ui.js": 3,
+    "00b_audio.js": 12,
     "30_systems.js": 34,
     "47b_body.js": 1,
     "40_powers.js": 25,
@@ -338,7 +362,8 @@
     "30_systems.js": 111,
     "70_ui.js": 18,
     "49g_armorforms.js": 3,
-    "00_engine.js": 143,
+    "00b_audio.js": 31,
+    "00_engine.js": 112,
     "81_touch.js": 2,
     "49f_constructs.js": 8,
     "47_abilities.js": 7,
@@ -360,8 +385,9 @@
     "30_systems.js": 44,
     "20_core.js": 13,
     "49e_meters.js": 3,
-    "00_engine.js": 22,
+    "00_engine.js": 13,
     "70_ui.js": 10,
+    "00b_audio.js": 9,
     "40_powers.js": 21,
     "10_world.js": 3,
     "42_combat.js": 3,
@@ -379,7 +405,8 @@
     "99_main.js": 5,
     "20_core.js": 24,
     "30_systems.js": 8,
-    "00_engine.js": 25,
+    "00b_audio.js": 5,
+    "00_engine.js": 20,
     "80_player.js": 4,
     "49_ring.js": 6,
     "40_powers.js": 3,
@@ -399,12 +426,13 @@
    "uses": {
     "30_systems.js": 6,
     "63_host.js": 2,
-    "00_engine.js": 4,
+    "00b_audio.js": 3,
     "70_ui.js": 5,
     "10_world.js": 1,
     "20_core.js": 13,
     "50_npcs.js": 2,
-    "52_heli.js": 1
+    "52_heli.js": 1,
+    "00_engine.js": 1
    }
   },
   "49e_meters.js": {
@@ -416,12 +444,13 @@
     "40_powers.js": 21,
     "80_player.js": 1,
     "20_core.js": 60,
-    "00_engine.js": 7,
+    "00_engine.js": 2,
     "99_main.js": 2,
     "66d_ufo.js": 1,
     "49_ring.js": 2,
     "30_systems.js": 12,
     "70_ui.js": 11,
+    "00b_audio.js": 5,
     "66e_boost.js": 2
    }
   },
@@ -431,11 +460,12 @@
    "purpose": "More Ring Bearer constructs: a bike and a race car you drive on the ground,",
    "uses": {
     "49_ring.js": 82,
-    "00_engine.js": 76,
+    "00_engine.js": 68,
     "50_npcs.js": 4,
     "20_core.js": 8,
     "80_player.js": 2,
     "30_systems.js": 34,
+    "00b_audio.js": 8,
     "47_abilities.js": 4,
     "40_powers.js": 25,
     "49g_armorforms.js": 4,
@@ -453,7 +483,8 @@
     "30_systems.js": 6,
     "49f_constructs.js": 1,
     "20_core.js": 1,
-    "00_engine.js": 45,
+    "00b_audio.js": 2,
+    "00_engine.js": 43,
     "10_world.js": 2
    }
   },
@@ -464,13 +495,14 @@
    "uses": {
     "66e_boost.js": 1,
     "10_world.js": 14,
-    "00_engine.js": 20,
+    "00_engine.js": 19,
     "66h_invasion.js": 2,
     "20_core.js": 1,
     "40_powers.js": 6,
     "30_systems.js": 13,
     "70_ui.js": 5,
-    "49k_sungod.js": 1
+    "49k_sungod.js": 1,
+    "00b_audio.js": 1
    }
   },
   "49i_moreconstructs.js": {
@@ -480,11 +512,12 @@
    "uses": {
     "66e_boost.js": 2,
     "49_ring.js": 114,
-    "00_engine.js": 164,
+    "00_engine.js": 147,
     "40_powers.js": 39,
     "10_world.js": 7,
     "30_systems.js": 59,
     "20_core.js": 6,
+    "00b_audio.js": 17,
     "50_npcs.js": 7,
     "70_ui.js": 3,
     "42_combat.js": 3,
@@ -502,7 +535,8 @@
     "20_core.js": 9,
     "49_ring.js": 15,
     "70_ui.js": 6,
-    "00_engine.js": 5
+    "00_engine.js": 4,
+    "00b_audio.js": 1
    }
   },
   "49k_sungod.js": {
@@ -522,8 +556,9 @@
     "90_render.js": 1,
     "66f_kathana.js": 1,
     "70_ui.js": 22,
-    "00_engine.js": 66,
+    "00b_audio.js": 14,
     "45_aliens.js": 3,
+    "00_engine.js": 52,
     "81_touch.js": 3,
     "10_world.js": 12,
     "46_buildings.js": 1,
@@ -541,13 +576,14 @@
     "10_world.js": 89,
     "30_systems.js": 215,
     "52_heli.js": 3,
-    "00_engine.js": 123,
+    "00_engine.js": 93,
     "20_core.js": 99,
     "80_player.js": 3,
     "47_abilities.js": 29,
     "43_ragdoll.js": 1,
     "66g_kperfect.js": 2,
     "60_multiplayer.js": 2,
+    "00b_audio.js": 30,
     "40_powers.js": 6,
     "42_combat.js": 15,
     "15_meshes.js": 9,
@@ -572,9 +608,10 @@
     "49b_speed.js": 10,
     "80_player.js": 8,
     "50_npcs.js": 13,
-    "00_engine.js": 32,
+    "00_engine.js": 25,
     "20_core.js": 10,
     "70_ui.js": 4,
+    "00b_audio.js": 7,
     "30_systems.js": 21,
     "60_multiplayer.js": 1,
     "40_powers.js": 9,
@@ -587,9 +624,10 @@
    "purpose": "Police helicopters",
    "uses": {
     "30_systems.js": 19,
-    "00_engine.js": 56,
+    "00_engine.js": 52,
     "10_world.js": 12,
     "20_core.js": 4,
+    "00b_audio.js": 4,
     "70_ui.js": 1,
     "60_multiplayer.js": 1,
     "63_host.js": 1,
@@ -604,7 +642,8 @@
    "lines": 68,
    "purpose": "Water: swimming, diving and splashes",
    "uses": {
-    "00_engine.js": 16,
+    "00_engine.js": 13,
+    "00b_audio.js": 3,
     "30_systems.js": 3,
     "49h_space.js": 1,
     "45_aliens.js": 2,
@@ -622,10 +661,11 @@
    "uses": {
     "30_systems.js": 36,
     "10_world.js": 24,
-    "00_engine.js": 139,
+    "00_engine.js": 137,
     "40_powers.js": 4,
     "90_render.js": 16,
     "50_npcs.js": 2,
+    "00b_audio.js": 2,
     "53_water.js": 2
    }
   },
@@ -638,11 +678,12 @@
     "10_world.js": 5,
     "50_npcs.js": 2,
     "99_main.js": 3,
-    "00_engine.js": 60,
+    "00_engine.js": 58,
     "70_ui.js": 14,
     "20_core.js": 29,
     "63_host.js": 7,
     "40_powers.js": 19,
+    "00b_audio.js": 2,
     "47_abilities.js": 1,
     "49d_wanted.js": 1,
     "49b_speed.js": 1,
@@ -670,14 +711,15 @@
     "20_core.js": 47,
     "80_player.js": 7,
     "40_powers.js": 5,
-    "00_engine.js": 60,
+    "00_engine.js": 56,
     "47_abilities.js": 5,
     "42_combat.js": 2,
     "70_ui.js": 4,
     "43_ragdoll.js": 1,
     "64_portal.js": 1,
     "46_buildings.js": 1,
-    "15_meshes.js": 6
+    "15_meshes.js": 6,
+    "00b_audio.js": 4
    }
   },
   "63_host.js": {
@@ -704,12 +746,13 @@
     "20_core.js": 43,
     "10_world.js": 1,
     "50_npcs.js": 7,
-    "00_engine.js": 10,
+    "00_engine.js": 1,
     "99_main.js": 6,
     "60_multiplayer.js": 17,
     "70_ui.js": 8,
     "71_opener.js": 1,
     "63_host.js": 2,
+    "00b_audio.js": 9,
     "80_player.js": 6,
     "65_rewards.js": 2,
     "81_touch.js": 1,
@@ -726,13 +769,14 @@
     "30_systems.js": 9,
     "64_portal.js": 13,
     "70_ui.js": 33,
-    "00_engine.js": 21,
+    "00b_audio.js": 2,
     "66_icons.js": 1,
     "81_touch.js": 4,
     "49_ring.js": 11,
     "45_aliens.js": 8,
     "49e_meters.js": 2,
-    "90_render.js": 2
+    "90_render.js": 2,
+    "00_engine.js": 19
    }
   },
   "65b_goals.js": {
@@ -744,7 +788,8 @@
     "20_core.js": 24,
     "50_npcs.js": 1,
     "65_rewards.js": 5,
-    "00_engine.js": 3,
+    "00_engine.js": 2,
+    "00b_audio.js": 1,
     "70_ui.js": 1,
     "99_main.js": 2
    }
@@ -762,7 +807,8 @@
     "66e_boost.js": 1,
     "30_systems.js": 7,
     "66_icons.js": 1,
-    "00_engine.js": 3
+    "00b_audio.js": 2,
+    "00_engine.js": 1
    }
   },
   "66_icons.js": {
@@ -803,13 +849,14 @@
     "66k_prismform.js": 1,
     "49b_speed.js": 1,
     "68b_hints.js": 3,
-    "00_engine.js": 14,
+    "00_engine.js": 11,
     "90_render.js": 8,
     "42_combat.js": 1,
     "40_powers.js": 11,
     "44_movement.js": 2,
     "68_markers.js": 2,
-    "50_npcs.js": 1
+    "50_npcs.js": 1,
+    "00b_audio.js": 3
    }
   },
   "66c_zones.js": {
@@ -823,12 +870,13 @@
     "90_render.js": 19,
     "50_npcs.js": 5,
     "52_heli.js": 1,
-    "00_engine.js": 17,
+    "00_engine.js": 16,
     "80_player.js": 2,
     "40_powers.js": 11,
     "42_combat.js": 4,
     "66f_kathana.js": 1,
     "66b_story.js": 3,
+    "00b_audio.js": 1,
     "66h_invasion.js": 2,
     "66k_prismform.js": 1,
     "71_opener.js": 1,
@@ -847,8 +895,9 @@
     "66e_boost.js": 3,
     "30_systems.js": 52,
     "44_movement.js": 1,
-    "00_engine.js": 206,
+    "00_engine.js": 188,
     "40_powers.js": 15,
+    "00b_audio.js": 18,
     "70_ui.js": 8,
     "45_aliens.js": 1,
     "90_render.js": 5,
@@ -883,11 +932,12 @@
     "81_touch.js": 2,
     "66b_story.js": 11,
     "66_icons.js": 1,
-    "00_engine.js": 41,
+    "00_engine.js": 37,
     "47b_body.js": 2,
     "49h_space.js": 1,
     "44_movement.js": 3,
     "10_world.js": 3,
+    "00b_audio.js": 4,
     "43_ragdoll.js": 2
    }
   },
@@ -906,10 +956,11 @@
     "10_world.js": 10,
     "66g_kperfect.js": 16,
     "99_main.js": 9,
-    "00_engine.js": 165,
+    "00_engine.js": 145,
     "70_ui.js": 12,
     "81_touch.js": 1,
     "66d_ufo.js": 1,
+    "00b_audio.js": 24,
     "50_npcs.js": 7,
     "42_combat.js": 6,
     "90_render.js": 1,
@@ -929,12 +980,13 @@
     "66d_ufo.js": 3,
     "66f_kathana.js": 30,
     "50_npcs.js": 18,
-    "00_engine.js": 277,
+    "00_engine.js": 227,
     "40_powers.js": 10,
     "20_core.js": 16,
     "47_abilities.js": 2,
     "99_main.js": 9,
     "66e_boost.js": 3,
+    "00b_audio.js": 54,
     "42_combat.js": 9,
     "70_ui.js": 9,
     "80_player.js": 6,
@@ -953,7 +1005,7 @@
     "66i_cyber.js": 4,
     "66b_story.js": 48,
     "40_powers.js": 56,
-    "00_engine.js": 299,
+    "00_engine.js": 243,
     "10_world.js": 12,
     "30_systems.js": 153,
     "42_combat.js": 21,
@@ -961,6 +1013,7 @@
     "64_portal.js": 1,
     "90_render.js": 9,
     "80_player.js": 8,
+    "00b_audio.js": 56,
     "45_aliens.js": 2,
     "70_ui.js": 8,
     "50_npcs.js": 4,
@@ -991,11 +1044,12 @@
     "50_npcs.js": 37,
     "80_player.js": 4,
     "30_systems.js": 29,
-    "00_engine.js": 111,
+    "00_engine.js": 110,
     "90_render.js": 28,
     "66e_boost.js": 1,
     "99_main.js": 1,
     "70_ui.js": 3,
+    "00b_audio.js": 1,
     "40_powers.js": 4,
     "64_portal.js": 2
    }
@@ -1019,8 +1073,9 @@
     "68b_hints.js": 4,
     "66i_cyber.js": 27,
     "66e_boost.js": 1,
-    "00_engine.js": 539,
+    "00_engine.js": 472,
     "47_abilities.js": 2,
+    "00b_audio.js": 67,
     "70_ui.js": 15,
     "66g_kperfect.js": 27,
     "90_render.js": 7,
@@ -1048,7 +1103,8 @@
     "49_ring.js": 1,
     "66j_spire.js": 10,
     "71_opener.js": 7,
-    "00_engine.js": 79,
+    "00_engine.js": 57,
+    "00b_audio.js": 22,
     "49k_sungod.js": 29,
     "40_powers.js": 26,
     "80_player.js": 3,
@@ -1140,7 +1196,7 @@
     "66d_ufo.js": 2,
     "66h_invasion.js": 3,
     "10_world.js": 39,
-    "00_engine.js": 31,
+    "00_engine.js": 23,
     "66c_zones.js": 1,
     "50_npcs.js": 37,
     "66b_story.js": 1,
@@ -1148,6 +1204,7 @@
     "65c_daily.js": 4,
     "66_icons.js": 7,
     "49_ring.js": 24,
+    "00b_audio.js": 8,
     "60_multiplayer.js": 16,
     "64_portal.js": 5,
     "63_host.js": 6,
@@ -1179,10 +1236,11 @@
     "66b_story.js": 14,
     "81_touch.js": 2,
     "65c_daily.js": 1,
-    "00_engine.js": 162,
+    "00b_audio.js": 21,
     "50_npcs.js": 5,
     "66k_prismform.js": 3,
     "46_buildings.js": 8,
+    "00_engine.js": 141,
     "47_abilities.js": 1,
     "40_powers.js": 25,
     "90_render.js": 4
@@ -1194,12 +1252,13 @@
    "purpose": "Input: keyboard, mouse, pointer lock, touch",
    "uses": {
     "20_core.js": 60,
-    "00_engine.js": 99,
+    "00_engine.js": 82,
     "30_systems.js": 121,
     "70_ui.js": 67,
     "49_ring.js": 37,
     "67_hudbar.js": 2,
     "64_portal.js": 2,
+    "00b_audio.js": 17,
     "45b_voidborn.js": 6,
     "66b_story.js": 4,
     "42_combat.js": 17,
@@ -1243,7 +1302,7 @@
     "49_ring.js": 17,
     "20_core.js": 18,
     "90_render.js": 1,
-    "00_engine.js": 11,
+    "00_engine.js": 8,
     "66_icons.js": 2,
     "42_combat.js": 10,
     "66k_prismform.js": 3,
@@ -1260,7 +1319,8 @@
     "71_opener.js": 1,
     "46_buildings.js": 1,
     "44_movement.js": 2,
-    "49c_suit.js": 1
+    "49c_suit.js": 1,
+    "00b_audio.js": 3
    }
   },
   "90_render.js": {
@@ -1307,7 +1367,7 @@
    "lines": 136,
    "purpose": "HUD update",
    "uses": {
-    "00_engine.js": 14,
+    "00_engine.js": 10,
     "30_systems.js": 74,
     "67_hudbar.js": 6,
     "81_touch.js": 12,
@@ -1333,6 +1393,7 @@
     "68b_hints.js": 1,
     "65c_daily.js": 4,
     "10_world.js": 28,
+    "00b_audio.js": 4,
     "64_portal.js": 7,
     "49j_voice.js": 10,
     "90_render.js": 14,
@@ -1409,7 +1470,8 @@
    "line": 5,
    "kind": "fn",
    "usedBy": {
-    "00_engine.js": 14,
+    "00_engine.js": 13,
+    "00b_audio.js": 5,
     "10_world.js": 10,
     "20_core.js": 4,
     "30_systems.js": 4,
@@ -2468,6 +2530,7 @@
    "line": 553,
    "kind": "fn",
    "usedBy": {
+    "00b_audio.js": 1,
     "20_core.js": 2,
     "30_systems.js": 15,
     "40_powers.js": 4,
@@ -2610,11 +2673,46 @@
     "30_systems.js": 1
    }
   },
-  "SFX": {
-   "file": "00_engine.js",
-   "line": 562,
+  "MIX": {
+   "file": "00b_audio.js",
+   "line": 8,
    "kind": "const",
    "usedBy": {
+    "00b_audio.js": 6
+   }
+  },
+  "jit": {
+   "file": "00b_audio.js",
+   "line": 9,
+   "kind": "fn",
+   "usedBy": {
+    "00b_audio.js": 15,
+    "66f_kathana.js": 4,
+    "66g_kperfect.js": 4
+   }
+  },
+  "SFX_CLIP": {
+   "file": "00b_audio.js",
+   "line": 12,
+   "kind": "fn",
+   "usedBy": {
+    "00b_audio.js": 1
+   }
+  },
+  "sfxIR": {
+   "file": "00b_audio.js",
+   "line": 13,
+   "kind": "fn",
+   "usedBy": {
+    "00b_audio.js": 1
+   }
+  },
+  "SFX": {
+   "file": "00b_audio.js",
+   "line": 17,
+   "kind": "const",
+   "usedBy": {
+    "00b_audio.js": 2,
     "30_systems.js": 14,
     "40_powers.js": 21,
     "42_combat.js": 17,
@@ -4490,7 +4588,8 @@
    "line": 226,
    "kind": "const",
    "usedBy": {
-    "00_engine.js": 5,
+    "00_engine.js": 4,
+    "00b_audio.js": 1,
     "20_core.js": 32,
     "30_systems.js": 19,
     "40_powers.js": 28,
@@ -5104,7 +5203,7 @@
    "line": 4,
    "kind": "const",
    "usedBy": {
-    "00_engine.js": 1,
+    "00b_audio.js": 1,
     "10_world.js": 1,
     "30_systems.js": 3,
     "40_powers.js": 7,
@@ -5495,6 +5594,7 @@
    "line": 18,
    "kind": "fn",
    "usedBy": {
+    "00b_audio.js": 1,
     "20_core.js": 3,
     "30_systems.js": 26,
     "40_powers.js": 5,
@@ -7124,7 +7224,7 @@
    "line": 67,
    "kind": "fn",
    "usedBy": {
-    "00_engine.js": 1,
+    "00b_audio.js": 2,
     "20_core.js": 4,
     "42_combat.js": 16,
     "43_ragdoll.js": 1,
@@ -11248,6 +11348,7 @@
    "line": 6,
    "kind": "fn",
    "usedBy": {
+    "00b_audio.js": 4,
     "20_core.js": 2,
     "44_movement.js": 1,
     "45b_voidborn.js": 1,
@@ -14548,6 +14649,7 @@
    "line": 23,
    "kind": "const",
    "usedBy": {
+    "00b_audio.js": 1,
     "20_core.js": 3,
     "49_ring.js": 1,
     "49h_space.js": 1,
@@ -20413,7 +20515,7 @@
    "line": 92,
    "kind": "fn",
    "usedBy": {
-    "00_engine.js": 2,
+    "00b_audio.js": 2,
     "49j_voice.js": 2,
     "65_rewards.js": 1,
     "66k_prismform.js": 2,
@@ -21420,6 +21522,7 @@
    "line": 83,
    "kind": "const",
    "usedBy": {
+    "00b_audio.js": 4,
     "20_core.js": 6,
     "44_movement.js": 1,
     "45b_voidborn.js": 2,

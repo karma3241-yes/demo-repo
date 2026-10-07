@@ -45,13 +45,13 @@ Extends `SFX` (no new global object, so every existing call keeps working).
 ```
 voices ─► sfxBus ─┐
 ui ─────► uiBus ──┤
-ambience► ambBus ─┼─► mix ─► limiter(compressor) ─► master(gain) ─► destination
+ambience► ambBus ─┼─► mix ─► soft clipper ─► master(gain) ─► destination
 music ──► musicBus┘            ▲
                       reverb send (convolver, generated IR) from sfx/music/amb
 ```
 
 - `master` stays the single mute/volume node (contract above).
-- `limiter`: `DynamicsCompressorNode` set as a soft brick-wall (threshold ≈ -8 dB, ratio high, fast attack) to prevent clipping when many voices stack.
+- Safety stage: a `WaveShaperNode` soft clipper (untouched up to half scale, tanh-rounded above). **Changed in phase 1:** a `DynamicsCompressorNode` limiter was built first and measured, and Chrome's compressor took ~10 dB off short transients (punch, gun, zap), so it was dropped. The voice cap and level design keep pile-ups in check; the lab's stacking test is the check.
 - `reverb`: `ConvolverNode` with an impulse generated at init from decaying noise (~1.6 s, slight stereo decorrelation, high-frequency damping). A single shared send; per-sound send amount.
 - `musicBus` has a sidechain-style **duck**: a gain automation hook `SFX.duck(depth,attack,release)` that big hits and stingers call.
 - Per-bus gain constants live in one `MIX` table so the final mix pass is a one-place edit.
@@ -138,7 +138,7 @@ A standalone page that loads the built game's audio modules and offers: a button
 
 Each phase builds, is playable, and is committed separately on a new branch from events/prism (`events/audio`).
 
-1. **Engine:** bus graph, limiter, reverb, voice builders, jitter, voice cap; legacy methods re-voiced; sound lab with the old events. *Gate: owner listens in the lab.*
+1. **Engine:** bus graph, soft clipper, reverb, voice builders, jitter, voice cap; legacy methods re-voiced; sound lab with the old events. *Gate: owner listens in the lab.*
 2. **Semantic events:** `play()` table + `chime` repointing + UI sounds.
 3. **Dopamine layer:** combo ladder, streaks, critical, anticipation, ducking.
 4. **Adaptive music:** sequencer, layers, intensity, overworld + menu themes.
@@ -161,7 +161,7 @@ Each phase builds, is playable, and is committed separately on a new branch from
 | Breaking the mute contract | Single `master` node kept; contract checks above |
 | Mobile audio unlock and background tab | Reuse existing `audioWake()`; pause the scheduler when hidden |
 | Scope: 457 call sites | Same-signature upgrade first (free improvement), then targeted repointing of ~41 `chime()` and the headline story moments only |
-| Loudness inconsistency | One `MIX` table and the limiter; final mix pass in phase 5 |
+| Loudness inconsistency | One `MIX` table and the soft clipper; final mix pass in phase 5 |
 
 ## 7. Open questions (decide during build, default in brackets)
 

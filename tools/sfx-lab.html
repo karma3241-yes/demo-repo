@@ -1,0 +1,104 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Skyline Guardian sound lab</title>
+<style>
+  :root{color-scheme:dark;--bg:#0d1117;--card:#161b22;--line:#2a313c;--ink:#e6edf3;--dim:#8b949e;--acc:#58a6ff;--gold:#e3b341;--bad:#f85149;--ok:#3fb950}
+  *{box-sizing:border-box}
+  body{margin:0;padding:16px;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,Segoe UI,sans-serif;max-width:920px;margin-inline:auto}
+  h1{font-size:20px;margin:0 0 4px}h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:22px 0 8px}
+  p{color:var(--dim);margin:0 0 10px}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 14px;font:inherit;cursor:pointer}
+  button:hover{border-color:var(--acc)}button:active{transform:translateY(1px)}
+  button.on{background:var(--acc);color:#04111f;border-color:var(--acc);font-weight:600}
+  button.go{border-color:var(--gold);color:var(--gold)}
+  label{color:var(--dim);display:flex;gap:8px;align-items:center}
+  input[type=range]{accent-color:var(--acc)}
+  #meter{height:10px;background:var(--card);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:10px 0}
+  #bar{height:100%;width:0;background:var(--ok);transition:width .05s}
+  table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+  td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right}td:first-child,th:first-child{text-align:left}
+  .flag{color:var(--bad)}.fine{color:var(--ok)}
+</style>
+<h1>Sound lab</h1>
+<p>Click any button first (the browser blocks audio until you do). Switch engine to compare the old sounds with the new ones. Press a button several times: the new sounds should never repeat exactly.</p>
+
+<h2>Engine</h2>
+<div class="row"><button id="eNew" class="on">New</button><button id="eOld">Old (before the rework)</button>
+  <label>Volume <input id="vol" type="range" min="0" max="1" step="0.01" value="0.7"></label></div>
+<div id="meter"><div id="bar"></div></div>
+<div id="peak" style="color:var(--dim)">peak -inf dBFS</div>
+
+<h2>One-shots</h2><div class="row" id="shots"></div>
+
+<h2>Continuous</h2>
+<div class="row">
+  <label><input type="checkbox" id="laser"> laser</label>
+  <label>wind <input id="wind" type="range" min="0" max="1" step="0.01" value="0"></label>
+  <label>engine <input id="eng" type="range" min="0" max="1" step="0.01" value="0"></label>
+  <label>siren <input id="sir" type="range" min="0" max="1" step="0.01" value="0"></label>
+</div>
+
+<h2>Stacking</h2>
+<p>A scripted 7-second fight: punches, shots, hits, glass and explosions piling up. Listen for distortion, harshness, and sounds disappearing.</p>
+<div class="row"><button id="fight" class="go">Play the fight</button><span id="fstate" style="color:var(--dim)"></span></div>
+
+<h2>Level check (new engine, rendered offline)</h2>
+<p>Renders every one-shot for 3 s and reports peak and loudness after the limiter. Peak near 0 dB means it is being squashed; silent means a bug.</p>
+<div class="row"><button id="check">Check levels</button></div>
+<div id="report"></div>
+
+<script>
+// What the game provides to the audio code
+const save={settings:{volume:0.7}},P={pos:{x:0,y:0,z:0},yaw:0};
+const clamp=(v,a,b)=>v<a?a:v>b?b:v,rr=(a,b)=>a+Math.random()*(b-a);
+</script>
+<script src="sfx-lab-old.js"></script>
+<script src="../src/00b_audio.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const SHOTS=[['Punch',s=>s.punch(1)],['Hit',s=>s.hit()],['Gun',s=>s.gun(1)],['Zap',s=>s.zap(1)],['Swish',s=>s.swish()],['Whoosh',s=>s.whoosh()],
+  ['Boom (big)',s=>s.boom(1,1.1)],['Boom (small)',s=>s.boom(0.5,0.5)],['Crash',s=>s.crash(1)],['Glass',s=>s.glass(1)],['Splash',s=>s.splash(1)],
+  ['Honk',s=>s.honk(1)],['Alarm',s=>s.alarm()],['Chime',s=>s.chime()],['Level up',s=>s.levelUp()],['Transform',s=>s.transform()]];
+let eng=SFX,an=null,buf=null;
+function use(e,btn){
+  eng.setLaser&&eng.ctx&&(eng.setLaser(false),eng.setWind(0),eng.setEngine(false,0),eng.setSiren(0));
+  eng=e;$('eNew').classList.toggle('on',e===SFX);$('eOld').classList.toggle('on',e!==SFX);
+  e.init();e.setVolume(+$('vol').value);
+  if(an){try{an.disconnect();}catch(x){}}
+  an=e.ctx.createAnalyser();an.fftSize=1024;buf=new Float32Array(an.fftSize);e.master.connect(an);
+}
+$('eNew').onclick=()=>use(SFX);$('eOld').onclick=()=>use(SFX_OLD);
+$('vol').oninput=()=>{(eng.ctx?eng:SFX).setVolume(+$('vol').value);};
+for(const [name,fn] of SHOTS){const b=document.createElement('button');b.textContent=name;b.onclick=()=>{if(!eng.ctx)use(eng);fn(eng);};$('shots').appendChild(b);}
+$('laser').onchange=e=>{if(!eng.ctx)use(eng);eng.setLaser(e.target.checked);};
+$('wind').oninput=e=>{if(!eng.ctx)use(eng);eng.setWind(+e.target.value);};
+$('eng').oninput=e=>{if(!eng.ctx)use(eng);eng.setEngine(+e.target.value>0,+e.target.value);};
+$('sir').oninput=e=>{if(!eng.ctx)use(eng);eng.setSiren(+e.target.value);};
+
+let peakHold=0;
+(function loop(){requestAnimationFrame(loop);if(!an)return;an.getFloatTimeDomainData(buf);let p=0;for(const x of buf)p=Math.max(p,Math.abs(x));
+  $('bar').style.width=Math.min(100,p*100)+'%';$('bar').style.background=p>0.95?'var(--bad)':p>0.7?'var(--gold)':'var(--ok)';
+  peakHold=Math.max(peakHold*0.995,p);$('peak').textContent='peak '+(peakHold>0.0001?(20*Math.log10(peakHold)).toFixed(1):'-inf')+' dBFS';})();
+
+$('fight').onclick=()=>{if(!eng.ctx)use(eng);const e=eng;$('fstate').textContent='fighting...';const ev=[];
+  for(let t=0;t<7;t+=rr(0.13,0.24))ev.push([t,()=>{const r=Math.random();r<0.4?e.punch(1):r<0.7?e.hit():r<0.9?e.gun(1):e.swish();}]);
+  for(let t=0.4;t<7;t+=rr(0.5,0.9))ev.push([t,()=>e.gun(1)]);
+  for(const t of [1.2,2.6,3.1,4.8,5.9])ev.push([t,()=>e.boom(rr(0.5,1),rr(0.4,1.1))]);
+  for(const t of [2,4.4,6.2])ev.push([t,()=>e.glass(1)]);
+  ev.push([3.5,()=>e.crash(1)],[6.5,()=>e.levelUp()]);
+  for(const [t,f] of ev)setTimeout(f,t*1000);setTimeout(()=>{$('fstate').textContent='';},7600);};
+
+$('check').onclick=async()=>{
+  const out=[],live=SFX.ctx;$('report').textContent='rendering...';
+  for(const [name,fn] of SHOTS){
+    const off=new OfflineAudioContext(2,44100*3,44100);SFX.build(off);fn(SFX);
+    const b=await off.startRendering();let pk=0,sq=0,n=0;
+    for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<d.length;i++){const a=Math.abs(d[i]);if(a>pk)pk=a;sq+=d[i]*d[i];n++;}}
+    out.push([name,pk,Math.sqrt(sq/n)]);}
+  if(live&&live.close)live.close().catch(()=>{});SFX.ctx=null;if(eng===SFX)use(SFX);
+  const db=x=>x>0.00001?(20*Math.log10(x)).toFixed(1):'-inf';
+  $('report').innerHTML='<table><tr><th>Sound</th><th>Peak dBFS</th><th>Loudness dBFS (RMS)</th><th></th></tr>'+out.map(([n,pk,rms])=>
+    '<tr><td>'+n+'</td><td>'+db(pk)+'</td><td>'+db(rms)+'</td><td class="'+(pk<0.001?'flag':pk>0.97?'flag':'fine')+'">'+(pk<0.001?'SILENT':pk>0.97?'hot':'ok')+'</td></tr>').join('')+'</table>';};
+</script>

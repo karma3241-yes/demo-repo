@@ -443,7 +443,7 @@ function kScreamSfx(dur){ // a deep, distorted roar: low saws and a sub square i
     const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=7;lg.gain.value=5;lfo.connect(lg);
     for(const [type,f0,f1,det] of [['sawtooth',72,52,0],['sawtooth',72,52,18],['square',36,26,0]]){const o=c.createOscillator();o.type=type;o.detune.value=det;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur);lg.connect(o.frequency);o.connect(ws);o.start(t);o.stop(t+dur+0.1);}
     if(SFX.noise){const n=c.createBufferSource();n.buffer=SFX.noise;n.loop=true;const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=2.5;bp.frequency.setValueAtTime(220,t);bp.frequency.exponentialRampToValueAtTime(2600,t+dur*0.5);bp.frequency.exponentialRampToValueAtTime(300,t+dur);const ng=c.createGain();ng.gain.value=0.6;n.connect(bp).connect(ng).connect(ws);n.start(t);n.stop(t+dur+0.1);}
-    ws.connect(lp).connect(g).connect(SFX.master);lfo.start(t);lfo.stop(t+dur+0.1);
+    ws.connect(lp).connect(g).connect(SFX.sfx);lfo.start(t);lfo.stop(t+dur+0.1);
   }catch(e){logErr(e);}
 }
 // ================================================================

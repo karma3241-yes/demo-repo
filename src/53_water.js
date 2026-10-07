@@ -13,7 +13,7 @@ SFX.water=function(v=1){if(!this.ctx||v<=0.02)return;const c=this.ctx,t=c.curren
   const s=c.createBufferSource();s.buffer=this.noise;const f=c.createBiquadFilter();f.type='bandpass';f.Q.value=0.9;
   f.frequency.setValueAtTime(2600,t);f.frequency.exponentialRampToValueAtTime(320,t+len);
   const g=c.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.55*Math.min(1.4,v),t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+len);
-  s.connect(f).connect(g).connect(this.master);s.start(t,Math.random());s.stop(t+len+0.05);this.tone('sine',700,160,0.14,0.06*Math.min(1,v));};
+  s.connect(f).connect(g).connect(this.sfx);s.start(t,Math.random());s.stop(t+len+0.05);this.tone('sine',700,160,0.14,0.06*Math.min(1,v));};
 function splashAt(x,y,z,k){ // k: 0.2 a ripple ... 1 a big dive
   const n=Math.round(10+k*40),s=0.5+k;
   for(let i=0;i<n;i++){const a=rr(0,TAU),o=rr(0.2,1.2)*s;emit(x+Math.cos(a)*o,y+0.1,z+Math.sin(a)*o,Math.cos(a)*rr(1,4)*s,rr(5,13)*s,Math.sin(a)*rr(1,4)*s,rr(0.5,1.1),WATER[(Math.random()*2)|0],rr(0.5,1.3)*(0.7+k*0.5),22,0.3);}
