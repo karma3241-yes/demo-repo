@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-10-12T04:39:02.914Z",
+  "result": "passed",
+  "scope": "Actual CDN SDK initialization, config, local mock-platform storage write/reload; no live ads, accounts or portal iframe.",
+  "boot": {
+    "platform": "mock",
+    "language": "en",
+    "rewarded": false,
+    "interstitial": false,
+    "authorizationSupported": false,
+    "authorized": false,
+    "ready": true,
+    "errs": []
+  },
+  "requests": [
+    "http://127.0.0.1:58333/index.html",
+    "https://bridge.playgama.com/v2/stable/playgama-bridge.js",
+    "http://127.0.0.1:58333/assets/chakra-regular.ttf",
+    "http://127.0.0.1:58333/assets/bungee.ttf",
+    "http://127.0.0.1:58333/assets/chakra-bold.ttf",
+    "http://127.0.0.1:58333/playgama-bridge-config.json",
+    "http://127.0.0.1:58333/index.html",
+    "https://bridge.playgama.com/v2/stable/playgama-bridge.js",
+    "http://127.0.0.1:58333/assets/chakra-regular.ttf",
+    "http://127.0.0.1:58333/assets/bungee.ttf",
+    "http://127.0.0.1:58333/assets/chakra-bold.ttf",
+    "http://127.0.0.1:58333/playgama-bridge-config.json"
+  ],
+  "messages": [
+    {
+      "type": "info",
+      "text": "%c PlaygamaBridge v2.3.1 initialized.  background: #9747FF; color: white; padding: 1px 6px; border-radius: 4px"
+    },
+    {
+      "type": "info",
+      "text": "%c PlaygamaBridge v2.3.1 initialized.  background: #9747FF; color: white; padding: 1px 6px; border-radius: 4px"
+    }
+  ],
+  "errors": []
+}

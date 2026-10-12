@@ -1,0 +1,127 @@
+{
+  "timestamp": "2026-10-12T04:40:07.655Z",
+  "results": [
+    {
+      "name": "Visible menu sign-in uses a player action; failure and cancellation allow retry",
+      "result": "passed"
+    },
+    {
+      "name": "Pause sign-in succeeds once, updates both menus and preserves hero, progress and pause",
+      "result": "passed"
+    },
+    {
+      "name": "Already authorized players see their account without another authorization request",
+      "result": "passed"
+    },
+    {
+      "name": "Unsupported authorization hides sign-in and keeps guest play available",
+      "result": "passed"
+    },
+    {
+      "name": "A stalled sign-in times out and restores retry without blocking play",
+      "result": "passed"
+    },
+    {
+      "name": "Touch sign-in remains usable at 915x412",
+      "result": "passed"
+    },
+    {
+      "name": "Touch sign-in remains usable at 640x360",
+      "result": "passed"
+    },
+    {
+      "name": "Bridge storage finishes before game construction",
+      "result": "passed"
+    },
+    {
+      "name": "Gameplay lifecycle, pause, audio and input follow Bridge",
+      "result": "passed"
+    },
+    {
+      "name": "Cancelled and failed rewarded ads never grant XP",
+      "result": "passed"
+    },
+    {
+      "name": "reward closed returns ad-frame focus and resumes on the next frame",
+      "result": "passed"
+    },
+    {
+      "name": "reward failed returns ad-frame focus and resumes on the next frame",
+      "result": "passed"
+    },
+    {
+      "name": "interstitial closed returns ad-frame focus and resumes on the next frame",
+      "result": "passed"
+    },
+    {
+      "name": "reward closed with delayed overlay focus returns ad-frame focus and resumes on the next frame",
+      "result": "passed"
+    },
+    {
+      "name": "Ad focus recovery preserves a separate platform pause and a hidden tab",
+      "result": "passed"
+    },
+    {
+      "name": "Reward confirmed once, applied only after closure; platform pause still wins",
+      "result": "passed"
+    },
+    {
+      "name": "A second request is declined while an ad is active",
+      "result": "passed"
+    },
+    {
+      "name": "Ad UI remains usable while game actions are blocked",
+      "result": "passed"
+    },
+    {
+      "name": "Power trials are only saved for completed rewarded ads",
+      "result": "passed"
+    },
+    {
+      "name": "Meter refills and permanent cosmetics require rewarded confirmation",
+      "result": "passed"
+    },
+    {
+      "name": "Manual pause and online simulation remain suspended across ads/host pause",
+      "result": "passed"
+    },
+    {
+      "name": "Knockout interstitial respects startup delay and three-minute cooldown",
+      "result": "passed"
+    },
+    {
+      "name": "Save writes batch through Bridge and survive reload",
+      "result": "passed"
+    },
+    {
+      "name": "Pause Settings button opens settings in Playgama build",
+      "result": "passed"
+    },
+    {
+      "name": "Failed writes keep the newest progress for retry",
+      "result": "passed"
+    },
+    {
+      "name": "SDK initialization failure shows retry without starting or overwriting progress",
+      "result": "passed"
+    },
+    {
+      "name": "Storage read failure shows retry without starting or overwriting progress",
+      "result": "passed"
+    },
+    {
+      "name": "Unsupported ads are declined without rewards",
+      "result": "passed"
+    },
+    {
+      "name": "Mobile portrait, landscape, reward UI and fullscreen",
+      "result": "passed"
+    },
+    {
+      "name": "Fresh profiles wait for host resume and auto-start without a launch ad",
+      "result": "passed"
+    }
+  ],
+  "uncaughtErrors": [],
+  "scope": "Controlled Bridge integration in Chrome; mobile viewport emulation, not physical devices or live Playgama ads."
+}

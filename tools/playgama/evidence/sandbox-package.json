@@ -1,0 +1,16 @@
+{
+  "archive": "skyline-guardian-playgama-sandbox-2026.10.12.1.zip",
+  "bytes": 609361,
+  "sha256": "720a40a85c6b638370b82ec3972147a40f0d22eb697844adefc5ada2ff715f2b",
+  "entries": [
+    "index.html",
+    "playgama-bridge-config.json",
+    "assets/bungee-license.txt",
+    "assets/bungee.ttf",
+    "assets/chakra-bold.ttf",
+    "assets/chakra-license.txt",
+    "assets/chakra-regular.ttf",
+    "assets/chakra-semibold.ttf"
+  ],
+  "originalMultiplayerArchiveUnchanged": true
+}

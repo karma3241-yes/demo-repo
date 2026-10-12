@@ -1,0 +1,33 @@
+{
+  "platforms": {
+    "playgama": {}
+  },
+  "advertisement": {
+    "minimumDelayBetweenInterstitial": 180,
+    "initialInterstitialDelay": 180,
+    "interstitial": {
+      "disable": false,
+      "placementFallback": "knockout",
+      "placements": [
+        {
+          "id": "knockout"
+        }
+      ]
+    },
+    "rewarded": {
+      "disable": false,
+      "placementFallback": "bonus",
+      "placements": [
+        {
+          "id": "bonus"
+        }
+      ]
+    },
+    "banner": {
+      "disable": true
+    },
+    "advancedBanners": {
+      "disable": true
+    }
+  }
+}
